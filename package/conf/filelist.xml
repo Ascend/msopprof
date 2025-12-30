@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config name="mindstudio-opprof" dst_path="mindstudio-opprof" install_path="mindstudio-opprof" install_own="$username:$usergroup" install_mod="550">
+    <!-- install directory -->
+    <dir_info value="common" install_mod="550">
+        <path value="${TARGET_ENV}"/>
+        <path value="${TARGET_ENV}/bin" install_softlink="bin"/>
+        <path value="tools" install_mod="750"/>
+    </dir_info>
+
+    <dir_info value="mindstudio-opprof">
+        <path value="share/info/mindstudio-opprof/script"/>
+        <path value="tools/msopprof"/>
+        <path value="tools/msopprof/bin"/>
+        <path value="tools/msopprof/lib64"/>
+    </dir_info>
+
+    <file_info value="install_info" copy_type="delivery" src_path="" dst_path="share/info/mindstudio-opprof" install_path="share/info/mindstudio-opprof" install_mod="440">
+        <file value="version.info"/>
+        <file value="scene.info"/>
+    </file_info>
+
+
+    <file_info value="scripts" copy_type="source" src_path="package/script" dst_path="share/info/mindstudio-opprof/script" install_path="share/info/mindstudio-opprof/script" install_mod="550">
+        <file value="install.sh"/>
+        <file value="uninstall.sh"/>
+        <file value="cann_uninstall.sh"/>
+        <file value="common.sh"/>
+        <file value="parser_install.sh" copy_type="delivery" src_path=""/>
+        <file value="filelist.csv" copy_type="delivery" src_path="" install_mod="440"/>
+        <file value="help.info" src_path="package/conf" install_mod="440"/>
+    </file_info>
+
+    <file_info value="msopprof/bin" copy_type="source" src_path="${OUTPUT}/bin" dst_path="mindstudio-opprof/tools/msopprof/bin" install_path="tools/msopprof/bin" install_mod="550">
+        <file value="msopprof" install_softlink="${TARGET_ENV}/bin/msopprof"/>
+        <file value="llvm-symbolizer" />
+        <file value="kernel-launcher" />
+    </file_info>
+
+    <file_info value="msopprof/lib64" copy_type="source" src_path="${OUTPUT}/lib64" dst_path="mindstudio-opprof/tools/msopprof/lib64" install_path="tools/msopprof/lib64" install_mod="440">
+        <file value="dfx_kernel_dav-c220-cube.json"/>
+        <file value="dfx_kernel_dav-c220-cube.o"/>
+        <file value="dfx_kernel_dav-m200.json"/>
+        <file value="dfx_kernel_dav-m200.o"/>
+        <file value="empty_kernel_dav-c220-vec.json"/>
+        <file value="empty_kernel_dav-c220-vec.o"/>
+        <file value="libmsopprof_injection.so"/>
+        <file value="libprofplugin_instrprofend.so"/>
+        <file value="libprofplugin_memorychart.so"/>
+        <file value="libprofplugin_operandrecord.so"/>
+    </file_info>
+</config>

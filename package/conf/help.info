@@ -1,0 +1,12 @@
+
+  --full                            Install full mode  
+  --install                         Install run mode
+  --run                             Install run mode
+  --devel                           Install develop mode
+  --uninstall                       Uninstall product
+  --upgrade                         Upgrade product immediately
+  --install-path=<path>             Install product to specific dir path
+  --install-for-all                 Install for all user
+  --version                         Query version info
+  --force                           force install without asking
+  

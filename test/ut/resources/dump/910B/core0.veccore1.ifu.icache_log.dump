@@ -1,0 +1,3 @@
+[info] 23071: icache read address is 0x10f86a80, size is 0x00000080, type:1, last:0, status is MISS
+[info] 23073: icache read address is 0x10f86b00, size is 0x00000080, type:1, last:0, status is MISS
+[info] 23074: icache read address is 0x10f86ad8, size is 0x00000080, type:1, last:0, status is MISS

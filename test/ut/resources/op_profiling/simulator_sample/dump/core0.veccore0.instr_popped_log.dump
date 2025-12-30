@@ -1,0 +1,6 @@
+[info] [00000253] (PC: 0x10cfa000) SCALAR   : (Binary: 0x07000001) MOV_XD_IMM  XD:X0=0, IMM:0x1,
+[info] [00000256] (PC: 0x10cfa008) VEC      : (Binary: 0x80400000) MOVEMASK  dtype:B16 XD:0xffffffffffffffff
+[info] [00000276] (PC: 0x10cfa058) MTE2     : (Binary: 0x74401100) DMA_MOV  Src:OUT, Dst:UB, XD:X0=0
+[info] [00000181] (PC: 0x10ce8000) SCALAR   : (Binary: 0x07000001) scalar_mov_xd_imme16(x[0]= 0x0, imme16:0x1 )
+[00000182](PC: 0x10ce8004) SCALAR : (Binary: 0x02000080) scalar_neg(dType:0x0,  x[0]= 0x0, xn:0x0)
+[00000184](PC: 0x10ce8008) VECTOR : (Binary: 0x80400000) MOVEMASK  XN:X0=0xffffffffffffffff, Id:415;

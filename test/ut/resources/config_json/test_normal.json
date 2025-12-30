@@ -1,0 +1,46 @@
+{
+    "kernel_name": "sin_custom",
+    "kernel_path": "/home/lantianxiang/workspace/test_vec_sin/aicore.bin.0",
+    "blockdim": 32,
+    "mode": "ca",
+    "tiling_key": 64,
+    "device_id": 0,
+    "magic": "RT_DEV_BINARY_MAGIC_ELF_AIVEC",
+    "test_cases": [
+        {
+        "case_name": "Test_Sin_001",
+        "param_desc": [
+            {
+                "param_type": "input",
+                "type": "float32",
+                "shape": [
+                    2000
+                ],
+                "data_path": "/home/lantianxiang/workspace/test_vec_sin/input_x.bin",
+                "name": "x"
+            },
+            {
+                "param_type": "output",
+                "type": "float32",
+                "shape": [
+                    2000
+                ],
+                "name": "z"
+            },
+            {
+                "param_type": "workspace",
+                "user_workspace_size": 4096
+            },
+            {
+                "param_type": "tiling",
+                "tiling_data_size": 20,
+                "tiling_data_path": "/home/lantianxiang/workspace/test_vec_sin/tiling.bin"
+            },
+            {
+                "param_type": "fftsAddr",
+                "data_size": 65536
+            }
+        ]
+        }
+    ]
+}

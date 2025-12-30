@@ -1,0 +1,3 @@
+Op Name=add
+Block Dim=1
+Run Soc Version=Ascend910B4

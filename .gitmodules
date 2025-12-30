@@ -1,0 +1,29 @@
+[submodule "thirdparty/boost"]
+	path = thirdparty/boost
+	url = https://github.com/boostorg/boost.git
+[submodule "thirdparty/googletest"]
+	path = thirdparty/googletest
+	url = https://gitcode.com/GitHub_Trending/go/googletest
+[submodule "thirdparty/json"]
+	path = thirdparty/json
+	url = https://gitcode.com/GitHub_Trending/js/json.git
+	branch = develop
+[submodule "thirdparty/llvm-project"]
+	path = thirdparty/llvm-project
+	url = https://gitcode.com/GitHub_Trending/ll/llvm-project
+[submodule "thirdparty/makeself"]
+	path = thirdparty/makeself
+	url = https://gitcode.com/cann-src-third-party/makeself.git
+	branch = master
+[submodule "thirdparty/mockcpp"]
+	path = thirdparty/mockcpp
+	url = https://gitcode.com/Ascend/mockcpp.git
+	branch = ascend_mindstudio_mockcpp_master
+[submodule "thirdparty/securec"]
+	path = thirdparty/securec
+	url = https://gitcode.com/openeuler/libboundscheck.git
+	branch = master
+[submodule "msopscommon"]
+	path = msopscommon
+	url = https://gitcode.com/Ascend/msopcom.git
+	branch = master

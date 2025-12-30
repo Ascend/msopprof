@@ -1,0 +1,184 @@
+/* -------------------------------------------------------------------------
+ *  This file is part of the MindStudio project.
+ * Copyright (c) 2025 Huawei Technologies Co.,Ltd.
+ *
+ * MindStudio is licensed under Mulan PSL v2.
+ * You can use this software according to the terms and conditions of the Mulan PSL v2.
+ * You may obtain a copy of Mulan PSL v2 at:
+ *
+ *          http://license.coscl.org.cn/MulanPSL2
+ *
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+ * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+ * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+ * See the Mulan PSL v2 for more details.
+ * ------------------------------------------------------------------------- */
+
+
+#ifndef MSOPT_DMA_INSTR_TABLE_A5_H
+#define MSOPT_DMA_INSTR_TABLE_A5_H
+
+#include <string>
+#include <unordered_map>
+
+namespace Encode {
+const std::unordered_map<uint32_t, std::string> INSTR2_TABLE1_A5 = {
+    {0x61400000, "SET_RAWHEADER_TO_OUT"},
+    {0x61800000, "DECOMPRESS_HEADER"},
+    {0x61c00000, "UNZIP_INDEX"},
+    {0x68000000, "HEBCD_OUT_TO_UB"},
+    {0x68c00000, "LOAD_L1_TO_L0B_WINOGRAD_V2"},
+    {0x69c00000, "MOV_L1_TO_OUT_ALIGN"},
+    {0x6a400000, "MOV_L1_TO_OUT_MULTI_NZ2DN"},
+    {0x6ac00000, "MOV_L1_TO_OUT_MULTI_NZ2ND"},
+    {0x6bc00000, "MOV_UB_TO_OUT_ALIGN"},
+    {0x6e000000, "LOAD_L1_TO_L0B_2D_SP"},
+    {0x6e400000, "ND_DMA_OUT_TO_UB"},
+    {0x6e800000, "MOV_OUT_TO_L1_V2"},
+    {0x74000000, "MOV_OUT_TO_L1_ALIGN_V2"},
+    {0x74400000, "MOV_L1_TO_OUT_ALIGN_V2"},
+    {0x74800000, "MOV_OUT_TO_UB_ALIGN_V2"},
+    {0x74c00000, "MOV_UB_TO_OUT_ALIGN_V2"},
+    {0x75000000, "MOV_L1_TO_L1_LOOPENHANCE"},
+    {0x75400000, "MOV_L1_TO_UB_MULTI_NZ2DN"},
+    {0x75800000, "MOV_L1_TO_UB_LOOPENHANCE"},
+    {0x75c00000, "MOV_L1_TO_UB_MULTI_NZ2ND"},
+};
+
+const std::unordered_map<uint32_t, std::string> INSTR9_TABLE0_A5 = {
+    {0xc0000000, "MOV_L1_TO_FB"},
+};
+
+const std::unordered_map<uint32_t, std::string> INSTR19_TABLE0_A5 = {
+    {0x62400000, "COMPRESS_UB_TO_OUT.b8"},
+    {0x62400010, "COMPRESS_UB_TO_OUT.b8"},
+    {0x65000000, "LOAD_L1_TO_L0A_3Dv2.b8"},
+    {0x65400000, "LOAD_L1_TO_L0A_3Dv2.b16"},
+    {0x67000000, "LOAD_L1_TO_L0A_3Dv2.b4"},
+    {0x67400000, "LOAD_L1_TO_L0A_3Dv2.b32"},
+    {0x65000002, "LOAD_L1_TO_L0B_3Dv2.b8"},
+    {0x65400002, "LOAD_L1_TO_L0B_3Dv2.b16"},
+    {0x67000002, "LOAD_L1_TO_L0B_3Dv2.b4"},
+    {0x67400002, "LOAD_L1_TO_L0B_3Dv2.b32"},
+    {0x65800000, "LOAD_L1_TO_UB_3Dv2.b8"},
+    {0x65c00000, "LOAD_L1_TO_UB_3Dv2.b16"},
+    {0x67800000, "LOAD_L1_TO_UB_3Dv2.b4"},
+    {0x67c00000, "LOAD_L1_TO_UB_3Dv2.b32"},
+};
+
+const std::unordered_map<uint32_t, std::string> INSTR20_TABLE0_A5 = {
+    {0x60800000, "LOAD_OUT_TO_L0A_UNZIP"},
+    {0x60800001, "LOAD_OUT_TO_L0B_UNZIP"},
+    {0x60800002, "LOAD_OUT_TO_L1_UNZIP"},
+    {0x61000000, "DECOMPRESS_OUT_TO_UB.b8"},
+    {0x61000002, "DECOMPRESS_OUT_TO_UB.f16"},
+    {0x61000001, "DECOMPRESS_OUT_TO_L1.b8"},
+    {0x61000003, "DECOMPRESS_OUT_TO_L1.f16"},
+    {0x62000000, "LOAD_OUT_TO_L1_IMAGE.s8"},
+    {0x62000001, "LOAD_OUT_TO_L1_IMAGE.u8"},
+    {0x62000002, "LOAD_OUT_TO_L1_IMAGE.f16"},
+    {0x62000003, "LOAD_OUT_TO_L1_IMAGE.s16"},
+    {0x64000000, "LOAD_L1_TO_L0B_B2.f16"},
+    {0x64000001, "LOAD_L1_TO_L0B_B2.b8"},
+    {0x64400000, "LOAD_OUT_TO_SMASK"},
+    {0x64400001, "LOAD_UB_TO_SMASK"},
+    {0x64400002, "LOAD_L1_TO_SMASK"},
+    {0x66000000, "LOAD_OUT_TO_L0A_2Dv2"},
+    {0x66000001, "LOAD_OUT_TO_L0B_2Dv2"},
+    {0x66000002, "LOAD_OUT_TO_L1_2Dv2"},
+    {0x68800000, "LOAD_L1_TO_L0A_WINOGRAD_V2.s8"},
+    {0x68800001, "LOAD_L1_TO_L0A_WINOGRAD_V2.u8"},
+    {0x68800002, "LOAD_L1_TO_L0A_WINOGRAD_V2.s16"},
+    {0x69000000, "STORE_L1_TO_OUT_IMAGE.s8"},
+    {0x69000001, "STORE_L1_TO_OUT_IMAGE.u8"},
+    {0x69000002, "STORE_L1_TO_OUT_IMAGE.f16"},
+    {0x69000003, "STORE_L1_TO_OUT_IMAGE.s16"},
+    {0x69400000, "GATHER_OUT_TO_UB.u16"},
+    {0x69400001, "GATHER_OUT_TO_UB.u32"},
+    {0x69400002, "GATHER_OUT_TO_UB.u64"},
+    {0x69800000, "MOV_OUT_TO_L1_ALIGN.b8"},
+    {0x69800001, "MOV_OUT_TO_L1_ALIGN.b16"},
+    {0x69800002, "MOV_OUT_TO_L1_ALIGN.b32"},
+    {0x6a000000, "MOV_OUT_TO_L1_MULTI_DN2NZ.b8"},
+    {0x6a000001, "MOV_OUT_TO_L1_MULTI_DN2NZ.b16"},
+    {0x6a000002, "MOV_OUT_TO_L1_MULTI_DN2NZ.b32"},
+    {0x6b000000, "MOV_OUT_TO_L1_MULTI_ND2NZ.b8"},
+    {0x6b000001, "MOV_OUT_TO_L1_MULTI_ND2NZ.b16"},
+    {0x6b000002, "MOV_OUT_TO_L1_MULTI_ND2NZ.b32"},
+    {0x6b400000, "SCATTER_UB_TO_OUT.u16"},
+    {0x6b400001, "SCATTER_UB_TO_OUT.u32"},
+    {0x6b400002, "SCATTER_UB_TO_OUT.u64"},
+    {0x6b800000, "MOV_OUT_TO_UB_ALIGN.b8"},
+    {0x6b800001, "MOV_OUT_TO_UB_ALIGN.b16"},
+    {0x6b800002, "MOV_OUT_TO_UB_ALIGN.b32"},
+    {0x6f000000, "MVF_OUT_TO_UB.u16.32B"},
+    {0x6f400000, "MVF_OUT_TO_UB.u32.32B"},
+    {0x6f000001, "MVF_OUT_TO_UB.u16.64B"},
+    {0x6f400001, "MVF_OUT_TO_UB.u32.64B"},
+    {0x6f000002, "MVF_OUT_TO_UB.u16.128B"},
+    {0x6f400002, "MVF_OUT_TO_UB.u32.128B"},
+    {0x6f000003, "MVF_OUT_TO_UB.u16.256B"},
+    {0x6f400003, "MVF_OUT_TO_UB.u32.256B"},
+    {0x6f800000, "MVF_OUT_TO_UB.u16.512B"},
+    {0x6fc00000, "MVF_OUT_TO_UB.u32.512B"},
+};
+
+const std::unordered_map<uint32_t, std::string> INSTR22_TABLE1_A5 = {
+    {0x68400000, "HEBCE_UB_TO_OUT"},
+    {0x68400001, "HEBCE_L1_TO_OUT"},
+    {0x6a800000, "MVF_DCI"},
+    {0x6a800001, "ND_DMA_DCI"},
+    {0x6c000000, "LOAD_L1_TO_L0A_2Dv2.b8"},
+    {0x6c400000, "LOAD_L1_TO_L0A_2Dv2.b16"},
+    {0x6c800000, "LOAD_L1_TO_L0A_2Dv2.b4"},
+    {0x6cc00000, "LOAD_L1_TO_L0A_2Dv2.b32"},
+    {0x6c000001, "LOAD_L1_TO_L0B_2Dv2.b8"},
+    {0x6c400001, "LOAD_L1_TO_L0B_2Dv2.b16"},
+    {0x6c800001, "LOAD_L1_TO_L0B_2Dv2.b4"},
+    {0x6cc00001, "LOAD_L1_TO_L0B_2Dv2.b32"},
+    {0x6d000000, "LOAD_L1_TO_L0A_2D_TRANSPOSE.b8"},
+    {0x6d400000, "LOAD_L1_TO_L0A_2D_TRANSPOSE.b16"},
+    {0x6d800000, "LOAD_L1_TO_L0A_2D_TRANSPOSE.b4"},
+    {0x6dc00000, "LOAD_L1_TO_L0A_2D_TRANSPOSE.b32"},
+    {0x6d000001, "LOAD_L1_TO_L0B_2D_TRANSPOSE.b8"},
+    {0x6d400001, "LOAD_L1_TO_L0B_2D_TRANSPOSE.b16"},
+    {0x6d800001, "LOAD_L1_TO_L0B_2D_TRANSPOSE.b4"},
+    {0x6dc00001, "LOAD_L1_TO_L0B_2D_TRANSPOSE.b32"},
+    {0x76000000, "LOAD_L1_TO_L0A_MX_2Dv2"},
+    {0x76000001, "LOAD_L1_TO_L0B_MX_2Dv2"},
+};
+
+const std::unordered_map<uint32_t, std::string> INSTR28_TABLE0_A5 = {
+    {0x60400000, "SET_L0A_2D.b16"},
+    {0x60400004, "SET_L0A_2D.b32"},
+    {0x60400001, "SET_L0B_2D.b16"},
+    {0x60400005, "SET_L0B_2D.b32"},
+    {0x60400002, "SET_L1_2D.b16"},
+    {0x60400006, "SET_L1_2D.b32"},
+};
+
+const std::unordered_map<uint32_t, std::string> INSTR37_TABLE0_A5 = {
+    {0xc1000000, "FIX_L0C_TO_UB.f32"},
+    {0xc1000001, "FIX_L0C_TO_UB.s32"},
+    {0xc1000002, "FIX_L0C_TO_UB.s32"},
+    {0xc2000000, "FIX_L0C_TO_OUT.f32"},
+    {0xc2000001, "FIX_L0C_TO_OUT.s32"},
+    {0xc2000002, "FIX_L0C_TO_OUT.s32"},
+    {0xc3000000, "FIX_L0C_TO_L1.f32"},
+    {0xc3000001, "FIX_L0C_TO_L1.s32"},
+    {0xc3000002, "FIX_L0C_TO_L1.s32"},
+};
+
+const std::unordered_map<uint32_t, std::string> INSTR55_TABLE0_A5 = {
+    {0x70800010, "MOV_UB_TO_OUT"},
+    {0x70800020, "MOV_UB_TO_L1"},
+    {0x71000008, "MOV_OUT_TO_UB"},
+    {0x71000020, "MOV_OUT_TO_L1"},
+    {0x72000008, "MOV_L1_TO_UB"},
+    {0x72000010, "MOV_L1_TO_OUT"},
+    {0x72000028, "MOV_L1_TO_BT"},
+    {0x72000030, "MOV_L1_TO_PT"},
+    {0x72000031, "MOV_L1_TO_FB_V2"},
+};
+}
+#endif // MSOPT_DMA_INSTR_TABLE_A5_H

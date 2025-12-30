@@ -1,0 +1,8 @@
+add_library(dynamic_bind_operand STATIC dynamic_bind.cpp)
+target_include_directories(dynamic_bind_operand PUBLIC ${MSOPSCOMMON_DIR})
+target_include_directories(dynamic_bind_operand PUBLIC ${MSOPT_THIRDPARTY_INCLUDE})
+if (DEFINED HITEST AND HITEST STREQUAL "ON")
+    message(STATUS "HITEST is enabled. Skipping the alternative code block.")
+else()
+    add_subdirectory(operand_record_stub)
+endif()

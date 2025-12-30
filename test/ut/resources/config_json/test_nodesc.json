@@ -1,0 +1,15 @@
+{
+    "kernel_name": "sin_custom",
+    "kernel_path": "/home/lantianxiang/workspace/test_vec_sin/aicore.bin.0",
+    "simulator_dump_path": "/home/lantianxiang/workspace/test_vec_sin/model",
+    "blockdim": 32,
+    "mode": "onboard",
+    "output_data_path":"/home/lantianxiang/workspace/test_vec_sin/data",
+    "device_id": 0,
+    "magic": "RT_DEV_BINARY_MAGIC_ELF_AIVEC",
+    "test_cases": [
+        {
+            "case_name": "Test_Sin_001"
+        }
+    ]
+}

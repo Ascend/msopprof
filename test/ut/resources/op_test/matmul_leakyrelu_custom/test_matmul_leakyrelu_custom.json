@@ -1,0 +1,64 @@
+{
+  "kernel_name": "matmul_leakyrelu_custom",
+  "kernel_path": "./op_test_data/matmul_leakyrelu_custom.o",
+  "simulator_dump_path": "./model",
+  "blockdim": 1,
+  "mode": "pv",
+  "output_data_path": "./data",
+  "device_id": 0,
+  "magic": "RT_DEV_BINARY_MAGIC_ELF",
+  "test_cases": [
+    {
+      "case_name": "Test_Matmul_LeakyRelu_001",
+      "param_desc": [
+        {
+          "param_type": "input",
+          "type": "float16",
+          "shape": [
+            1024,
+            256
+          ],
+          "data_path": "./op_test_data/matmul_leakyrelu_custom_x1.bin",
+          "name": "x"
+        },
+        {
+          "param_type": "input",
+          "type": "float16",
+          "shape": [
+            256,
+            640
+          ],
+          "data_path": "./op_test_data/matmul_leakyrelu_custom_x2.bin",
+          "name": "y"
+        },
+        {
+          "param_type": "output",
+          "type": "float32",
+          "shape": [
+            1024,
+            640
+          ],
+          "name": "z"
+        },
+        {
+          "param_type": "input",
+          "type": "float32",
+          "shape": [
+            640
+          ],
+          "data_path": "./op_test_data/matmul_leakyrelu_custom_bias.bin",
+          "name": "bias"
+        },
+        {
+          "param_type": "tiling",
+          "tiling_data_size": 128,
+          "tiling_data_path": "./op_test_data/matmul_leakyrelu_custom_tiling.bin"
+        },
+        {
+          "param_type": "workspace",
+          "user_workspace_size" : 402653184
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+Op Name=add
+Block Dim=1
+Run Soc Version=Ascend910_9589
+Device Id=0
+Pid=0
+Current Freq=N/A
+Rated Freq=1650
+Is MC2=0
+Is Lccl=0

@@ -1,0 +1,6 @@
+add_subdirectory(data_calculator)
+add_subdirectory(data_center)
+add_subdirectory(data_table)
+add_subdirectory(data_parser)
+add_subdirectory(data_visualizer)
+add_subdirectory(plugin)

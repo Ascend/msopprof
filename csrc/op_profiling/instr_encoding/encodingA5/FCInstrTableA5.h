@@ -1,0 +1,468 @@
+/* -------------------------------------------------------------------------
+ *  This file is part of the MindStudio project.
+ * Copyright (c) 2025 Huawei Technologies Co.,Ltd.
+ *
+ * MindStudio is licensed under Mulan PSL v2.
+ * You can use this software according to the terms and conditions of the Mulan PSL v2.
+ * You may obtain a copy of Mulan PSL v2 at:
+ *
+ *          http://license.coscl.org.cn/MulanPSL2
+ *
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+ * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+ * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+ * See the Mulan PSL v2 for more details.
+ * ------------------------------------------------------------------------- */
+
+
+#ifndef MSOPT_FC_INSTR_TABLE_A5_H
+#define MSOPT_FC_INSTR_TABLE_A5_H
+
+#include <string>
+#include <unordered_map>
+#include "FCInstrTable2A5.h"
+namespace Encode {
+const std::unordered_map<uint32_t, std::string> INSTR11_TABLE0_A5 = {
+    {0x40000000, "JUMPI"},
+    {0x40020000, "JUMP"},
+    {0x40800000, "LOOPI"},
+    {0x40820000, "LOOP"},
+    {0x42a00000, "TRY_WAITI"},
+    {0x42a20000, "TRY_WAIT"},
+};
+
+const std::unordered_map<uint32_t, std::string> INSTR12_TABLE0_A5 = {
+    {0x402c0000, "DCCI"},
+    {0x40300000, "DCI"},
+};
+
+const std::unordered_map<uint32_t, std::string> INSTR13_TABLE0_A5 = {
+    {0x4061e000, "TRAP"},
+    {0x4061f000, "RET"}
+};
+
+const std::unordered_map<uint32_t, std::string> INSTR14_TABLE0_A5 = {
+    {0x40200000, "JUMPCI"},
+    {0x40220000, "JUMPC"},
+    {0x40240000, "JUMPR"},
+    {0x40280000, "PRELOAD"},
+    {0x40400000, "CALLI"},
+    {0x40420000, "CALL"},
+    {0x40440000, "CALLR"},
+};
+
+const std::unordered_map<uint32_t, std::string> INSTR15_TABLE0_A5 = {
+    {0x40a00000, "SET_FLAGI.S.S"},
+    {0x40a00080, "SET_FLAGI.S.V"},
+    {0x40a00100, "SET_FLAGI.S.M"},
+    {0x40a00180, "SET_FLAGI.S.MTE1"},
+    {0x40a00200, "SET_FLAGI.S.MTE2"},
+    {0x40a00280, "SET_FLAGI.S.MTE3"},
+    {0x40a00300, "SET_FLAGI.S.ALL"},
+    {0x40a04100, "SET_FLAGI.S.F"},
+
+    {0x40a20000, "SET_FLAG.S.S"},
+    {0x40a20080, "SET_FLAG.S.V"},
+    {0x40a20100, "SET_FLAG.S.M"},
+    {0x40a20180, "SET_FLAG.S.MTE1"},
+    {0x40a20200, "SET_FLAG.S.MTE2"},
+    {0x40a20280, "SET_FLAG.S.MTE3"},
+    {0x40a20300, "SET_FLAG.S.ALL"},
+    {0x40a24100, "SET_FLAG.S.F"},
+
+    {0x40a00400, "SET_FLAGI.V.S"},
+    {0x40a00480, "SET_FLAGI.V.V"},
+    {0x40a00500, "SET_FLAGI.V.M"},
+    {0x40a00580, "SET_FLAGI.V.MTE1"},
+    {0x40a00600, "SET_FLAGI.V.MTE2"},
+    {0x40a00680, "SET_FLAGI.V.MTE3"},
+    {0x40a00700, "SET_FLAGI.V.ALL"},
+    {0x40a04500, "SET_FLAGI.V.F"},
+
+    {0x40a20400, "SET_FLAG.V.S"},
+    {0x40a20480, "SET_FLAG.V.V"},
+    {0x40a20500, "SET_FLAG.V.M"},
+    {0x40a20580, "SET_FLAG.V.MTE1"},
+    {0x40a20600, "SET_FLAG.V.MTE2"},
+    {0x40a20680, "SET_FLAG.V.MTE3"},
+    {0x40a20700, "SET_FLAG.V.ALL"},
+    {0x40a24500, "SET_FLAG.V.F"},
+
+    {0x40a00800, "SET_FLAGI.M.S"},
+    {0x40a00880, "SET_FLAGI.M.V"},
+    {0x40a00900, "SET_FLAGI.M.M"},
+    {0x40a00980, "SET_FLAGI.M.MTE1"},
+    {0x40a00a00, "SET_FLAGI.M.MTE2"},
+    {0x40a00a80, "SET_FLAGI.M.MTE3"},
+    {0x40a00b00, "SET_FLAGI.M.ALL"},
+    {0x40a04900, "SET_FLAGI.M.F"},
+
+    {0x40a20800, "SET_FLAG.M.S"},
+    {0x40a20880, "SET_FLAG.M.V"},
+    {0x40a20900, "SET_FLAG.M.M"},
+    {0x40a20980, "SET_FLAG.M.MTE1"},
+    {0x40a20a00, "SET_FLAG.M.MTE2"},
+    {0x40a20a80, "SET_FLAG.M.MTE3"},
+    {0x40a20b00, "SET_FLAG.M.ALL"},
+    {0x40a24900, "SET_FLAG.M.F"},
+
+    {0x40a00c00, "SET_FLAGI.MTE1.S"},
+    {0x40a00c80, "SET_FLAGI.MTE1.V"},
+    {0x40a00d00, "SET_FLAGI.MTE1.M"},
+    {0x40a00d80, "SET_FLAGI.MTE1.MTE1"},
+    {0x40a00e00, "SET_FLAGI.MTE1.MTE2"},
+    {0x40a00e80, "SET_FLAGI.MTE1.MTE3"},
+    {0x40a00f00, "SET_FLAGI.MTE1.ALL"},
+    {0x40a04d00, "SET_FLAGI.MTE1.F"},
+
+    {0x40a20c00, "SET_FLAG.MTE1.S"},
+    {0x40a20c80, "SET_FLAG.MTE1.V"},
+    {0x40a20d00, "SET_FLAG.MTE1.M"},
+    {0x40a20d80, "SET_FLAG.MTE1.MTE1"},
+    {0x40a20e00, "SET_FLAG.MTE1.MTE2"},
+    {0x40a20e80, "SET_FLAG.MTE1.MTE3"},
+    {0x40a20f00, "SET_FLAG.MTE1.ALL"},
+    {0x40a24d00, "SET_FLAG.MTE1.F"},
+
+    {0x40a01000, "SET_FLAGI.MTE2.S"},
+    {0x40a01080, "SET_FLAGI.MTE2.V"},
+    {0x40a01100, "SET_FLAGI.MTE2.M"},
+    {0x40a01180, "SET_FLAGI.MTE2.MTE1"},
+    {0x40a01200, "SET_FLAGI.MTE2.MTE2"},
+    {0x40a01280, "SET_FLAGI.MTE2.MTE3"},
+    {0x40a01300, "SET_FLAGI.MTE2.ALL"},
+    {0x40a05100, "SET_FLAGI.MTE2.F"},
+
+    {0x40a21000, "SET_FLAG.MTE2.S"},
+    {0x40a21080, "SET_FLAG.MTE2.V"},
+    {0x40a21100, "SET_FLAG.MTE2.M"},
+    {0x40a21180, "SET_FLAG.MTE2.MTE1"},
+    {0x40a21200, "SET_FLAG.MTE2.MTE2"},
+    {0x40a21280, "SET_FLAG.MTE2.MTE3"},
+    {0x40a21300, "SET_FLAG.MTE2.ALL"},
+    {0x40a25100, "SET_FLAG.MTE2.F"},
+
+    {0x40a01400, "SET_FLAGI.MTE3.S"},
+    {0x40a01480, "SET_FLAGI.MTE3.V"},
+    {0x40a01500, "SET_FLAGI.MTE3.M"},
+    {0x40a01580, "SET_FLAGI.MTE3.MTE1"},
+    {0x40a01600, "SET_FLAGI.MTE3.MTE2"},
+    {0x40a01680, "SET_FLAGI.MTE3.MTE3"},
+    {0x40a01700, "SET_FLAGI.MTE3.ALL"},
+    {0x40a05500, "SET_FLAGI.MTE3.F"},
+
+    {0x40a21400, "SET_FLAG.MTE3.S"},
+    {0x40a21480, "SET_FLAG.MTE3.V"},
+    {0x40a21500, "SET_FLAG.MTE3.M"},
+    {0x40a21580, "SET_FLAG.MTE3.MTE1"},
+    {0x40a21600, "SET_FLAG.MTE3.MTE2"},
+    {0x40a21680, "SET_FLAG.MTE3.MTE3"},
+    {0x40a21700, "SET_FLAG.MTE3.ALL"},
+    {0x40a25500, "SET_FLAG.MTE3.F"},
+
+    {0x40a01800, "SET_FLAGI.ALL.S"},
+    {0x40a01880, "SET_FLAGI.ALL.V"},
+    {0x40a01900, "SET_FLAGI.ALL.M"},
+    {0x40a01980, "SET_FLAGI.ALL.MTE1"},
+    {0x40a01a00, "SET_FLAGI.ALL.MTE2"},
+    {0x40a01a80, "SET_FLAGI.ALL.MTE3"},
+    {0x40a01b00, "SET_FLAGI.ALL.ALL"},
+    {0x40a05900, "SET_FLAGI.ALL.F"},
+
+    {0x40a21800, "SET_FLAG.ALL.S"},
+    {0x40a21880, "SET_FLAG.ALL.V"},
+    {0x40a21900, "SET_FLAG.ALL.M"},
+    {0x40a21980, "SET_FLAG.ALL.MTE1"},
+    {0x40a21a00, "SET_FLAG.ALL.MTE2"},
+    {0x40a21a80, "SET_FLAG.ALL.MTE3"},
+    {0x40a21b00, "SET_FLAG.ALL.ALL"},
+    {0x40a25900, "SET_FLAG.ALL.F"},
+
+    {0x40a02800, "SET_FLAGI.F.S"},
+    {0x40a02880, "SET_FLAGI.F.V"},
+    {0x40a02900, "SET_FLAGI.F.M"},
+    {0x40a02980, "SET_FLAGI.F.MTE1"},
+    {0x40a02a00, "SET_FLAGI.F.MTE2"},
+    {0x40a02a80, "SET_FLAGI.F.MTE3"},
+    {0x40a02b00, "SET_FLAGI.F.ALL"},
+    {0x40a06900, "SET_FLAGI.F.F"},
+
+    {0x40a22800, "SET_FLAG.F.S"},
+    {0x40a22880, "SET_FLAG.F.V"},
+    {0x40a22900, "SET_FLAG.F.M"},
+    {0x40a22980, "SET_FLAG.F.MTE1"},
+    {0x40a22a00, "SET_FLAG.F.MTE2"},
+    {0x40a22a80, "SET_FLAG.F.MTE3"},
+    {0x40a22b00, "SET_FLAG.F.ALL"},
+    {0x40a26900, "SET_FLAG.F.F"},
+
+    {0x40c00000, "WAIT_FLAGI.S.S"},
+    {0x40c00080, "WAIT_FLAGI.S.V"},
+    {0x40c00100, "WAIT_FLAGI.S.M"},
+    {0x40c00180, "WAIT_FLAGI.S.MTE1"},
+    {0x40c00200, "WAIT_FLAGI.S.MTE2"},
+    {0x40c00280, "WAIT_FLAGI.S.MTE3"},
+    {0x40c00300, "WAIT_FLAGI.S.ALL"},
+    {0x40c04100, "WAIT_FLAGI.S.F"},
+
+    {0x40c20000, "WAIT_FLAG.S.S"},
+    {0x40c20080, "WAIT_FLAG.S.V"},
+    {0x40c20100, "WAIT_FLAG.S.M"},
+    {0x40c20180, "WAIT_FLAG.S.MTE1"},
+    {0x40c20200, "WAIT_FLAG.S.MTE2"},
+    {0x40c20280, "WAIT_FLAG.S.MTE3"},
+    {0x40c20300, "WAIT_FLAG.S.ALL"},
+    {0x40c24100, "WAIT_FLAG.S.F"},
+
+    {0x40c00400, "WAIT_FLAGI.V.S"},
+    {0x40c00480, "WAIT_FLAGI.V.V"},
+    {0x40c00500, "WAIT_FLAGI.V.M"},
+    {0x40c00580, "WAIT_FLAGI.V.MTE1"},
+    {0x40c00600, "WAIT_FLAGI.V.MTE2"},
+    {0x40c00680, "WAIT_FLAGI.V.MTE3"},
+    {0x40c00700, "WAIT_FLAGI.V.ALL"},
+    {0x40c04500, "WAIT_FLAGI.V.F"},
+
+    {0x40c20400, "WAIT_FLAG.V.S"},
+    {0x40c20480, "WAIT_FLAG.V.V"},
+    {0x40c20500, "WAIT_FLAG.V.M"},
+    {0x40c20580, "WAIT_FLAG.V.MTE1"},
+    {0x40c20600, "WAIT_FLAG.V.MTE2"},
+    {0x40c20680, "WAIT_FLAG.V.MTE3"},
+    {0x40c20700, "WAIT_FLAG.V.ALL"},
+    {0x40c24500, "WAIT_FLAG.V.F"},
+
+    {0x40c00800, "WAIT_FLAGI.M.S"},
+    {0x40c00880, "WAIT_FLAGI.M.V"},
+    {0x40c00900, "WAIT_FLAGI.M.M"},
+    {0x40c00980, "WAIT_FLAGI.M.MTE1"},
+    {0x40c00a00, "WAIT_FLAGI.M.MTE2"},
+    {0x40c00a80, "WAIT_FLAGI.M.MTE3"},
+    {0x40c00b00, "WAIT_FLAGI.M.ALL"},
+    {0x40c04900, "WAIT_FLAGI.M.F"},
+
+    {0x40c20800, "WAIT_FLAG.M.S"},
+    {0x40c20880, "WAIT_FLAG.M.V"},
+    {0x40c20900, "WAIT_FLAG.M.M"},
+    {0x40c20980, "WAIT_FLAG.M.MTE1"},
+    {0x40c20a00, "WAIT_FLAG.M.MTE2"},
+    {0x40c20a80, "WAIT_FLAG.M.MTE3"},
+    {0x40c20b00, "WAIT_FLAG.M.ALL"},
+    {0x40c24900, "WAIT_FLAG.M.F"},
+
+    {0x40c00c00, "WAIT_FLAGI.MTE1.S"},
+    {0x40c00c80, "WAIT_FLAGI.MTE1.V"},
+    {0x40c00d00, "WAIT_FLAGI.MTE1.M"},
+    {0x40c00d80, "WAIT_FLAGI.MTE1.MTE1"},
+    {0x40c00e00, "WAIT_FLAGI.MTE1.MTE2"},
+    {0x40c00e80, "WAIT_FLAGI.MTE1.MTE3"},
+    {0x40c00f00, "WAIT_FLAGI.MTE1.ALL"},
+    {0x40c04d00, "WAIT_FLAGI.MTE1.F"},
+
+    {0x40c20c00, "WAIT_FLAG.MTE1.S"},
+    {0x40c20c80, "WAIT_FLAG.MTE1.V"},
+    {0x40c20d00, "WAIT_FLAG.MTE1.M"},
+    {0x40c20d80, "WAIT_FLAG.MTE1.MTE1"},
+    {0x40c20e00, "WAIT_FLAG.MTE1.MTE2"},
+    {0x40c20e80, "WAIT_FLAG.MTE1.MTE3"},
+    {0x40c20f00, "WAIT_FLAG.MTE1.ALL"},
+    {0x40c24d00, "WAIT_FLAG.MTE1.F"},
+
+    {0x40c01000, "WAIT_FLAGI.MTE2.S"},
+    {0x40c01080, "WAIT_FLAGI.MTE2.V"},
+    {0x40c01100, "WAIT_FLAGI.MTE2.M"},
+    {0x40c01180, "WAIT_FLAGI.MTE2.MTE1"},
+    {0x40c01200, "WAIT_FLAGI.MTE2.MTE2"},
+    {0x40c01280, "WAIT_FLAGI.MTE2.MTE3"},
+    {0x40c01300, "WAIT_FLAGI.MTE2.ALL"},
+    {0x40c05100, "WAIT_FLAGI.MTE2.F"},
+
+    {0x40c21000, "WAIT_FLAG.MTE2.S"},
+    {0x40c21080, "WAIT_FLAG.MTE2.V"},
+    {0x40c21100, "WAIT_FLAG.MTE2.M"},
+    {0x40c21180, "WAIT_FLAG.MTE2.MTE1"},
+    {0x40c21200, "WAIT_FLAG.MTE2.MTE2"},
+    {0x40c21280, "WAIT_FLAG.MTE2.MTE3"},
+    {0x40c21300, "WAIT_FLAG.MTE2.ALL"},
+    {0x40c25100, "WAIT_FLAG.MTE2.F"},
+
+    {0x40c01400, "WAIT_FLAGI.MTE3.S"},
+    {0x40c01480, "WAIT_FLAGI.MTE3.V"},
+    {0x40c01500, "WAIT_FLAGI.MTE3.M"},
+    {0x40c01580, "WAIT_FLAGI.MTE3.MTE1"},
+    {0x40c01600, "WAIT_FLAGI.MTE3.MTE2"},
+    {0x40c01680, "WAIT_FLAGI.MTE3.MTE3"},
+    {0x40c01700, "WAIT_FLAGI.MTE3.ALL"},
+    {0x40c05500, "WAIT_FLAGI.MTE3.F"},
+
+    {0x40c21400, "WAIT_FLAG.MTE3.S"},
+    {0x40c21480, "WAIT_FLAG.MTE3.V"},
+    {0x40c21500, "WAIT_FLAG.MTE3.M"},
+    {0x40c21580, "WAIT_FLAG.MTE3.MTE1"},
+    {0x40c21600, "WAIT_FLAG.MTE3.MTE2"},
+    {0x40c21680, "WAIT_FLAG.MTE3.MTE3"},
+    {0x40c21700, "WAIT_FLAG.MTE3.ALL"},
+    {0x40c25500, "WAIT_FLAG.MTE3.F"},
+
+    {0x40c01800, "WAIT_FLAGI.ALL.S"},
+    {0x40c01880, "WAIT_FLAGI.ALL.V"},
+    {0x40c01900, "WAIT_FLAGI.ALL.M"},
+    {0x40c01980, "WAIT_FLAGI.ALL.MTE1"},
+    {0x40c01a00, "WAIT_FLAGI.ALL.MTE2"},
+    {0x40c01a80, "WAIT_FLAGI.ALL.MTE3"},
+    {0x40c01b00, "WAIT_FLAGI.ALL.ALL"},
+    {0x40c05900, "WAIT_FLAGI.ALL.F"},
+
+    {0x40c21800, "WAIT_FLAG.ALL.S"},
+    {0x40c21880, "WAIT_FLAG.ALL.V"},
+    {0x40c21900, "WAIT_FLAG.ALL.M"},
+    {0x40c21980, "WAIT_FLAG.ALL.MTE1"},
+    {0x40c21a00, "WAIT_FLAG.ALL.MTE2"},
+    {0x40c21a80, "WAIT_FLAG.ALL.MTE3"},
+    {0x40c21b00, "WAIT_FLAG.ALL.ALL"},
+    {0x40c25900, "WAIT_FLAG.ALL.F"},
+
+    {0x40c02800, "WAIT_FLAGI.F.S"},
+    {0x40c02880, "WAIT_FLAGI.F.V"},
+    {0x40c02900, "WAIT_FLAGI.F.M"},
+    {0x40c02980, "WAIT_FLAGI.F.MTE1"},
+    {0x40c02a00, "WAIT_FLAGI.F.MTE2"},
+    {0x40c02a80, "WAIT_FLAGI.F.MTE3"},
+    {0x40c02b00, "WAIT_FLAGI.F.ALL"},
+    {0x40c06900, "WAIT_FLAGI.F.F"},
+
+    {0x40c22800, "WAIT_FLAG.F.S"},
+    {0x40c22880, "WAIT_FLAG.F.V"},
+    {0x40c22900, "WAIT_FLAG.F.M"},
+    {0x40c22980, "WAIT_FLAG.F.MTE1"},
+    {0x40c22a00, "WAIT_FLAG.F.MTE2"},
+    {0x40c22a80, "WAIT_FLAG.F.MTE3"},
+    {0x40c22b00, "WAIT_FLAG.F.ALL"},
+    {0x40c26900, "WAIT_FLAG.F.F"},
+};
+
+const std::unordered_map<uint32_t, std::string> INSTR16_TABLE0_A5 = {
+    {0x40e00000, "BAR.S"},
+    {0x40e00400, "BAR.V"},
+    {0x40e00800, "BAR.M"},
+    {0x40e00c00, "BAR.MTE1"},
+    {0x40e01000, "BAR.MTE2"},
+    {0x40e01400, "BAR.MTE3"},
+    {0x40e01800, "BAR.ALL"},
+    {0x40e02800, "BAR.F"},
+    {0x41000000, "NOP.S"},
+    {0x41000400, "NOP.V"},
+    {0x41000800, "NOP.M"},
+    {0x41000c00, "NOP.MTE1"},
+    {0x41001000, "NOP.MTE2"},
+    {0x41001400, "NOP.MTE3"},
+    {0x41001800, "NOP.ALL"},
+    {0x41002800, "NOP.F"},
+};
+
+const std::unordered_map<uint32_t, std::string> INSTR18_TABLE0_A5 = {
+    {0x41c00000, "DSB"}
+};
+
+const std::unordered_map<uint32_t, std::string> INSTR21_TABLE0_A5 = {
+    {0x48000000, "JUMPCMPI_IO.EQ.s64"},
+    {0x48040000, "JUMPCMPI_IO.NE.s64"},
+    {0x48080000, "JUMPCMPI_IO.LT.s64"},
+    {0x480c0000, "JUMPCMPI_IO.GT.s64"},
+    {0x48100000, "JUMPCMPI_IO.GE.s64"},
+    {0x48140000, "JUMPCMPI_IO.LE.s64"},
+
+    {0x4a000000, "JUMPCMPI_IO.EQ.u64"},
+    {0x4a040000, "JUMPCMPI_IO.NE.u64"},
+    {0x4a080000, "JUMPCMPI_IO.LT.u64"},
+    {0x4a0c0000, "JUMPCMPI_IO.GT.u64"},
+    {0x4a100000, "JUMPCMPI_IO.GE.u64"},
+    {0x4a140000, "JUMPCMPI_IO.LE.u64"},
+
+    {0x4c000000, "JUMPCMPI_IO.EQ.f32"},
+    {0x4c040000, "JUMPCMPI_IO.NE.f32"},
+    {0x4c080000, "JUMPCMPI_IO.LT.f32"},
+    {0x4c0c0000, "JUMPCMPI_IO.GT.f32"},
+    {0x4c100000, "JUMPCMPI_IO.GE.f32"},
+    {0x4c140000, "JUMPCMPI_IO.LE.f32"},
+
+    {0x48010000, "JUMPCMP_IO.EQ.s64"},
+    {0x48050000, "JUMPCMP_IO.NE.s64"},
+    {0x48090000, "JUMPCMP_IO.LT.s64"},
+    {0x480d0000, "JUMPCMP_IO.GT.s64"},
+    {0x48110000, "JUMPCMP_IO.GE.s64"},
+    {0x48150000, "JUMPCMP_IO.LE.s64"},
+
+    {0x4a010000, "JUMPCMP_IO.EQ.u64"},
+    {0x4a050000, "JUMPCMP_IO.NE.u64"},
+    {0x4a090000, "JUMPCMP_IO.LT.u64"},
+    {0x4a0d0000, "JUMPCMP_IO.GT.u64"},
+    {0x4a110000, "JUMPCMP_IO.GE.u64"},
+    {0x4a150000, "JUMPCMP_IO.LE.u64"},
+
+    {0x4c010000, "JUMPCMP_IO.EQ.f32"},
+    {0x4c050000, "JUMPCMP_IO.NE.f32"},
+    {0x4c090000, "JUMPCMP_IO.LT.f32"},
+    {0x4c0d0000, "JUMPCMP_IO.GT.f32"},
+    {0x4c110000, "JUMPCMP_IO.GE.f32"},
+    {0x4c150000, "JUMPCMP_IO.LE.f32"},
+
+    {0x48020000, "JUMPCMPI.EQ.s64"},
+    {0x48070000, "JUMPCMPI.NE.s64"},
+    {0x480a0000, "JUMPCMPI.LT.s64"},
+    {0x480e0000, "JUMPCMPI.GT.s64"},
+    {0x48120000, "JUMPCMPI.GE.s64"},
+    {0x48160000, "JUMPCMPI.LE.s64"},
+
+    {0x4a020000, "JUMPCMPI.EQ.u64"},
+    {0x4a070000, "JUMPCMPI.NE.u64"},
+    {0x4a0a0000, "JUMPCMPI.LT.u64"},
+    {0x4a0e0000, "JUMPCMPI.GT.u64"},
+    {0x4a120000, "JUMPCMPI.GE.u64"},
+    {0x4a160000, "JUMPCMPI.LE.u64"},
+
+    {0x4c020000, "JUMPCMPI.EQ.f32"},
+    {0x4c070000, "JUMPCMPI.NE.f32"},
+    {0x4c0a0000, "JUMPCMPI.LT.f32"},
+    {0x4c0e0000, "JUMPCMPI.GT.f32"},
+    {0x4c120000, "JUMPCMPI.GE.f32"},
+    {0x4c160000, "JUMPCMPI.LE.f32"},
+
+    {0x48030000, "JUMPCMP.EQ.s64"},
+    {0x48080000, "JUMPCMP.NE.s64"},
+    {0x480b0000, "JUMPCMP.LT.s64"},
+    {0x480f0000, "JUMPCMP.GT.s64"},
+    {0x48130000, "JUMPCMP.GE.s64"},
+    {0x48170000, "JUMPCMP.LE.s64"},
+
+    {0x4a030000, "JUMPCMP.EQ.u64"},
+    {0x4a080000, "JUMPCMP.NE.u64"},
+    {0x4a0b0000, "JUMPCMP.LT.u64"},
+    {0x4a0f0000, "JUMPCMP.GT.u64"},
+    {0x4a130000, "JUMPCMP.GE.u64"},
+    {0x4a170000, "JUMPCMP.LE.u64"},
+
+    {0x4c030000, "JUMPCMP.EQ.f32"},
+    {0x4c080000, "JUMPCMP.NE.f32"},
+    {0x4c0b0000, "JUMPCMP.LT.f32"},
+    {0x4c0f0000, "JUMPCMP.GT.f32"},
+    {0x4c130000, "JUMPCMP.GE.f32"},
+    {0x4c170000, "JUMPCMP.LE.f32"},
+};
+
+const std::unordered_map<uint32_t, std::string> INSTR27_TABLE0_A5 = {
+    {0x41200000, "ENDLOOP"},
+    {0x41400000, "NOP"},
+    {0x41600000, "END"},
+    {0x41800000, "BREAK"},
+    {0x41a00000, "ADRP"},
+};
+
+const std::unordered_map<uint32_t, std::string> INSTR26_TABLE0_A5 = {
+    {0x50000000, "ATOM"},
+    {0x58000000, "RED"},
+};
+
+}
+
+#endif // MSOPT_FC_INSTR_TABLE_A5_H
