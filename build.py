@@ -28,52 +28,10 @@ import shutil
 
 
 def exec_cmd(cmd):
-    result = subprocess.run(cmd, capture_output=False, text=True, timeout=3600)
+    result = subprocess.run(cmd, capture_output=False, text=True, timeout=36000)
     if result.returncode != 0:
         logging.error("execute command %s failed, please check the log", " ".join(cmd))
         sys.exit(result.returncode)
-
-
-build_test_dependencies = [
-    "thirdparty/json",
-    "thirdparty/securec",
-    "thirdparty/googletest",
-    "thirdparty/mockcpp",
-    "thirdparty/boost",
-    "thirdparty/llvm-project",
-    "msopscommon"
-]
-
-build_tool_dependencies = [
-    "thirdparty/json",
-    "thirdparty/securec",
-    "thirdparty/makeself",
-    "thirdparty/llvm-project",
-    "msopscommon"
-]
-
-
-def update_msopscommon(args):
-    if args.revision is None:
-        exec_cmd(["git", "submodule", "update", "--init", "--depth=1", "--jobs=4", "msopscommon"])
-    else:
-        os.chdir("msopscommon")
-        exec_cmd(["git", "fetch", "--tags"])
-        exec_cmd(["git", "checkout", args.revision])
-        os.chdir("..")
-    if 'test' not in args.command:
-        os.chdir("msopscommon")
-        exec_cmd(["git", "submodule", "update", "--init", "--depth=1", "--jobs=4", "thirdparty/json"])
-
-
-def update_submodle(args):
-    logging.info("============ start download thirdparty code using git submodule ============")
-    if 'test' in args.command:
-        exec_cmd(["git", "submodule", "update", "--init", "--recursive", "--depth=1", "--jobs=4", *build_test_dependencies])
-    else:
-        exec_cmd(["git", "submodule", "update", "--init", "--depth=1", "--jobs=4", *build_tool_dependencies])
-    update_msopscommon(args)
-    logging.info("============ download thirdparty code  success ============")
 
 
 def execute_build(build_path, cmake_cmd, make_cmd):
@@ -126,7 +84,8 @@ if __name__ == "__main__":
  
     # 解析入参是否为local，local场景使用本地代码构建，不更新子仓
     if 'local' not in args.command:
-        update_submodle(args)
+        from download_dependencies import update_submodule
+        update_submodule(args)
 
     # 执行构建并打run包
     execute_build(build_path, cmake_cmd, make_cmd)
