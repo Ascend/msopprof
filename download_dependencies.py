@@ -100,9 +100,9 @@ def update_submodule(args):
     dependencies = build_test_dependencies if 'test' in args.command else build_tool_dependencies
     thirdparty_dependencies, builtin_dependencies = partition(dependencies, lambda x: "thirdparty" in x or "third-party" in x)
     if thirdparty_dependencies:
-        exec_cmd(["git", "submodule", "update", "--init", "--recursive", "--depth=1", "--jobs=4", *thirdparty_dependencies])
+        exec_cmd(["git", "submodule", "update", "--init", "--progress", "--recursive", "--depth=1", "--jobs=4", *thirdparty_dependencies])
     if builtin_dependencies:
-        exec_cmd(["git", "submodule", "update", "--init", "--remote", "--depth=1", "--jobs=4", *builtin_dependencies])
+        exec_cmd(["git", "submodule", "update", "--init", "--progress", "--remote", "--depth=1", "--jobs=4", *builtin_dependencies])
     for dependency in builtin_dependencies:
         update_builtin_submodule(args, dependency)
 
