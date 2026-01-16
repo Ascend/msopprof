@@ -241,9 +241,15 @@ bool DataHandler::SaveOpBasicInfo(const std::string &outputPath)
     opType_ = GetOpType();
     opInfoMap_["Op Type"] = opType_;
     if (opInfoMap_["Op Type"] == Common::OpType::MIX) {
-        // In mix operator, 1 cube and 2 vector is 1 core based on A2 architecture
-        SetMixBlockDim(to_string(blockDim_ * 2));
-        opInfoMap_["Mix Block Dim"] = to_string(blockDim_ * 2); // In A2 mix, 1cube and 2vector is 1 core
+        // 此处的MixBlockDim指的是算子中vector的数量
+        uint32_t vecBlockDim = 0;
+        for (const auto &core : totalPmuData_) {
+            if (core.second.blockType == OpType::VECTOR) {
+                vecBlockDim++;
+            }
+        }
+        SetMixBlockDim(to_string(vecBlockDim));
+        opInfoMap_["Mix Block Dim"] = to_string(vecBlockDim);
     }
     HandleDuration(outputPath);
     std::string suffix = "_" + profilingFileTimeStamp_ +".csv";
