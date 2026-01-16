@@ -498,7 +498,7 @@ void RoofLineOf910B::GmAndL2cache()
     GetTheoryL2CacheByGmType(l2CacheBw);
     auto gmIt = gmBw.find(socVersion);
     if (gmIt == gmBw.end()) {
-        LogWarn("Get theory GM bandwidth failed, use default value.");
+        LogDebug("Missing theoretical bandwidth for soc %s, using default value", socVersion.c_str());
         gmReadAndWriteBw = gmBw.at("Ascend910B1");
     } else {
         gmReadAndWriteBw = gmBw.at(socVersion);
@@ -506,7 +506,7 @@ void RoofLineOf910B::GmAndL2cache()
     float l2ReadAndWriteBw;
     auto l2cacheIt = l2CacheBw.find(socVersion);
     if (l2cacheIt == l2CacheBw.end()) {
-        LogWarn("Get theory L2 bandwidth failed, use default value.");
+        LogDebug("Missing theoretical L2 bandwidth for soc %s, using default value.", socVersion.c_str());
         l2ReadAndWriteBw = l2CacheBw.at("Ascend910B1");
     } else {
         l2ReadAndWriteBw = l2CacheBw.at(socVersion);

@@ -385,7 +385,8 @@ string Calculate::CalTransportBwUsageRate(const uint64_t &pmu, const uint64_t ty
     uint16_t dataOfSingleReq = dataIt->second;
     auto rateIt = maxBwRecord.find(socVersion_);
     if (rateIt == maxBwRecord.end()) {
-        return EMPTY_METRIC_VALUE;
+        LogDebug("Missing theoretical bandwidth for soc %s, using default value", socVersion_.c_str());
+        rateIt = maxBwRecord.find("Ascend910B1");
     }
     map<TransportType, float> transportBwMap = rateIt->second;
     auto typeIt = transportBwMap.find(transportType);
