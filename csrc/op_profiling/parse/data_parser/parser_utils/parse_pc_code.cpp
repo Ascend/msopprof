@@ -125,7 +125,7 @@ std::vector<std::string> ParsePcCode::Int2Hex(const std::set<uint64_t> &inSet) c
 uint64_t ParsePcCode::GetStartPcFromTxt()
 {
     uint64_t startPc = UINT64_MAX;
-    std::string pcStartDumpFile = Utility::JoinPath({dumpPath_, "pc_start_addr.txt"});
+    std::string pcStartDumpFile = Utility::JoinPath({dumpPath_, Common::PC_START_PATH});
     char buf[PATH_MAX];
     if (realpath(pcStartDumpFile.c_str(), buf) != nullptr && Utility::IsReadable(std::string{buf})) {
         std::ifstream file(buf);

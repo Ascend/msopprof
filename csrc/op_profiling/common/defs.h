@@ -479,6 +479,7 @@ enum class DumpMessageType : uint8_t {
     TILING_KEY,
     END
 };
+constexpr char const *PC_START_PATH = "pc_start_addr.txt";
 constexpr char const *BIN_PATH = "bin_path";
 constexpr char const *BLOCK_DIM = "block_dim";
 constexpr char const *DEVICE_ID = "device_id";

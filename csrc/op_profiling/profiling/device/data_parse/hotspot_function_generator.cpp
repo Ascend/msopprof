@@ -100,9 +100,13 @@ void InstrInfo::ToJson(const std::string &socVersion, nlohmann::json &instrDetai
 bool HotSpotFunctionGenerator::ExtractData(const std::string &outputPath)
 {
     std::string dumpPath = Utility::JoinPath({outputPath, "dump"});
-    if (!Utility::StoullConverter(GetStartPcFromDump(dumpPath), startPc_, RADIX_16)) {
+    if (!Utility::StoullConverter(GetStartPcFromDump(dumpPath, Common::PC_START_PATH), startPc_, RADIX_16)) {
         startPc_ = 0;
         Utility::LogWarn("Failed to get start pc");
+    }
+    if (!Utility::StoullConverter(GetStartPcFromDump(dumpPath, "pc_start_pcsampling.txt"), startPcForPcSampling_, RADIX_16)) {
+        startPcForPcSampling_ = startPc_;
+        Utility::LogDebug("Failed to get start pc for pcsampling");
     }
     if (!ProcessBBCount(dumpPath)) {
         Utility::LogWarn("Failed to process BBCount");
@@ -340,7 +344,8 @@ void HotSpotFunctionGenerator::ParsePcSamplingData(const std::vector<uint8_t> &p
     for (int t = 0; t < PC_SAMPLING_DATA_STATUS_OFFSET; ++t) {
         pc |= (static_cast<uint64_t>(pcSamplingData[t]) << (t * 8));
     }
-    pc = pc * 8 - (startPc_ & 0xFFFFFFFUL);
+    // pc sampling 数据24位标识26:3的地址，所以*8进行偏移，减去start pc 以及插桩pc offset
+    pc = pc * 8 - (startPcForPcSampling_ & 0xFFFFFFFUL) - pcOffset_;
     if (orderedPcStateMap.find(pc) == orderedPcStateMap.end()) {
         std::vector<uint64_t> pcSamplingStates(PC_SAMPLING_STATUS_NUM, 0);
         orderedPcStateMap[pc] = pcSamplingStates;

@@ -1006,7 +1006,7 @@ TEST(DataHandler, test_GetOperandRecordMap_when_not_mix_return_right)
 TEST(DeviceDataParse, HotSpot_ProcessBBCount_expect_false)
 {
     GlobalMockObject::verify();
-    HotSpotFunctionGenerator hotSpotFunctionGenerator("Ascend910B4", true, false, false);
+    HotSpotFunctionGenerator hotSpotFunctionGenerator({"Ascend910B4", "", 0, true, false, false});
     ASSERT_FALSE(hotSpotFunctionGenerator.ProcessBBCount("not_exist_dir_path"));
 
     std::vector<std::string> filenames;
@@ -1019,21 +1019,21 @@ TEST(DeviceDataParse, HotSpot_ProcessBBCount_expect_false)
 
 TEST(DeviceDataParse, HotSpot_ProcessBBCount_expect_true)
 {
-    HotSpotFunctionGenerator hotSpotFunctionGenerator("Ascend910B4", true, false, false);
+    HotSpotFunctionGenerator hotSpotFunctionGenerator({"Ascend910B4", "", 0, true, false, false});
     ASSERT_FALSE(hotSpotFunctionGenerator.ProcessBBCount("not_exist_dir_path"));
 }
 
 TEST(DeviceDataParse, HotSpot_UpdateBBBMap_expect_true)
 {
     string path = "test/ut/resources/op_profiling/device910B/dump/kernel0Stub.o.bbbmap.0";
-    HotSpotFunctionGenerator hotSpotFunctionGenerator("Ascend910B4", true, false, false);
+    HotSpotFunctionGenerator hotSpotFunctionGenerator({"Ascend910B4", "", 0, true, false, false});
     ASSERT_TRUE(hotSpotFunctionGenerator.UpdateBBBMap(path));
 }
 
 TEST(DeviceDataParse, HotSpot_UpdateBBBMap_expect_false)
 {
     GlobalMockObject::verify();
-    HotSpotFunctionGenerator hotSpotFunctionGenerator("Ascend910B4", true, false, false);
+    HotSpotFunctionGenerator hotSpotFunctionGenerator({"Ascend910B4", "", 0, true, false, false});
     ASSERT_FALSE(hotSpotFunctionGenerator.UpdateBBBMap("not_exist_dir_path"));
     MOCKER(Utility::IsReadable)
            .stubs()
@@ -1045,7 +1045,7 @@ TEST(DeviceDataParse, HotSpot_UpdateBBBMap_expect_false)
 TEST(DeviceDataParse, HotSpot_UpdateExtra_expect_true)
 {
     string path = "test/ut/resources/op_profiling/device910B/dump/kernel0Stub.o.bbbmap.0";
-    HotSpotFunctionGenerator hotSpotFunctionGenerator("Ascend910B4", true, false, false);
+    HotSpotFunctionGenerator hotSpotFunctionGenerator({"Ascend910B4", "", 0, true, false, false});
     ASSERT_TRUE(hotSpotFunctionGenerator.UpdateExtra(path));
 }
 
@@ -1053,7 +1053,7 @@ TEST(DeviceDataParse, HotSpot_UpdateExtra_expect_false)
 {
     GlobalMockObject::verify();
     string path = "test/ut/resources/op_profiling/device910B/dump/kernel0Stub.o.bbbmap.0";
-    HotSpotFunctionGenerator hotSpotFunctionGenerator("Ascend910B4", true, false, false);
+    HotSpotFunctionGenerator hotSpotFunctionGenerator({"Ascend910B4", "", 0, true, false, false});
     ASSERT_FALSE(hotSpotFunctionGenerator.UpdateExtra("not_exist_dir_path"));
 
     MOCKER(Utility::IsWritable)
@@ -1083,7 +1083,7 @@ TEST(DeviceDataParse, HotSpot_GenFdata_expect_false)
 {
     GlobalMockObject::verify();
     string path = "test/ut/resources/op_profiling/device910B/dump/kernel0Stub.o.bbbmap.0";
-    HotSpotFunctionGenerator hotSpotFunctionGenerator("Ascend910B4", true, false, false);
+    HotSpotFunctionGenerator hotSpotFunctionGenerator({"Ascend910B4", "", 0, true, false, false});
     ASSERT_FALSE(hotSpotFunctionGenerator.GenFdata("", "", path));
     MOCKER(&Utility::CmdExecute)
             .stubs()
@@ -1095,7 +1095,7 @@ TEST(DeviceDataParse, HotSpot_GenFdata_expect_false)
 
 TEST(DeviceDataParse, HotSpot_GenBBCalls_expect_true)
 {
-    HotSpotFunctionGenerator hotSpotFunctionGenerator("Ascend910B4", true, false, false);
+    HotSpotFunctionGenerator hotSpotFunctionGenerator({"Ascend910B4", "", 0, true, false, false});
     hotSpotFunctionGenerator.kernelStartAddr_["matmul_custom_0_mix_aic"] = 0;
     vector<string> fdata{"1 matmul_custom_0_mix_aic 0 1",
                          "1 matmul_custom_0_mix_aic 4c 1",
@@ -1108,7 +1108,7 @@ TEST(DeviceDataParse, HotSpot_GenBBCalls_expect_true)
 TEST(DeviceDataParse, HotSpot_GenVisualizeData)
 {
     string path = "test/ut/resources/op_profiling/device910B/";
-    HotSpotFunctionGenerator hotSpotFunctionGenerator("Ascend910B4", true, false, false);
+    HotSpotFunctionGenerator hotSpotFunctionGenerator({"Ascend910B4", "", 0, true, false, false});
     vector<CodeFile> codeFile(1);
     codeFile[0].file = "some_file";
     codeFile[0].lines.resize(1);
@@ -1120,7 +1120,7 @@ TEST(DeviceDataParse, HotSpot_GenCodeFiles_expect_true)
 {
     GlobalMockObject::verify();
     string path = "test/ut/resources/op_profiling/device910B/";
-    HotSpotFunctionGenerator hotSpotFunctionGenerator("Ascend910B4", true, false, false);
+    HotSpotFunctionGenerator hotSpotFunctionGenerator({"Ascend910B4", "", 0, true, false, false});
     map<string, vector<Encoding>> line2Encodings = {
         {"matmul_custom.cpp:53", {{17840, "SCALAR", "ADD.s64", "matmul_custom.cpp:53", 2, 0, 0},
                                   {17844, "SCALAR", "SUB.s64", "matmul_custom.cpp:53", 2, 0, 1}}},
@@ -1141,14 +1141,14 @@ TEST(DeviceDataParse, HotSpot_GenCodeFiles_expect_true)
 
 TEST(DeviceDataParse, HotSpot_GenInstrInfos_expect_false)
 {
-    HotSpotFunctionGenerator hotSpotFunctionGenerator("Ascend910B4", true, false, false);
+    HotSpotFunctionGenerator hotSpotFunctionGenerator({"Ascend910B4", "", 0, true, false, false});
     vector<InstrInfo> instrInfos;
     ASSERT_FALSE(hotSpotFunctionGenerator.GenInstrInfos(instrInfos));
 }
 
 TEST(DeviceDataParse, HotSpot_GenInstrInfos_expect_true)
 {
-    HotSpotFunctionGenerator hotSpotFunctionGenerator("Ascend910B4", true, false, false);
+    HotSpotFunctionGenerator hotSpotFunctionGenerator({"Ascend910B4", "", 0, true, false, false});
     vector<InstrInfo> instrInfos;
     hotSpotFunctionGenerator.encodings_[632] = Encoding{632, "SCALAR", "INSERT", "", 1, 0, 0};
     ASSERT_TRUE(hotSpotFunctionGenerator.GenInstrInfos(instrInfos));
@@ -1236,7 +1236,7 @@ TEST(DeviceDataParse, process_encoding_when_soc_is_a5_and_expect_success)
         {{0, 0}, 0, EncodingType::BIT32, "PIPEA", "NAMEA"}, {{1, 0}, 1, EncodingType::BIT32, "PIPEB", "NAMEB"},
         {{2, 0}, 2, EncodingType::BIT32, "PIPEC", "NAMEC"}
     };
-    HotSpotFunctionGenerator hotSpotFunctionGenerator(soc, false, true, false);
+    HotSpotFunctionGenerator hotSpotFunctionGenerator({soc, "", 0, false, true, false});
     MOCKER(&Encode::InstrEncoding::GenerateEncoding)
             .stubs()
             .with(any(), outBound(instrEncodingVec))
@@ -1261,7 +1261,7 @@ TEST(DeviceDataParse, process_update_pcsampling_given_bin_and_expect_success)
 
     string soc = "Ascend910_9599";
     string dir = "test/ut/resources/op_profiling/instr_prof";
-    HotSpotFunctionGenerator hotSpotFunctionGenerator(soc, false, true, false);
+    HotSpotFunctionGenerator hotSpotFunctionGenerator({soc, "", 0, false, true, false});
     hotSpotFunctionGenerator.startPc_ = 0;
     hotSpotFunctionGenerator.encodings_[0x28] = {0x28, "PIPEA", "NAMEA", "", 0, 0, 0, 0};  // 0x05 * 8 = 0x28
     hotSpotFunctionGenerator.encodings_[0x40] = {0x40, "PIPEB", "NAMEB", "", 0, 0, 0, 0};  // 0x08 * 8 = 0x40
@@ -1281,7 +1281,7 @@ TEST(DeviceDataParse, process_update_pcsampling_given_bin_and_expect_success)
 
 TEST(DeviceDataParse, HotSpot_UpdateProcessBytes_expect_true)
 {
-    HotSpotFunctionGenerator hotSpotFunctionGenerator("Ascend910B4", true, false, false);
+    HotSpotFunctionGenerator hotSpotFunctionGenerator({"Ascend910B4", "", 0, true, false, false});
     Common::MemRecord record1;
     record1.srcAddr = 10; record1.dstAddr = 10; record1.srcMemSize = 10; record1.dstMemSize = 10; record1.pc = 10;
     record1.blockId = 10; record1.src = MemType::GM; record1.dst = MemType::GM;
@@ -1296,7 +1296,7 @@ TEST(DeviceDataParse, HotSpot_UpdateProcessBytes_expect_true)
 TEST(DeviceDataParse, HotSpot_ProcessEncoding_expect_true)
 {
     GlobalMockObject::verify();
-    HotSpotFunctionGenerator hotSpotFunctionGenerator("Ascend910B4", true, false, false);
+    HotSpotFunctionGenerator hotSpotFunctionGenerator({"Ascend910B4", "", 0, true, false, false});
     auto gm = std::make_shared<GM>("GM", 512);
     L2Cache l2{{"L2Cache", gm, gm, 4, 1, 512, CachePolicy::LRU, true, true}};
     auto ptr = Utility::MakeShared<L2Cache>(l2);
@@ -1310,7 +1310,7 @@ TEST(DeviceDataParse, HotSpot_ProcessEncoding_expect_true)
 
 TEST(DeviceDataParse, HotSpot_GenLine2Encodings_expect_true)
 {
-    HotSpotFunctionGenerator hotSpotFunctionGenerator("Ascend910B4", true, false, false);
+    HotSpotFunctionGenerator hotSpotFunctionGenerator({"Ascend910B4", "", 0, true, false, false});
     std::map<std::string, std::vector<Encoding>> line2Encodings;
     Encoding encode {10, "vector", "aaa", "cce", 10, 10, 10, 0};
     line2Encodings["a"] = {encode};
@@ -1328,7 +1328,7 @@ TEST(DeviceDataParse, HotSpot_GenLine2Encodings_expect_true)
 
 TEST(DeviceDataParse, HotSpot_GenAddr2Lines_expect_true)
 {
-    HotSpotFunctionGenerator hotSpotFunctionGenerator("Ascend910B4", true, false, false);
+    HotSpotFunctionGenerator hotSpotFunctionGenerator({"Ascend910B4", "", 0, true, false, false});
     std::vector<std::string> addrVec;
     std::unordered_map<uint64_t, std::vector<std::string>> addr2Lines;
     MOCKER(&SymbolizerParser::Parse)
