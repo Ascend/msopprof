@@ -94,6 +94,15 @@ struct InstructionsDtype {
     int gprCount = static_cast<int>(Utility::VisualizeBinDType::INT);
 };
 
+struct HotspotFuncArgs {
+    std::string socVersion;
+    std::string kernelName;
+    uint64_t pcOffset;
+    bool sourceEnable;
+    bool pcSamplingEnable;
+    bool memdetailEnable;
+};
+
 /*
  * @brief 此类用于生成上板代码热点图
  */
@@ -104,28 +113,27 @@ public:
     *
     * @param：芯片类型
     */
-    explicit HotSpotFunctionGenerator(std::string socVersion, bool sourceEnable, bool pcSamplingEnable,
-        bool memdetailEnable, const std::string &kernelName = "")
-        : socVersion_(std::move(socVersion)), sourceEnable_(sourceEnable),
-        pcSamplingEnable_(pcSamplingEnable), memdetailEnable_(memdetailEnable)
+    explicit HotSpotFunctionGenerator(const HotspotFuncArgs &args)
+        : pcOffset_(args.pcOffset), socVersion_(std::move(args.socVersion)), sourceEnable_(args.sourceEnable),
+        pcSamplingEnable_(args.pcSamplingEnable), memdetailEnable_(args.memdetailEnable)
     {
-        if (kernelName.empty()) {
+        if (args.kernelName.empty()) {
             beginAddr_[""] = 0;
             endAddr_[""] = UINT64_MAX;
         } else {
             size_t pos;
-            kernelName_.emplace_back(kernelName);
-            beginAddr_[kernelName] = UINT64_MAX;
-            endAddr_[kernelName] = 0;
-            std::string otherTypeName = kernelName;
-            if ((pos = kernelName.find(Common::MIX_AIC_TAIL)) != std::string::npos) {
+            kernelName_.emplace_back(args.kernelName);
+            beginAddr_[args.kernelName] = UINT64_MAX;
+            endAddr_[args.kernelName] = 0;
+            std::string otherTypeName = args.kernelName;
+            if ((pos = args.kernelName.find(Common::MIX_AIC_TAIL)) != std::string::npos) {
                 otherTypeName.replace(pos, std::string(Common::MIX_AIC_TAIL).length(), Common::MIX_AIV_TAIL);
                 kernelName_.emplace_back(otherTypeName);
-            } else if ((pos = kernelName.find(Common::MIX_AIV_TAIL)) != std::string::npos) {
+            } else if ((pos = args.kernelName.find(Common::MIX_AIV_TAIL)) != std::string::npos) {
                 otherTypeName.replace(pos, std::string(Common::MIX_AIV_TAIL).length(), Common::MIX_AIC_TAIL);
                 kernelName_.emplace_back(otherTypeName);
             }
-            if (otherTypeName != kernelName) {
+            if (otherTypeName != args.kernelName) {
                 beginAddr_[otherTypeName] = UINT64_MAX;
                 endAddr_[otherTypeName] = 0;
             }
@@ -230,6 +238,8 @@ private:
     std::unordered_map<std::string, std::map<uint64_t, uint64_t>> fileLineCalls_;   // {fileName, {lineNo, calls}}
     std::unordered_map<uint64_t, Encoding> encodings_;
     uint64_t startPc_ = 0;
+    uint64_t startPcForPcSampling_ = 0;
+    uint64_t pcOffset_ = 0;
     std::string socVersion_;
     bool sourceEnable_ {false};
     bool pcSamplingEnable_ {false};

@@ -91,7 +91,7 @@ private:
     std::atomic<int> relations_ = {0};
 };
 
-std::string GetStartPcFromDump(const std::string &outputPath);
+std::string GetStartPcFromDump(const std::string &outputPath, const std::string &pcStartText);
 }
 
 #endif // __MSOPPROF_PROFILING_OP_PROF_DATA_PARSE_H__

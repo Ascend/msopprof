@@ -72,8 +72,8 @@ add_custom_command(
     OUTPUT instrprof_dynamic_bind.cpp.o
     VERBATIM
     COMMENT "Extract object instrprof_dynamic_bind.cpp.o from libinstrprof_dynamic_bind.a"
-    DEPENDS instrprof_dynamic_bind
-    COMMAND ar -x $<TARGET_FILE:instrprof_dynamic_bind>
+    DEPENDS instrprofend_dynamic_bind
+    COMMAND ar -x $<TARGET_FILE:instrprofend_dynamic_bind>
 )
 
 list(GET CCE_AICORE_ARCH_LIST 0 LAST_AICORE_ARCH)

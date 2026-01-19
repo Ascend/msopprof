@@ -28,7 +28,7 @@ bool CachelineHeatMap::ToJson(const std::string &outputPath)
         return false;
     }
     std::string dumpPath = Utility::JoinPath({outputPath, "dump"});
-    if (!Utility::StoullConverter(Profiling::GetStartPcFromDump(dumpPath), startPc_, Utility::RADIX_16)) {
+    if (!Utility::StoullConverter(Profiling::GetStartPcFromDump(dumpPath, Common::PC_START_PATH), startPc_, Utility::RADIX_16)) {
         Utility::LogWarn("Failed to convert start pc in cache line heat map");
         return false;
     }

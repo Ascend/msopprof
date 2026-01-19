@@ -103,6 +103,8 @@ bool DataHandler::ParseDeviceData(const ParserConfig &config, const map<string, 
         LogWarn("Failed to analyze op basic info");
         res = false;
     }
+    string pcSamplingBinPath = JoinPath({config.outputPath, "dump", "PcOffset.bin"});
+    ParsePcSamplingRecords(pcSamplingBinPath);
     vector<MemRecord> memoryRecords;
     ParseMemoryChartData(config.outputPath, metrics, memoryRecords, opInfoMap_["Op Name"]);
     string recordBinPath = JoinPath({config.outputPath, "dump", "OperandRecord.bin"});
@@ -673,7 +675,7 @@ void DataHandlerOf910B::ParseMemoryChartData(const std::string &outputPath,
         l2Cache_->Modeling(memoryRecords);
     }
     if (metrics.isSource) {
-        HotSpotFunctionGenerator hotSpotFunctionGenerator(GetSoc(), true, false, metrics.isMemoryDetail, kernelName);
+        HotSpotFunctionGenerator hotSpotFunctionGenerator({GetSoc(), kernelName, 0, true, false, metrics.isMemoryDetail});
         if (!hotSpotFunctionGenerator.Process(outputPath, memoryRecords, l2Cache_)) {
             LogWarn("Generate hot spot function failed");
         }
@@ -751,12 +753,33 @@ void DataHandlerOf91095::ParseMemoryChartData(const std::string &outputPath,
     }
 
     if (metrics.isSource || metrics.pcSamplingEnable) {
-        HotSpotFunctionGenerator hotSpotFunctionGenerator(GetSoc(), metrics.isSource, metrics.pcSamplingEnable,
-                                                          metrics.isMemoryDetail, "");
+        HotSpotFunctionGenerator hotSpotFunctionGenerator({GetSoc(), "", pcOffsetByPcSampling_,  metrics.isSource, metrics.pcSamplingEnable,
+                                                          metrics.isMemoryDetail});
         if (!hotSpotFunctionGenerator.Process(outputPath, memoryRecords, l2Cache_)) {
             LogWarn("Generate hot spot function failed");
         }
     }
+}
+
+void DataHandler::ParsePcSamplingRecords(const std::string &recordBinPath)
+{
+    constexpr size_t recordSize = 8;
+    if (!IsReadable(Realpath(recordBinPath))) {
+        LogDebug("%s is not exist or readable.", recordBinPath.c_str());
+        return;
+    }
+    size_t fileSize = GetFileSize(recordBinPath);
+    if (fileSize != recordSize) {
+        LogWarn("File size of %s is invalid %zu.", recordBinPath.c_str(), fileSize);
+    }
+    vector<char> binData(fileSize);
+    if (!ReadBinaryFile(recordBinPath, binData)) {
+        return;
+    }
+    if (memcpy_s(&pcOffsetByPcSampling_, recordSize, binData.data(), recordSize) != EOK) {
+        LogWarn("Pc sampling record memcpy failed.");
+    }
+    return;
 }
 
 void DataHandler::ParseOperandRecords(const std::string &recordBinPath)

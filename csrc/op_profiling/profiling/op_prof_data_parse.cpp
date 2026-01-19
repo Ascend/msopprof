@@ -343,9 +343,9 @@ bool SymbolizerParser::SaveOffset2Lines(const nlohmann::json &addr2Line, const n
     return true;
 }
 
-std::string GetStartPcFromDump(const std::string &outputPath)
+std::string GetStartPcFromDump(const std::string &outputPath, const std::string &pcStartText)
 {
-    std::string pcStartDumpFile = Utility::JoinPath({outputPath, "pc_start_addr.txt"});
+    std::string pcStartDumpFile = Utility::JoinPath({outputPath, pcStartText});
     if (Utility::IsReadable(pcStartDumpFile)) {
         std::ifstream file(pcStartDumpFile);
         if (file.is_open()) {
@@ -358,7 +358,7 @@ std::string GetStartPcFromDump(const std::string &outputPath)
             }
         }
     }
-    LogDebug("Failed to get start pc info in dump.");
+    LogDebug("Failed to get start pc info in %s.", pcStartText.c_str());
     return "";
 }
 }  // namespace Profiling

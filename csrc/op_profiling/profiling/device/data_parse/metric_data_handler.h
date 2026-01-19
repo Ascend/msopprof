@@ -131,6 +131,7 @@ public:
     int64_t aiCoreNum_;
     Common::ChipType chipType_;
     int64_t l2CacheEvict_ = -1;
+    uint64_t pcOffsetByPcSampling_ = 0;
 protected:
     virtual void ParseMemoryChartData(const std::string &outputPath, const Common::ProfMetricsAbilityConfig &metrics,
                                       std::vector<Common::MemRecord> &memoryRecords,
@@ -166,6 +167,7 @@ private:
     bool LoadOpBasicInfoTxtFile(const std::string &filePath);
     void ParseOperandRecords(const std::string &recordBinPath);
     Visualize::TypeOperandRecord GetOperandRecordMap(uint16_t blockId, const std::string &subBlockId, const std::string &opType);
+    void ParsePcSamplingRecords(const std::string &recordBinPath);
 
     std::string opName_;
     std::string soc_;

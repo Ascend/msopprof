@@ -1,3 +1,4 @@
 add_subdirectory(memory_chart)
 add_subdirectory(operand_record)
-add_subdirectory(instr_prof)
+add_subdirectory(instr_prof_end)
+add_subdirectory(instr_prof_start)
