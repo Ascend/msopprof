@@ -102,7 +102,7 @@ bool GetCoresTuple(const string &dumpDir, std::set<CoreNameAndPreFixPair> &cores
 std::string PipeType::FindPipe(const std::string &pipeValue, const std::string &nameValue,
                                const std::string &detailValue)
 {
-    if (detailValue.find("LPCNT") != detailValue.npos) {
+    if (detailValue.find(LPCNT_FLAG) != detailValue.npos || detailValue.find(COND_FLAG) != detailValue.npos) {
         return USER_MARK;
     }
 

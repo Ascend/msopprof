@@ -80,7 +80,9 @@ void InstrLogParser::UpdateMark(InstrParseInfo &instrInfo)
         userMarkName_ = "NA";
     }
 
-    if (instrInfo.detail.find("LPCNT") == std::string::npos) { return; }
+    if (instrInfo.detail.find(LPCNT_FLAG) == std::string::npos && instrInfo.detail.find(COND_FLAG) == std::string::npos) {
+        return;
+    }
     std::string markName("Mark 0x");
     std::smatch matchRes;
     std::regex pattern(R"(0x[8c]000000[0-9])");
