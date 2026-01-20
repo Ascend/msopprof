@@ -37,6 +37,7 @@ PluginErrorCode CoreTimeLineVisualizer::Entry()
     for (auto &coreNameWithData: *dataMapPtr) {
         const std::string &coreName = coreNameWithData.first;
         SimData data = coreNameWithData.second;
+        AddCoreNameOrder(coreName);
         if (data.instrs == nullptr) {
             LogError("Failed to generate core timeline for %s", coreName.c_str());
             continue;
@@ -53,11 +54,51 @@ PluginErrorCode CoreTimeLineVisualizer::Entry()
     if (mteJsonListPtr != nullptr) {
         coresJsonList_.insert(coresJsonList_.end(), mteJsonListPtr->begin(), mteJsonListPtr->end());
     }
+
+    // 将泳道排序事件写入到json
+    if (laneJsonList_.size() != 0) {
+        coresJsonList_.insert(coresJsonList_.begin(), laneJsonList_.begin(), laneJsonList_.end());
+    }
+
     // write all cores json
     std::string outputPath = dataVisualizerConfig_.GetOutputPath();
     WriteFile(outputPath);
     LogDebug("Save trace json of all cores in %s", outputPath.c_str());
     return PluginErrorCode::SUCCESS;
+}
+
+uint32_t CoreTimeLineVisualizer::ExtraNumAfterKey(const std::string &str, const std::string &key)
+{
+    size_t keyPos = str.find(key);
+    if (keyPos == std::string::npos) {
+        return 0;
+    }
+    size_t numStart = keyPos + key.length();
+    std::string numStr;
+    while (numStart < str.length() && isdigit(str[numStart])) {
+        numStr += str[numStart];
+        numStart++;
+    }
+    return numStr.empty() ? 0 : std::stoul(numStr);
+}
+
+void CoreTimeLineVisualizer::AddCoreNameOrder(const std::string &coreName)
+{
+    uint32_t result = 0;
+    if (coreName.find("core") != std::string::npos) {
+        uint32_t coreIndex = ExtraNumAfterKey(coreName, "core");
+        if (coreName.find("veccore") != std::string::npos) {
+            uint32_t veccoreIndex = ExtraNumAfterKey(coreName, "veccore");
+            result = coreIndex * 3 + 2 + veccoreIndex;
+        } else {
+            result = coreIndex * 3 + 1;
+        }
+    }
+    LaneEvent event = {"process_sort_index", "M", coreName, "NA", {}};
+    event.args["sort_index"] = result;
+    nlohmann::json jsonData;
+    event.ToJson(jsonData);
+    laneJsonList_.emplace_back(jsonData);
 }
 
 bool CoreTimeLineVisualizer::ParseByCore(const std::string &coreName, SimData &data)
@@ -81,6 +122,7 @@ bool CoreTimeLineVisualizer::ParseByCore(const std::string &coreName, SimData &d
             }
         return instr1.pc < instr2.pc;
     });
+    CollectLaneOrderEvents(coreName, instrs, coreJson);
     CollectInstrEvents(coreName, instrs, coreJson);
 
     // get cache events in this place
@@ -106,7 +148,9 @@ void CoreTimeLineVisualizer::WriteFile(const std::string &filePath)
 {
     constexpr int writeJsonThreadPoolSize = 2;
     nlohmann::json fileJson;
-    fileJson["schemaVersion"] = 1;
+
+    // 泳道排序后的可视化文件schemaVersion修改为2，未排序文件schemaVersion为1
+    fileJson["schemaVersion"] = 2;
     fileJson["displayTimeUnit"] = "ns";
     fileJson["profilingType"] = "op";
     fileJson["traceEvents"] = coresJsonList_;
@@ -124,6 +168,25 @@ void CoreTimeLineVisualizer::WriteFile(const std::string &filePath)
 
     pool.WaitAllTasks();
     pool.Stop();
+}
+
+void CoreTimeLineVisualizer::CollectLaneOrderEvents(const std::string &coreName, std::vector<MergeInfo> &instrs,
+    std::vector<nlohmann::json> &coreJson)
+{
+    std::map <std::string, uint32_t> laneMap = Profiling::Parse::getLaneOrderMap();
+    for (auto &instr: instrs) {
+        std::string laneName = "WARP_" + std::to_string(instr.warpId);
+        if (laneMap.find(laneName) == laneMap.end()) {
+            laneMap[laneName] = static_cast<uint32_t>(100 + instr.warpId);
+        }
+    }
+    for (auto &record: laneMap) {
+        LaneEvent event = {"thread_sort_index", "M", coreName, record.first, {}};
+        event.args["sort_index"] = record.second;
+        nlohmann::json jsonData;
+        event.ToJson(jsonData);
+        coreJson.emplace_back(jsonData);
+    }
 }
 
 void CoreTimeLineVisualizer::CollectInstrEvents(const std::string &coreName, std::vector<MergeInfo> &instrs,
@@ -276,7 +339,7 @@ Event CoreTimeLineVisualizer::GenerateEvent(const MergeInfo &instr, EventArgs &e
                    GetMicrosecond(chipType_, durationCycle), coreName, instr.pipe, {}};
     if (instr.warpId != DEFAULT_INT_VALUE && instr.schId != DEFAULT_INT_VALUE) {
         event.tid = "WARP_" + std::to_string(instr.warpId);
-        event.cName = GetCNameByPipe("VECTOR");
+        event.cName = GetCNameByInstrName(instr.name);
     } else {
         event.cName = GetCNameByPipe(instr.pipe);
     }

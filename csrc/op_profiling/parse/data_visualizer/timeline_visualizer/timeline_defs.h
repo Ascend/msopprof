@@ -108,6 +108,23 @@ struct FlagEvent {
     std::string id;
 };
 
+struct LaneEvent {
+    inline void ToJson(nlohmann::json &jsonData) const
+    {
+        jsonData["name"] = this->name;
+        jsonData["ph"] = this->ph;
+        jsonData["pid"] = this->pid;
+        jsonData["tid"] = this->tid;
+        jsonData["args"] = this->args;
+    }
+
+    std::string name;
+    std::string ph;
+    std::string pid;
+    std::string tid;
+    std::map<std::string, uint32_t> args;
+};
+
 const std::map <std::string, std::string> cNamesMap{
         {"MTE1",               "thread_state_running"},
         {"MTE2",               "thread_state_iowait"},

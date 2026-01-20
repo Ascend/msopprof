@@ -69,11 +69,15 @@ private:
     Event GenerateEvent(const MergeInfo &instr, EventArgs &evtArgs, int startCycle, int durationCycle,
         const std::string &coreName) const;
     void WriteFile(const std::string &filePath);
-
+    void CollectLaneOrderEvents(const std::string &coreName, std::vector<MergeInfo> &instrs,
+        std::vector<nlohmann::json> &coreJson);
+    void AddCoreNameOrder(const std::string &coreName);
+    uint32_t ExtraNumAfterKey(const std::string &str, const std::string &key);
     std::string waitFlagName_;
     std::string setFlagName_;
     std::mutex timeLineLock_;
     std::vector<nlohmann::json> coresJsonList_;
+    std::vector<nlohmann::json> laneJsonList_;
     Pc2CodeMap& pc2code_;
 };
 }

@@ -17,8 +17,8 @@
 #include <cstring>
 #include <fstream>
 #include <iostream>
-#include "tlv_parse.h"
 #include "log.h"
+#include "tlv_parse.h"
 
 using namespace Utility;
 // 通用函数：数据读取

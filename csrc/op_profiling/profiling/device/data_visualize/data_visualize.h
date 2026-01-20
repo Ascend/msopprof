@@ -57,6 +57,9 @@ public:
 
     void GenerateVisualizeData(Profiling::Parse::DataCenter &dataCenter, const std::string &outputPath,
                                const Common::ProfMetricsAbilityConfig &metrics);
+    void GenerateAllVisualizeData(Profiling::Parse::DataCenter &dataCenter, const std::string &outputPath,
+                               const Common::ProfMetricsAbilityConfig &metrics);
+    void CleanupAndLog(Profiling::Parse::DataCenter &dataCenter, const std::string &outputPath);
 
 private:
     std::shared_ptr<OpBasicInfo> &opBasicInfo_;

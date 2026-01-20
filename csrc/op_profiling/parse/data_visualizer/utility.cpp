@@ -104,6 +104,27 @@ float CalculateRunningTime(std::vector<MergeInfo> &instrList, const Common::Chip
     return GetMicrosecond(chipType, runningTime, roundParam);
 }
 
+const std::map<std::string, uint32_t>& getLaneOrderMap()
+{
+    static std::map <std::string, uint32_t> laneOrderMap{{"SCALAR", 1}, {"FLOWCTRL", 2}, {"MTE1", 3},  {"CUBE", 4}, {"FIXP", 5},
+        {"MTE2", 6}, {"VECTOR", 7}, {"MTE3", 8}, {"CACHEMISS", 9}, {"SCALARLDST", 10}, {"ALL", 11}, {Profiling::USER_MARK, 12},
+        {"EVENT", 13}, {"SET_FLAG", 14}, {"WAIT_FLAG", 15}, {"set_event", 16}, {"wait_event", 17}, {"RVECEX", 18}, {"RVECLP", 19},
+        {"RVECST", 20}, {"RVECLD", 21}, {"PUSHQ", 22}, {"RVECSU", 23}};
+ 
+    return laneOrderMap;
+}
+
+std::string GetCNameByInstrName(const std::string &instrName)
+{
+    std::string cName = "thread_state_unknown";
+    if (instrToColorMap.count(instrName) != 0) {
+        cName = instrToColorMap.at(instrName);
+    } else {
+        LogDebug("Cannot find pipe %s in cname, use default color.", instrName.c_str());
+    }
+    return cName;
+}
+
 std::string GetCNameByPipe(const std::string &pipe)
 {
     std::string cName = "thread_state_stopped";

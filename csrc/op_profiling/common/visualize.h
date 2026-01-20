@@ -66,7 +66,7 @@ const std::map<VisualizeType, std::string> VISUALIZE_TYPE_STR = {
     {VisualizeType::CACHELINE_HEAT_MAP,      "CacheLineHeatMap"},
 };
 
-// total 9 color name for mindstudio-insight
+// total 12 color names for mindstudio-insight
 struct VISUALIZE_COLOR_NAME {
     static constexpr char const *GRASS_GREEN = "thread_state_runnable";
     static constexpr char const *GREEN = "good";
@@ -77,6 +77,10 @@ struct VISUALIZE_COLOR_NAME {
     static constexpr char const *ORANGE = "startup";
     static constexpr char const *CYAN = "background_memory_dump";
     static constexpr char const *RED = "rail_response";
+    // add three color names
+    static constexpr char const *VIVID_BLUE = "thread_state_uninterruptible";
+    static constexpr char const *AMETHYST_PURPLE = "head_dump_object_type";
+    static constexpr char const *SKY_BLUE = "cq_build_attempt_passed";
 };
 
 /*

@@ -15,9 +15,9 @@
  * ------------------------------------------------------------------------- */
 
 #include <sstream>
-#include "dbi_helper.h"
 #include "common/dbi_defs.h"
 #include "log.h"
+#include "dbi_helper.h"
 /*
  * 日志规范
  * coreId -> pc -> dst属性 -> src属性 -> 其余属性

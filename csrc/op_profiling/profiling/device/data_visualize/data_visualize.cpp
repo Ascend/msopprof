@@ -30,13 +30,25 @@ namespace Visualize {
 void DataVisualize::GenerateVisualizeData(Parse::DataCenter &dataCenter, const std::string &outputPath,
                                           const Common::ProfMetricsAbilityConfig &metrics)
 {
+    GenerateAllVisualizeData(dataCenter, outputPath, metrics);
+    CleanupAndLog(dataCenter, outputPath);
+}
+
+void DataVisualize::GenerateAllVisualizeData(Profiling::Parse::DataCenter 
+    &dataCenter, const std::string &outputPath,
+                                          const Common::ProfMetricsAbilityConfig &metrics)
+{
     using VT = Utility::VisualizeType;
     opBasicInfo_->OpBasicInfoToJson();
     Utility::Visualize::WriteBin<VT::OP_BASIC_INFO>(outputPath, opBasicInfo_->opBasicFileJson_);
 
     std::shared_ptr<Parse::ComputeLoadInfo> computeLoadInfoPtr = dataCenter.GetDbPtr<Parse::ComputeLoadInfo>();
-    Utility::Visualize::WriteBin<VT::COMPUTE_LOAD_FIGURE>(outputPath, computeLoadInfoPtr->figure);
-    Utility::Visualize::WriteBin<VT::COMPUTE_LOAD_TABLE>(outputPath, computeLoadInfoPtr->table);
+    if (computeLoadInfoPtr != nullptr) {
+        Utility::Visualize::WriteBin<VT::COMPUTE_LOAD_FIGURE>(outputPath, computeLoadInfoPtr->figure);
+        Utility::Visualize::WriteBin<VT::COMPUTE_LOAD_TABLE>(outputPath, computeLoadInfoPtr->table);
+    } else {
+        Utility::LogDebug("computeLoadInfoPtr is null, skipping writing compute load data"); 
+    }
 
     storageAccess_->StorageAccessToJson(metrics.isKernelScale, metrics.isMemoryDetail);
     Utility::Visualize::WriteBin<VT::STORAGE_ACCESS_HEAT_MAP>(outputPath,
@@ -78,7 +90,10 @@ void DataVisualize::GenerateVisualizeData(Parse::DataCenter &dataCenter, const s
         Utility::Visualize::WriteBin<VT::CACHELINE_HEAT_MAP>(outputPath,
                                                              cachelineHeatMapParser_->GetCacheLineHeatMapJson());
     }
+}
 
+void DataVisualize::CleanupAndLog(Profiling::Parse::DataCenter &dataCenter, const std::string &outputPath)
+{
     occupancy_->ClearOccupancyJson();
     opBasicInfo_->ClearOpBasicFileJson();
     storageAccess_->ClearStorageAccessJson();

@@ -44,6 +44,12 @@ PluginErrorCode MteLogVisualizer::Entry()
         FillData(*mteThroughputJsonPtr, (*mteThroughputChartPtr)[i], i);
     }
     LogDebug("Finish to visualize mte throughput, valid time point num:%d.", validTsNum_);
+
+    // 当采集MTE无数据时，不进行落盘，避免影响其他泳道的显示
+    if (validTsNum_ == 0) {
+        LogDebug("No valid data to visualize mte throughput.");
+        return PluginErrorCode::SUCCESS;
+    }
     // 需要在尾部补充值为0的数据，否则最后一个数据只会显示一条线
     FillData(*mteThroughputJsonPtr, {0, 0, 0, 0, 0, 0}, endTs_ + 1);
     return PluginErrorCode::SUCCESS;

@@ -211,7 +211,7 @@ void SubcoreTimelineVisualizer::CollectSIMTEvents(std::map<int, std::vector<Merg
             uint64_t durationCycle = tmpInstr.endTick > tmpInstr.startTick ? tmpInstr.endTick - tmpInstr.startTick : 0;
             XEvent xEvent = {tmpInstr.name, "X", pidMap_["WARP"] + tmpInstr.warpId, tid,
                              GetMicrosecond(chipType_, startCycle),
-                             GetMicrosecond(chipType_, durationCycle), GetCNameByPipe("VECTOR"), {}};
+                             GetMicrosecond(chipType_, durationCycle), GetCNameByInstrName(tmpInstr.name), {}};
             EventArgs evtArgs = {GetPc2String(tmpInstr.pc), Utility::Join(codeStack.begin(), codeStack.end(), "\n"),
                                  tmpInstr.detail};
             xEvent.args["pc_addr"] = evtArgs.pcAddr;

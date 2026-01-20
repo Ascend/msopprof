@@ -22,6 +22,7 @@
 #include <utility>
 #include <vector>
 #include <map>
+#include <unordered_set>
 #include <unordered_map>
 #include "profiling/op_prof_data_parse.h"
 #include "common/dbi_defs.h"
@@ -51,6 +52,7 @@ struct CodeLine {
     std::vector<std::vector<std::string>> addrRange;
     float l2cacheHitRate;
     int processBytes;
+    uint32_t gprCount;
     std::vector<uint64_t> pcSampling;
     void ToJson(const std::string &socVersion, nlohmann::json &lineDetails);
 };
@@ -79,6 +81,7 @@ struct FileDtype {
     int line = static_cast<int>(Utility::VisualizeBinDType::INT);
     int l2cacheHitRate = static_cast<int>(Utility::VisualizeBinDType::PERCENTAGE);
     int processBytes = static_cast<int>(Utility::VisualizeBinDType::INT);
+    int gprCount = static_cast<int>(Utility::VisualizeBinDType::INT);
     int pcSampling = static_cast<int>(Utility::VisualizeBinDType::INT);
 };
 
@@ -247,6 +250,7 @@ private:
     std::vector<std::string> kernelName_;
     std::map<std::string, uint64_t> beginAddr_;
     std::map<std::string, uint64_t> endAddr_;
+    std::unordered_set<std::string> skipKeys_;
 };
 
 }

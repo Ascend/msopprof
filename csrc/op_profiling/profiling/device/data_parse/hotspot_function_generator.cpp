@@ -54,6 +54,7 @@ void CodeLine::ToJson(const std::string &socVersion, nlohmann::json &lineDetails
     lineDetails["Line"] = this->line;
     lineDetails["Address Range"] = this->addrRange;
     lineDetails["Instructions Executed"] = this->callCount;
+    lineDetails["GPR Count"] = this->gprCount;
     if (this->processBytes != 0) {
         lineDetails["Process Bytes"] = this->processBytes;
     } else {
@@ -124,6 +125,7 @@ bool HotSpotFunctionGenerator::CalculateData(const std::string &outputPath,
                                              const std::shared_ptr<L2Cache> &l2CachePtr,
                                              std::map<std::string, std::vector<Encoding>> &line2Encodings)
 {
+    Common::ChipProductType chipType = Common::GetProductSeriesTypeBySocVersion(socVersion_);
     std::string dumpPath = Utility::JoinPath({outputPath, Common::DUMP});
     std::string kernelPath = Utility::JoinPath({dumpPath, Common::AICORE_KERNEL_NAME});
     if (!ProcessEncoding(kernelPath, l2CachePtr)) {
@@ -133,8 +135,8 @@ bool HotSpotFunctionGenerator::CalculateData(const std::string &outputPath,
     if (pcSamplingEnable_) {
         UpdatePcSampling(dumpPath);
     }
-    if (!GenTlvdata(kernelPath, dumpPath)) {
-        Utility::LogWarn("Failed to gen tlvdata");
+    if (IsChipSeriesTypeValid(chipType, Common::ChipProductType::ASCEND910_95_SERIES) && !GenTlvdata(kernelPath, dumpPath)) {
+        Utility::LogWarn("Failed to gen register data");
     }
     if (memdetailEnable_) {
         UpdateProcessBytes(memoryRecords);
@@ -549,6 +551,8 @@ bool HotSpotFunctionGenerator::GenTlvdata(const std::string &kernelPath, const s
         return false;
     }
     // 将统计好的相关数据写入到encoding中
+    // 判断标志位，如果判断出为非simt算子，则不显示寄存器列
+    bool sign = false;
     for (auto &item : parser.pcNumCount) {
         uint64_t pc = item.first;
         if (encodings_.find(pc) == encodings_.end()) {
@@ -556,6 +560,11 @@ bool HotSpotFunctionGenerator::GenTlvdata(const std::string &kernelPath, const s
             continue;
         }
         encodings_[pc].gprCount = item.second;
+        sign = item.second > 0 ? true : sign;
+    }
+    if (!sign) {
+        Utility::LogInfo("This operator is a non-SIMT operator and does not require generating register information");
+        skipKeys_.insert("GPR Count");
     }
     return true;
 }
@@ -658,6 +667,7 @@ bool HotSpotFunctionGenerator::GenCodeLine(const std::string &line, const std::v
             l2cacheHit += encoding.l2cacheHit;
             l2cacheMiss += encoding.l2cacheMiss;
             codeLine.processBytes += encoding.processBytes;
+            codeLine.gprCount = codeLine.gprCount > encoding.gprCount ? codeLine.gprCount : encoding.gprCount;
             for (size_t i = 0; i < encoding.pcSampling.size(); ++i) {
                 codeLine.pcSampling[i] += encoding.pcSampling[i];
             }
@@ -807,6 +817,9 @@ void HotSpotFunctionGenerator::SetFileDtype(nlohmann::json &apiJson) const
         fileJson["Process Bytes"] = fileDtype.processBytes;
     }
     fileJson["Instructions Executed"] = fileDtype.instructionExecuted;
+    if (skipKeys_.find("GPR Count") == skipKeys_.end()) {
+        fileJson["GPR Count"] = fileDtype.gprCount;
+    }
     nlohmann::json fileDtypeJson;
     fileDtypeJson["Lines"] = fileJson;
     apiJson["Files Dtype"] = fileDtypeJson;
@@ -831,7 +844,9 @@ void HotSpotFunctionGenerator::SetInstrDtype(nlohmann::json &apiJson) const
     if (memdetailEnable_) {
         instrJson["Process Bytes"] = instructionsDtype.processBytes;
     }
-    instrJson["GPR Count"] = instructionsDtype.gprCount;
+    if (skipKeys_.find("GPR Count") == skipKeys_.end()) {
+        instrJson["GPR Count"] = instructionsDtype.gprCount;
+    }
     instrJson["Instructions Executed"] = instructionsDtype.instructionExecuted;
     instrJson["Pipe"] = instructionsDtype.pipe;
     instrJson["Source"] = instructionsDtype.source;

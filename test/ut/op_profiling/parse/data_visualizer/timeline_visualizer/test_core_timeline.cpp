@@ -93,7 +93,7 @@ TEST(CoreTimeLineVisualizer, test_ParseByCore_should_return_ture_when_parse_succ
     CoreTimeLineVisualizer core(dataCenter, config);
     std::string coreName = "core0.veccore0";
     ASSERT_TRUE(core.ParseByCore(coreName, simData->at(coreName)));
-    ASSERT_EQ(core.coresJsonList_.size(), 8);
+    ASSERT_EQ(core.coresJsonList_.size(), 33);
 }
 
 /**
