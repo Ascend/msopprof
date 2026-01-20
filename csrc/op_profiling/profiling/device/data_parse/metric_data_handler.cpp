@@ -795,6 +795,7 @@ void DataHandler::ParseOperandRecords(const std::string &recordBinPath)
         LogWarn("File size of %s is invalid: %zu.", recordBinPath.c_str(), fileSize);
         return;
     }
+    LogDebug("OperandRecord.bin size is %zu.", fileSize);
     vector<char> binData(fileSize);
     if (!ReadBinaryFile(recordBinPath, binData)) {
         return;

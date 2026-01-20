@@ -223,9 +223,14 @@ OccupancyMetrics OccupancyA5::GetSubBlockData(const std::map<uint64_t, uint64_t>
     uint64_t readThroughput = GetDataNumber(pmu[EVENT_GM_MAIN_READ_A5], REQ_DATA_OF_A5.at(TransportType::READ_MAIN_MEMORY));
     uint64_t writeThroughput = GetDataNumber(pmu[EVENT_GM_MAIN_WRITE_A5], REQ_DATA_OF_A5.at(TransportType::WRITE_MAIN_MEMORY));
     uint64_t throughput = SafeAdd(readThroughput, writeThroughput, location);
-    uint64_t hit = SafeAddAll<uint64_t>({pmu[EVENT_READ_CLOSE_HIT_A5], pmu[EVENT_READ_FAR_HIT_A5],
-                                        pmu[EVENT_WRITE_CLOSE_HIT_A5], pmu[EVENT_WRITE_FAR_HIT_A5]}, location);
-    uint64_t total = SafeAddAll<uint64_t>({hit, pmu[EVENT_READ_MISS_A5], pmu[EVENT_WRITE_MISS_A5]}, location);
+    auto hit = SafeAddAll<uint64_t>({pmu[EVENT_READ_CLOSE_HIT],
+                                    pmu[EVENT_READ_FAR_HIT],
+                                    pmu[EVENT_WRITE_CLOSE_HIT],
+                                    pmu[EVENT_WRITE_FAR_HIT]}, location);
+    auto total = SafeAddAll<uint64_t>({pmu[EVENT_READ_CLOSE_HIT],  pmu[EVENT_READ_CLOSE_MISS],  pmu[EVENT_READ_CLOSE_VICTIM],
+                                      pmu[EVENT_READ_FAR_HIT],    pmu[EVENT_READ_FAR_MISS],    pmu[EVENT_READ_FAR_VICTIM],
+                                      pmu[EVENT_WRITE_CLOSE_HIT], pmu[EVENT_WRITE_CLOSE_MISS], pmu[EVENT_WRITE_CLOSE_VICTIM],
+                                      pmu[EVENT_WRITE_FAR_HIT],   pmu[EVENT_WRITE_FAR_MISS],   pmu[EVENT_WRITE_FAR_VICTIM]}, location);
     float cacheHitRate = 0;
     if (total > 0) {
         cacheHitRate = static_cast<float>(PERCENTAGE_CONVERSION * hit) / total;

@@ -253,55 +253,59 @@ const std::map<std::string, std::function<std::string(const CalculateParams &par
     {"aiv_vec_simt_vf_ratio", [](const CalculateParams &params) {
         return Ratio(params.pmuMap.At(1284), params.totalCycles);}},
 
-    {"aic_write_cache_hit", [](const CalculateParams &params) {
-        return std::to_string(Utility::SafeAdd(params.pmuMap.At(1066), params.pmuMap.At(1069), "write hit"));}},
-    {"aic_write_cache_miss_allocate", [](const CalculateParams &params) {
-        return std::to_string(params.pmuMap.At(1070));}},
-    {"aic_r0_read_cache_hit", [](const CalculateParams &params) {
-        return std::to_string(Utility::SafeAdd(params.pmuMap.At(1060), params.pmuMap.At(1063), "read hit"));}},
-    {"aic_r0_read_cache_miss_allocate", [](const CalculateParams &params) {
-        return std::to_string(params.pmuMap.At(1064));}},
-    {"aic_write_hit_rate(%)", [](const CalculateParams &params) {
-        uint64_t val1 = Utility::SafeAdd(params.pmuMap.At(1066), params.pmuMap.At(1069), "write hit rate");
-        uint64_t val2 = Utility::SafeAdd(val1, params.pmuMap.At(1070), "write hit rate");
-        return Ratio(val1, val2);}},
+    {"aic_read_close_hit", [](const CalculateParams &params) { return std::to_string(params.pmuMap.At(1060)); }},
+    {"aic_read_close_miss", [](const CalculateParams &params) { return std::to_string(params.pmuMap.At(1061)); }},
+    {"aic_read_close_victim", [](const CalculateParams &params) { return std::to_string(params.pmuMap.At(1062)); }},
+    {"aic_read_far_hit", [](const CalculateParams &params) { return std::to_string(params.pmuMap.At(1063)); }},
+    {"aic_read_far_miss", [](const CalculateParams &params) { return std::to_string(params.pmuMap.At(1064)); }},
+    {"aic_read_far_victim", [](const CalculateParams &params) { return std::to_string(params.pmuMap.At(1065)); }},
     {"aic_read_hit_rate(%)", [](const CalculateParams &params) {
-        uint64_t val1 = Utility::SafeAdd(params.pmuMap.At(1060), params.pmuMap.At(1063), "read hit rate");
-        uint64_t val2 = Utility::SafeAdd(val1, params.pmuMap.At(1064), "read hit rate");
-        return Ratio(val1, val2);}},
-    {"aic_total_hit_rate(%)", [](const CalculateParams &params) {
-        uint64_t val1 = Utility::SafeAddAll<uint64_t>({params.pmuMap.At(1060), params.pmuMap.At(1063), params.pmuMap.At(1066), params.pmuMap.At(1069)}, "total hit rate");
-        uint64_t val2 = Utility::SafeAddAll<uint64_t>({val1, params.pmuMap.At(1064), params.pmuMap.At(1070)}, "total hit rate");
-        return Ratio(val1, val2);}},
-    {"aiv_write_cache_hit", [](const CalculateParams &params) {
-        return std::to_string(Utility::SafeAdd(params.pmuMap.At(1066), params.pmuMap.At(1069), "write hit"));}},
-    {"aiv_write_cache_miss_allocate", [](const CalculateParams &params) {
-        return std::to_string(params.pmuMap.At(1070));}},
-    {"aiv_r0_read_cache_hit", [](const CalculateParams &params) {
-        return std::to_string(Utility::SafeAdd(params.pmuMap.At(1060), params.pmuMap.At(1063), "read hit"));}},
-    {"aiv_r0_read_cache_miss_allocate", [](const CalculateParams &params) {
-        return std::to_string(params.pmuMap.At(1064));}},
-    {"aiv_write_hit_rate(%)", [](const CalculateParams &params) {
-        uint64_t val1 = Utility::SafeAdd(params.pmuMap.At(1066), params.pmuMap.At(1069), "write hit rate");
-        uint64_t val2 = Utility::SafeAdd(val1, params.pmuMap.At(1070), "write hit rate");
-        return Ratio(val1, val2);}},
+        uint64_t val1 = Utility::SafeAdd(params.pmuMap.At(1060), params.pmuMap.At(1063), "read hit");
+        uint64_t val2 = Utility::SafeAddAll<uint64_t>({params.pmuMap.At(1060), params.pmuMap.At(1061), params.pmuMap.At(1062),
+            params.pmuMap.At(1063), params.pmuMap.At(1064), params.pmuMap.At(1065)}, "read total");
+        return std::to_string(RatioFp(val1, val2) * PERCENTAGE_CONVERSION);}},
+    {"aic_write_close_hit", [](const CalculateParams &params) { return std::to_string(params.pmuMap.At(1066)); }},
+    {"aic_write_close_miss", [](const CalculateParams &params) { return std::to_string(params.pmuMap.At(1067)); }},
+    {"aic_write_close_victim", [](const CalculateParams &params) { return std::to_string(params.pmuMap.At(1068)); }},
+    {"aic_write_far_hit", [](const CalculateParams &params) { return std::to_string(params.pmuMap.At(1069)); }},
+    {"aic_write_far_miss", [](const CalculateParams &params) { return std::to_string(params.pmuMap.At(1070)); }},
+    {"aic_write_far_victim", [](const CalculateParams &params) { return std::to_string(params.pmuMap.At(1071)); }},
+    {"aic_write_hit_rate(%)", [](const CalculateParams &params) {
+        uint64_t val1 = Utility::SafeAdd(params.pmuMap.At(1066), params.pmuMap.At(1069), "write hit");
+        uint64_t val2 = Utility::SafeAddAll<uint64_t>({params.pmuMap.At(1066), params.pmuMap.At(1067), params.pmuMap.At(1068),
+            params.pmuMap.At(1069), params.pmuMap.At(1070), params.pmuMap.At(1071)}, "write total");
+        return std::to_string(RatioFp(val1, val2) * PERCENTAGE_CONVERSION);}},
+    {"aiv_read_close_hit", [](const CalculateParams &params) { return std::to_string(params.pmuMap.At(1060)); }},
+    {"aiv_read_close_miss", [](const CalculateParams &params) { return std::to_string(params.pmuMap.At(1061)); }},
+    {"aiv_read_close_victim", [](const CalculateParams &params) { return std::to_string(params.pmuMap.At(1062)); }},
+    {"aiv_read_far_hit", [](const CalculateParams &params) { return std::to_string(params.pmuMap.At(1063)); }},
+    {"aiv_read_far_miss", [](const CalculateParams &params) { return std::to_string(params.pmuMap.At(1064)); }},
+    {"aiv_read_far_victim", [](const CalculateParams &params) { return std::to_string(params.pmuMap.At(1065)); }},
     {"aiv_read_hit_rate(%)", [](const CalculateParams &params) {
-        uint64_t val1 = Utility::SafeAdd(params.pmuMap.At(1060), params.pmuMap.At(1063), "read hit rate");
-        uint64_t val2 = Utility::SafeAdd(val1, params.pmuMap.At(1064), "read hit rate");
-        return Ratio(val1, val2);}},
-    {"aiv_total_hit_rate(%)",  [](const CalculateParams &params) {
-        uint64_t val1 = Utility::SafeAddAll<uint64_t>({params.pmuMap.At(1060), params.pmuMap.At(1063), params.pmuMap.At(1066), params.pmuMap.At(1069)}, "total hit rate");
-        uint64_t val2 = Utility::SafeAddAll<uint64_t>({val1, params.pmuMap.At(1064), params.pmuMap.At(1070)}, "total hit rate");
-        return Ratio(val1, val2);}},
+        uint64_t val1 = Utility::SafeAdd(params.pmuMap.At(1060), params.pmuMap.At(1063), "read hit");
+        uint64_t val2 = Utility::SafeAddAll<uint64_t>({params.pmuMap.At(1060), params.pmuMap.At(1061), params.pmuMap.At(1062),
+            params.pmuMap.At(1063), params.pmuMap.At(1064), params.pmuMap.At(1065)}, "read total");
+        return std::to_string(RatioFp(val1, val2) * PERCENTAGE_CONVERSION);}},
+    {"aiv_write_close_hit", [](const CalculateParams &params) { return std::to_string(params.pmuMap.At(1066)); }},
+    {"aiv_write_close_miss", [](const CalculateParams &params) { return std::to_string(params.pmuMap.At(1067)); }},
+    {"aiv_write_close_victim", [](const CalculateParams &params) { return std::to_string(params.pmuMap.At(1068)); }},
+    {"aiv_write_far_hit", [](const CalculateParams &params) { return std::to_string(params.pmuMap.At(1069)); }},
+    {"aiv_write_far_miss", [](const CalculateParams &params) { return std::to_string(params.pmuMap.At(1070)); }},
+    {"aiv_write_far_victim", [](const CalculateParams &params) { return std::to_string(params.pmuMap.At(1071)); }},
+    {"aiv_write_hit_rate(%)", [](const CalculateParams &params) {
+        uint64_t val1 = Utility::SafeAdd(params.pmuMap.At(1066), params.pmuMap.At(1069), "write hit");
+        uint64_t val2 = Utility::SafeAddAll<uint64_t>({params.pmuMap.At(1066), params.pmuMap.At(1067), params.pmuMap.At(1068),
+            params.pmuMap.At(1069), params.pmuMap.At(1070), params.pmuMap.At(1071)}, "write total");
+        return std::to_string(RatioFp(val1, val2) * PERCENTAGE_CONVERSION);}},
 
     {"aic_l1_read_bw(GB/s)", [](const CalculateParams &params) {
         return BandWidth(GetDataNumberFp(params.pmuMap.At(1799), REQ_DATA_OF_A5.at(TransportType::L1_TO_MTE)), params.duration);}},
     {"aic_l1_write_bw(GB/s)", [](const CalculateParams &params) {
         return BandWidth(GetDataNumberFp(params.pmuMap.At(1801), REQ_DATA_OF_A5.at(TransportType::GM_TO_L1)), params.duration);}},
     {"aic_main_mem_read_bw(GB/s)", [](const CalculateParams &params) {
-        return BandWidth(GetDataNumberFp(params.pmuMap.At(1035), REQ_DATA_OF_A5.at(TransportType::READ_MAIN_MEMORY)), params.duration);}},
+        return BandWidth(GetDataNumberFp(params.pmuMap.At(1058), REQ_DATA_OF_A5.at(TransportType::READ_MAIN_MEMORY)), params.duration);}},
     {"aic_main_mem_write_bw(GB/s)", [](const CalculateParams &params) {
-        return BandWidth(GetDataNumberFp(params.pmuMap.At(1039), REQ_DATA_OF_A5.at(TransportType::WRITE_MAIN_MEMORY)), params.duration);}},
+        return BandWidth(GetDataNumberFp(params.pmuMap.At(1059), REQ_DATA_OF_A5.at(TransportType::WRITE_MAIN_MEMORY)), params.duration);}},
     {"aic_mte1_instructions",  [](const CalculateParams &params) {
         return std::to_string(params.pmuMap.At(1792));}},
     {"aic_mte1_ratio", [](const CalculateParams &params) {
@@ -314,18 +318,14 @@ const std::map<std::string, std::function<std::string(const CalculateParams &par
         return std::to_string(params.pmuMap.At(513));}},
     {"aic_mte3_ratio", [](const CalculateParams &params) {
         return Ratio(params.pmuMap.At(515), params.totalCycles);}},
-    {"aiv_ub_to_gm_bw(GB/s)", [](const CalculateParams &params) {
-        uint64_t other = Utility::SafeAdd(params.pmuMap.At(1397), params.pmuMap.At(1398), "ub to gm");
-        auto val = Utility::SafeSub(params.pmuMap.At(1039), other, "ub to gm", false);
-        return BandWidth(GetDataNumberFp(val, REQ_DATA_OF_A5.at(TransportType::UB_TO_GM)), params.duration);}},
     {"aiv_gm_to_ub_bw(GB/s)", [](const CalculateParams &params) {
-        uint64_t other = Utility::SafeAdd(params.pmuMap.At(1395), params.pmuMap.At(1396), "gm to ub");
-        auto val = Utility::SafeSub(params.pmuMap.At(1035), other, "gm to ub", false);
+        uint64_t other = Utility::SafeAdd(params.pmuMap.At(1407), params.pmuMap.At(1408), "gm to ub");
+        auto val = Utility::SafeSub(params.pmuMap.At(1058), other, "gm to ub", false);
         return BandWidth(GetDataNumberFp(val, REQ_DATA_OF_A5.at(TransportType::GM_TO_UB)), params.duration);}},
     {"aiv_main_mem_read_bw(GB/s)", [](const CalculateParams &params) {
-        return BandWidth(GetDataNumberFp(params.pmuMap.At(1035), REQ_DATA_OF_A5.at(TransportType::READ_MAIN_MEMORY)), params.duration);}},
+        return BandWidth(GetDataNumberFp(params.pmuMap.At(1058), REQ_DATA_OF_A5.at(TransportType::READ_MAIN_MEMORY)), params.duration);}},
     {"aiv_main_mem_write_bw(GB/s)", [](const CalculateParams &params) {
-        return BandWidth(GetDataNumberFp(params.pmuMap.At(1039), REQ_DATA_OF_A5.at(TransportType::WRITE_MAIN_MEMORY)), params.duration);}},
+        return BandWidth(GetDataNumberFp(params.pmuMap.At(1059), REQ_DATA_OF_A5.at(TransportType::WRITE_MAIN_MEMORY)), params.duration);}},
     {"aiv_mte2_instructions", [](const CalculateParams &params) {
         return std::to_string(params.pmuMap.At(512));}},
     {"aiv_mte2_ratio", [](const CalculateParams &params) {
@@ -335,46 +335,33 @@ const std::map<std::string, std::function<std::string(const CalculateParams &par
     {"aiv_mte3_ratio", [](const CalculateParams &params) {
         return Ratio(params.pmuMap.At(515), params.totalCycles);}},
     {"read_main_memory_datas(KB)", [](const CalculateParams &params) {
-        return std::to_string(GetDataNumberFp(params.pmuMap.At(1035), REQ_DATA_OF_A5.at(TransportType::READ_MAIN_MEMORY), "KB"));}},
+        return std::to_string(GetDataNumberFp(params.pmuMap.At(1058), REQ_DATA_OF_A5.at(TransportType::READ_MAIN_MEMORY), "KB"));}},
     {"write_main_memory_datas(KB)", [](const CalculateParams &params) {
-        return std::to_string(GetDataNumberFp(params.pmuMap.At(1039), REQ_DATA_OF_A5.at(TransportType::WRITE_MAIN_MEMORY), "KB"));}},
+        return std::to_string(GetDataNumberFp(params.pmuMap.At(1059), REQ_DATA_OF_A5.at(TransportType::WRITE_MAIN_MEMORY), "KB"));}},
     {"GM_to_L1_datas(KB)", [](const CalculateParams &params) {
-        return std::to_string(GetDataNumberFp(params.pmuMap.At(1035), REQ_DATA_OF_A5.at(TransportType::GM_TO_L1), "KB"));}},
+        return std::to_string(GetDataNumberFp(params.pmuMap.At(1058), REQ_DATA_OF_A5.at(TransportType::GM_TO_L1), "KB"));}},
     {"L0C_to_L1_datas(KB)", [](const CalculateParams &params) {
         return std::to_string(GetDataNumberFp(params.pmuMap.At(1806), REQ_DATA_OF_A5.at(TransportType::L0C_TO_L1), "KB"));}},
     {"L0C_to_GM_datas(KB)", [](const CalculateParams &params) {
-        uint64_t other = Utility::SafeAddAll<uint64_t>({params.pmuMap.At(1804), params.pmuMap.At(1806), params.pmuMap.At(1815)}, "l0c to gm");
-        auto val = Utility::SafeSub(params.pmuMap.At(1810), other, "l0c to gm", false);
-        return std::to_string(GetDataNumberFp(val, REQ_DATA_OF_A5.at(TransportType::L0C_TO_GM), "KB"));}},
+        return std::to_string(GetDataNumberFp(params.pmuMap.At(1059), REQ_DATA_OF_A5.at(TransportType::L0C_TO_GM), "KB"));}},
     {"GM_to_UB_datas(KB)", [](const CalculateParams &params) {
-        uint64_t other = Utility::SafeAdd(params.pmuMap.At(1395), params.pmuMap.At(1396), "gm to ub");
-        auto val = Utility::SafeSub(params.pmuMap.At(1035), other, "gm to ub", false);
+        uint64_t other = Utility::SafeAdd(params.pmuMap.At(1407), params.pmuMap.At(1408), "gm to ub");
+        auto val = Utility::SafeSub(params.pmuMap.At(1058), other, "gm to ub", false);
         return std::to_string(GetDataNumberFp(val, REQ_DATA_OF_A5.at(TransportType::GM_TO_UB), "KB"));}},
-    {"UB_to_GM_datas(KB)", [](const CalculateParams &params) {
-        uint64_t other = Utility::SafeAdd(params.pmuMap.At(1397), params.pmuMap.At(1398), "ub to gm");
-        auto val = Utility::SafeSub(params.pmuMap.At(1039), other, "ub to gm", false);
-        return std::to_string(GetDataNumberFp(val, REQ_DATA_OF_A5.at(TransportType::UB_TO_GM), "KB"));}},
     {"GM_to_L1_bw_usage_rate(%)", [](const CalculateParams &params) {
-        return BandWidthUsage(GetDataNumberFp(params.pmuMap.At(1035), REQ_DATA_OF_A5.at(TransportType::GM_TO_L1)),
+        return BandWidthUsage(GetDataNumberFp(params.pmuMap.At(1058), REQ_DATA_OF_A5.at(TransportType::GM_TO_L1)),
             params.duration, TransportType::GM_TO_L1, params.socVersion);}},
     {"L0C_to_L1_bw_usage_rate(%)", [](const CalculateParams &params) {
         return BandWidthUsage(GetDataNumberFp(params.pmuMap.At(1806), REQ_DATA_OF_A5.at(TransportType::L0C_TO_L1)),
             params.duration, TransportType::L0C_TO_L1, params.socVersion);}},
     {"L0C_to_GM_bw_usage_rate(%)", [](const CalculateParams &params) {
-        uint64_t other = Utility::SafeAddAll<uint64_t>({params.pmuMap.At(1804), params.pmuMap.At(1806), params.pmuMap.At(1815)}, "l0c to gm");
-        auto val = Utility::SafeSub(params.pmuMap.At(1810), other, "l0c to gm", false);
-        return BandWidthUsage(GetDataNumberFp(val, REQ_DATA_OF_A5.at(TransportType::L0C_TO_GM)),
+        return BandWidthUsage(GetDataNumberFp(params.pmuMap.At(1059), REQ_DATA_OF_A5.at(TransportType::L0C_TO_GM)),
             params.duration, TransportType::L0C_TO_GM, params.socVersion);}},
     {"GM_to_UB_bw_usage_rate(%)", [](const CalculateParams &params) {
-        uint64_t other = Utility::SafeAdd(params.pmuMap.At(1395), params.pmuMap.At(1396), "gm to ub");
-        auto val = Utility::SafeSub(params.pmuMap.At(1035), other, "gm to ub", false);
+        uint64_t other = Utility::SafeAdd(params.pmuMap.At(1407), params.pmuMap.At(1408), "gm to ub");
+        auto val = Utility::SafeSub(params.pmuMap.At(1058), other, "gm to ub", false);
         return BandWidthUsage(GetDataNumberFp(val, REQ_DATA_OF_A5.at(TransportType::GM_TO_UB)),
             params.duration, TransportType::GM_TO_UB, params.socVersion);}},
-    {"UB_to_GM_bw_usage_rate(%)", [](const CalculateParams &params) {
-        uint64_t other = Utility::SafeAdd(params.pmuMap.At(1397), params.pmuMap.At(1398), "ub to gm");
-        auto val = Utility::SafeSub(params.pmuMap.At(1039), other, "ub to gm", false);
-        return BandWidthUsage(GetDataNumberFp(val, REQ_DATA_OF_A5.at(TransportType::UB_TO_GM)),
-            params.duration, TransportType::UB_TO_GM, params.socVersion);}},
 
     {"aic_l0a_read_bw(GB/s)", [](const CalculateParams &params) {
         return BandWidth(GetDataNumberFp(params.pmuMap.At(772), REQ_DATA_OF_A5.at(TransportType::L0A_TO_CUBE)), params.duration);}},
@@ -393,13 +380,9 @@ const std::map<std::string, std::function<std::string(const CalculateParams &par
         return BandWidth(GetDataNumberFp(params.pmuMap.At(1393), REQ_DATA_OF_A5.at(TransportType::UB_TO_VEC)), params.duration);}},
     {"aiv_ub_write_bw_vector(GB/s)", [](const CalculateParams &params) {
         return BandWidth(GetDataNumberFp(params.pmuMap.At(1394), REQ_DATA_OF_A5.at(TransportType::VEC_TO_UB)), params.duration);}},
-    {"aiv_ub_read_bw_gm(GB/s)", [](const CalculateParams &params) {
-        uint64_t other = Utility::SafeAdd(params.pmuMap.At(1397), params.pmuMap.At(1398), "ub to gm");
-        auto val = Utility::SafeSub(params.pmuMap.At(1039), other, "ub to gm", false);
-        return BandWidth(GetDataNumberFp(val, REQ_DATA_OF_A5.at(TransportType::UB_TO_GM)), params.duration);}},
     {"aiv_ub_write_bw_gm(GB/s)", [](const CalculateParams &params) {
-        uint64_t other = Utility::SafeAdd(params.pmuMap.At(1395), params.pmuMap.At(1396), "gm to ub");
-        auto val = Utility::SafeSub(params.pmuMap.At(1035), other, "gm to ub", false);
+        uint64_t other = Utility::SafeAdd(params.pmuMap.At(1407), params.pmuMap.At(1408), "gm to ub");
+        auto val = Utility::SafeSub(params.pmuMap.At(1058), other, "gm to ub", false);
         return BandWidth(GetDataNumberFp(val, REQ_DATA_OF_A5.at(TransportType::GM_TO_UB)), params.duration);}},
 
     {"aic_cube_time(us)", [](const CalculateParams &params) {
@@ -415,31 +398,28 @@ const std::map<std::string, std::function<std::string(const CalculateParams &par
     {"aic_mte1_ratio", [](const CalculateParams &params) {
         return Ratio(params.pmuMap.At(1794), params.totalCycles);}},
     {"aic_mte1_active_bw(GB/s)", [](const CalculateParams &params) {
-        uint64_t pmuL1ToL0aAndL0b = Utility::SafeAdd(params.pmuMap.At(1795), params.pmuMap.At(1797), "pmuL1ToL0aAndL0b");
-        uint64_t pmuUbToGm = Utility::SafeSub(params.pmuMap.At(1039), Utility::SafeAdd(params.pmuMap.At(1397), params.pmuMap.At(1398), "pmuUbToGm"), "pmuUbToGm", false);
-        uint64_t pmuL1ToUb = Utility::SafeSub(params.pmuMap.At(1391), Utility::SafeAddAll<uint64_t>({pmuUbToGm, params.pmuMap.At(1804), params.pmuMap.At(1815)}, "pmuL1ToUb"), "pmuL1ToUb", false);
-        float mte1Data = Utility::SafeAdd(GetDataNumberFp(pmuL1ToL0aAndL0b, REQ_DATA_OF_A5.at(TransportType::L1_TO_L0A)),
-            GetDataNumberFp(pmuL1ToUb, REQ_DATA_OF_A5.at(TransportType::L1_TO_UB)), "cube mte1 data");
+        float mte1Data = GetDataNumberFp(params.pmuMap.At(1799), REQ_DATA_OF_A5.at(TransportType::L1_TO_MTE));
         return BandWidth(mte1Data, RatioFp(params.pmuMap.At(1794), params.frequency));}},
     {"aic_mte2_time(us)", [](const CalculateParams &params) {
         return Ratio(params.pmuMap.At(514), params.frequency);}},
     {"aic_mte2_ratio", [](const CalculateParams &params) {
         return Ratio(params.pmuMap.At(514), params.totalCycles);}},
     {"aic_mte2_active_bw(GB/s)", [](const CalculateParams &params) {
-        return BandWidth(GetDataNumberFp(params.pmuMap.At(1035), REQ_DATA_OF_A5.at(TransportType::GM_TO_L1)), RatioFp(params.pmuMap.At(514), params.frequency));}},
+        return BandWidth(GetDataNumberFp(params.pmuMap.At(1058), REQ_DATA_OF_A5.at(TransportType::GM_TO_L1)), RatioFp(params.pmuMap.At(514), params.frequency));}},
     {"aic_mte3_time(us)", [](const CalculateParams &params) {
         return Ratio(params.pmuMap.At(515), params.frequency);}},
     {"aic_mte3_ratio", [](const CalculateParams &params) {
         return Ratio(params.pmuMap.At(515), params.totalCycles);}},
     {"aic_mte3_active_bw(GB/s)", [](const CalculateParams &params) {
-        uint64_t pmuUbToL1 = Utility::SafeSub(params.pmuMap.At(1801), Utility::SafeAdd(params.pmuMap.At(1806), params.pmuMap.At(1035), "pmuUbToL1"), "pmuUbToL1", false);
-        return BandWidth(GetDataNumberFp(pmuUbToL1, REQ_DATA_OF_A5.at(TransportType::UB_TO_L1)), RatioFp(params.pmuMap.At(515), params.frequency));}},
+        uint64_t pmuUbToL1 = Utility::SafeSub(params.pmuMap.At(1801), Utility::SafeAdd(params.pmuMap.At(1806), params.pmuMap.At(1058) / 2, "pmuUbToL1"), "pmuUbToL1", false);
+        return BandWidth(GetDataNumberFp(pmuUbToL1, REQ_DATA_OF_A5.at(TransportType::MTE_TO_L1)), RatioFp(params.pmuMap.At(515), params.frequency));}},
     {"aic_fixpipe_time(us)", [](const CalculateParams &params) {
         return Ratio(params.pmuMap.At(1812), params.frequency);}},
     {"aic_fixpipe_ratio", [](const CalculateParams &params) {
         return Ratio(params.pmuMap.At(1812), params.totalCycles);}},
     {"aic_fixpipe_active_bw(GB/s)", [](const CalculateParams &params) {
-        return BandWidth(GetDataNumberFp(params.pmuMap.At(1810), REQ_DATA_OF_A5.at(TransportType::L0C_TO_FIXP)), RatioFp(params.pmuMap.At(1812), params.frequency));}},
+        auto pmuFixp = Utility::SafeAddAll<uint64_t>({params.pmuMap.At(1804), params.pmuMap.At(1806), params.pmuMap.At(1815), params.pmuMap.At(1059)}, "pmuFixp");
+        return BandWidth(GetDataNumberFp(pmuFixp, REQ_DATA_OF_A5.at(TransportType::L0C_TO_FIXP)), RatioFp(params.pmuMap.At(1812), params.frequency));}},
     {"aic_icache_miss_rate", [](const CalculateParams &params) {
         return Ratio(params.pmuMap.At(53), params.pmuMap.At(52));}},
     {"aiv_vec_time(us)", [](const CalculateParams &params) {
@@ -455,18 +435,12 @@ const std::map<std::string, std::function<std::string(const CalculateParams &par
     {"aiv_mte2_ratio", [](const CalculateParams &params) {
         return Ratio(params.pmuMap.At(514), params.totalCycles);}},
     {"aiv_mte2_active_bw(GB/s)", [](const CalculateParams &params) {
-        uint64_t pmuGmToUb = Utility::SafeSub(params.pmuMap.At(1035), Utility::SafeAdd(params.pmuMap.At(1395), params.pmuMap.At(1396), "pmuGmToUb"), "pmuGmToUb", false);
+        uint64_t pmuGmToUb = Utility::SafeSub(params.pmuMap.At(1058), Utility::SafeAdd(params.pmuMap.At(1407), params.pmuMap.At(1408), "pmuGmToUb"), "pmuGmToUb", false);
         return BandWidth(GetDataNumberFp(pmuGmToUb, REQ_DATA_OF_A5.at(TransportType::GM_TO_UB)), RatioFp(params.pmuMap.At(514), params.frequency));}},
     {"aiv_mte3_time(us)", [](const CalculateParams &params) {
         return Ratio(params.pmuMap.At(515), params.frequency);}},
     {"aiv_mte3_ratio", [](const CalculateParams &params) {
         return Ratio(params.pmuMap.At(515), params.totalCycles);}},
-    {"aiv_mte3_active_bw(GB/s)", [](const CalculateParams &params) {
-        uint64_t pmuUbToGm = Utility::SafeSub(params.pmuMap.At(1039), Utility::SafeAdd(params.pmuMap.At(1397), params.pmuMap.At(1398), "pmuUbToGm"), "pmuUbToGm", false);
-        uint64_t pmuUbToL1 = Utility::SafeSub(params.pmuMap.At(1801), Utility::SafeAdd(params.pmuMap.At(1806), params.pmuMap.At(1035), "pmuUbToL1"), "pmuUbToL1", false);
-        float mte3Data = Utility::SafeAdd(GetDataNumberFp(pmuUbToGm, REQ_DATA_OF_A5.at(TransportType::UB_TO_GM)),
-            GetDataNumberFp(pmuUbToL1, REQ_DATA_OF_A5.at(TransportType::UB_TO_L1)), "vec mte3 data");
-        return BandWidth(mte3Data, RatioFp(params.pmuMap.At(515), params.frequency));}},
     {"aiv_icache_miss_rate", [](const CalculateParams &params) {
         return Ratio(params.pmuMap.At(53), params.pmuMap.At(52));}},
 

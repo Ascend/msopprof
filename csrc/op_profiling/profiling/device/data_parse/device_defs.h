@@ -23,88 +23,13 @@
 #include "common/defs.h"
 
 namespace Profiling {
-
-enum class EventOfA5 : uint64_t {
-    // su pmu
-    PMU_SCALAR_INSTR_BUSY_P = 1,
-    PMU_RD_ACC_UB_INSTR_P = 3,
-    PMU_WR_ACC_UB_INSTR_P = 5,
-    PMU_CUBE_IQ_WAIT = 11,
-    PMU_VEC_IQ_WAIT = 12,
-    PMU_MTE1_IQ_WAIT = 13,
-    PMU_MTE2_IQ_WAIT = 14,
-    PMU_MTE3_IQ_WAIT = 15,
-    PMU_ICACHE_REQ = 52,
-    PMU_ICACHE_MISS = 53,
-
-    // mte pmu
-    MTE_SC_PMU_MTE2_INSTR = 512,
-    MTE_SC_PMU_MTE3_INSTR = 513,
-    MTE_SC_PMU_MTE2_INSTR_BUSY = 514,
-    MTE_SC_PMU_MTE3_INSTR_BUSY = 515,
-
-    // cube pmu
-    CUBE_SC_PMU_CUBE_INSTR = 768,
-    CUBE_SC_PMU_FP_INSTR = 770,
-    CUBE_SC_PMU_INT_INSTR = 771,
-    CUBE_SC_PMU_READ_L0A_INSTR = 772,
-    CUBE_SC_PMU_READ_L0B_INSTR = 774,
-    CUBE_SC_PMU_WRITE_L0C_INSTR = 776,
-    CUBE_SC_PMU_READ_L0C_INSTR = 778,
-    CUBE_SC_PMU_CUBE_FP_INSTR_CALC_CYC = 808,
-    CUBE_SC_PMU_CUBE_INT_INSTR_CALC_CYC = 809,
-    CUBE_SC_PMU_CUBE_INSTR_CALC_CYC = 810,
-
-    // vector pmu
-    PMU_CSW_FCSW = 1280,
-    PMU_IDC_AIC_VEC_BUSY_O = 1281,
-    PMU_IDC_AIC_VEC_INSTR_VF_BUSY_O = 1282,
-    PMU_IDC_AIC_VEC_INSTR_SFU_BUSY_O = 1283,
-    PMU_IDC_AIC_VEC_INSTR_SIMT_VF_BUSY_O = 1284,
-    PMU_AIC_EXT_RD_UB_INSTR = 1391,
-    PMU_AIC_EXT_WR_UB_INSTR = 1392,
-    UB_PMU_VEC_RD_UB_ACC = 1393,
-    DCU_PMU_REQ_LDG = 1395,
-    DCU_PMU_REQ_STG = 1397,
-    DCU_PMU_REQ_STK = 1398,
-    DCU_PMU_REQ_LDS = 1401,
-    DCU_PMU_REQ_STS = 1402,
-    DCU_PMU_REQ_ATOM_SM = 1403,
-    DCU_PMU_REQ_ATOM_GM = 1404,
-
-    // bif pmu
-    BIF_SC_PMU_READ_DATA_RECEIVED_R_CHN0 = 1035,
-    BIF_SC_PMU_READ_DATA_RECEIVED_R_CHN3 = 1038,
-    BIF_SC_PMU_WRITE_DATA_SENT_W_CHN0 = 1039,
-    BIF_SC_PMU_AR_CLOSE_L2_HIT_CORE = 1060,
-    BIF_SC_PMU_AR_FAR_L2_HIT_CORE = 1063,
-    BIF_SC_PMU_AR_FAR_L2_MISS_CORE = 1064,
-    BIF_SC_PMU_AW_CLOSE_L2_HIT_CORE = 1066,
-    BIF_SC_PMU_AW_FAR_L2_HIT_CORE = 1069,
-    BIF_SC_PMU_AW_FAR_L2_MISS_CORE = 1070,
-
-    // l1 pmu
-    PMU_MTE1_INSTR = 1792,
-    PMU_MTE1_INSTR_BUSY = 1793,
-    PMU_MTE1_INSTR_ACTIVE = 1794,
-    PMU_WR_L0A_INSTR = 1795,
-    PMU_WR_L0B_INSTR = 1797,
-    PMU_RD_L1_INSTR = 1799,
-    PMU_WR_L1_INSTR = 1801,
-    PMU_FIXP_WR_UB_BUSY = 1803,
-    PMU_FIXP_WR_L1_INSTR = 1806,
-    PMU_FIXP_RD_L0C_INSTR = 1810,
-    PMU_FIXP_INSTR_BUSY = 1812,
-    PMU_FIXP_WR_UB1_INSTR = 1815
-};
-
 enum class TransportType : uint16_t {
     READ_MAIN_MEMORY = 0,
     WRITE_MAIN_MEMORY,
     GM_TO_L1,
     GM_TO_UB,
     GM_TO_DCACHE,
-    DCACHE_TO_GM,
+    DCACHE_TO_VEC,
     L1_TO_GM,
     L0A_TO_CUBE,
     L0B_TO_CUBE,
@@ -130,6 +55,7 @@ enum class TransportType : uint16_t {
     VEC_TO_UB,
     VEC_TO_GM,
     VEC_TO_L1,
+    VEC_TO_DCACHE,
     FIXP_TO_L1,
     FIXP_TO_UB,
     CUBE_TO_L0C,
@@ -177,16 +103,16 @@ const std::map<TransportType, uint16_t> REQ_DATA_OF_910B = {
 };
 
 const std::map<TransportType, uint16_t> REQ_DATA_OF_A5 = {
-    {TransportType::READ_MAIN_MEMORY,        256},
+    {TransportType::READ_MAIN_MEMORY,        128},
     {TransportType::WRITE_MAIN_MEMORY,       128},
     {TransportType::CUBE_TO_L0C,             1024},
-    {TransportType::GM_TO_L1,                256},
-    {TransportType::GM_TO_UB,                256},
-    {TransportType::GM_TO_DCACHE,            256},
+    {TransportType::GM_TO_L1,                128},
+    {TransportType::GM_TO_UB,                128},
+    {TransportType::GM_TO_DCACHE,            128},
     {TransportType::L1_TO_L0A,               256},
     {TransportType::L1_TO_L0B,               256},
     {TransportType::L1_TO_MTE,               256},
-    {TransportType::L1_TO_UB,                128},
+    {TransportType::L1_TO_UB,                256},
     {TransportType::L0A_TO_CUBE,             64},
     {TransportType::L0B_TO_CUBE,             256},
     {TransportType::L0C_TO_CUBE,             1024},
@@ -203,7 +129,8 @@ const std::map<TransportType, uint16_t> REQ_DATA_OF_A5 = {
     {TransportType::MTE_TO_L1,               256},
     {TransportType::VEC_TO_UB,               256},
     {TransportType::VEC_TO_GM,               128},
-    {TransportType::DCACHE_TO_GM,            256},
+    {TransportType::VEC_TO_DCACHE,           4},
+    {TransportType::DCACHE_TO_VEC,           4},
 };
 
 const std::map<TransportType, uint16_t> REQ_DATA_OF_310P = {

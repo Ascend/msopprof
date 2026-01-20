@@ -97,30 +97,31 @@ enum class Event : uint64_t {
     READ_DATA_R1 = 1294,
 
     // A5 pmu
-    READ_DATA_RECEIVED = 1035,
-    WRITE_DATA_SENT = 1039,
-
+    READ_DATA_RECEIVED = 1058,
+    WRITE_DATA_SENT = 1059,
     AR_CLOSE_L2_HIT_CORE = 1060,
+    AR_CLOSE_L2_MISS_CORE = 1061,
     AR_CLOSE_L2_VICTIM_CORE = 1062,
     AR_FAR_L2_HIT_CORE = 1063,
     AR_FAR_L2_MISS_CORE = 1064,
+    AR_FAR_L2_VICTIM_CORE = 1065,
     AW_CLOSE_L2_HIT_CORE = 1066,
+    AW_CLOSE_L2_MISS_CORE = 1067,
+    AW_CLOSE_L2_VICTIM_CORE = 1068,
     AW_FAR_L2_HIT_CORE = 1069,
+    AW_FAR_L2_MISS_CORE = 1070,
     AW_FAR_L2_VICTIM_CORE = 1071,
 
-    AIC_EXT_RD_UB_INSTR = 1391,
-
-    DCU_REQ_LDG = 1395,
-    DCU_REQ_LDK = 1396,
     DCU_REQ_STG = 1397,
     DCU_REQ_STK = 1398,
+    DCU_MISS_LDG = 1407,
+    DCU_MISS_LDK = 1408,
     WR_L0A_INSTR = 1795,
     WR_L0B_INSTR = 1797,
     RD_L1_INSTR = 1799,
     WR_L1_INSTR = 1801,
     FIXP_WR_UB_INSTR = 1804,
     FIXP_WR_L1_INSTR = 1806,
-    FIXP_RD_L0C_INSTR = 1810,
     FIXP_WR_UB1_INSTR = 1815,
 };
 
@@ -147,18 +148,6 @@ const std::map<std::string, float> THEORY_BW_GM_CJ {
     {"Ascend910B3",       1.3},
     {"Ascend910B4",       1.25},
     {"Ascend910B4-1",     1.25}
-};
-
-const std::map<std::string, int> FREQ_MAP_A5 {
-    {"Ascend910_9599",       1650},
-    {"Ascend910_9581",       1650},
-    {"Ascend910_9589",       1650},
-    {"Ascend910_958a",       1650},
-    {"Ascend910_958b",       1650},
-    {"Ascend910_9579",       1650},
-    {"Ascend910_957b",       1650},
-    {"Ascend910_957d",       1650},
-    {"Ascend910_950z",       1650},
 };
 
 const std::map<Common::GmType, std::map<std::string, float>> GM_PRODUCT_THEORY_BW = {

@@ -78,7 +78,7 @@ std::map<std::string, uint64_t> PmuCalculator::GetCycleMap(const std::string &op
     std::map<std::string, uint64_t> cycMap;
     std::string location = "cube cycle";
     if (opType != Common::OpType::VECTOR) {
-        cycMap["Cube"] = Utility::SafeAdd(detail.eventMap[73], detail.eventMap[74], location);     // 使用pmu 73 + pmu 74 计算cube利用率
+        cycMap["Cube"] = detail.eventMap[10];     // 使用pmu 10 计算cube利用率
     }
     if (opType == Common::OpType::MIX) {
         cycMap["Vector"] = detail.eventMapVec0[8];  // 使用pmu 8 计算vector利用率

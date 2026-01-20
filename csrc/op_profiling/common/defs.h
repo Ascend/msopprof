@@ -382,7 +382,7 @@ const std::vector<uint16_t> REPLAY_AIC_EVENTS_FOR_910B = {
 const std::vector<uint16_t> REPLAY_AIV_EVENTS_FOR_910B = {
     55,   56,   1280, 1282, 1283, 1292, 0,    0,
     1284, 1286, 1287, 1288, 1290, 1291, 1293, 1294,
-    61,   62,   67,   68,   0,   0,    0,   0,
+    61,   62,   67,   68,   0,    0,    0,   0,
     1,    75,   76,   77,   78,   79,   174,  186,
     5,    6,    100,  101,  102,  103,  184,  185,
     4,    84,   85,   526,  13,   87,   92,    0,
@@ -414,45 +414,46 @@ const MetricEventsMapType AIC_EVENTS_FOR_310P = {
 const MetricEventsMapType AIC_EVENTS_FOR_A5 = {
     {std::string(Common::MsprofMetrics::PIPE_UTILIZATION),        {0, 1, 10, 36, 52, 53, 514, 515, 810, 1794, 1812, 1813}},
     {std::string(Common::MsprofMetrics::ARITHMETIC_UTILIZATION),  {768, 789, 790, 808, 809, 810}},
-    {std::string(Common::MsprofMetrics::L2_CACHE),                {1060, 1062, 1063, 1064, 1066, 1069, 1070, 1071}},
-    {std::string(Common::MsprofMetrics::MEMORY),                  {512, 513, 514, 515, 1035, 1039, 1391, 1397,
-                                                                   1398, 1792, 1794, 1799, 1801, 1804, 1806, 1810, 1815}},
+    {std::string(Common::MsprofMetrics::L2_CACHE),                {1060, 1061, 1062, 1063, 1064, 1065, 1066, 1067, 1068, 1069, 1070, 1071}},
+    {std::string(Common::MsprofMetrics::MEMORY),                  {512, 513, 514, 515, 1058, 1059,
+                                                                   1792, 1794, 1799, 1801, 1804, 1806, 1815}},
     {std::string(Common::MsprofMetrics::RESOURCE_CONFLICT_RATIO), {11, 13, 14, 15}},
     {std::string(Common::MsprofMetrics::MEMORY_L0),               {772, 774, 776, 778, 1795, 1797}},
     {std::string(Common::MsprofMetrics::MEMORY_UB),               {}},
-    {std::string(Common::MsprofMetrics::OCCUPANCY),               {1035, 1039, 1060, 1063, 1064, 1066, 1069, 1070}},
-    {std::string(Common::MsprofMetrics::ROOFLINE),                {1035, 1039, 1391, 1397, 1398, 1795, 1797, 1799, 1801, 1804,
-                                                                   1806, 1810, 1815, 1060, 1062, 1063, 1064, 1066, 1069, 1071}}
+    {std::string(Common::MsprofMetrics::OCCUPANCY),               {1058, 1059, 1060, 1061, 1062, 1063, 1064, 1065, 1066, 1067, 1068, 1069, 1070, 1071}},
+    {std::string(Common::MsprofMetrics::ROOFLINE),                {1058, 1059, 1795, 1797, 1799, 1801, 1804, 1806, 1815,
+                                                                   1060, 1061, 1062, 1063, 1064, 1065, 1066, 1067, 1068, 1069, 1070, 1071}}
 };
 
 const MetricEventsMapType AIV_EVENTS_FOR_A5 = {
     {std::string(Common::MsprofMetrics::PIPE_UTILIZATION),        {0, 1, 10, 52, 53, 514, 515, 1281}},
     {std::string(Common::MsprofMetrics::ARITHMETIC_UTILIZATION),  {1281, 1282, 1283, 1284}},
-    {std::string(Common::MsprofMetrics::L2_CACHE),                {1060, 1062, 1063, 1064, 1066, 1069, 1070, 1071}},
-    {std::string(Common::MsprofMetrics::MEMORY),                  {512, 513, 514, 515, 516, 518, 1035, 1039, 1391,
-                                                                   1395, 1396, 1397, 1398, 1801, 1804, 1806, 1815}},
+    {std::string(Common::MsprofMetrics::L2_CACHE),                {1060, 1061, 1062, 1063, 1064, 1065, 1066, 1067, 1068, 1069, 1070, 1071}},
+    {std::string(Common::MsprofMetrics::MEMORY),                  {512, 513, 514, 515, 516, 518, 1058, 1059, 1391,
+                                                                   1397, 1398, 1407, 1408}},
     {std::string(Common::MsprofMetrics::RESOURCE_CONFLICT_RATIO), {12, 13, 14, 15, 1344, 1366, 1376, 1377, 1378, 1379}},
     {std::string(Common::MsprofMetrics::MEMORY_L0),               {}},
-    {std::string(Common::MsprofMetrics::MEMORY_UB),               {1035, 1039, 1393, 1394, 1395, 1396, 1397, 1398}},
-    {std::string(Common::MsprofMetrics::OCCUPANCY),               {1035, 1039, 1060, 1063, 1064, 1066, 1069, 1070}},
-    {std::string(Common::MsprofMetrics::ROOFLINE),                {1060, 1062, 1063, 1064, 1066, 1069, 1071}}
+    {std::string(Common::MsprofMetrics::MEMORY_UB),               {1058, 1059, 1393, 1394, 1397, 1398, 1407, 1408}},
+    {std::string(Common::MsprofMetrics::OCCUPANCY),               {1058, 1059, 1060, 1061, 1062, 1063, 1064, 1065, 1066, 1067, 1068, 1069, 1070, 1071}},
+    {std::string(Common::MsprofMetrics::ROOFLINE),                {1058, 1059, 1397, 1398, 1407, 1408,
+                                                                   1060, 1061, 1062, 1063, 1064, 1065, 1066, 1067, 1068, 1069, 1070, 1071}}
 };
 
 // Ten pmu numbers for each group, put interdependent numbers together, must contain at least one 0 for pmu=0 is valid.
 const std::vector<uint16_t> REPLAY_AIC_EVENTS_FOR_A5 = {
-    52,   53,   1060, 1062, 1063, 1064, 1066, 1069, 1070, 1071,
-    512,  513,  768,  789,  790,  1792, 1813, 0,    0,    0,
-    772,  774,  776,  778,  1035, 1039, 1391, 1397, 1398, 0,
-    1795, 1797, 1799, 1801, 1804, 1806, 1810, 1815, 0,    0,
+    1060, 1061, 1062, 1063, 1064, 1065, 1066, 1067, 1068, 1069,
+    1070, 1071, 512,  513,  768,  789,  790,  1792, 1813, 0,
+    52,   53,   772,  774,  776,  778,  1058, 1059, 0,    0,
+    1795, 1797, 1799, 1801, 1804, 1806, 1815, 0,    0,    0,
     10,   11,   13,   14,   15,   36,   0,    0,    0,    0,
     1,    514,  515,  808,  809,  810,  1794, 1812, 0,    0
 };
 
 const std::vector<uint16_t> REPLAY_AIV_EVENTS_FOR_A5 = {
-    52,   53,   1060, 1062, 1063, 1064, 1066, 1069, 1070, 1071,
-    512,  513,  1344, 1366, 1376, 1377, 1378, 1379, 0,    0,
-    516,  518,  1035, 1039, 1391, 1393, 1394, 1395, 1396, 0,
-    1397, 1398, 1801, 1804, 1806, 1815, 1407, 1408, 1409, 1410,
+    1060, 1061, 1062, 1063, 1064, 1065, 1066, 1067, 1068, 1069,
+    1070, 1071, 512,  513,  1344, 1366, 1376, 1377, 1378, 1379,
+    52,   53,   516,  518,  1058, 1059, 1391, 1393, 1394, 0,
+    1395, 1396, 1397, 1398, 1407, 1408, 0,    0,    0,    0,
     10,   12,   14,   15,   0,    0,    0,    0,    0,    0,
     1,    514,  515,  1281, 1282, 1283, 1284, 0,    0,    0
 };

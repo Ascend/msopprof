@@ -39,14 +39,20 @@ constexpr uint64_t EVENT_GM_MAIN_WRITE = 1292;
 constexpr uint64_t EVENT_GM_MAIN_READ_R0 = 1293;
 constexpr uint64_t EVENT_GM_MAIN_READ_R1 = 1294;
 // pmu for A5
-constexpr uint64_t EVENT_READ_CLOSE_HIT_A5 = 1060;
-constexpr uint64_t EVENT_READ_FAR_HIT_A5 = 1063;
-constexpr uint64_t EVENT_READ_MISS_A5 = 1064;
-constexpr uint64_t EVENT_WRITE_CLOSE_HIT_A5 = 1066;
-constexpr uint64_t EVENT_WRITE_FAR_HIT_A5 = 1069;
-constexpr uint64_t EVENT_WRITE_MISS_A5 = 1070;
-constexpr uint64_t EVENT_GM_MAIN_WRITE_A5 = 1039;
-constexpr uint64_t EVENT_GM_MAIN_READ_A5 = 1035;
+constexpr uint64_t EVENT_GM_MAIN_READ_A5 = 1058;
+constexpr uint64_t EVENT_GM_MAIN_WRITE_A5 = 1059;
+constexpr uint64_t EVENT_READ_CLOSE_HIT = 1060;
+constexpr uint64_t EVENT_READ_CLOSE_MISS = 1061;
+constexpr uint64_t EVENT_READ_CLOSE_VICTIM = 1062;
+constexpr uint64_t EVENT_READ_FAR_HIT = 1063;
+constexpr uint64_t EVENT_READ_FAR_MISS = 1064;
+constexpr uint64_t EVENT_READ_FAR_VICTIM = 1065;
+constexpr uint64_t EVENT_WRITE_CLOSE_HIT = 1066;
+constexpr uint64_t EVENT_WRITE_CLOSE_MISS = 1067;
+constexpr uint64_t EVENT_WRITE_CLOSE_VICTIM = 1068;
+constexpr uint64_t EVENT_WRITE_FAR_HIT = 1069;
+constexpr uint64_t EVENT_WRITE_FAR_MISS = 1070;
+constexpr uint64_t EVENT_WRITE_FAR_VICTIM = 1071;
 
 constexpr float OCCUPANCY_BALANCE_THRESHOLD = 0.9;
 

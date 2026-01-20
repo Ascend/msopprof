@@ -692,12 +692,11 @@ std::map<PipeAll, MemInfoAiCore> StorageAccessA5::GetVecMap()
 {
     std::map<PipeAll, MemInfoAiCore> aiCoreMap = { {PipeAll::GM_TO_L2, memInfoAiCoreMap_["Cache"][0]},
         {PipeAll::L2_TO_GM, memInfoAiCoreMap_["Cache"][1]}, {PipeAll::L2_TO_UB, memInfoAiCoreMap_["UB"][2]},
-        {PipeAll::UB_TO_L2, memInfoAiCoreMap_["UB"][3]}, {PipeAll::UB_TO_VEC, memInfoAiCoreMap_["UB"][5]},
-        {PipeAll::VEC_TO_UB, memInfoAiCoreMap_["UB"][4]},
+        {PipeAll::UB_TO_L2, memInfoAiCoreMap_["GM"][1]}, {PipeAll::UB_TO_VEC, memInfoAiCoreMap_["UB"][4]},
+        {PipeAll::VEC_TO_UB, memInfoAiCoreMap_["UB"][3]},
         {PipeAll::L2_TO_DCACHE, memInfoAiCoreMap_["DCache"][0]},
-        {PipeAll::DCACHE_TO_L2, memInfoAiCoreMap_["DCache"][1]},
-        {PipeAll::VEC_TO_DCACHE, memInfoAiCoreMap_["DCache"][2]},
-        {PipeAll::DCACHE_TO_VEC, memInfoAiCoreMap_["DCache"][3]}};
+        {PipeAll::VEC_TO_DCACHE, memInfoAiCoreMap_["DCache"][1]},
+        {PipeAll::DCACHE_TO_VEC, memInfoAiCoreMap_["DCache"][2]}};
     return aiCoreMap;
 }
 
@@ -718,28 +717,24 @@ std::map<PipeAll, MemInfoAiCore> StorageAccessA5::GetCubeMap()
 
 std::map<PipeAll, MemInfoAiCore> StorageAccessA5::GetMixMap()
 {
-    std::map<PipeAll, MemInfoAiCore> aiCoreMap = { {PipeAll::FIXP_TO_UB, memInfoAiCoreMap_["UB Core0"][8]},
-        {PipeAll::FIXP_TO_UB_2, memInfoAiCoreMap_["UB Core1"][8]},
-        {PipeAll::UB_TO_L1, memInfoAiCoreMap_["UB Core0"][7]},
-        {PipeAll::UB_TO_L1_2, memInfoAiCoreMap_["UB Core1"][7]},
-        {PipeAll::L1_TO_UB, memInfoAiCoreMap_["UB Core0"][6]},
-        {PipeAll::L1_TO_UB_2, memInfoAiCoreMap_["UB Core1"][6]},
+    std::map<PipeAll, MemInfoAiCore> aiCoreMap = { {PipeAll::FIXP_TO_UB, memInfoAiCoreMap_["UB Core0"][5]},
+        {PipeAll::FIXP_TO_UB_2, memInfoAiCoreMap_["UB Core1"][5]},
+        {PipeAll::UB_TO_L1, memInfoAiCoreMap_["L1"][6]},
+        {PipeAll::L1_TO_UB, memInfoAiCoreMap_["L1"][5]},
         {PipeAll::L2_TO_UB, memInfoAiCoreMap_["UB Core0"][2]},
         {PipeAll::L2_TO_UB_2, memInfoAiCoreMap_["UB Core1"][2]},
-        {PipeAll::UB_TO_L2, memInfoAiCoreMap_["UB Core0"][3]},
-        {PipeAll::UB_TO_L2_2, memInfoAiCoreMap_["UB Core1"][3]},
-        {PipeAll::UB_TO_VEC, memInfoAiCoreMap_["UB Core0"][5]},
-        {PipeAll::UB_TO_VEC_2, memInfoAiCoreMap_["UB Core1"][5]},
-        {PipeAll::VEC_TO_UB, memInfoAiCoreMap_["UB Core0"][4]},
-        {PipeAll::VEC_TO_UB_2, memInfoAiCoreMap_["UB Core1"][4]},
+        {PipeAll::UB_TO_L2, memInfoAiCoreMap_["GM Vector Core0"][1]},
+        {PipeAll::UB_TO_L2_2, memInfoAiCoreMap_["GM Vector Core1"][1]},
+        {PipeAll::UB_TO_VEC, memInfoAiCoreMap_["UB Core0"][4]},
+        {PipeAll::UB_TO_VEC_2, memInfoAiCoreMap_["UB Core1"][4]},
+        {PipeAll::VEC_TO_UB, memInfoAiCoreMap_["UB Core0"][3]},
+        {PipeAll::VEC_TO_UB_2, memInfoAiCoreMap_["UB Core1"][3]},
         {PipeAll::L2_TO_DCACHE, memInfoAiCoreMap_["DCache Core0"][0]},
         {PipeAll::L2_TO_DCACHE_2, memInfoAiCoreMap_["DCache Core1"][0]},
-        {PipeAll::DCACHE_TO_L2, memInfoAiCoreMap_["DCache Core0"][1]},
-        {PipeAll::DCACHE_TO_L2_2, memInfoAiCoreMap_["DCache Core1"][1]},
-        {PipeAll::VEC_TO_DCACHE, memInfoAiCoreMap_["DCache Core0"][2]},
-        {PipeAll::VEC_TO_DCACHE_2, memInfoAiCoreMap_["DCache Core1"][2]},
-        {PipeAll::DCACHE_TO_VEC, memInfoAiCoreMap_["DCache Core0"][3]},
-        {PipeAll::DCACHE_TO_VEC_2, memInfoAiCoreMap_["DCache Core1"][3]},
+        {PipeAll::VEC_TO_DCACHE, memInfoAiCoreMap_["DCache Core0"][1]},
+        {PipeAll::VEC_TO_DCACHE_2, memInfoAiCoreMap_["DCache Core1"][1]},
+        {PipeAll::DCACHE_TO_VEC, memInfoAiCoreMap_["DCache Core0"][2]},
+        {PipeAll::DCACHE_TO_VEC_2, memInfoAiCoreMap_["DCache Core1"][2]},
     };
     return aiCoreMap;
 }
@@ -852,10 +847,7 @@ std::vector<std::string> StorageAccess310P::GetTableValue(const std::string &tab
         float activeRate = pmuCalculatorObj_->CalculatePer(ress.cycle, cyc);
         auto pipe = tableLineAiCore_[tableName][colum];
         activeRate_[tableName + " " + pipe] = activeRate;
-        if (pipe.find("MTE") != std::string::npos) {
-            pipeLineRatio_[pipe] = (pipeLineRatio_.count(pipe) != 0) ?
-                std::max(pipeLineRatio_[pipe], activeRate) : activeRate;
-        }
+        pipeLineRatio_[pipe] = (pipeLineRatio_.count(pipe) != 0) ? max(pipeLineRatio_[pipe], activeRate) : activeRate;
         rowValue = { std::to_string(ress.instr), std::to_string(ress.cycle), std::to_string(ress.waitCycle),
             std::to_string(activeRate) };
     } else {
@@ -884,10 +876,7 @@ std::vector<std::string> StorageAccess910B::GetTableValue(const std::string &tab
         float activeRate = pmuCalculatorObj_->CalculatePer(ress.cycle, cyc);
         auto pipe = tableLineAiCore_[tableName][colum];
         activeRate_[tableName + " " + pipe] = activeRate;
-        if (pipe.find("MTE") != std::string::npos) {
-            pipeLineRatio_[pipe] = (pipeLineRatio_.count(pipe) != 0) ?
-                std::max(pipeLineRatio_[pipe], activeRate) : activeRate;
-        }
+        pipeLineRatio_[pipe] = (pipeLineRatio_.count(pipe) != 0) ? max(pipeLineRatio_[pipe], activeRate) : activeRate;
         rowValue.emplace_back(ress.instr == EMPTY_PMU_VALUE ? "NA" : std::to_string(ress.instr));
         rowValue.emplace_back(ress.cycle == EMPTY_PMU_VALUE ? "NA" : std::to_string(ress.cycle));
         rowValue.emplace_back(ress.waitCycle == EMPTY_PMU_VALUE ? "NA" : std::to_string(ress.waitCycle));
@@ -938,6 +927,7 @@ void StorageAccess910B::PreProcess(bool isKernelScale, bool isMemoryDetail)
             cycUsage["cycle"] = cyc.second;
             cycUsage["total_cycles"] = totalCycle;
             float ratio = pmuCalculatorObj_->CalculatePer(cyc.second, totalCycle);
+            pipeLineRatio_[cyc.first] = (pipeLineRatio_.count(cyc.first) != 0) ? max(pipeLineRatio_[cyc.first], ratio) : ratio;
             GenCoreUsageAdvice(cyc.first, ratio, advice);
             cycUsage["ratio"] = ratio;
             coreMemJson[cyc.first] = cycUsage;
@@ -988,6 +978,7 @@ void StorageAccess310P::PreProcess(bool isKernelScale, bool isMemoryDetail)
             cycUsage["cycle"] = cyc.second;
             cycUsage["total_cycles"] = totalCycle;
             float ratio = pmuCalculatorObj_->CalculatePer(cyc.second, totalCycle);
+            pipeLineRatio_[cyc.first] = (pipeLineRatio_.count(cyc.first) != 0) ? max(pipeLineRatio_[cyc.first], ratio) : ratio;
             GenCoreUsageAdvice(cyc.first, ratio, advice);
             cycUsage["ratio"] = ratio;
             coreMemJson[cyc.first] = cycUsage;
@@ -1206,6 +1197,7 @@ void StorageAccessA5::PreProcess(bool isKernelScale, bool isMemoryDetail)
             cycUsage["cycle"] = cyc.second;
             cycUsage["total_cycles"] = totalCycle;
             float ratio = pmuCalculatorObj_->CalculatePer(cyc.second, totalCycle);
+            pipeLineRatio_[cyc.first] = (pipeLineRatio_.count(cyc.first) != 0) ? max(pipeLineRatio_[cyc.first], ratio) : ratio;
             GenCoreUsageAdvice(cyc.first, ratio, advice);
             cycUsage["ratio"] = ratio;
             coreMemJson[cyc.first] = cycUsage;
@@ -1229,8 +1221,8 @@ void StorageAccessA5::LoadLineMap(const string &opType)
         {"Cube", {"Cube Read L0A", "Cube Read L0B", "Cube Write L0C", "Cube Read L0C"}},
         {"L0C", {"L0C Read Cube", "L0C Write Cube", "L0C Write GM", "L0C Write L1", "L0C Write FIXP"}}
     };
-    vector<string> ubMem = {"UB Read MTE", "UB Write MTE", "UB Read GM", "UB Write GM", "UB Read Vector", "UB Write Vector"};
-    vector<string> dcacheMem = {"DCache Read GM", "DCache Write GM", "DCache Read Vector", "DCache Write Vector"};
+    vector<string> ubMem = {"UB Read MTE", "UB Write MTE", "UB Read GM", "UB Read Vector", "UB Write Vector"};
+    vector<string> dcacheMem = {"DCache Read GM", "DCache Read Vector", "DCache Write Vector"};
     tableLineAiCore_ = {{"Cache", {"L2 Cache Write", "L2 Cache Read", "L2 Cache Total", "iCache Total"}}};
     if (opType == Common::OpType::VECTOR) {
         map<string, vector<string>> vecTable = {{"UB", ubMem}, {"Vector", vectorMem_}, {"Pipe", pipeVec_}, {"GM", gm_}, {"DCache", dcacheMem}};
@@ -1240,7 +1232,7 @@ void StorageAccessA5::LoadLineMap(const string &opType)
         tableLineAiCore_.insert(cubeTable1.begin(), cubeTable1.end());
         tableLineAiCore_.insert(cubeTable2.begin(), cubeTable2.end());
     } else {
-        vector<string> ubMixMem = {"UB Read L1", "UB Write L1", "UB Read L0C"};
+        vector<string> ubMixMem = {"UB Read L0C"};
         ubMem.insert(ubMem.end(), ubMixMem.begin(), ubMixMem.end());
         std::map<std::string, std::vector<std::string>> mixTable = {
             {"UB Core0", ubMem}, {"Vector Core0", vectorMem_}, {"UB Core1", ubMem}, {"Vector Core1", vectorMem_},
@@ -1258,7 +1250,7 @@ void StorageAccessA5::LoadLineMap(const string &opType)
 std::map<std::string, std::vector<std::string>> StorageAccessA5::GenTableHead()
 {
     std::vector<std::string> memTableWithPeak = {"", "requests", "throughput(GB/s)", "peak(%)"};
-    std::set<std::string> headInsert = {"L0A", "L0B", "L0C", "L1", "UB", "UB Core1", "UB Core2"};
+    std::set<std::string> headInsert = {"L0A", "L0B", "L0C", "L1", "UB", "UB Core0", "UB Core1"};
     for (const auto& h: headInsert) {
         head_.insert({h, memTableWithPeak});
     }
@@ -1281,10 +1273,10 @@ vector<MemInfoCache> StorageAccessA5::LoadCacheData(map<uint64_t, uint64_t> &eve
 {
     string location = "cache";
     uint64_t pmuWriteHit = SafeAdd(eventMap[1066], eventMap[1069], location);
-    uint64_t pmuWriteMiss = eventMap[1070];
+    auto pmuWriteMiss = SafeAddAll<uint64_t>({eventMap[1067], eventMap[1068], eventMap[1070], eventMap[1071]}, location);
     uint64_t pmuWriteTotal = SafeAdd(pmuWriteHit, pmuWriteMiss, location);
     uint64_t pmuReadHit = SafeAdd(eventMap[1060], eventMap[1063], location);
-    uint64_t pmuReadMiss = eventMap[1064];
+    auto pmuReadMiss = SafeAddAll<uint64_t>({eventMap[1061], eventMap[1062], eventMap[1064], eventMap[1065]}, location);
     uint64_t pmuReadTotal = SafeAdd(pmuReadHit, pmuReadMiss, location);
     return {
         {MemInfoCache{pmuWriteHit, pmuWriteMiss, pmuWriteTotal}},
@@ -1295,16 +1287,16 @@ vector<MemInfoCache> StorageAccessA5::LoadCacheData(map<uint64_t, uint64_t> &eve
     };
 }
 
-vector<MemInfoPipe> StorageAccessA5::LoadCubePipeData(map<uint64_t, uint64_t> &eventMap, uint64_t totalCycles, int64_t freq, float time, const std::map<std::string, float> &mteData)
+vector<MemInfoPipe> StorageAccessA5::LoadCubePipeData(map<uint64_t, uint64_t> &eventMap, uint64_t totalCycles, int64_t freq, float time, const std::map<std::string, float> &pipeData)
 {
     auto bwPipe = [&freq](float data, uint64_t pipeCycle) {
         float pipeTime = freq == 0 ? 0.0f : static_cast<float>(pipeCycle) / freq;
         return BandWidth(data, pipeTime);
     };
-    float mte1Data = mteData.at("MTE1");
-    float mte3Data = mteData.at("MTE3");
-    float mte2Data = GetDataNumberFp(eventMap[1035], REQ_DATA_OF_A5.at(TransportType::GM_TO_L1));
-    float pixpData = GetDataNumberFp(eventMap[1810], REQ_DATA_OF_A5.at(TransportType::L0C_TO_FIXP));
+    float mte1Data = GetDataNumberFp(eventMap[1799], REQ_DATA_OF_A5.at(TransportType::L1_TO_MTE));
+    float mte2Data = GetDataNumberFp(eventMap[1058], REQ_DATA_OF_A5.at(TransportType::GM_TO_L1));
+    float mte3Data = pipeData.at("MTE3");
+    float fixpData = pipeData.at("FIXP");
     float mte1ActRate = pmuCalculatorObj_->CalculatePer(eventMap[1794], totalCycles);
     float mte2ActRate = pmuCalculatorObj_->CalculatePer(eventMap[514], totalCycles);
     float mte3ActRate = pmuCalculatorObj_->CalculatePer(eventMap[515], totalCycles);
@@ -1325,7 +1317,7 @@ vector<MemInfoPipe> StorageAccessA5::LoadCubePipeData(map<uint64_t, uint64_t> &e
         {MemInfoPipe{eventMap[1792], eventMap[1794], eventMap[13], bwPipe(mte1Data, eventMap[1794]), mte1ActRate}},
         {MemInfoPipe{eventMap[512],  eventMap[514],  eventMap[14], bwPipe(mte2Data, eventMap[514]),  mte2ActRate}},
         {MemInfoPipe{eventMap[513],  eventMap[515],  eventMap[15], bwPipe(mte3Data, eventMap[515]),  mte3ActRate}},
-        {MemInfoPipe{eventMap[1813], eventMap[1812], eventMap[36], bwPipe(pixpData, eventMap[1812]), pmuCalculatorObj_->CalculatePer(eventMap[1812], totalCycles)}},
+        {MemInfoPipe{eventMap[1813], eventMap[1812], eventMap[36], bwPipe(fixpData, eventMap[1812]), pmuCalculatorObj_->CalculatePer(eventMap[1812], totalCycles)}},
         {MemInfoPipe{eventMap[0],    eventMap[1],    eventMap[10], "NA", pmuCalculatorObj_->CalculatePer(eventMap[1], totalCycles)}},
     };
 }
@@ -1339,23 +1331,25 @@ StorageCubeTableData StorageAccessA5::LoadCubeData(const map<uint64_t, uint64_t>
     }
     vector<MemInfoCache> cache = LoadCacheData(pmu);
     string location = "cube storage";
-    uint64_t pmuL0cToGm = SafeSub(pmu[1810], SafeAddAll<uint64_t>({pmu[1804], pmu[1806], pmu[1815]}, location), location, false);
+    auto pmuL0cToFixp = SafeAddAll<uint64_t>({pmu[1804], pmu[1806], pmu[1815], pmu[1059]}, location);
     uint64_t pmuL0cToUb = SafeAdd(pmu[1804], pmu[1815], location);
     uint64_t pmuL1ToL0aAndL0b = SafeAdd(pmu[1795], pmu[1797], location);
-    uint64_t pmuUbToGm = SafeSub(pmu[1039], SafeAdd(pmu[1397], pmu[1398], location), location, false);
-    uint64_t pmuL1ToUb = SafeSub(pmu[1391], SafeAddAll<uint64_t>({pmuUbToGm, pmu[1804], pmu[1815]}, location), location, false);
-    uint64_t pmuUbToL1 = SafeSub(pmu[1801], SafeAdd(pmu[1806], pmu[1035], location), location, false);
-    uint64_t pmuL2ToGm = SafeAdd(pmu[1062], pmu[1071], location);
+    uint64_t pmuL1ToUb = SafeSub(pmu[1799], pmuL1ToL0aAndL0b, location, false);
+    uint64_t pmuUbToL1 = SafeSub(pmu[1801], SafeAdd(pmu[1806], pmu[1058] / 2, location), location, false);
+    auto pmuGmToL2 = SafeAddAll<uint64_t>({pmu[1061], pmu[1062], pmu[1064], pmu[1065]}, location);
+    auto pmuL2ToGm = SafeAddAll<uint64_t>({pmu[1062], pmu[1065], pmu[1068], pmu[1071]}, location);
+    uint64_t pmuMteToL1 = SafeSub(pmu[1801], pmu[1806], location, false);
+    fixpToUbVec0_ = pmu[1804];
+    fixpToUbVec1_ = pmu[1815];
 
-    float mte1Data = SafeAdd(GetDataNumberFp(pmuL1ToL0aAndL0b, REQ_DATA_OF_A5.at(TransportType::L1_TO_L0A)),
-                             GetDataNumberFp(pmuL1ToUb, REQ_DATA_OF_A5.at(TransportType::L1_TO_UB)), "cube mte1 data");
-    float mte3Data = GetDataNumberFp(pmuUbToL1, REQ_DATA_OF_A5.at(TransportType::UB_TO_L1));
-    vector<MemInfoPipe> pipe = LoadCubePipeData(pmu, totalCycles, freq, time, {{"MTE1", mte1Data}, {"MTE3", mte3Data}});
+    float mte3Data = GetDataNumberFp(pmuUbToL1, REQ_DATA_OF_A5.at(TransportType::MTE_TO_L1));
+    float fixpData = GetDataNumberFp(pmuL0cToFixp, REQ_DATA_OF_A5.at(TransportType::L0C_TO_FIXP));
+    vector<MemInfoPipe> pipe = LoadCubePipeData(pmu, totalCycles, freq, time, {{"MTE3", mte3Data}, {"FIXP", fixpData}});
 
     return StorageCubeTableData{cache, pipe,
         // gm
-        {CalAiCore(time, pmu[1035], TransportType::READ_MAIN_MEMORY),
-         CalAiCore(time, pmu[1039], TransportType::WRITE_MAIN_MEMORY)},
+        {CalAiCore(time, pmu[1058], TransportType::READ_MAIN_MEMORY),
+         CalAiCore(time, pmu[1059], TransportType::WRITE_MAIN_MEMORY)},
         // cube
         {CalAiCore(time, pmu[772],  TransportType::L0A_TO_CUBE),
          CalAiCore(time, pmu[774],  TransportType::L0B_TO_CUBE),
@@ -1372,20 +1366,20 @@ StorageCubeTableData StorageAccessA5::LoadCubeData(const map<uint64_t, uint64_t>
         // l0c
         {CalAiCore(time, pmu[776],   TransportType::CUBE_TO_L0C),
          CalAiCore(time, pmu[778],   TransportType::L0C_TO_CUBE),
-         CalAiCore(time, pmuL0cToGm, TransportType::L0C_TO_GM, true),
+         CalAiCore(time, pmu[1059],  TransportType::L0C_TO_GM, true),
          CalAiCore(time, pmu[1806],  TransportType::L0C_TO_L1, true),
-         CalAiCore(time, pmu[1810],  TransportType::L0C_TO_FIXP),
+         CalAiCore(time, pmuL0cToFixp, TransportType::L0C_TO_FIXP),
          CalAiCore(time, pmuL0cToUb, TransportType::L0C_TO_UB, true)},
         // l1
-        {CalAiCore(time, pmu[1801],  TransportType::MTE_TO_L1),
+        {CalAiCore(time, pmuMteToL1, TransportType::MTE_TO_L1),
          CalAiCore(time, pmu[1799],  TransportType::L1_TO_MTE),
          CalAiCore(time, pmuL1ToL0aAndL0b, TransportType::L1_TO_L0B, true),
          CalAiCore(time, pmu[1806],  TransportType::L0C_TO_L1, true),
-         CalAiCore(time, pmu[1035],  TransportType::GM_TO_L1, true),
+         CalAiCore(time, pmu[1058],  TransportType::GM_TO_L1, true),
          CalAiCore(time, pmuL1ToUb,  TransportType::L1_TO_UB, true),
-         CalAiCore(time, pmuUbToL1,  TransportType::UB_TO_L1)},
+         CalAiCore(time, pmuUbToL1,  TransportType::MTE_TO_L1)},
         // l2cache
-         {CalAiCore(time, pmu[1064],  TransportType::READ_MAIN_MEMORY),  // GM -> l2cache
+        {CalAiCore(time, pmuGmToL2,  TransportType::READ_MAIN_MEMORY),   // GM -> l2cache
          CalAiCore(time, pmuL2ToGm,  TransportType::WRITE_MAIN_MEMORY)}, // l2cache -> GM
     };
 }
@@ -1397,14 +1391,13 @@ vector<MemInfoPipe> StorageAccessA5::LoadVecPipeData(map<uint64_t, uint64_t> &ev
         return BandWidth(data, pipeTime);
     };
     float mte2Data = mteData.at("MTE2");
-    float mte3Data = mteData.at("MTE3");
     float mte2ActRate = pmuCalculatorObj_->CalculatePer(eventMap[514], totalCycles);
     float mte3ActRate = pmuCalculatorObj_->CalculatePer(eventMap[515], totalCycles);
 
     // add pipe advice if ratio < advicePipe_
+    // MTE3数据量暂无法获取
     map<string, pair<float, float>> mtePipe = {
         {"MTE2 vector", {mte2ActRate, mte2Data}},
-        {"MTE3 vector", {mte3ActRate, mte3Data}},
     };
     for (const auto& mte: mtePipe) {
         if (!IsZero(mte.second.first) && !IsZero(mteBwMap_[mte.first])) {
@@ -1415,12 +1408,12 @@ vector<MemInfoPipe> StorageAccessA5::LoadVecPipeData(map<uint64_t, uint64_t> &ev
     }
     return {
         {MemInfoPipe{eventMap[512], eventMap[514], eventMap[14], bwPipe(mte2Data, eventMap[514]),  mte2ActRate}},
-        {MemInfoPipe{eventMap[513], eventMap[515], eventMap[15], bwPipe(mte3Data, eventMap[515]),  mte3ActRate}},
+        {MemInfoPipe{eventMap[513], eventMap[515], eventMap[15], "NA", mte3ActRate}},
         {MemInfoPipe{eventMap[0],   eventMap[1],   eventMap[10], "NA", pmuCalculatorObj_->CalculatePer(eventMap[1], totalCycles)}},
     };
 }
 
-StorageVecTableData StorageAccessA5::LoadVecData(const map<uint64_t, uint64_t> &eventMap, uint64_t totalCycles, int64_t freq, float time)
+StorageVecTableData StorageAccessA5::LoadVecData(const map<uint64_t, uint64_t> &eventMap, uint64_t totalCycles, int64_t freq, float time, int subCoreId)
 {
     // eventMap不存在的pmu值默认置0
     auto pmu = eventMap;
@@ -1429,51 +1422,41 @@ StorageVecTableData StorageAccessA5::LoadVecData(const map<uint64_t, uint64_t> &
     }
     vector<MemInfoCache> cache = LoadCacheData(pmu);
     string location = "vec storage";
-    uint64_t pmuL0cToUb = SafeAdd(pmu[1804], pmu[1815], location);
-    uint64_t pmuGmToUb = SafeSub(pmu[1035], SafeAdd(pmu[1395], pmu[1396], location), location, false);
-    uint64_t pmuUbToGm = SafeSub(pmu[1039], SafeAdd(pmu[1397], pmu[1398], location), location, false);
-    uint64_t pmuL1ToUb = SafeSub(pmu[1391], SafeAddAll<uint64_t>({pmuUbToGm, pmu[1804], pmu[1815]}, location), location, false);
-    uint64_t pmuUbToL1 = SafeSub(pmu[1801], SafeAdd(pmu[1806], pmu[1035], location), location, false);
-    uint64_t simtReadMiss = SafeAdd(pmu[1407], pmu[1408], location);
-    uint64_t simtWriteMiss = SafeAdd(pmu[1409], pmu[1410], location);
-    uint64_t gmToDcache = SafeAdd(simtReadMiss, simtWriteMiss, location);
+    uint64_t pmuL0cToUb = subCoreId == 0 ? fixpToUbVec0_ : fixpToUbVec1_;
+    uint64_t gmToDcache = SafeAdd(pmu[1407], pmu[1408], location);
+    uint64_t pmuGmToUb = SafeSub(pmu[1058], gmToDcache, location, false);
     uint64_t dcacheToVec = SafeAdd(pmu[1395], pmu[1396], location);
-    uint64_t dcacheToGm = SafeAdd(pmu[1397], pmu[1398], location);
-    uint64_t vecToDcache = SafeSub(dcacheToGm, simtWriteMiss, location, false);
-    uint64_t pmuL2ToGm = SafeAdd(pmu[1062], pmu[1071], location);
+    uint64_t vecToDcache = SafeAdd(pmu[1397], pmu[1398], location);
+    auto pmuGmToL2 = SafeAddAll<uint64_t>({pmu[1061], pmu[1062], pmu[1064], pmu[1065]}, location);
+    auto pmuL2ToGm = SafeAddAll<uint64_t>({pmu[1062], pmu[1065], pmu[1068], pmu[1071]}, location);
 
     float mte2Data = GetDataNumberFp(pmuGmToUb, REQ_DATA_OF_A5.at(TransportType::GM_TO_UB));
-    float mte3Data = SafeAdd(GetDataNumberFp(pmuUbToGm, REQ_DATA_OF_A5.at(TransportType::UB_TO_GM)),
-                             GetDataNumberFp(pmuUbToL1, REQ_DATA_OF_A5.at(TransportType::UB_TO_L1)), "vec mte3 data");
-    vector<MemInfoPipe> pipe = LoadVecPipeData(pmu, totalCycles, freq, time, {{"MTE2", mte2Data}, {"MTE3", mte3Data}});
+    vector<MemInfoPipe> pipe = LoadVecPipeData(pmu, totalCycles, freq, time, {{"MTE2", mte2Data}});
 
     return StorageVecTableData{cache, pipe,
         // gm
-        {CalAiCore(time, pmu[1035],   TransportType::READ_MAIN_MEMORY),
-         CalAiCore(time, pmu[1039],   TransportType::WRITE_MAIN_MEMORY)},
+        {CalAiCore(time, pmu[1058],   TransportType::READ_MAIN_MEMORY),
+         CalAiCore(time, pmu[1059],   TransportType::WRITE_MAIN_MEMORY)},
         // ub
         {CalAiCore(time, pmu[518],    TransportType::MTE_TO_UB),
          CalAiCore(time, pmu[516],    TransportType::UB_TO_MTE),
          CalAiCore(time, pmuGmToUb,   TransportType::GM_TO_UB, true),
-         CalAiCore(time, pmuUbToGm,   TransportType::UB_TO_GM, true),
          CalAiCore(time, pmu[1394],   TransportType::VEC_TO_UB),
          CalAiCore(time, pmu[1393],   TransportType::UB_TO_VEC),
-         CalAiCore(time, pmuL1ToUb,   TransportType::L1_TO_UB),
-         CalAiCore(time, pmuUbToL1,   TransportType::UB_TO_L1, true),
          CalAiCore(time, pmuL0cToUb,  TransportType::L0C_TO_UB)},
         // vec
         {CalAiCore(time, pmu[1394],   TransportType::VEC_TO_UB),
          CalAiCore(time, pmu[1393],   TransportType::UB_TO_VEC)},
         // dcache
         {CalAiCore(time, gmToDcache,  TransportType::GM_TO_DCACHE),
-         CalAiCore(time, dcacheToGm,  TransportType::VEC_TO_GM),
-         CalAiCore(time, vecToDcache, TransportType::VEC_TO_GM),
-         CalAiCore(time, dcacheToVec, TransportType::DCACHE_TO_GM)},
+         CalAiCore(time, vecToDcache, TransportType::VEC_TO_DCACHE),
+         CalAiCore(time, dcacheToVec, TransportType::DCACHE_TO_VEC)},
         // l2cache
-        {CalAiCore(time, pmu[1064],  TransportType::READ_MAIN_MEMORY),   // GM -> l2cache
-         CalAiCore(time, pmuL2ToGm,  TransportType::WRITE_MAIN_MEMORY)}, // l2cache -> GM
+        {CalAiCore(time, pmuGmToL2,   TransportType::READ_MAIN_MEMORY),   // GM -> l2cache
+         CalAiCore(time, pmuL2ToGm,   TransportType::WRITE_MAIN_MEMORY)}, // l2cache -> GM
     };
 }
+
 void StorageAccessA5::LoadMapData(const string &opType, MemMapDetail &memMapDetail)
 {
     // time to calculate bandwidth
@@ -1495,8 +1478,8 @@ void StorageAccessA5::LoadMapData(const string &opType, MemMapDetail &memMapDeta
         memInfoPipeMap_ = {{"Pipe", cubeData.pipe}};
     } else {
         auto cubeData = LoadCubeData(memMapDetail.eventMap, memMapDetail.cycMap["Cube"], memMapDetail.freq, bwTime);
-        auto vecData0 = LoadVecData(memMapDetail.eventMapVec0, memMapDetail.cycMap["Vector"], memMapDetail.freq, bwTime);
-        auto vecData1 = LoadVecData(memMapDetail.eventMapVec1, memMapDetail.cycMap["Vector1"], memMapDetail.freq, bwTime);
+        auto vecData0 = LoadVecData(memMapDetail.eventMapVec0, memMapDetail.cycMap["Vector"], memMapDetail.freq, bwTime, 0);
+        auto vecData1 = LoadVecData(memMapDetail.eventMapVec1, memMapDetail.cycMap["Vector1"], memMapDetail.freq, bwTime, 1);
         vector<MemInfoCache> mixCache;
         string location = "mix storage";
         for (size_t i = 0; i < cubeData.cache.size(); i++) { // cubeData and vecDatas have same size
@@ -1538,9 +1521,7 @@ vector<string> StorageAccessA5::GetTableValue(const string &tableName, size_t co
     } else if (tableName.find("Pipe") != string::npos) {
         MemInfoPipe res = memInfoPipeMap_[tableName][colum];
         auto pipe = tableLineAiCore_[tableName][colum];
-        if (pipe.find("MTE") != string::npos) {
-            pipeLineRatio_[pipe] = (pipeLineRatio_.count(pipe) != 0) ? max(pipeLineRatio_[pipe], res.activeRate) : res.activeRate;
-        }
+        pipeLineRatio_[pipe] = (pipeLineRatio_.count(pipe) != 0) ? max(pipeLineRatio_[pipe], res.activeRate) : res.activeRate;
         rowValue.emplace_back(res.instr == EMPTY_PMU_VALUE ? "NA" : std::to_string(res.instr));
         rowValue.emplace_back(res.cycle == EMPTY_PMU_VALUE ? "NA" : std::to_string(res.cycle));
         rowValue.emplace_back(res.waitCycle == EMPTY_PMU_VALUE ? "NA" : std::to_string(res.waitCycle));

@@ -34,7 +34,7 @@ static constexpr char const *PIPE_LINE_VEC = "Pipeline(Vector)";
 static constexpr char const *MEMORY_PIPE_CUBE = "Memory Transfer(Cube)";
 static constexpr char const *MEMORY_PIPE_VEC = "Memory Transfer(Vector)";
 
-AnalysisPoint RoofLine::analysisPoint_ = { 1.0f, "" };
+AnalysisPoint RoofLine::analysisPoint_ = { 0.0f, "" };
 
 void RoofLine::Init()
 {
@@ -154,12 +154,12 @@ std::string RoofLine::RoofLineAnalysis(float bandwidth, float theoryTfops, float
         return "NA";
     }
     std::string location = "analysis roofline";
-    float usageRatio = SafeSub(highPullThroughPoint, verticalPoint, location) / highPullThroughPoint;
-    if (usageRatio > 0.0f && usageRatio < analysisPoint_.usageRatio) {
+    float usageRatio = verticalPoint / highPullThroughPoint;
+    if (usageRatio > analysisPoint_.usageRatio) {
         analysisPoint_.usageRatio = usageRatio;
         analysisPoint_.boundType = boundType;
     }
-    return (usageRatio < 1.0f) ? std::to_string((1.0f - usageRatio)) : "NA";
+    return std::to_string(usageRatio);
 }
 
 void RoofLine::SetPipeLineRatio(const std::string& pipeName, float ratio)
@@ -173,12 +173,9 @@ void RoofLine::SetPipeLineRatio(const std::string& pipeName, float ratio)
 
 std::string RoofLine::GenerateAdvice()
 {
-    static constexpr float boundThreshold = 0.2f;
+    static constexpr float boundThreshold = 0.8f;
     static constexpr float pipeThreshold = 80.0f;
-    if (analysisPoint_.usageRatio < 0.0f) {
-        return "";
-    }
-    if (analysisPoint_.usageRatio < boundThreshold) {
+    if (analysisPoint_.usageRatio > boundThreshold) {
         return analysisPoint_.boundType;
     }
     float maxPipeRatio = -1.0f;
@@ -230,6 +227,9 @@ void RoofLine::AddJson(const string &title, const vector<SubCoreProperty> &prope
             roofLines.emplace_back(singleLineJson);
         }
     }
+    if (roofLines.empty()) {
+        return;
+    }
     singleTypeJson["title"] = title;
     singleTypeJson["rooflines"] = roofLines;
     roofLineJson_.emplace_back(singleTypeJson);
@@ -248,6 +248,11 @@ vector<RoofLineData> RoofLine::GetRoofLineData(map<string, uint64_t> &computilit
 {
     vector<RoofLineData> roofLineDatas;
     for (const auto &pair: computilityDataMap) {
+        // if dataVolume is 0, this point is meaningless
+        if (pair.second == 0) {
+            LogDebug("Roofline data is zero, bw: %s.", pair.first.c_str());
+            continue;
+        }
         roofLineDatas.push_back({pair.first, pair.second, maxBwRates_[pair.first]});
     }
     return roofLineDatas;
@@ -267,22 +272,6 @@ void RoofLine::RoofLineToJson()
 void RoofLine::ClearRoofLineJson()
 {
     visualRoofLineJson_.clear();
-}
-
-void RoofLine::SetAllPipeLineRatio()
-{
-    std::vector<MemMapDetail> memMapDetail = basicPmuObj_->GetMemMapDetails();
-    // 将每个block的数据加到json里
-    for (size_t i = 0; i < memMapDetail.size(); ++i) {
-        std::string opType = memMapDetail[i].opType;
-        auto cycMap = pmuCalculatorObj_->GetCycleMap(opType, memMapDetail[i]);
-        for (const auto &cyc : cycMap) {
-            uint64_t totalCycle = (opType == Common::OpType::MIX) ? memMapDetail[i].cycMap[cyc.first] :
-                memMapDetail[i].totalCycles;
-            float ratio = pmuCalculatorObj_->CalculatePer(cyc.second, totalCycle);
-            SetPipeLineRatio(cyc.first, ratio);
-        }
-    }
 }
 
 vector<nlohmann::json> RoofLineOf910B::GenerateRoofLines()
@@ -474,19 +463,16 @@ void RoofLineOf910B::GmAndL2cache()
     // pmu(1286) + pmu(1290)
     uint64_t gmToL2 = SafeAdd(pmuValues_[Event::READ_MISS_R0], pmuValues_[Event::READ_MISS_R1], location);
     // min(l2cacheEvict, pmu(1282))
-    uint64_t l2ToGm =  pmuValues_[Event::WRITE_MISS];
-    uint64_t l2ToGmReal = pmuValues_[Event::WRITE_MISS];
-    if (l2CacheEvict_ >= 0) { l2ToGmReal = min(static_cast<uint64_t>(l2CacheEvict_), pmuValues_[Event::WRITE_MISS]); }
+    uint64_t l2ToGm = pmuValues_[Event::WRITE_MISS];
+    if (l2CacheEvict_ >= 0) { l2ToGm = min(static_cast<uint64_t>(l2CacheEvict_), l2ToGm); }
     std::vector<uint16_t> gmByte {REQ_DATA_OF_910B.at(TransportType::GM_TO_L2),
         REQ_DATA_OF_910B.at(TransportType::L2_TO_GM)};
     std::vector<uint64_t> gmReq {gmToL2, l2ToGm};
-    std::vector<uint64_t> gmReqReal {gmToL2, l2ToGmReal};
     std::vector<uint16_t> l2Byte {REQ_DATA_OF_910B.at(TransportType::CORE_TO_L2),
         REQ_DATA_OF_910B.at(TransportType::L2_TO_CORE)};
     std::vector<uint64_t> l2Req {coreToL2, l2ToCore};
  
     uint64_t gmReadAndWriteData = SafeMulAddAll(gmReq, gmByte, location);
-    uint64_t gmReadAndWriteRealData = SafeMulAddAll(gmReqReal, gmByte, location);
     uint64_t l2ReadAndWriteData = SafeMulAddAll(l2Req, l2Byte, location);
     l2ReadAndWriteData = SafeAdd(l2ReadAndWriteData, gmReadAndWriteData, location);
 
@@ -512,7 +498,7 @@ void RoofLineOf910B::GmAndL2cache()
         l2ReadAndWriteBw = l2CacheBw.at(socVersion);
     }
     vector<RoofLineData> roofLineDatas{
-        {string(GmAndL2cacheUnit::GM), gmReadAndWriteRealData, gmReadAndWriteBw},
+        {string(GmAndL2cacheUnit::GM), gmReadAndWriteData, gmReadAndWriteBw},
         {string(GmAndL2cacheUnit::L2_CACHE), l2ReadAndWriteData, l2ReadAndWriteBw},
     };
     vector<string> computilities = {cubeProperty_.computilityName, vecProperty_.computilityName};
@@ -585,6 +571,7 @@ void RoofLineOfA5::CalCubeBaseData(int64_t cubeNum)
         }
     }
     for (const auto &record: records) {
+        LogDebug("cube record type: %s, operands: %llu.", record.first.c_str(), record.second.operands);
         SubCoreProperty property;
         property.computilityName = record.first;
         property.fops = record.second.operands;
@@ -628,6 +615,7 @@ void RoofLineOfA5::CalVecBaseData(int64_t vectorNum)
         {"Integer", theoryTfopsInt},
     };
     for (const auto &record: records) {
+        LogDebug("SIMT record type: %s, operands: %llu.", record.first.c_str(), record.second.operands);
         SubCoreProperty property;
         property.computilityName = record.first;
         property.fops = record.second.operands;
@@ -670,7 +658,9 @@ void RoofLineOfA5::CubeMemoryUnit()
     uint64_t l1ToMteData = GetDataNumber(pmuValues_[Event::RD_L1_INSTR], REQ_DATA_OF_A5.at(TransportType::L1_TO_MTE));
     uint64_t l1ToL0aData = GetDataNumber(pmuValues_[Event::WR_L0A_INSTR], REQ_DATA_OF_A5.at(TransportType::L1_TO_L0A));
     uint64_t l1ToL0bData = GetDataNumber(pmuValues_[Event::WR_L0B_INSTR], REQ_DATA_OF_A5.at(TransportType::L1_TO_L0B));
-    uint64_t l0cToFixpData = GetDataNumber(pmuValues_[Event::FIXP_RD_L0C_INSTR], REQ_DATA_OF_A5.at(TransportType::L0C_TO_FIXP));
+    auto pmuFixp = Utility::SafeAddAll<uint64_t>({pmuValues_[Event::FIXP_WR_UB_INSTR], pmuValues_[Event::FIXP_WR_UB1_INSTR],
+        pmuValues_[Event::FIXP_WR_L1_INSTR], pmuValues_[Event::WRITE_DATA_SENT]}, "pmuFixp");
+    uint64_t l0cToFixpData = GetDataNumber(pmuFixp, REQ_DATA_OF_A5.at(TransportType::L0C_TO_FIXP));
 
     std::map<std::string, uint64_t> cubeMemoryUnitPmu = {
         {"l0cToL1Data", l0cToL1Data},
@@ -693,17 +683,13 @@ void RoofLineOfA5::CubeMemoryUnit()
 
 void RoofLineOfA5::CubePipeLine()
 {
-    uint64_t pmuUbToGm = SafeSub(pmuValues_[Event::WRITE_DATA_SENT],
-        SafeAdd(pmuValues_[Event::DCU_REQ_STG], pmuValues_[Event::DCU_REQ_STK], "pmuUbToGm"), "pmuUbToGm", false);
-    uint64_t pmuL1ToUb = SafeSub(pmuValues_[Event::AIC_EXT_RD_UB_INSTR], SafeAddAll<uint64_t>({pmuUbToGm,
-        pmuValues_[Event::FIXP_WR_UB_INSTR], pmuValues_[Event::FIXP_WR_UB1_INSTR]}, "pmuL1ToUb"), "pmuL1ToUb", false);
-    uint64_t l1ToUbData = GetDataNumber(pmuL1ToUb, REQ_DATA_OF_A5.at(TransportType::L1_TO_UB));
+    uint64_t l1ToMTE1Data = GetDataNumber(pmuValues_[Event::RD_L1_INSTR], REQ_DATA_OF_A5.at(TransportType::L1_TO_MTE));
     uint64_t gmToL1Data = GetDataNumber(pmuValues_[Event::READ_DATA_RECEIVED], REQ_DATA_OF_A5.at(TransportType::GM_TO_L1));
     uint64_t pmuUbToL1 = SafeSub(pmuValues_[Event::WR_L1_INSTR], SafeAdd(pmuValues_[Event::FIXP_WR_L1_INSTR],
-        pmuValues_[Event::READ_DATA_RECEIVED], "pmuUbToL1"), "pmuUbToL1", false);
-    uint64_t ubToL1Data = GetDataNumber(pmuUbToL1, REQ_DATA_OF_A5.at(TransportType::UB_TO_L1));
+        pmuValues_[Event::READ_DATA_RECEIVED] / 2, "pmuUbToL1"), "pmuUbToL1", false);
+    uint64_t ubToL1Data = GetDataNumber(pmuUbToL1, REQ_DATA_OF_A5.at(TransportType::MTE_TO_L1));
     map<string, uint64_t> computilityDataMap = {
-        {"MTE1", basicPmu_["l1ToL0aData"] + basicPmu_["l1ToL0bData"] + l1ToUbData},
+        {"MTE1", l1ToMTE1Data},
         {"MTE2", gmToL1Data},
         {"MTE3", ubToL1Data},
         {"FIXP", basicPmu_["l0cToFixpData"]},
@@ -714,9 +700,7 @@ void RoofLineOfA5::CubePipeLine()
 
 void RoofLineOfA5::CubeMemoryPipe()
 {
-    uint64_t pmuL0cToGm = SafeSub(pmuValues_[Event::FIXP_RD_L0C_INSTR], SafeAddAll<uint64_t>({pmuValues_[Event::FIXP_WR_UB_INSTR],
-        pmuValues_[Event::FIXP_WR_L1_INSTR], pmuValues_[Event::FIXP_WR_UB1_INSTR]}, "pmuL0cToGm"), "pmuL0cToGm", false);
-    uint64_t l0cToGmData = GetDataNumber(pmuL0cToGm, REQ_DATA_OF_A5.at(TransportType::L0C_TO_GM));
+    uint64_t l0cToGmData = GetDataNumber(pmuValues_[Event::WRITE_DATA_SENT], REQ_DATA_OF_A5.at(TransportType::L0C_TO_GM));
     map<string, uint64_t> computilityDataMap = {
         {string(MemoryPipe::L0C_TO_GM), l0cToGmData},
         {string(MemoryPipe::L0C_TO_L1), basicPmu_["l0cToL1Data"]},
@@ -729,13 +713,13 @@ void RoofLineOfA5::CubeMemoryPipe()
 
 void RoofLineOfA5::VecMemoryUnit()
 {
-    uint64_t dcuReqLdg = GetDataNumber(pmuValues_[Event::DCU_REQ_LDG], REQ_DATA_OF_A5.at(TransportType::GM_TO_DCACHE));
-    uint64_t dcuReqLdk = GetDataNumber(pmuValues_[Event::DCU_REQ_LDK], REQ_DATA_OF_A5.at(TransportType::GM_TO_DCACHE));
-    uint64_t dcuReqStg = GetDataNumber(pmuValues_[Event::DCU_REQ_STG], REQ_DATA_OF_A5.at(TransportType::DCACHE_TO_GM));
-    uint64_t dcuReqStk = GetDataNumber(pmuValues_[Event::DCU_REQ_STK], REQ_DATA_OF_A5.at(TransportType::DCACHE_TO_GM));
+    uint64_t dcuMissLdg = GetDataNumber(pmuValues_[Event::DCU_MISS_LDG], REQ_DATA_OF_A5.at(TransportType::GM_TO_DCACHE));
+    uint64_t dcuMissLdk = GetDataNumber(pmuValues_[Event::DCU_MISS_LDK], REQ_DATA_OF_A5.at(TransportType::GM_TO_DCACHE));
+    uint64_t dcuReqStg = GetDataNumber(pmuValues_[Event::DCU_REQ_STG], REQ_DATA_OF_A5.at(TransportType::VEC_TO_DCACHE));
+    uint64_t dcuReqStk = GetDataNumber(pmuValues_[Event::DCU_REQ_STK], REQ_DATA_OF_A5.at(TransportType::VEC_TO_DCACHE));
 
     map<string, uint64_t> computilityDataMap = {
-        {string(MemoryUnit::SIMT_VF),      dcuReqLdg + dcuReqLdk + dcuReqStg + dcuReqStk},
+        {string(MemoryUnit::SIMT_VF),      dcuMissLdg + dcuMissLdk + dcuReqStg + dcuReqStk},
     };
     auto roofLineDatas = GetRoofLineData(computilityDataMap);
     AddJson(MEMORY_UNIT_VEC, vecSimtProperties_, roofLineDatas);
@@ -746,9 +730,12 @@ void RoofLineOfA5::GmAndL2cache()
     std::string location = "gm and l2cache";
     uint64_t coreToL2 = SafeAdd(pmuValues_[Event::AW_CLOSE_L2_HIT_CORE], pmuValues_[Event::AW_FAR_L2_HIT_CORE], location);
     uint64_t l2ToCore = SafeAdd(pmuValues_[Event::AR_CLOSE_L2_HIT_CORE], pmuValues_[Event::AR_FAR_L2_HIT_CORE], location);
-    uint64_t gmToL2 = pmuValues_[Event::AR_FAR_L2_MISS_CORE];
-    uint64_t l2ToGm = SafeAdd(pmuValues_[Event::AR_CLOSE_L2_VICTIM_CORE], pmuValues_[Event::AW_FAR_L2_VICTIM_CORE], location);
-    std::vector<uint64_t> gmReq {gmToL2, l2ToGm};     // read miss, write evict
+    auto gmToL2 = SafeAddAll<uint64_t>({pmuValues_[Event::AR_CLOSE_L2_MISS_CORE], pmuValues_[Event::AR_CLOSE_L2_VICTIM_CORE],
+        pmuValues_[Event::AR_FAR_L2_MISS_CORE], pmuValues_[Event::AR_FAR_L2_VICTIM_CORE]}, location);
+    auto l2ToGm = SafeAddAll<uint64_t>({pmuValues_[Event::AR_CLOSE_L2_VICTIM_CORE], pmuValues_[Event::AR_FAR_L2_VICTIM_CORE],
+        pmuValues_[Event::AW_CLOSE_L2_VICTIM_CORE], pmuValues_[Event::AW_FAR_L2_VICTIM_CORE]}, location);
+
+    std::vector<uint64_t> gmReq {gmToL2, l2ToGm};     // read miss + read evict, all evict
     std::vector<uint64_t> l2Req {l2ToCore, coreToL2}; // read hit, write hit
     std::vector<uint16_t> reqByte {REQ_DATA_OF_A5.at(TransportType::READ_MAIN_MEMORY), REQ_DATA_OF_A5.at(TransportType::WRITE_MAIN_MEMORY)};
     uint64_t gmReadAndWriteData = SafeMulAddAll(gmReq, reqByte, location);
@@ -769,23 +756,15 @@ void RoofLineOfA5::GmAndL2cache()
     vector<SubCoreProperty> propertyVec;
     SubCoreProperty newInteger = {0, 0, "Integer"};
     for (const auto &p: cubeProperties_) {
-        if (p.computilityName == "Integer") {
-            statistical(p, newInteger);
-        } else {
-            propertyVec.push_back({p.fops, p.theoryTfops, "Cube " + p.computilityName});
-        }
+        p.computilityName == "Integer" ? statistical(p, newInteger) : propertyVec.push_back({p.fops, p.theoryTfops, "Cube " + p.computilityName});
     }
     for (const auto &p: vecSimtProperties_) {
-        if (p.computilityName == "Integer") {
-            statistical(p, newInteger);
-        } else {
-            propertyVec.push_back({p.fops, p.theoryTfops, "SIMT " + p.computilityName});
-        }
+        p.computilityName == "Integer" ? statistical(p, newInteger) : propertyVec.push_back({p.fops, p.theoryTfops, "SIMT " + p.computilityName});
     }
     if (newInteger.fops != 0) {
         propertyVec.emplace_back(newInteger);
     }
-    AddJson(GM_AND_L2CACHE, {propertyVec}, roofLineDatas);
+    AddJson(GM_AND_L2CACHE, propertyVec, roofLineDatas);
 }
 
 vector<nlohmann::json> RoofLineOf310P::GenerateRoofLines()

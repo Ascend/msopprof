@@ -188,7 +188,7 @@ TEST(DeviceTask, LoadPmuVec_App_A5_Pipe_Memoryl0_replay)
     args.argAicMetrics = metrics;
     PmuEventsId pmuEventsId;
     pmuEventsId.LoadPmuVec(metrics, Common::ChipType::ASCEND910_95, "application");
-    std::vector<uint16_t> aic_res = {52, 53, 1813, 772, 774, 776, 778, 1795, 1797, 0, 10, 36, 1, 514, 515, 810, 1794, 1812, 0, 0};
+    std::vector<uint16_t> aic_res = {1813, 52, 53, 772, 774, 776, 778, 1795, 1797, 0, 10, 36, 1, 514, 515, 810, 1794, 1812, 0, 0};
     std::vector<uint16_t> aiv_res = {52, 53, 10, 1, 514, 515, 1281, 0, 0, 0};
     ASSERT_EQ(aic_res, pmuEventsId.aicPmu);
     ASSERT_EQ(aiv_res, pmuEventsId.aivPmu);

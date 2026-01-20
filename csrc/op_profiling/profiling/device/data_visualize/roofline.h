@@ -60,7 +60,6 @@ public:
     {
         freq_ = aicoreFreq;
         aiCoreNum_ = aiCoreNum;
-        SetAllPipeLineRatio();
     };
     void Init();
     virtual void CalCubeBaseData(int64_t cubeNum);
@@ -75,7 +74,6 @@ public:
     virtual std::vector<nlohmann::json> GenerateRoofLines() { return {}; };
     void RoofLineToJson();
     void ClearRoofLineJson();
-    void SetAllPipeLineRatio();
 
     std::map<std::string, std::string> pipeMap = {{"Pipe Cube", "Cube"}, {"Pipe Vector Core0", "Vector"},
                                                   {"Pipe Vector Core1", "Vector1"}};
@@ -225,38 +223,44 @@ private:
     const std::vector<Event> cubeEvents_ = {
         Event::READ_DATA_RECEIVED,
         Event::WRITE_DATA_SENT,
-        Event::AIC_EXT_RD_UB_INSTR,
-        Event::DCU_REQ_STG,
-        Event::DCU_REQ_STK,
         Event::WR_L0A_INSTR,
         Event::WR_L0B_INSTR,
         Event::RD_L1_INSTR,
         Event::WR_L1_INSTR,
         Event::FIXP_WR_UB_INSTR,
         Event::FIXP_WR_L1_INSTR,
-        Event::FIXP_RD_L0C_INSTR,
         Event::FIXP_WR_UB1_INSTR,
 
         // gm/l2cache
-        Event::AR_FAR_L2_MISS_CORE,
-        Event::AR_CLOSE_L2_VICTIM_CORE,
         Event::AR_CLOSE_L2_HIT_CORE,
+        Event::AR_CLOSE_L2_MISS_CORE,
+        Event::AR_CLOSE_L2_VICTIM_CORE,
         Event::AR_FAR_L2_HIT_CORE,
+        Event::AR_FAR_L2_MISS_CORE,
+        Event::AR_FAR_L2_VICTIM_CORE,
         Event::AW_CLOSE_L2_HIT_CORE,
+        Event::AW_CLOSE_L2_MISS_CORE,
+        Event::AW_CLOSE_L2_VICTIM_CORE,
         Event::AW_FAR_L2_HIT_CORE,
+        Event::AW_FAR_L2_MISS_CORE,
         Event::AW_FAR_L2_VICTIM_CORE,
     };
     const std::vector<Event> vecEvents_ = {
         // gm/l2cache
-        Event::AR_FAR_L2_MISS_CORE,
-        Event::AR_CLOSE_L2_VICTIM_CORE,
         Event::AR_CLOSE_L2_HIT_CORE,
+        Event::AR_CLOSE_L2_MISS_CORE,
+        Event::AR_CLOSE_L2_VICTIM_CORE,
         Event::AR_FAR_L2_HIT_CORE,
+        Event::AR_FAR_L2_MISS_CORE,
+        Event::AR_FAR_L2_VICTIM_CORE,
         Event::AW_CLOSE_L2_HIT_CORE,
+        Event::AW_CLOSE_L2_MISS_CORE,
+        Event::AW_CLOSE_L2_VICTIM_CORE,
         Event::AW_FAR_L2_HIT_CORE,
+        Event::AW_FAR_L2_MISS_CORE,
         Event::AW_FAR_L2_VICTIM_CORE,
-        Event::DCU_REQ_LDG,
-        Event::DCU_REQ_LDK,
+        Event::DCU_MISS_LDG,
+        Event::DCU_MISS_LDK,
         Event::DCU_REQ_STG,
         Event::DCU_REQ_STK,
     };

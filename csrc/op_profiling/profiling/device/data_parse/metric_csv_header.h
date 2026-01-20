@@ -353,22 +353,36 @@ const std::vector<std::string> l2CacheForA5_ = {
     "sub_block_id",
     "aic_time(us)",
     "aic_total_cycles",
-    "aic_write_cache_hit",
-    "aic_write_cache_miss_allocate",
-    "aic_r0_read_cache_hit",
-    "aic_r0_read_cache_miss_allocate",
-    "aic_write_hit_rate(%)",
+    "aic_read_close_hit",
+    "aic_read_close_miss",
+    "aic_read_close_victim",
+    "aic_read_far_hit",
+    "aic_read_far_miss",
+    "aic_read_far_victim",
     "aic_read_hit_rate(%)",
-    "aic_total_hit_rate(%)",
+    "aic_write_close_hit",
+    "aic_write_close_miss",
+    "aic_write_close_victim",
+    "aic_write_far_hit",
+    "aic_write_far_miss",
+    "aic_write_far_victim",
+    "aic_write_hit_rate(%)",
     "aiv_time(us)",
     "aiv_total_cycles",
-    "aiv_write_cache_hit",
-    "aiv_write_cache_miss_allocate",
-    "aiv_r0_read_cache_hit",
-    "aiv_r0_read_cache_miss_allocate",
-    "aiv_write_hit_rate(%)",
+    "aiv_read_close_hit",
+    "aiv_read_close_miss",
+    "aiv_read_close_victim",
+    "aiv_read_far_hit",
+    "aiv_read_far_miss",
+    "aiv_read_far_victim",
     "aiv_read_hit_rate(%)",
-    "aiv_total_hit_rate(%)",
+    "aiv_write_close_hit",
+    "aiv_write_close_miss",
+    "aiv_write_close_victim",
+    "aiv_write_far_hit",
+    "aiv_write_far_miss",
+    "aiv_write_far_victim",
+    "aiv_write_hit_rate(%)",
 };
 
 const std::vector<std::string> memoryForA5_ = {
@@ -388,7 +402,6 @@ const std::vector<std::string> memoryForA5_ = {
     "aic_mte3_ratio",
     "aiv_time(us)",
     "aiv_total_cycles",
-    "aiv_ub_to_gm_bw(GB/s)",
     "aiv_gm_to_ub_bw(GB/s)",
     "aiv_main_mem_read_bw(GB/s)",
     "aiv_main_mem_write_bw(GB/s)",
@@ -406,8 +419,6 @@ const std::vector<std::string> memoryForA5_ = {
     "L0C_to_GM_bw_usage_rate(%)",
     "GM_to_UB_datas(KB)",
     "GM_to_UB_bw_usage_rate(%)",
-    "UB_to_GM_datas(KB)",
-    "UB_to_GM_bw_usage_rate(%)"
 };
 
 const std::vector<std::string> memoryL0ForA5_ = {
@@ -434,7 +445,6 @@ const std::vector<std::string> memoryUbForA5_ = {
     "aiv_total_cycles",
     "aiv_ub_read_bw_vector(GB/s)",
     "aiv_ub_write_bw_vector(GB/s)",
-    "aiv_ub_read_bw_gm(GB/s)",
     "aiv_ub_write_bw_gm(GB/s)",
 };
 
@@ -471,7 +481,6 @@ const std::vector<std::string> pipeForA5_ = {
     "aiv_mte2_active_bw(GB/s)",
     "aiv_mte3_time(us)",
     "aiv_mte3_ratio",
-    "aiv_mte3_active_bw(GB/s)",
     "aiv_icache_miss_rate",
 };
 

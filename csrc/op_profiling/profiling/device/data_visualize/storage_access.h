@@ -198,8 +198,8 @@ public:
 private:
     StorageCubeTableData LoadCubeData(const std::map<uint64_t, uint64_t> &eventMap, uint64_t totalCycles, int64_t freq, float time);
     std::vector<MemInfoPipe> LoadCubePipeData(std::map<uint64_t, uint64_t> &eventMap, uint64_t totalCycles,
-                                              int64_t freq, float time, const std::map<std::string, float> &mteData);
-    StorageVecTableData LoadVecData(const std::map<uint64_t, uint64_t> &eventMap, uint64_t totalCycles, int64_t freq, float time);
+                                              int64_t freq, float time, const std::map<std::string, float> &pipeData);
+    StorageVecTableData LoadVecData(const std::map<uint64_t, uint64_t> &eventMap, uint64_t totalCycles, int64_t freq, float time, int subCoreId = 0);
     std::vector<MemInfoPipe> LoadVecPipeData(std::map<uint64_t, uint64_t> &eventMap, uint64_t totalCycles,
                                              int64_t freq, float time, const std::map<std::string, float> &mteData);
     std::vector<MemInfoCache> LoadCacheData(std::map<uint64_t, uint64_t> &eventMap) const;
@@ -210,6 +210,8 @@ private:
     MemInfoAiCore CalAiCore(float time, uint64_t pmu, Profiling::TransportType type, bool calPeak = false);
     std::map<std::string, float> mteBwMap_;
     std::set<std::string> advicePipe_;
+    uint64_t fixpToUbVec0_ = 0;
+    uint64_t fixpToUbVec1_ = 0;
 };
 }
 #endif // __STORAGE_ACCESS_H__
