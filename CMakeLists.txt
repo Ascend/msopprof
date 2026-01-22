@@ -68,7 +68,7 @@ if(BUILD_INJECTION)
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     )
     add_custom_target(injection_laucher ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/tmp.cpp)
-    add_dependencies(injection_laucher msopprof_injection kernel_launcher_bin dfx_kernel_dav-c220-cube dfx_kernel_dav-m200 empty_kernel_dav-c220-vec)
+    add_dependencies(injection_laucher msopprof_injection kernel_launcher_bin dfx_kernel_dav-c220-cube dfx_kernel_dav-c310-cube dfx_kernel_dav-m200 empty_kernel_dav-c220-vec)
     install(TARGETS msopprof_injection kernel_launcher_bin
         RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
         LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib64
@@ -78,11 +78,13 @@ if(BUILD_INJECTION)
 
     install(FILES
         ${KERNEL_OUTPUT_PATH}/dfx_kernel_dav-c220-cube.o
+        ${KERNEL_OUTPUT_PATH}/dfx_kernel_dav-c310-cube.o
         ${KERNEL_OUTPUT_PATH}/dfx_kernel_dav-m200.o
         ${KERNEL_OUTPUT_PATH}/empty_kernel_dav-c220-vec.o
         ${MSOPSCOMMON_DIR}/tools/dfx_kernel/empty_kernel_dav-c220-vec.json
         ${MSOPSCOMMON_DIR}/tools/dfx_kernel/dfx_kernel_dav-m200.json
         ${MSOPSCOMMON_DIR}/tools/dfx_kernel/dfx_kernel_dav-c220-cube.json
+        ${MSOPSCOMMON_DIR}/tools/dfx_kernel/dfx_kernel_dav-c310-cube.json
         DESTINATION ${CMAKE_INSTALL_PREFIX}/lib64
     )
 endif()

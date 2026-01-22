@@ -39,6 +39,8 @@
     <file_info value="msopprof/lib64" copy_type="source" src_path="${OUTPUT}/lib64" dst_path="mindstudio-opprof/tools/msopprof/lib64" install_path="tools/msopprof/lib64" install_mod="440">
         <file value="dfx_kernel_dav-c220-cube.json"/>
         <file value="dfx_kernel_dav-c220-cube.o"/>
+        <file value="dfx_kernel_dav-c310-cube.json"/>
+        <file value="dfx_kernel_dav-c310-cube.o"/>
         <file value="dfx_kernel_dav-m200.json"/>
         <file value="dfx_kernel_dav-m200.o"/>
         <file value="empty_kernel_dav-c220-vec.json"/>
