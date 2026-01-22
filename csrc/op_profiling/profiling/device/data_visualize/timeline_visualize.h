@@ -26,7 +26,7 @@ constexpr int FREQ_DEFAULT = 1650;  // MHz
 class TimelineVisualize {
 public:
     explicit TimelineVisualize(std::vector<Profiling::TimelineInfo> timelineVec) : timelineVec_(timelineVec) {}
-    void TimelineToJson();
+    void TimelineToJson(const std::string &outputPath);
     nlohmann::json timelineJson_;
 
 private:

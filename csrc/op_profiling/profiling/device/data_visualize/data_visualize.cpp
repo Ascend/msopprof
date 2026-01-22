@@ -76,7 +76,7 @@ void DataVisualize::GenerateAllVisualizeData(Profiling::Parse::DataCenter
         ParseTimeline timelineParser;
         if (timelineParser.GenerateBiuTimeStamps(outputPath)) {
             TimelineVisualize timelineVisualize(timelineParser.GetTimeline());
-            timelineVisualize.TimelineToJson();
+            timelineVisualize.TimelineToJson(outputPath);
             Utility::Visualize::WriteBin<VT::TRACE>(outputPath, timelineVisualize.timelineJson_);
         }
     }

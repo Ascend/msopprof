@@ -23,7 +23,7 @@
 using namespace Utility;
 
 namespace Visualize {
-void TimelineVisualize::TimelineToJson()
+void TimelineVisualize::TimelineToJson(const std::string &outputPath)
 {
     int64_t aicoreFreq = 0;
     if (!Common::HalHelper::Instance().GetAicoreFreq(aicoreFreq)) {
@@ -45,6 +45,10 @@ void TimelineVisualize::TimelineToJson()
         traceEvents.emplace_back(timelineJson);
     }
     timelineJson_["traceEvents"] = traceEvents;
+    std::string tracePath = JoinPath({outputPath, "trace.json"});
+    if (!WriteFileByStream(tracePath, timelineJson_)) {
+        LogWarn("Generate %s failed.", tracePath.c_str());
+    }
 }
 
 }

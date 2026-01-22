@@ -25,6 +25,7 @@
 
 namespace Common {
 
+constexpr int RADIX = 8;
 // MetricEventsMapType:{{metric name, pmu events vector}} eg:{{"memory", {4, 5, 6}}}
 using MetricEventsMapType = std::map<std::string, std::vector<uint16_t>>;
 
@@ -132,7 +133,7 @@ enum class ChipProductType : uint32_t {
     ALL_PRODUCT_TYPE = 0,
     UNKNOWN_PRODUCT_TYPE = 1,
 
-    ASCEND310P_SERIES = 10, // ASCEND310P series product type
+    ASCEND310P_SERIES = 1 << RADIX, // ASCEND310P series product type
     ASCEND310P1,
     ASCEND310P2,
     ASCEND310P3,
@@ -140,13 +141,13 @@ enum class ChipProductType : uint32_t {
     ASCEND310P5,
     ASCEND310P7,
 
-    ASCEND310B_SERIES = 20, // ASCEND310B series product type
+    ASCEND310B_SERIES = 2 << RADIX, // ASCEND310B series product type
     ASCEND310B1,
     ASCEND310B2,
     ASCEND310B3,
     ASCEND310B4,
 
-    ASCEND910B_SERIES = 30, // ASCEND910B series product type
+    ASCEND910B_SERIES = 3 << RADIX, // ASCEND910B series product type
     ASCEND910B1,
     ASCEND910B2,
     ASCEND910B3,
@@ -154,7 +155,7 @@ enum class ChipProductType : uint32_t {
     ASCEND910B2C,
     ASCEND910B4_1,
 
-    ASCEND910_93_SERIES = 40, // ASCEND910_93 series product type
+    ASCEND910_93_SERIES = 4 << RADIX, // ASCEND910_93 series product type
     ASCEND910_9391,
     ASCEND910_9392,
     ASCEND910_9381,
@@ -162,29 +163,51 @@ enum class ChipProductType : uint32_t {
     ASCEND910_9372,
     ASCEND910_9362,
 
-    ASCEND310_SERIES = 50,
+    ASCEND310_SERIES = 5 << RADIX,
     ASCEND310,
 
-    ASCEND910A_SERIES = 60,
+    ASCEND910A_SERIES = 6 << RADIX,
     ASCEND910A,
     ASCEND910B,
     ASCEND910PROA,
     ASCEND910PROB,
     ASCEND910PREMIUMA,
 
-    ASCEND610_SERIES = 70,
-    ASCEND615_SERIES = 80,
+    ASCEND610_SERIES = 7 << RADIX,
+    ASCEND615_SERIES = 8 << RADIX,
 
-    ASCEND910_95_SERIES = 90,
-    ASCEND910_9599,
+    ASCEND910_95_SERIES = 9 << RADIX,
+    ASCEND910_950X,
+    ASCEND910_950Y,
+    ASCEND910_950Z,
+    ASCEND910_9571,
+    ASCEND910_9572,
+    ASCEND910_9573,
+    ASCEND910_9574,
+    ASCEND910_9575,
+    ASCEND910_9576,
+    ASCEND910_9577,
+    ASCEND910_9578,
+    ASCEND910_9579,
+    ASCEND910_957B,
+    ASCEND910_957C,
+    ASCEND910_957D,
     ASCEND910_9581,
+    ASCEND910_9582,
+    ASCEND910_9583,
+    ASCEND910_9584,
+    ASCEND910_9585,
+    ASCEND910_9586,
+    ASCEND910_9587,
+    ASCEND910_9588,
     ASCEND910_9589,
     ASCEND910_958A,
     ASCEND910_958B,
-    ASCEND910_9579,
-    ASCEND910_957B,
-    ASCEND910_957D,
-    ASCEND910_950Z,
+    ASCEND910_9591,
+    ASCEND910_9592,
+    ASCEND910_9595,
+    ASCEND910_9596,
+    ASCEND910_9599,
 };
 
 const std::map<std::string, ChipProductType> SOC_STRING_TO_CHIP_PRODUCT{
@@ -222,15 +245,37 @@ const std::map<std::string, ChipProductType> SOC_STRING_TO_CHIP_PRODUCT{
     {"Ascend910ProB",   ChipProductType::ASCEND910PROB},
     {"AscendPremiumA",  ChipProductType::ASCEND910PREMIUMA},
     
-    {"Ascend910_9599",  ChipProductType::ASCEND910_9599},
+    {"Ascend910_950x",  ChipProductType::ASCEND910_950X},
+    {"Ascend910_950y",  ChipProductType::ASCEND910_950Y},
+    {"Ascend910_950z",  ChipProductType::ASCEND910_950Z},
+    {"Ascend910_9571",  ChipProductType::ASCEND910_9571},
+    {"Ascend910_9572",  ChipProductType::ASCEND910_9572},
+    {"Ascend910_9573",  ChipProductType::ASCEND910_9573},
+    {"Ascend910_9574",  ChipProductType::ASCEND910_9574},
+    {"Ascend910_9575",  ChipProductType::ASCEND910_9575},
+    {"Ascend910_9576",  ChipProductType::ASCEND910_9576},
+    {"Ascend910_9577",  ChipProductType::ASCEND910_9577},
+    {"Ascend910_9578",  ChipProductType::ASCEND910_9578},
+    {"Ascend910_9579",  ChipProductType::ASCEND910_9579},
+    {"Ascend910_957b",  ChipProductType::ASCEND910_957B},
+    {"Ascend910_957c",  ChipProductType::ASCEND910_957C},
+    {"Ascend910_957d",  ChipProductType::ASCEND910_957D},
     {"Ascend910_9581",  ChipProductType::ASCEND910_9581},
+    {"Ascend910_9582",  ChipProductType::ASCEND910_9582},
+    {"Ascend910_9583",  ChipProductType::ASCEND910_9583},
+    {"Ascend910_9584",  ChipProductType::ASCEND910_9584},
+    {"Ascend910_9585",  ChipProductType::ASCEND910_9585},
+    {"Ascend910_9586",  ChipProductType::ASCEND910_9586},
+    {"Ascend910_9587",  ChipProductType::ASCEND910_9587},
+    {"Ascend910_9588",  ChipProductType::ASCEND910_9588},
     {"Ascend910_9589",  ChipProductType::ASCEND910_9589},
     {"Ascend910_958a",  ChipProductType::ASCEND910_958A},
     {"Ascend910_958b",  ChipProductType::ASCEND910_958B},
-    {"Ascend910_9579",  ChipProductType::ASCEND910_9579},
-    {"Ascend910_957b",  ChipProductType::ASCEND910_957B},
-    {"Ascend910_957d",  ChipProductType::ASCEND910_957D},
-    {"Ascend910_950z",  ChipProductType::ASCEND910_950Z},
+    {"Ascend910_9591",  ChipProductType::ASCEND910_9591},
+    {"Ascend910_9592",  ChipProductType::ASCEND910_9592},
+    {"Ascend910_9595",  ChipProductType::ASCEND910_9595},
+    {"Ascend910_9596",  ChipProductType::ASCEND910_9596},
+    {"Ascend910_9599",  ChipProductType::ASCEND910_9599},
 };
 
 const std::map<ChipType, ChipProductType> CHIP_ARCHITECTURE_TO_PRODUCT_SERIES{
@@ -246,8 +291,7 @@ const std::map<ChipType, ChipProductType> CHIP_ARCHITECTURE_TO_PRODUCT_SERIES{
 
 inline ChipProductType GetProductSeriesType(const ChipProductType& chipProductType)
 {
-    constexpr int radix = 10;
-    return static_cast<ChipProductType>(static_cast<uint32_t>(chipProductType) / radix * radix);
+    return static_cast<ChipProductType>((static_cast<uint32_t>(chipProductType) >> RADIX) << RADIX);
 }
 
 inline bool IsChipSeriesTypeValid(const ChipProductType& inputType, const ChipProductType& requiredType)
