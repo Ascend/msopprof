@@ -75,6 +75,11 @@ public:
     const std::vector<std::string> gm_ = {"Read Main Memory", "Write Main Memory"};
     const std::vector<std::string> pipeCube_ = {"MTE1", "MTE2", "MTE3", "FIXP", "Scalar"};
     const std::vector<std::string> pipeVec_ = {"MTE2", "MTE3", "Scalar"};
+    std::vector<std::string> scalarVec_ = {"Scalar Time", "Scalar Single", "Scalar Dual", "Scalar Mte2 Stall", "Scalar Mte3 Stall",
+        "Scalar WAIT IB", "Scalar Wait", "Scalar Ub Stall", "Scalar Vector Stall"};
+    std::vector<std::string> scalarCube_ = {"Scalar Time", "Scalar Single", "Scalar Dual", "Scalar Mte1 Stall", "Scalar Mte2 Stall",
+        "Scalar Mte3 Stall", "Scalar WAIT IB", "Scalar Wait", "Scalar Cube Stall"};
+
     const std::map<std::string, std::vector<std::string>> cubeTable_ = {
         {"L1", {"L1 Read MTE", "L1 Write MTE", "L1 Write L0A/L0B", "L1 Read L0C", "L1 Write GM",
             "L1 Read GM"}},
@@ -94,7 +99,12 @@ public:
         {"Pipe", {"", "instructions", "cycle", "wait cycles", "active rate(%)", "active bw(GB/s)"}},
         {"Pipe Cube", {"", "instructions", "cycle", "wait cycles", "active rate(%)", "active bw(GB/s)"}},
         {"Pipe Vector Core0", {"", "instructions", "cycle", "wait cycles", "active rate(%)", "active bw(GB/s)"}},
-        {"Pipe Vector Core1", {"", "instructions", "cycle", "wait cycles", "active rate(%)", "active bw(GB/s)"}}};
+        {"Pipe Vector Core1", {"", "instructions", "cycle", "wait cycles", "active rate(%)", "active bw(GB/s)"}},
+        {"Scalar", {"", "cycle", "time(us)"}},
+        {"Scalar Cube", {"", "cycle", "time(us)"}},
+        {"Scalar Vectore Core0", {"", "cycle", "time(us)"}},
+        {"Scalar Vectore Core1", {"", "cycle", "time(us)"}},
+    };
 
     nlohmann::json StorageAccessHeatMap_;
     nlohmann::json StorageAccessTable_;
@@ -114,6 +124,7 @@ protected:
     std::map<std::string, std::vector<MemInfoCache>> memInfoCacheMap_;
     std::map<std::string, float> activeRate_;
     std::map<std::string, std::vector<MemInfoPipe>> memInfoPipeMap_;
+    std::map<std::string, std::vector<MemInfoScalar>> memInfoScalarMap_;
     std::map<std::string, std::vector<std::string>> tableLineAiCore_;
     bool kernelScale_ {false};
     bool memoryDetail_ {false};
@@ -154,12 +165,18 @@ public:
     std::map<std::string, std::string> CalCulateForMixBw(const std::map<std::string, uint64_t> &basicPmu,
         Profiling::Calculate &cal, std::map<std::string, uint64_t> &dbiRequest) const;
 private:
+    std::map<std::string, MemInfoScalar> CalculateScalarIndex(const std::vector<std::string> &indexVec, std::map<std::string, uint64_t> &basicPmu, Profiling::Calculate &cal);
+    void SetScalarMemInfo(const std::string &opType, std::map<std::string, uint64_t> &basicPmu,
+        Profiling::Calculate &cal);
+    void AddInternuclearScalarIndex(const std::string &opType, std::map<std::string, uint64_t> &basicPmu,
+        Profiling::Calculate &cal);
     std::map<PipeAll, MemInfoAiCore> GetCubeMap();
     void SetMemInfo910B(const std::string &opType, std::map<std::string, uint64_t> &basicPmu,
         Profiling::Calculate &cal, std::map<std::string, uint64_t> &dbiRequest);
     void TableSplit(std::map<std::string, uint64_t> &basicPmu, Profiling::Calculate &cal,
                     std::map<std::string, uint64_t> &dbiRequest);
     void LoadApiMemInfo(const MemMapDetail &memMapDetail, Profiling::Calculate &cal);
+    void LoadScalarMixPmu(const std::string &core, std::map<uint64_t, uint64_t> &pmuMap, std::map<std::string, uint64_t> &indexMap) const;
 };
 
 class StorageAccess310P : public StorageAccess {

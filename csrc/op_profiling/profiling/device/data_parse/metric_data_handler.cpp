@@ -43,6 +43,27 @@ struct MemTypeHash {
         return h1 ^ (h2 << 8);
     }
 };
+
+// 核间同步指标，仅在当前pmu存在时写入csv进行展示
+const std::map<uint16_t, std::string> scalarPmuToIndex = {
+    {1792, "scalar_wait_id0_time(us)"},
+    {1793, "scalar_wait_id1_time(us)"},
+    {1794, "scalar_wait_id2_time(us)"},
+    {1795, "scalar_wait_id3_time(us)"},
+    {1796, "scalar_wait_id4_time(us)"},
+    {1797, "scalar_wait_id5_time(us)"},
+    {1798, "scalar_wait_id6_time(us)"},
+    {1799, "scalar_wait_id7_time(us)"},
+    {1780, "scalar_wait_id8_time(us)"},
+    {1781, "scalar_wait_id9_time(us)"},
+    {1782, "scalar_wait_id10_time(us)"},
+    {1783, "scalar_wait_id11_time(us)"},
+    {1784, "scalar_wait_id12_time(us)"},
+    {1785, "scalar_wait_id13_time(us)"},
+    {1786, "scalar_wait_id14_time(us)"},
+    {1787, "scalar_wait_id15_time(us)"}
+};
+
 // 通过[起始内存类型,目的内存类型]确定此次record的类型
 using SrcToDstRecordMap = unordered_map<pair<MemType, MemType>, uint64_t, MemTypeHash>;
 
@@ -94,7 +115,7 @@ bool DataHandler::ParseL2CacheBin(const std::string &filePath, const std::vector
     return true;
 }
 
-bool DataHandler::ParseDeviceData(const ParserConfig &config, const map<string, ProfBinInfo> &profBinMap,
+bool DataHandler::ParseDeviceData(ParserConfig &config, const map<string, ProfBinInfo> &profBinMap,
     const Common::ProfMetricsAbilityConfig &metrics, const std::string &timeStamp)
 {
     profilingFileTimeStamp_ = timeStamp;
@@ -125,6 +146,7 @@ bool DataHandler::ParseDeviceData(const ParserConfig &config, const map<string, 
         LogWarn("Failed to save OpBasicInfo.csv");
         res = false;
     }
+    AddIndexToCsv(metrics, config);
     SetOpVisualizeData();
     std::map<uint64_t, std::map<std::string, uint64_t>> dbiMap;
     Statics(memoryRecords, dbiMap);
@@ -510,6 +532,37 @@ void DataHandlerOf910B::ReadAndParseL2CacheBin(const std::string &outputPath, co
     }
 }
 
+void DataHandlerOf910B::AddIndexToCsv(const Common::ProfMetricsAbilityConfig &metrics, ParserConfig &config)
+{
+    std::set<std::string> newAicMetrics {};
+    std::set<std::string> newAivMetrics {};
+    auto &pipeCsv = metricHeader[std::string(Common::MsprofMetrics::PIPE_UTILIZATION)];
+    for (const auto &blockWithData : GetTotalPmuData()) {
+        for (const auto &pmuMap : blockWithData.second.pmuEventValueMap) {
+            auto it = scalarPmuToIndex.find(pmuMap.first);
+            if (it == scalarPmuToIndex.end() || pmuMap.second == 0) {
+                continue;        
+            }
+            std::string metricValue = scalarPmuToIndex.at(pmuMap.first);
+            if (blockWithData.second.blockType == OpType::CUBE) {
+                metricValue = "aic_" + metricValue;
+                config.aicCalMetricItems.emplace(metricValue);
+                newAicMetrics.emplace(metricValue);
+            } else {
+                metricValue = "aiv_" + metricValue;
+                config.aivCalMetricItems.emplace(metricValue);
+                newAivMetrics.emplace(metricValue);
+            }
+        }
+    }
+    pipeCsv.insert(pipeCsv.end(), newAicMetrics.begin(), newAicMetrics.end());
+    pipeCsv.insert(pipeCsv.end(), newAivMetrics.begin(), newAivMetrics.end());
+    if (metrics.isMemoryDetail) {
+        config.aicCalMetricItems.insert(pipeDbiFor910B_.begin(), pipeDbiFor910B_.end());
+        pipeCsv.insert(pipeCsv.end(), pipeDbiFor910B_.begin(), pipeDbiFor910B_.end());
+    }
+}
+
 void DataHandlerOf910B::ParseDurationBin(const std::string &outputPath, const std::vector<char> &binData,
                                          const size_t &fileSize, uint64_t &startTime, uint64_t &endTime)
 {
@@ -572,10 +625,14 @@ string DataHandlerOf910B::GetOpType()
 std::vector<uint64_t> DataHandlerOf910B::GetVisualizeEvents(bool isComputeLoad, const std::string &blockType)
 {
     // 函数中定义的vector存储数字为对应的event id,分别为计算负载、内存图计算所需的所有event id合集,对于各个event id的解释可见详设文档
-    std::vector<uint64_t> visualizeAic = {27, 28, 33, 34, 40, 42, 49, 50, 518, 524};
-    std::vector<uint64_t> visualizeAiv = {55, 56, 61, 62, 67, 68};
+    std::vector<uint64_t> visualizeAic = {27, 28, 33, 34, 40, 42, 49, 50, 518, 524, 107, 110};
+    std::vector<uint64_t> visualizeAiv = {55, 56, 61, 62, 67, 68, 106, 111};
     std::vector<uint64_t> visualizeCommon = {4, 5, 6, 8, 9, 10, 12, 13, 18, 19, 73, 74, 84, 85, 87, 90, 91, 92, 526,
-                                             770, 771, 1280, 1282, 1283, 1284, 1286, 1288, 1287, 1290, 1291, 1292, 1293, 1294};
+                                             770, 771, 1280, 1282, 1283, 1284, 1286, 1288, 1287, 1290, 1291, 1292, 1293, 1294,
+                                             1792, 1793, 1794, 1795, 1796, 1797, 1798, 1799,
+                                             1780, 1781, 1782, 1783, 1784, 1785, 1786, 1787,
+                                             108,  109,  112,  113,  114
+                                            };
     std::vector<uint64_t> visualizeEvents;
     if (isComputeLoad) {
         if (blockType.find("cube") != std::string::npos) {
@@ -651,8 +708,6 @@ void DataHandlerOf910B::Statics(std::vector<MemRecord> &memoryRecords,
         dataSize[memDetail.blockId][GM_TO_L0B_DATA] = gmDates[memDetail.blockId][GM_TO_L0B_DATA];
         dataSize[memDetail.blockId][GM_TO_L1_DATA] = gmDates[memDetail.blockId][GM_TO_L1_DATA];
     }
-    auto &pipeMetrics = metricHeader[std::string(Common::MsprofMetrics::PIPE_UTILIZATION)];
-    pipeMetrics.insert(pipeMetrics.end(), pipeDbiFor910B_.begin(), pipeDbiFor910B_.end());
 }
 
 void DataHandlerOf910B::ParseMemoryChartData(const std::string &outputPath,

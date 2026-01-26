@@ -384,7 +384,10 @@ struct OpType {
 };
 
 const MetricEventsMapType AIC_EVENTS_FOR_910B = {
-    {std::string(Common::MsprofMetrics::PIPE_UTILIZATION),        {9, 10, 12, 13, 84, 85, 87, 770, 771}},
+    {std::string(Common::MsprofMetrics::PIPE_UTILIZATION),        {9, 10, 12, 13, 84, 85, 87, 770, 771,
+                                                                    1792, 1793, 1794, 1795, 1796, 1797, 1798, 1799,
+                                                                    1780, 1781, 1782, 1783, 1784, 1785, 1786, 1787,
+                                                                    107,  108,  109,  110,  112,  113, 114}},
     {std::string(Common::MsprofMetrics::ARITHMETIC_UTILIZATION),  {3, 10, 73, 74, 1032, 1033}},
     {std::string(Common::MsprofMetrics::L2_CACHE),                {1280, 1282, 1283, 1284, 1286, 1287, 1288, 1290, 1291}},
     {std::string(Common::MsprofMetrics::MEMORY),                  {4, 5, 6, 12, 13, 19, 49, 50, 518, 524, 526,
@@ -399,7 +402,10 @@ const MetricEventsMapType AIC_EVENTS_FOR_910B = {
 };
 
 const MetricEventsMapType AIV_EVENTS_FOR_910B = {
-    {std::string(Common::MsprofMetrics::PIPE_UTILIZATION),        {8, 9, 12, 13, 84, 85, 87, 770, 771}},
+    {std::string(Common::MsprofMetrics::PIPE_UTILIZATION),        {8, 9, 12, 13, 84, 85, 87, 770, 771,
+                                                                    1792, 1793, 1794, 1795, 1796, 1797, 1798, 1799,
+                                                                    1780, 1781, 1782, 1783, 1784, 1785, 1786, 1787,
+                                                                    106,  108,  109,  111,  112,  113, 114}},
     {std::string(Common::MsprofMetrics::ARITHMETIC_UTILIZATION),  {1, 8, 75, 76, 77, 78, 79, 174, 184, 185, 186}},
     {std::string(Common::MsprofMetrics::L2_CACHE),                {1280, 1282, 1283, 1284, 1286, 1287, 1288, 1290, 1291}},
     {std::string(Common::MsprofMetrics::MEMORY),                  {4, 5, 6, 12, 13, 61, 62, 526, 1292, 1293, 1294}},
@@ -419,7 +425,10 @@ const std::vector<uint16_t> REPLAY_AIC_EVENTS_FOR_910B = {
     19,   49,   50,   518,  524,  0,    0,    0,
     3,    4,    5,    6,    526,  0,    0,    0,
     27,   28,   33,   34,   40,   42,   84,   85,
-    13,   73,   74,   87,   92,   0,    0,    0,
+    1792, 1793, 1794, 1795, 1796, 1797, 1798, 1799,
+    1780, 1781, 1782, 1783, 1784, 1785, 1786, 1787,
+    106,  107,  108,  109,  110,  111,  112,  113,
+    13,   73,   74,   87,   92,   114,    0,    0,
     9,    10,   12,   88,   90,   91,   770,  771,
 };
 
@@ -429,7 +438,10 @@ const std::vector<uint16_t> REPLAY_AIV_EVENTS_FOR_910B = {
     61,   62,   67,   68,   0,    0,    0,   0,
     1,    75,   76,   77,   78,   79,   174,  186,
     5,    6,    100,  101,  102,  103,  184,  185,
-    4,    84,   85,   526,  13,   87,   92,    0,
+    1792, 1793, 1794, 1795, 1796, 1797, 1798, 1799,
+    1780, 1781, 1782, 1783, 1784, 1785, 1786, 1787,
+    106,  107,  108,  109,  110,  111,  112,  113,
+    4,    84,   85,   526,  13,   87,   92,   114,
     8,    9,    12,   770,  771,  89,   90,   91,
 };
 

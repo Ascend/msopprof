@@ -41,12 +41,6 @@ DeviceDataParse::DeviceDataParse(Common::ChipType chipType, PmuEventsId pmuEvent
                     // The configuration will be modified later.
                     {ChipType::ASCEND310B, {MetricHeaderFor910B, Common::AIC_EVENTS_FOR_910B,
                         Common::AIV_EVENTS_FOR_910B}}};
-    if (metrics.isMemoryDetail) {
-        std::map<std::string, std::vector<std::string>> metricHeader = MetricHeaderFor910B;
-        auto &tempPipe = metricHeader[std::string(Common::MsprofMetrics::PIPE_UTILIZATION)];
-        tempPipe.insert(tempPipe.end(), pipeDbiFor910B_.begin(), pipeDbiFor910B_.end());
-        chipInfoMap_[ChipType::ASCEND910B] = {metricHeader, Common::AIC_EVENTS_FOR_910B, Common::AIV_EVENTS_FOR_910B};
-    }
     if (CHIP_ARCHITECTURE_TO_PRODUCT_SERIES.find(chipType_) == CHIP_ARCHITECTURE_TO_PRODUCT_SERIES.end()) {
         LogError("Analyzing profiling data failed for this chip type is in support series list");
         chipProductType_ = ChipProductType::UNKNOWN_PRODUCT_TYPE;

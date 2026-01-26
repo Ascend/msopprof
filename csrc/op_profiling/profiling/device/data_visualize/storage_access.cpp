@@ -165,7 +165,9 @@ std::map<std::string, uint64_t> StorageAccess910B::GetDataCube910B(std::map<uint
         {"L0B Read", eventMap[34]},
         {"L0B Cube Write", eventMap[33]},
         {"L0C Write", eventMap[42]},
-        {"L0C READ", eventMap[524]}
+        {"L0C READ", eventMap[524]},
+        {"Scalar Mte1 Stall", eventMap[107]},
+        {"Scalar Cube Stall", eventMap[110]},
     };
     return dataCube;
 }
@@ -173,20 +175,35 @@ std::map<std::string, uint64_t> StorageAccess910B::GetDataCube910B(std::map<uint
 std::map<std::string, uint64_t> StorageAccess910B::GetDataVector910BMix(MemMapDetail &memMapDetail) const
 {
     std::map<std::string, uint64_t> dataVectors = {
-        {"UB MTE Read", memMapDetail.eventMapVec0[62]},
-        {"UB MTE Write", memMapDetail.eventMapVec0[61]},
-        {"UB Vec Read", memMapDetail.eventMapVec0[67]},
-        {"UB Vec Write", memMapDetail.eventMapVec0[68]},
-        {"Scalar Read", memMapDetail.eventMapVec0[55]},
-        {"Scalar Write", memMapDetail.eventMapVec0[56]},
-        {"UB MTE Read1", memMapDetail.eventMapVec1[62]},
-        {"UB MTE Write1", memMapDetail.eventMapVec1[61]},
-        {"UB Vec Read1", memMapDetail.eventMapVec1[67]},
-        {"UB Vec Write1", memMapDetail.eventMapVec1[68]},
-        {"Scalar Read1", memMapDetail.eventMapVec1[55]},
-        {"Scalar Write1", memMapDetail.eventMapVec1[56]}
+        {"UB MTE Read",                     memMapDetail.eventMapVec0[62]},
+        {"UB MTE Write",                    memMapDetail.eventMapVec0[61]},
+        {"UB Vec Read",                     memMapDetail.eventMapVec0[67]},
+        {"UB Vec Write",                    memMapDetail.eventMapVec0[68]},
+        {"Scalar Read",                     memMapDetail.eventMapVec0[55]},
+        {"Scalar Write",                    memMapDetail.eventMapVec0[56]},
+        {"UB MTE Read1",                    memMapDetail.eventMapVec1[62]},
+        {"UB MTE Write1",                   memMapDetail.eventMapVec1[61]},
+        {"UB Vec Read1",                    memMapDetail.eventMapVec1[67]},
+        {"UB Vec Write1",                   memMapDetail.eventMapVec1[68]},
+        {"Scalar Read1",                    memMapDetail.eventMapVec1[55]},
+        {"Scalar Write1",                   memMapDetail.eventMapVec1[56]},
     };
+    LoadScalarMixPmu(" Vec0", memMapDetail.eventMapVec0, dataVectors);
+    LoadScalarMixPmu(" Vec1", memMapDetail.eventMapVec1, dataVectors);
     return dataVectors;
+}
+
+void StorageAccess910B::LoadScalarMixPmu(const std::string &core, std::map<uint64_t, uint64_t> &pmuMap, std::map<std::string, uint64_t> &indexMap) const
+{
+    std::vector<std::string> index = {"Scalar Time", "Scalar Single", "Scalar Dual", "Scalar Mte2 Stall", "Scalar Mte3 Stall", "Scalar Vector Stall", "Scalar Ub Stall",
+        "Scalar Wait IB", "Scalar Wait", "Scalar Internuclear ID0", "Scalar Internuclear ID1", "Scalar Internuclear ID2", "Scalar Internuclear ID3", "Scalar Internuclear ID4", 
+        "Scalar Internuclear ID5", "Scalar Internuclear ID6", "Scalar Internuclear ID7", "Scalar Internuclear ID8", "Scalar Internuclear ID9", 
+        "Scalar Internuclear ID10", "Scalar Internuclear ID11", "Scalar Internuclear ID12", "Scalar Internuclear ID13", "Scalar Internuclear ID14", "Scalar Internuclear ID15", 
+    };
+    std::vector<uint64_t> pmuValue = {9, 112, 113, 108, 109, 111, 106, 114, 87, 1792, 1793, 1794, 1795, 1796, 1797, 1798, 1799, 1780, 1781, 1782, 1783, 1784, 1785, 1786, 1787};
+    for (uint32_t i = 0; i < index.size(); i++) {
+        indexMap[index[i] + core] = pmuMap[pmuValue[i]];
+    }
 }
 
 void StorageAccess910B::AddBasicPmu910B(const std::string &opType, MemMapDetail &memMapDetail,
@@ -224,12 +241,25 @@ void StorageAccess910B::AddBasicPmu910B(const std::string &opType, MemMapDetail 
         {"FIXP Cyc", eventMap[771]}, {"FIXP Cyc vec0", eventMapVec0[771]}, {"FIXP Cyc vec1", eventMapVec1[771]},
         {"GM Read Total", SafeAddAll(GmReadTotal, location)},
         {"GM Write Total", l2CacheRealWrite},
-    };
+        {"Scalar Time", eventMap[9]},
+        {"Scalar Single", eventMap[112]},
+        {"Scalar Dual", eventMap[113]},
+        {"Scalar Mte2 Stall", eventMap[108]},
+        {"Scalar Mte3 Stall", eventMap[109]},
+        {"Scalar Wait IB", eventMap[114]},
+        {"Scalar Wait", eventMap[87]},
+        {"Scalar Internuclear ID0", eventMap[1792]}, {"Scalar Internuclear ID1", eventMap[1793]}, {"Scalar Internuclear ID2", eventMap[1794]},
+        {"Scalar Internuclear ID3", eventMap[1795]}, {"Scalar Internuclear ID4", eventMap[1796]}, {"Scalar Internuclear ID5", eventMap[1797]},
+        {"Scalar Internuclear ID6", eventMap[1798]}, {"Scalar Internuclear ID7", eventMap[1799]}, {"Scalar Internuclear ID8", eventMap[1780]},
+        {"Scalar Internuclear ID9", eventMap[1781]}, {"Scalar Internuclear ID10", eventMap[1782]}, {"Scalar Internuclear ID11", eventMap[1783]},
+        {"Scalar Internuclear ID12", eventMap[1784]}, {"Scalar Internuclear ID13", eventMap[1785]}, {"Scalar Internuclear ID14", eventMap[1786]}, {"Scalar Internuclear ID15", eventMap[1787]},
+        };
     basicPmu.insert(basic910B.begin(), basic910B.end());
     if (opType == Common::OpType::VECTOR) {
         std::map<std::string, uint64_t> dataVector = {
             {"UB MTE Read", eventMap[62]}, {"UB MTE Write", eventMap[61]}, {"UB Vec Read", eventMap[67]},
-            {"UB Vec Write", eventMap[68]}, {"Scalar Read", eventMap[55]}, {"Scalar Write", eventMap[56]}
+            {"UB Vec Write", eventMap[68]}, {"Scalar Read", eventMap[55]}, {"Scalar Write", eventMap[56]},
+            {"Scalar Vector Stall", eventMap[111]}, {"Scalar Ub Stall", eventMap[106]},
         };
         basicPmu.insert(dataVector.begin(), dataVector.end());
     } else if (opType == Common::OpType::CUBE) {   // 910B vector
@@ -658,6 +688,109 @@ void StorageAccess910B::SetMemInfo910B(const std::string &opType, std::map<std::
     if (opType == Common::OpType::MIX) {
         TableSplit(basicPmu, cal, dbiRequest);
     }
+    SetScalarMemInfo(opType, basicPmu, cal);
+    AddInternuclearScalarIndex(opType, basicPmu, cal);
+}
+
+void StorageAccess910B::SetScalarMemInfo(const std::string &opType, std::map<std::string, uint64_t> &basicPmu,
+    Profiling::Calculate &cal)
+{
+    std::map<std::string, MemInfoScalar> scalarIndex;
+    std::vector<std::string> scalarIndexVec = {"Scalar Time", "Scalar Single", "Scalar Dual", "Scalar Mte2 Stall", "Scalar Mte3 Stall", "Scalar Wait IB", "Scalar Wait"};
+    scalarIndex = CalculateScalarIndex(scalarIndexVec, basicPmu, cal);
+
+    if (opType == Common::OpType::VECTOR) {
+        scalarIndex["Scalar Ub Stall"] = MemInfoScalar{basicPmu["Scalar Ub Stall"],         Functions.at(FuncType::PIPE_TIME)(cal, {basicPmu["Scalar Ub Stall"]})};
+        scalarIndex["Scalar Vector Stall"] = MemInfoScalar{basicPmu["Scalar Vector Stall"], Functions.at(FuncType::PIPE_TIME)(cal, {basicPmu["Scalar Vector Stall"]})};
+        memInfoScalarMap_["Scalar"] = {scalarIndex["Scalar Time"], scalarIndex["Scalar Single"], scalarIndex["Scalar Dual"], scalarIndex["Scalar Mte2 Stall"], scalarIndex["Scalar Mte3 Stall"],
+            scalarIndex["Scalar Wait IB"], scalarIndex["Scalar Wait"], scalarIndex["Scalar Ub Stall"], scalarIndex["Scalar Vector Stall"]};
+        return;
+    }
+
+    if (opType == Common::OpType::CUBE) {
+        scalarIndex["Scalar Cube Stall"] = MemInfoScalar{basicPmu["Scalar Cube Stall"], Functions.at(FuncType::PIPE_TIME)(cal, {basicPmu["Scalar Cube Stall"]})};
+        scalarIndex["Scalar Mte1 Stall"] = MemInfoScalar{basicPmu["Scalar Mte1 Stall"], Functions.at(FuncType::PIPE_TIME)(cal, {basicPmu["Scalar Mte1 Stall"]})};
+         memInfoScalarMap_["Scalar"] = {scalarIndex["Scalar Time"], scalarIndex["Scalar Single"], scalarIndex["Scalar Dual"],  scalarIndex["Scalar Mte1 Stall"], scalarIndex["Scalar Mte2 Stall"],
+            scalarIndex["Scalar Mte3 Stall"], scalarIndex["Scalar Wait IB"], scalarIndex["Scalar Wait"], scalarIndex["Scalar Cube Stall"]};
+        return;
+    }
+        
+    if (opType == Common::OpType::MIX) {
+        std::vector<std::string> scalarIndexMixVec = {"Scalar Cube Stall", "Scalar Mte1 Stall", "Scalar Time Vec0", "Scalar Single Vec0", "Scalar Dual Vec0", "Scalar Mte2 Stall Vec0", "Scalar Mte3 Stall Vec0",
+            "Scalar Vector Stall Vec0", "Scalar Wait IB Vec0", "Scalar Wait Vec0", "Scalar Ub Stall Vec0", "Scalar Time Vec1", "Scalar Single Vec1", "Scalar Dual Vec1", "Scalar Mte2 Stall Vec1", "Scalar Mte3 Stall Vec1",
+            "Scalar Vector Stall Vec1", "Scalar Wait IB Vec1", "Scalar Wait Vec1", "Scalar Ub Stall Vec1"
+        };
+        std::map<std::string, MemInfoScalar> scalarIndexMix = CalculateScalarIndex(scalarIndexMixVec, basicPmu, cal);
+        scalarIndex.insert(scalarIndexMix.begin(), scalarIndexMix.end());
+        memInfoScalarMap_["Scalar Cube"] = {scalarIndex["Scalar Time"], scalarIndex["Scalar Single"], scalarIndex["Scalar Dual"],  scalarIndex["Scalar Mte1 Stall"], scalarIndex["Scalar Mte2 Stall"],
+            scalarIndex["Scalar Mte3 Stall"], scalarIndex["Scalar Wait IB"], scalarIndex["Scalar Wait"], scalarIndex["Scalar Cube Stall"]};
+        memInfoScalarMap_["Scalar Vectore Core0"] = {scalarIndex["Scalar Time Vec0"], scalarIndex["Scalar Single Vec0"], scalarIndex["Scalar Dual Vec0"], scalarIndex["Scalar Mte2 Stall Vec0"],
+            scalarIndex["Scalar Mte3 Stall Vec0"], scalarIndex["Scalar Wait IB Vec0"], scalarIndex["Scalar Wait Vec0"], scalarIndex["Scalar Ub Stall Vec0"], scalarIndex["Scalar Vector Stall Vec0"]};
+        memInfoScalarMap_["Scalar Vectore Core1"] = {scalarIndex["Scalar Time Vec1"], scalarIndex["Scalar Single Vec1"], scalarIndex["Scalar Dual Vec1"], scalarIndex["Scalar Mte2 Stall Vec1"],
+            scalarIndex["Scalar Mte3 Stall Vec1"], scalarIndex["Scalar Wait IB Vec1"], scalarIndex["Scalar Wait Vec1"], scalarIndex["Scalar Ub Stall Vec1"], scalarIndex["Scalar Vector Stall Vec1"]};
+        return;
+    }
+}
+
+void StorageAccess910B::AddInternuclearScalarIndex(const std::string &opType, std::map<std::string, uint64_t> &basicPmu,
+    Profiling::Calculate &cal)
+{
+    std::vector<std::string> scalarIndexVec = {"Scalar Internuclear ID0", "Scalar Internuclear ID1", "Scalar Internuclear ID2", "Scalar Internuclear ID3", "Scalar Internuclear ID4",
+        "Scalar Internuclear ID5", "Scalar Internuclear ID6", "Scalar Internuclear ID7", "Scalar Internuclear ID8", "Scalar Internuclear ID9", "Scalar Internuclear ID10",
+        "Scalar Internuclear ID11", "Scalar Internuclear ID12", "Scalar Internuclear ID13", "Scalar Internuclear ID14", "Scalar Internuclear ID15"};
+    std::map<std::string, MemInfoScalar> scalarIndex = CalculateScalarIndex(scalarIndexVec, basicPmu, cal);
+
+    std::vector<std::string> validIndex {};
+    for (const auto & index : scalarIndexVec) {
+        if (scalarIndex[index].cycle != 0) {
+            validIndex.emplace_back(index);
+        }
+    }
+    // 当算子mix，默认计算的scalarIndex是cube指标
+    if (opType == OpType::MIX) {
+        scalarCube_.insert(scalarCube_.end(), validIndex.begin(), validIndex.end());
+        for (const auto &index : validIndex) {
+            tableLineAiCore_["Scalar Cube"].emplace_back(index);
+            memInfoScalarMap_["Scalar Cube"].emplace_back(scalarIndex[index]);
+        }
+        scalarIndex.clear();
+        validIndex.clear();
+        auto GetTime = [&cal ,&basicPmu](std::string indexValue) -> std::string {
+            return Functions.at(FuncType::PIPE_TIME)(cal, {basicPmu[indexValue]});;
+        };
+        for (const auto &index : scalarIndexVec) {
+            std::string indexValue = index + " Vec0";
+            if (basicPmu[indexValue] != 0) {
+                std::string time = GetTime(indexValue);
+                tableLineAiCore_["Scalar Vectore Core0"].emplace_back(index);
+                memInfoScalarMap_["Scalar Vectore Core0"].emplace_back(MemInfoScalar{basicPmu[indexValue], time});
+            }
+            indexValue = index + " Vec1";
+            if (basicPmu[indexValue] != 0) {
+                std::string time = GetTime(indexValue);
+                tableLineAiCore_["Scalar Vectore Core1"].emplace_back(index);
+                memInfoScalarMap_["Scalar Vectore Core1"].emplace_back(MemInfoScalar{basicPmu[indexValue], time});
+            }
+        }
+        return;
+    }
+
+    std::vector<std::string> &scalarHeadModify = opType == OpType::VECTOR ? scalarVec_ : scalarCube_;
+    scalarHeadModify.insert(scalarHeadModify.end(), validIndex.begin(), validIndex.end());
+    for (const auto &index : validIndex) {
+        tableLineAiCore_["Scalar"].emplace_back(index);
+        memInfoScalarMap_["Scalar"].emplace_back(scalarIndex[index]);
+    }
+}
+
+std::map<std::string, MemInfoScalar> StorageAccess910B::CalculateScalarIndex(const std::vector<std::string> &indexVec, std::map<std::string, uint64_t> &basicPmu, Profiling::Calculate &cal)
+{
+    std::map<std::string, MemInfoScalar> res;
+    for (const auto &index : indexVec) {
+        std::string time = Functions.at(FuncType::PIPE_TIME)(cal, {basicPmu[index]});
+        res[index] = {basicPmu[index], time};
+    }
+    return res;
 }
 
 std::vector<nlohmann::json> StorageAccess310P::GetAiCoreMemUnitJson(const std::string &opType)
@@ -882,6 +1015,10 @@ std::vector<std::string> StorageAccess910B::GetTableValue(const std::string &tab
         rowValue.emplace_back(ress.waitCycle == EMPTY_PMU_VALUE ? "NA" : std::to_string(ress.waitCycle));
         rowValue.emplace_back(ress.cycle == EMPTY_PMU_VALUE || cyc == EMPTY_PMU_VALUE ? "NA" : std::to_string(activeRate));
         rowValue.emplace_back(ress.bandWidth);
+    } else if (tableName.find("Scalar") != std::string::npos) {
+        MemInfoScalar ress = memInfoScalarMap_[tableName][colum];
+        rowValue.emplace_back(ress.cycle == EMPTY_PMU_VALUE ? "NA" : std::to_string(ress.cycle));
+        rowValue.emplace_back(ress.cycle == EMPTY_PMU_VALUE ? "NA" : ress.time);
     } else {
         MemInfoAiCore ress = memInfoAiCoreMap_[tableName][colum];
         rowValue.emplace_back((ress.request == EMPTY_PMU_VALUE) ? "NA" : std::to_string(ress.request));
@@ -1010,15 +1147,30 @@ void StorageAccess910B::LoadLineMap(const std::string &opType)
         {"GM", gm_}, {"Cache", {"L2 Cache Write", "L2 Cache Read", "L2 Cache Total", "iCache Total"}},
         {"Pipe", {"MTE1", "MTE2", "MTE3", "FIXP", "Scalar"}}
     };
+    
+    std::map<std::string, std::vector<std::string>> scalarVec = {
+        {"Scalar", scalarVec_},
+    };
+    std::map<std::string, std::vector<std::string>> scalarCube = {
+        {"Scalar", scalarCube_},
+    };
+    std::map<std::string, std::vector<std::string>> scalarMix = {
+        {"Scalar Cube", scalarCube_},
+        {"Scalar Vectore Core0", scalarVec_},
+        {"Scalar Vectore Core1", scalarVec_}
+    };
     if (opType == Common::OpType::VECTOR) {
         tableLineAiCore_.insert(vecTable.begin(), vecTable.end());
+        tableLineAiCore_.insert(scalarVec.begin(), scalarVec.end());
     } else if (opType == Common::OpType::CUBE) {   // 910B cube
         tableLineAiCore_.insert(cubeTable_.begin(), cubeTable_.end());
+        tableLineAiCore_.insert(scalarCube.begin(), scalarCube.end());
     } else {
         tableLineAiCore_.erase("GM");
         tableLineAiCore_.erase("Pipe");
         tableLineAiCore_.insert(vecTable2.begin(), vecTable2.end());
         tableLineAiCore_.insert(cubeTable_.begin(), cubeTable_.end());
+        tableLineAiCore_.insert(scalarMix.begin(), scalarMix.end());
     }
 }
 

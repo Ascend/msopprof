@@ -66,13 +66,14 @@ struct DefaultDeviceInfo {
 class DataHandler {
 public:
     virtual ~DataHandler() = default;
-    bool ParseDeviceData(const ParserConfig &config, const std::map<std::string, ProfBinInfo> &profBinMap,
+    bool ParseDeviceData(ParserConfig &config, const std::map<std::string, ProfBinInfo> &profBinMap,
         const Common::ProfMetricsAbilityConfig &metrics, const std::string &timeStamp);
     void MergeTotalPmuData(SplitBlockPmuData &blockData);
     virtual void ParseProfBin(const std::vector<char> &binData, const size_t &fileSize, const ProfBinInfo &binInfo) {}
     virtual void ParseDurationBin(const std::string &outputPath, const std::vector<char> &binData,
                                   const size_t &fileSize, uint64_t &startTime, uint64_t &endTime) {}
     virtual void ReadAndParseL2CacheBin(const std::string &outputPath, const Common::ProfMetricsAbilityConfig &metrics) {}
+    virtual void AddIndexToCsv(const Common::ProfMetricsAbilityConfig &metrics, ParserConfig &config) {};
     std::vector<Common::MemRecord> ParseMemoryChartBin(const std::string &memoryChartBin) const;
     bool ParseL2CacheBin(const std::string &filePath, const std::vector<uint16_t> &pmuVec, SplitBlockPmuData &blockData) const;
     virtual std::string GetOpType() // 在主函数里起到Set的作用
@@ -211,6 +212,7 @@ public:
                           uint64_t &startTime, uint64_t &endTime) override;
     std::string GetOpType() override;
     std::vector<uint64_t> GetVisualizeEvents(bool isComputeLoad, const std::string &blockType) override;
+    void AddIndexToCsv(const Common::ProfMetricsAbilityConfig &metrics, ParserConfig &config) override;
     void ReadAndParseL2CacheBin(const std::string &outputPath, const Common::ProfMetricsAbilityConfig &metrics) override;
 private:
     void ParseMemoryChartData(const std::string &outputPath, const Common::ProfMetricsAbilityConfig &metrics,

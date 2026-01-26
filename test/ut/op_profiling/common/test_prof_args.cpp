@@ -95,8 +95,8 @@ TEST(DeviceTask, LoadPmuVec_App_910B_PipeUtilization_MemoryL0_MemoryUB_replay)
     args.argAicMetrics = metrics;
     PmuEventsId pmuEventsId;
     pmuEventsId.LoadPmuVec(metrics, ChipType::ASCEND910B, "application");
-    std::vector<uint16_t> aic_res = {27,28,33,34,40,42,84,85,13,87,9,10,12,770,771,0};
-    std::vector<uint16_t> aiv_res = {55,56,67,68,84,85,13,87,8,9,12,770,771,0,0,0};
+    std::vector<uint16_t> aic_res = {27,28,33,34,40,42,84,85,1792,1793,1794,1795,1796,1797,1798,1799,1780,1781,1782,1783,1784,1785,1786,1787,107,108,109,110,112,113,0,0,13,87,114,9,10,12,770,771};
+    std::vector<uint16_t> aiv_res = {55,56,67,68,0,0,0,0,1792,1793,1794,1795,1796,1797,1798,1799,1780,1781,1782,1783,1784,1785,1786,1787,106,108,109,111,112,113,0,0,84,85,13,87,114,0,0,0,8,9,12,770,771,0,0,0};
     ASSERT_EQ(aic_res, pmuEventsId.aicPmu);
     ASSERT_EQ(aiv_res, pmuEventsId.aivPmu);
 }

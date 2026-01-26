@@ -283,7 +283,7 @@ const std::map<std::string, std::map<TransportType, float>> MAX_BW_RATE = {
     {"Ascend910B3",   maxBwRateOf910B1},
     {"Ascend910B4",   maxBwRateOf910B4},
     {"Ascend910B4-1", maxBwRateOf910B4},
-    {"Ascend910B2C",  maxBwRateOf910B4}
+    {"Ascend910B2C",  maxBwRateOf910B1}
 };
  
 const std::map<std::string, std::map<TransportType, float>> MAX_BW_RATE_GM_CJ = {
@@ -292,7 +292,7 @@ const std::map<std::string, std::map<TransportType, float>> MAX_BW_RATE_GM_CJ = 
     {"Ascend910B3",   maxBwRateOf910B1GmCJ},
     {"Ascend910B4",   maxBwRateOf910B4GmCJ},
     {"Ascend910B4-1", maxBwRateOf910B4GmCJ},
-    {"Ascend910B2C",  maxBwRateOf910B4GmCJ}
+    {"Ascend910B2C",  maxBwRateOf910B1GmCJ}
 };
  
 const std::map<Common::GmType, std::map<std::string, std::map<TransportType, float>>> GM_PRODUCT_BW = {

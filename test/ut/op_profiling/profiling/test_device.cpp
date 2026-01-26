@@ -33,6 +33,7 @@
 #include "profiling/device/data_parse/l2cache/l2cache.h"
 #include "profiling/device/data_parse/metric_csv_header.h"
 #include "profiling/device/data_parse/metric_data_handler.h"
+#include "profiling/device/data_visualize/storage_access.h"
 #include "instr_encoding/instr_encoding.h"
 #include "common/hal_helper.h"
 #include "common/visualize.h"
@@ -50,6 +51,25 @@ using namespace Profiling;
 using namespace Common;
 using namespace std;
 using namespace Encode;
+
+std::map<std::string, uint64_t> basicScalarPmu = {{"Scalar Time", 1832}, {"Scalar Single", 1899}, {"Scalar Dual", 1835}, {"Scalar Mte1 Stall", 1412}, {"Scalar Mte2 Stall", 1455}, {"Scalar Mte3 Stall", 1777},
+    {"Scalar Wait IB", 133}, {"Scalar Wait", 1844}, {"Scalar Cube Stall", 1877}, {"Scalar Ub Stall", 1478}, {"Scalar Vector Stall", 1428},
+    {"Scalar Time Vec0", 1148}, {"Scalar Single Vec0", 4318}, {"Scalar Dual Vec0", 7158}, {"Scalar Mte2 Stall Vec0", 1388}, {"Scalar Mte3 Stall Vec0", 8158}, {"Scalar Vector Stall Vec0", 118}, {"Scalar Wait IB Vec0", 318}, {"Scalar Wait Vec0", 148}, {"Scalar Ub Stall Vec0", 818},
+    {"Scalar Time Vec1", 1148}, {"Scalar Single Vec1", 4318}, {"Scalar Dual Vec1", 7158}, {"Scalar Mte2 Stall Vec1", 1388}, {"Scalar Mte3 Stall Vec1", 8158}, {"Scalar Vector Stall Vec1", 118}, {"Scalar Wait IB Vec1", 318}, {"Scalar Wait Vec1", 148}, {"Scalar Ub Stall Vec1", 818},
+    {"Scalar Internuclear ID0", 1275}, {"Scalar Internuclear ID1", 3542}, {"Scalar Internuclear ID2", 4345}, {"Scalar Internuclear ID3", 6514}, {"Scalar Internuclear ID4", 3144}, {"Scalar Internuclear ID5", 5315},
+    {"Scalar Internuclear ID6", 6432}, {"Scalar Internuclear ID7", 3152}, {"Scalar Internuclear ID8", 5476}, {"Scalar Internuclear ID9", 2453}, {"Scalar Internuclear ID10", 653},
+    {"Scalar Internuclear ID11", 324}, {"Scalar Internuclear ID12", 424}, {"Scalar Internuclear ID13", 653}, {"Scalar Internuclear ID14", 536}, {"Scalar Internuclear ID15", 133}, 
+
+    {"Scalar Internuclear ID0 Vec0", 1275}, {"Scalar Internuclear ID1 Vec0", 3542}, {"Scalar Internuclear ID2 Vec0", 4345}, {"Scalar Internuclear ID3 Vec0", 6514},
+    {"Scalar Internuclear ID4 Vec0", 3144}, {"Scalar Internuclear ID5 Vec0", 5315}, {"Scalar Internuclear ID6 Vec0", 6432}, {"Scalar Internuclear ID7 Vec0", 3152},
+    {"Scalar Internuclear ID8 Vec0", 5476}, {"Scalar Internuclear ID9 Vec0", 2453}, {"Scalar Internuclear ID10 Vec0", 653}, {"Scalar Internuclear ID11 Vec0", 324},
+    {"Scalar Internuclear ID12 Vec0", 424}, {"Scalar Internuclear ID13 Vec0", 653}, {"Scalar Internuclear ID14 Vec0", 536}, {"Scalar Internuclear ID15 Vec0", 133},
+
+    {"Scalar Internuclear ID0 Vec1", 1275}, {"Scalar Internuclear ID1 Vec1", 3542}, {"Scalar Internuclear ID2 Vec1", 4345}, {"Scalar Internuclear ID3 Vec1", 6514},
+    {"Scalar Internuclear ID4 Vec1", 3144}, {"Scalar Internuclear ID5 Vec1", 5315}, {"Scalar Internuclear ID6 Vec1", 6432}, {"Scalar Internuclear ID7 Vec1", 3152},
+    {"Scalar Internuclear ID8 Vec1", 5476}, {"Scalar Internuclear ID9 Vec1", 2453}, {"Scalar Internuclear ID10 Vec1", 653}, {"Scalar Internuclear ID11 Vec1", 324},
+    {"Scalar Internuclear ID12 Vec1", 424}, {"Scalar Internuclear ID13 Vec1", 653}, {"Scalar Internuclear ID14 Vec1", 536}, {"Scalar Internuclear ID15 Vec1", 133}, 
+};
 
 TEST(OpDeviceProf, GetDataParser_expect_success)
 {
@@ -1531,3 +1551,144 @@ TEST(VisualizeDataAccuracy, test_CalMte1ActivateBw_when_input_is_invalid_and_exp
     ASSERT_STREQ(bw["Vector1 MTE3"].c_str(), "NA");
     GlobalMockObject::verify();
 }
+
+/**
+ * |  用例集  | VisualizeDataAccuracy
+ * | 测试函数 | StorageAccess910B::SetScalarMemInfo
+ * |  用例名  | test_SetScalarMemInfo_mix_operate_and_expect_return_true
+ * | 用例描述 | 输入没有问题时，返回正确的计算结果
+ */
+TEST(VisualizeDataAccuracy, test_SetScalarMemInfo_mix_operate_and_expect_return_true)
+{
+    using namespace Visualize;
+    Profiling::CalDeviceInfo calDeviceInfo = {Common::ChipType::ASCEND910B, 1650, 24, 8, "Ascend910B4"};
+    std::map<uint16_t, uint64_t> pmuMap;
+    Profiling::Calculate cal(pmuMap, 111111, calDeviceInfo);
+    std::shared_ptr<OpBasicInfo> s1 = nullptr; std::shared_ptr<BasicPmu> s2 = nullptr; unique_ptr<PmuCalculator> s3 = nullptr;
+    StorageAccess910B st(s1, s2, s3);
+    st.SetScalarMemInfo("mix", basicScalarPmu, cal);
+    std::vector<std::string> cubeIndex = {"1.110303", "1.150909", "1.112121", "0.855758", "0.881818", "1.076970", "0.080606", "1.117576", "1.137576"};
+    std::vector<uint64_t> vec0Index = {1148UL, 4318UL, 7158UL, 1388UL, 8158UL, 318UL, 148UL, 818UL, 118UL};
+    std::vector<std::string> vec1Index = {"0.695758", "2.616970", "4.338182", "0.841212", "4.944242", "0.192727", "0.089697", "0.495758", "0.071515"};
+    for (auto i = 0; i < 9; i++) {
+        ASSERT_STREQ(st.memInfoScalarMap_["Scalar Cube"][i].time.c_str(), cubeIndex[i].c_str());
+    }
+    for (auto i = 0; i < 9; i++) {
+        ASSERT_EQ(st.memInfoScalarMap_["Scalar Vectore Core0"][i].cycle, vec0Index[i]);
+    }
+    for (auto i = 0; i < 9; i++) {
+        ASSERT_STREQ(st.memInfoScalarMap_["Scalar Vectore Core1"][i].time.c_str(), vec1Index[i].c_str());
+    }
+}
+
+/**
+ * |  用例集  | VisualizeDataAccuracy
+ * | 测试函数 | StorageAccess910B::SetScalarMemInfo
+ * |  用例名  | test_SetScalarMemInfo_vector_operate_and_expect_return_true
+ * | 用例描述 | 输入没有问题时，返回正确的计算结果
+ */
+TEST(VisualizeDataAccuracy, test_SetScalarMemInfo_vector_operate_and_expect_return_true)
+{
+    using namespace Visualize;
+    Profiling::CalDeviceInfo calDeviceInfo = {Common::ChipType::ASCEND910B, 1650, 24, 8, "Ascend910B4"};
+    std::map<uint16_t, uint64_t> pmuMap;
+    Profiling::Calculate cal(pmuMap, 111111, calDeviceInfo);
+    std::shared_ptr<OpBasicInfo> s1 = nullptr; std::shared_ptr<BasicPmu> s2 = nullptr; unique_ptr<PmuCalculator> s3 = nullptr;
+    StorageAccess910B st(s1, s2, s3);
+    st.SetScalarMemInfo("vector", basicScalarPmu, cal);
+    std::vector<std::string> vecIndex = {"1.110303", "1.150909", "1.112121", "0.881818", "1.076970", "0.080606", "1.117576"};
+     for (auto i = 0; i < 7; i++) {
+        ASSERT_STREQ(st.memInfoScalarMap_["Scalar"][i].time.c_str(), vecIndex[i].c_str());
+    }
+    ASSERT_EQ(st.memInfoScalarMap_["Scalar"][7].cycle, 1478UL);
+    ASSERT_EQ(st.memInfoScalarMap_["Scalar"][8].cycle, 1428UL);
+}
+
+/**
+ * |  用例集  | VisualizeDataAccuracy
+ * | 测试函数 | StorageAccess910B::SetScalarMemInfo
+ * |  用例名  | test_SetScalarMemInfo_cube_operate_and_expect_return_true
+ * | 用例描述 | 输入没有问题时，返回正确的计算结果
+ */
+TEST(VisualizeDataAccuracy, test_SetScalarMemInfo_cube_operate_and_expect_return_true)
+{
+    using namespace Visualize;
+    Profiling::CalDeviceInfo calDeviceInfo = {Common::ChipType::ASCEND910B, 1650, 24, 8, "Ascend910B4"};
+    std::map<uint16_t, uint64_t> pmuMap;
+    Profiling::Calculate cal(pmuMap, 111111, calDeviceInfo);
+    std::shared_ptr<OpBasicInfo> s1 = nullptr; std::shared_ptr<BasicPmu> s2 = nullptr; unique_ptr<PmuCalculator> s3 = nullptr;
+    StorageAccess910B st(s1, s2, s3);
+    st.SetScalarMemInfo("cube", basicScalarPmu, cal);
+    std::vector<std::string> cubeIndex = {"1.110303", "1.150909", "1.112121", "0.855758", "0.881818", "1.076970", "0.080606"};
+     for (auto i = 0; i < 7; i++) {
+        ASSERT_STREQ(st.memInfoScalarMap_["Scalar"][i].time.c_str(), cubeIndex[i].c_str());
+    }
+    ASSERT_EQ(st.memInfoScalarMap_["Scalar"][7].cycle, 1844UL);
+    ASSERT_EQ(st.memInfoScalarMap_["Scalar"][8].cycle, 1877UL);
+}
+
+/**
+ * |  用例集  | VisualizeDataAccuracy
+ * | 测试函数 | StorageAccess910B::AddInternuclearScalarIndex
+ * |  用例名  | test_AddInternuclearScalarIndex_mix_operate_and_expect_return_true
+ * | 用例描述 | 输入没有问题时，返回正确的计算结果
+ */
+TEST(VisualizeDataAccuracy, test_AddInternuclearScalarIndex_mix_operate_and_expect_return_true)
+{
+    using namespace Visualize;
+    Profiling::CalDeviceInfo calDeviceInfo = {Common::ChipType::ASCEND910B, 1650, 24, 8, "Ascend910B4"};
+    std::map<uint16_t, uint64_t> pmuMap;
+    Profiling::Calculate cal(pmuMap, 111111, calDeviceInfo);
+    std::shared_ptr<OpBasicInfo> s1 = nullptr; std::shared_ptr<BasicPmu> s2 = nullptr; unique_ptr<PmuCalculator> s3 = nullptr;
+    StorageAccess910B st(s1, s2, s3);
+    st.AddInternuclearScalarIndex("mix", basicScalarPmu, cal);
+    std::vector<uint64_t> indexValue = {1275UL, 3542UL, 4345UL, 6514UL, 3144UL, 5315UL, 6432UL, 3152UL, 5476UL, 2453UL, 653UL, 324UL, 424UL, 653UL, 536UL, 133UL};
+    for (auto i = 0; i < 16; i++) {
+        ASSERT_EQ(st.memInfoScalarMap_["Scalar Cube"][i].cycle, indexValue[i]);
+        ASSERT_EQ(st.memInfoScalarMap_["Scalar Vectore Core0"][i].cycle, indexValue[i]);
+        ASSERT_EQ(st.memInfoScalarMap_["Scalar Vectore Core1"][i].cycle, indexValue[i]);
+    }
+}
+
+/**
+ * |  用例集  | VisualizeDataAccuracy
+ * | 测试函数 | StorageAccess910B::AddInternuclearScalarIndex
+ * |  用例名  | test_AddInternuclearScalarIndex_cube_operate_and_expect_return_true
+ * | 用例描述 | 输入没有问题时，返回正确的计算结果
+ */
+TEST(VisualizeDataAccuracy, test_AddInternuclearScalarIndex_cube_operate_and_expect_return_true)
+{
+    using namespace Visualize;
+    Profiling::CalDeviceInfo calDeviceInfo = {Common::ChipType::ASCEND910B, 1650, 24, 8, "Ascend910B4"};
+    std::map<uint16_t, uint64_t> pmuMap;
+    Profiling::Calculate cal(pmuMap, 111111, calDeviceInfo);
+    std::shared_ptr<OpBasicInfo> s1 = nullptr; std::shared_ptr<BasicPmu> s2 = nullptr; unique_ptr<PmuCalculator> s3 = nullptr;
+    StorageAccess910B st(s1, s2, s3);
+    st.AddInternuclearScalarIndex("cube", basicScalarPmu, cal);
+    std::vector<uint64_t> indexValue = {1275UL, 3542UL, 4345UL, 6514UL, 3144UL, 5315UL, 6432UL, 3152UL, 5476UL, 2453UL, 653UL, 324UL, 424UL, 653UL, 536UL, 133UL};
+    for (auto i = 0; i < 16; i++) {
+        ASSERT_EQ(st.memInfoScalarMap_["Scalar"][i].cycle, indexValue[i]);
+    }
+}
+
+/**
+ * |  用例集  | VisualizeDataAccuracy
+ * | 测试函数 | StorageAccess910B::AddInternuclearScalarIndex
+ * |  用例名  | test_AddInternuclearScalarIndex_vector_operate_and_expect_return_true
+ * | 用例描述 | 输入没有问题时，返回正确的计算结果
+ */
+TEST(VisualizeDataAccuracy, test_AddInternuclearScalarIndex_vector_operate_and_expect_return_true)
+{
+    using namespace Visualize;
+    Profiling::CalDeviceInfo calDeviceInfo = {Common::ChipType::ASCEND910B, 1650, 24, 8, "Ascend910B4"};
+    std::map<uint16_t, uint64_t> pmuMap;
+    Profiling::Calculate cal(pmuMap, 111111, calDeviceInfo);
+    std::shared_ptr<OpBasicInfo> s1 = nullptr; std::shared_ptr<BasicPmu> s2 = nullptr; unique_ptr<PmuCalculator> s3 = nullptr;
+    StorageAccess910B st(s1, s2, s3);
+    st.AddInternuclearScalarIndex("vector", basicScalarPmu, cal);
+    std::vector<uint64_t> indexValue = {1275UL, 3542UL, 4345UL, 6514UL, 3144UL, 5315UL, 6432UL, 3152UL, 5476UL, 2453UL, 653UL, 324UL, 424UL, 653UL, 536UL, 133UL};
+    for (auto i = 0; i < 16; i++) {
+        ASSERT_EQ(st.memInfoScalarMap_["Scalar"][i].cycle, indexValue[i]);
+    }
+}
+

@@ -420,6 +420,11 @@ struct MemInfoPipe {
     float activeRate;
 };
 
+struct MemInfoScalar {
+    uint64_t cycle;
+    std::string time;
+};
+
 struct MemMapDetail {
     uint8_t blockId;
     std::string blockType;
