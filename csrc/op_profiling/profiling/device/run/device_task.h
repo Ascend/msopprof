@@ -94,6 +94,7 @@ private:
     uint32_t GetReplayTimes();
 
     std::string kernelName_;
+    std::vector<Utility::ProfDBIType> dbiTypes;
     Common::ProfMetricsAbilityConfig metrics_{};
     Common::ChipType chipType_{Common::ChipType::END_TYPE};
     uint16_t profMaxTimes_ {1};

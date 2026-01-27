@@ -63,15 +63,25 @@ struct ProfConfig {
     uint16_t profMaxTimes_ {1};
     uint16_t profSkipTimes_ {0};
 };
-enum class BIType : uint8_t {
-    CUSTOMIZE,  // 自定义能力，用户提供插件
-    BB_COUNT,   // 内置：bb块计数能力
-    FGO,        // 内置：bb块重排
-    MAX         // 空
+enum class ProfDBIType {
+    AS_IS, // 不插桩
+    OPERAND_RECORD, // operand record桩
+    MEMORY_CHART, // memory chart桩
+    INSTR_PROF_START, // start桩
+    INSTR_PROF_END, // end桩
+    BB_COUNT // bb count桩
 };
+
+constexpr uint32_t DBI_FLAG_OPERAND_RECORD = 1U << static_cast<uint32_t>(ProfDBIType::OPERAND_RECORD);
+constexpr uint32_t DBI_FLAG_MEMORY_CHART = 1U << static_cast<uint32_t>(ProfDBIType::MEMORY_CHART);
+constexpr uint32_t DBI_FLAG_INSTR_PROF_START = 1U << static_cast<uint32_t>(ProfDBIType::INSTR_PROF_START);
+constexpr uint32_t DBI_FLAG_INSTR_PROF_END = 1U << static_cast<uint32_t>(ProfDBIType::INSTR_PROF_END);
+constexpr uint32_t DBI_FLAG_BB_COUNT = 1U << static_cast<uint32_t>(ProfDBIType::BB_COUNT);
+
 struct MessageOfProfConfig {
     MstxProfConfig mstxProfConfig { };
     uint32_t replayCount {UINT32_INVALID};
+    uint32_t dbiFlag {0};
     uint16_t profWarmUpTimes {0};
     uint16_t aicPmu[EVENT_MAX_NUM]{};
     uint16_t aivPmu[EVENT_MAX_NUM]{};
@@ -81,12 +91,7 @@ struct MessageOfProfConfig {
     bool killAdvance {false};
     bool isDeviceToSimulator {false};
     bool isSimulator {false};
-    bool isSource {false};
-    bool isMemoryDetail {false};
     bool pmSamplingEnable {false};
-    bool timelineEnable {false};
-    bool pcSamplingEnable {false};
-    BIType biType {BIType::MAX}; // Dynamic Instrumentation Related Types
 };
 }
 

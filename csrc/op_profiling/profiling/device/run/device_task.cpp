@@ -18,6 +18,7 @@
 #include "device_task.h"
 
 #include <set>
+#include <unordered_map>
 #include <cmath>
 #include <sys/mman.h>
 #include <fcntl.h>
@@ -68,7 +69,7 @@ bool DeviceTask::Run()
         }
         if (replayMode_ == ReplayMode::APPLICATION) {
             ProcessApplication(i);
-            LogDebug("Application mode count is %lu, type is %d", profMessage_.replayCount, static_cast<int>(profMessage_.biType));
+            LogDebug("Application mode count is %lu, dbiFlag is 0x%x", profMessage_.replayCount, profMessage_.dbiFlag);
         }
         if (!ProfStub::InjectionEvent::Instance().StartDisposeClientAsk(profMessage_, profConfig_)) {
             LogError("Starting client failed, get profiling data failed.");
@@ -92,21 +93,19 @@ bool DeviceTask::Run()
 
 void DeviceTask::ProcessApplication(uint32_t count)
 {
+    static const unordered_map<ProfDBIType, uint32_t> dbiFlagMap = {
+        { ProfDBIType::OPERAND_RECORD, DBI_FLAG_OPERAND_RECORD },
+        { ProfDBIType::MEMORY_CHART, DBI_FLAG_MEMORY_CHART },
+        { ProfDBIType::INSTR_PROF_START, DBI_FLAG_INSTR_PROF_START },
+        { ProfDBIType::INSTR_PROF_END, DBI_FLAG_INSTR_PROF_END },
+        { ProfDBIType::BB_COUNT, DBI_FLAG_BB_COUNT },
+    };
     profMessage_.replayCount = count;
-    if (profMessage_.isSource && profMessage_.isMemoryDetail) {
-        if (count == replayCount_ - 2) {
-            profMessage_.biType = BIType::CUSTOMIZE;
-        }
-        if (count == replayCount_ - 1) {
-            profMessage_.biType = BIType::BB_COUNT;
-        }
-        return;
-    }
-    if (profMessage_.isSource || profMessage_.isMemoryDetail) {
-        if (count == replayCount_ - 1) {
-            profMessage_.biType = profMessage_.isMemoryDetail ? BIType::CUSTOMIZE : BIType::BB_COUNT;
-        }
-        return;
+    auto it = dbiFlagMap.find(dbiTypes[count]);
+    if (it != dbiFlagMap.end()) {
+        profMessage_.dbiFlag = it->second;
+    } else {
+        profMessage_.dbiFlag = 0;
     }
 }
 
@@ -114,15 +113,37 @@ uint32_t DeviceTask::GetReplayTimes()
 {
     uint32_t replayTimes = 1U;
     if (replayMode_ == ReplayMode::APPLICATION) {
+        uint32_t pmuEventMaxNum = chipType_ == ChipType::ASCEND910_95 ? PMU_EVENT_MAX_NUM_A5 : PMU_EVENT_MAX_NUM;
         uint32_t aicMaxTimes = static_cast<uint32_t>(std::ceil(static_cast<double>
-            (pmuValue_.aicPmu.size()) / PMU_EVENT_MAX_NUM));
+            (pmuValue_.aicPmu.size()) / pmuEventMaxNum));
         uint32_t aivMaxTimes = static_cast<uint32_t>(std::ceil(static_cast<double>
-            (pmuValue_.aivPmu.size()) / PMU_EVENT_MAX_NUM));
+            (pmuValue_.aivPmu.size()) / pmuEventMaxNum));
         // 至少采集1次来获取时间，动态插桩自定义插桩分别增加1次重放
         replayTimes = std::max(aivMaxTimes, aicMaxTimes);
         replayTimes = std::max(replayTimes, 1U);
-        replayTimes += static_cast<uint32_t>(profMessage_.isMemoryDetail);
-        replayTimes += static_cast<uint32_t>(profMessage_.isSource);
+        for (uint32_t i = 0; i < replayTimes; i++) {
+            if (i == replayTimes - 1 && metrics_.timelineEnable) {
+                dbiTypes.emplace_back(ProfDBIType::INSTR_PROF_END);
+            } else {
+                dbiTypes.emplace_back(ProfDBIType::AS_IS);
+            }
+        }
+        if (chipType_ == ChipType::ASCEND910_95) {
+            dbiTypes.emplace_back(ProfDBIType::OPERAND_RECORD);
+            replayTimes++;
+        }
+        if (metrics_.isMemoryDetail) {
+            dbiTypes.emplace_back(ProfDBIType::MEMORY_CHART);
+            replayTimes++;
+        }
+        if (metrics_.pcSamplingEnable) {
+            dbiTypes.emplace_back(ProfDBIType::INSTR_PROF_START);
+            replayTimes++;
+        }
+        if (metrics_.isSource) {
+            dbiTypes.emplace_back(ProfDBIType::BB_COUNT);
+            replayTimes++;
+        }
     }
     LogDebug("Replay mode %d, replay times is %u", replayMode_, replayTimes);
     return replayTimes;
@@ -139,8 +160,6 @@ bool DeviceTask::PreProcess()
     }
     profMessage_.isSimulator = false;
     profMessage_.profWarmUpTimes = profWarmUpTimes_;
-    profMessage_.timelineEnable = metrics_.timelineEnable;
-    profMessage_.pcSamplingEnable = metrics_.pcSamplingEnable;
     // generate pipe message for prof_injection before running task
     if (strcpy_s(profMessage_.mstxProfConfig.mstxEnabledMessage, sizeof(profMessage_.mstxProfConfig.mstxEnabledMessage),
                  mstxEnabledMessageString.c_str()) != 0) {
@@ -153,8 +172,11 @@ bool DeviceTask::PreProcess()
     if (metrics_.isKernelScale) {
         profMessage_.useProfileMode = true;
     }
-    profMessage_.isSource = metrics_.isSource;
-    profMessage_.isMemoryDetail = metrics_.isMemoryDetail;
+    profMessage_.dbiFlag = chipType_ == ChipType::ASCEND910_95 ? DBI_FLAG_OPERAND_RECORD : 0;
+    profMessage_.dbiFlag |= metrics_.isMemoryDetail ? DBI_FLAG_MEMORY_CHART : 0;
+    profMessage_.dbiFlag |= metrics_.pcSamplingEnable ? DBI_FLAG_INSTR_PROF_START : 0;
+    profMessage_.dbiFlag |= metrics_.timelineEnable ? DBI_FLAG_INSTR_PROF_END : 0;
+    profMessage_.dbiFlag |= metrics_.isSource ? DBI_FLAG_BB_COUNT : 0;
     std::copy(pmuValue_.aicPmu.begin(), pmuValue_.aicPmu.end(), profMessage_.aicPmu);
     std::copy(pmuValue_.aivPmu.begin(), pmuValue_.aivPmu.end(), profMessage_.aivPmu);
     if (chipType_ == ChipType::ASCEND310P) {
