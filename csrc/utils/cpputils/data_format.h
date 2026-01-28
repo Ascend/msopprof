@@ -27,7 +27,7 @@ namespace Utility {
 
 constexpr uint32_t PMU_EVENT_MAX_NUM = 8U;
 constexpr uint32_t PMU_EVENT_MAX_NUM_A5 = 10U;
-constexpr uint32_t EVENT_MAX_NUM = 96;
+constexpr uint32_t EVENT_MAX_NUM = 96U;
 constexpr uint32_t EVENT_MAX_NUM_A5 = 60U;
 constexpr uint64_t MAX_MEM_BYTE_SIZE = 32212254720; // 30G for file and memory malloc
 

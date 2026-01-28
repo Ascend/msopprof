@@ -21,6 +21,29 @@
 
 namespace Utility {
 
+std::string KernelNameConver(const std::string& kernelName)
+{
+    auto start = kernelName.find("_Z");
+    if (start == std::string::npos) {
+        return kernelName;
+    }
+    uint64_t kernelNameLength = 0;
+    auto end = start + 2;
+    for (; end < kernelName.size(); end++) {
+        if (!std::isdigit(kernelName.at(end))) {
+            break;
+        }
+        kernelNameLength = kernelNameLength * 10 + (kernelName[end] - '0');
+        if (end + 1 + kernelNameLength > kernelName.length()) { // 剩余的子串比预期的小，非法
+            return kernelName;
+        }
+    }
+    if (kernelNameLength > 0) {
+        return kernelName.substr(end, kernelNameLength);
+    }
+    return kernelName;
+}
+
 bool IsStringCharValid(const std::string &inputString, std::string &msg)
 {
     const std::unordered_map<std::string, std::string> invalidChar = GetInvalidChar();

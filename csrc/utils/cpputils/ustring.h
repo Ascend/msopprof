@@ -187,6 +187,7 @@ inline std::string NumToHexString(uint64_t num, int size)
     return ss.str();
 }
 
+std::string KernelNameConver(const std::string& kernelName);
 bool IsStringCharValid(const std::string &inputString, std::string &msg);
 bool GetUint64ListFromStr(const std::regex &pattern, const std::string &inputStr, std::vector<uint64_t> &resValueList);
 bool StollConverter(const std::string &numString, int64_t &num, int32_t radix = RADIX_10, bool strict = true);

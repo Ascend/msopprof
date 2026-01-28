@@ -25,6 +25,7 @@
 #include "instr_encoding/instr_encoding.h"
 #include "pc_process.h"
 #include "tlv_parse.h"
+#include "ustring.h"
 
 using namespace Encode;
 using namespace Utility;
@@ -451,6 +452,7 @@ bool HotSpotFunctionGenerator::UpdateBBBMap(const std::string &bbbmapPath)
             continue;
         }
         std::string kernelName = matches[1];
+        kernelName = KernelNameConver(kernelName);
         size_t parseBlockId = id + 2;
         if (parseBlockId >= bbbmap.size() || !regex_search(bbbmap[id + 1], matches, addrPattern)) {
             continue;
