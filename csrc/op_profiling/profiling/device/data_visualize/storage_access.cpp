@@ -748,7 +748,6 @@ void StorageAccess910B::AddInternuclearScalarIndex(const std::string &opType, st
     }
     // 当算子mix，默认计算的scalarIndex是cube指标
     if (opType == OpType::MIX) {
-        scalarCube_.insert(scalarCube_.end(), validIndex.begin(), validIndex.end());
         for (const auto &index : validIndex) {
             tableLineAiCore_["Scalar Cube"].emplace_back(index);
             memInfoScalarMap_["Scalar Cube"].emplace_back(scalarIndex[index]);
