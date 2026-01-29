@@ -774,8 +774,6 @@ void StorageAccess910B::AddInternuclearScalarIndex(const std::string &opType, st
         return;
     }
 
-    std::vector<std::string> &scalarHeadModify = opType == OpType::VECTOR ? scalarVec_ : scalarCube_;
-    scalarHeadModify.insert(scalarHeadModify.end(), validIndex.begin(), validIndex.end());
     for (const auto &index : validIndex) {
         tableLineAiCore_["Scalar"].emplace_back(index);
         memInfoScalarMap_["Scalar"].emplace_back(scalarIndex[index]);
