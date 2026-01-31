@@ -216,7 +216,7 @@ TEST(DeviceDataParse, Execute_expect_success_with_one_device)
 TEST(DeviceDataParse, GetRangeFreq_expert_NA_when_get_req_failed)
 {
     std::string testDir = "test/ut/resources/op_profiling/OPPO";
-    std::string path = JoinPath({testDir, "tmp_dump/device0/0"});
+    std::string path = JoinPath({testDir, "tmp_dump/device0/21211/0"});
     MkdirRecusively(path);
     ProfMetricsAbilityConfig metricsConfig;
     PmuEventsId pmuEventsId;
@@ -226,7 +226,7 @@ TEST(DeviceDataParse, GetRangeFreq_expert_NA_when_get_req_failed)
     ASSERT_EQ(freqs1[0], "Current Freq=NA");
     ASSERT_EQ(freqs1[1], "Rated Freq=NA");
 
-    string freqTxt = JoinPath({testDir, "tmp_dump/device0/0", "freq.txt"});
+    string freqTxt = JoinPath({testDir, "tmp_dump/device0/21211/0", "freq.txt"});
     std::ofstream outFile(freqTxt.c_str(), std::ios::out | std::ios::binary);
     outFile << "-1" << "\n";
     outFile.close();
@@ -241,12 +241,12 @@ TEST(DeviceDataParse, GetRangeFreq_expert_NA_when_get_req_failed)
 TEST(DeviceDataParse, GetRangeFreq_expert_value_when_get_req_success)
 {
     std::string testDir = "test/ut/resources/op_profiling/OPPO";
-    std::string path = JoinPath({testDir, "tmp_dump/device0/0"});
+    std::string path = JoinPath({testDir, "tmp_dump/device0/21211/0"});
     MkdirRecusively(path);
     ProfMetricsAbilityConfig metricsConfig;
     PmuEventsId pmuEventsId;
     DeviceDataParse deviceDataParse(ChipType::ASCEND910B, pmuEventsId, metricsConfig);
-    string freqTxt = JoinPath({testDir, "tmp_dump/device0/0", "freq.txt"});
+    string freqTxt = JoinPath({testDir, "tmp_dump/device0/21211/0", "freq.txt"});
     std::ofstream outFile(freqTxt.c_str(), std::ios::out | std::ios::binary);
     outFile << "Current Freq=800" << "\n";
     outFile << "Rated Freq=1850" << "\n";
@@ -263,7 +263,7 @@ TEST(DeviceDataParse, ParseSingleRangeData_expert_generate_bin_success)
 {
     std::string testDir = "test/ut/resources/op_profiling/OPPO";
     std::string addDir = JoinPath({testDir, "device0/add/0/dump"});
-    std::string tmpDir = JoinPath({testDir, "tmp_dump/device0/0"});
+    std::string tmpDir = JoinPath({testDir, "tmp_dump/device0/21211/0"});
     MkdirRecusively(addDir);
     MkdirRecusively(tmpDir);
     string outputTxt = JoinPath({tmpDir, "output.txt"});
@@ -293,7 +293,7 @@ TEST(DeviceDataParse, ParseSingleRangeData_expert_generate_basic_info_bin_succes
 {
     std::string testDir = "test/ut/resources/op_profiling/OPPO";
     std::string addDir = JoinPath({testDir, "device0/add/0/dump"});
-    std::string tmpDir = JoinPath({testDir, "tmp_dump/device0/0"});
+    std::string tmpDir = JoinPath({testDir, "tmp_dump/device0/21211/0"});
     MkdirRecusively(addDir);
     MkdirRecusively(tmpDir);
     string outputTxt = JoinPath({tmpDir, "output.txt"});
@@ -317,7 +317,7 @@ TEST(DeviceDataParse, ParseSingleRangeData_expert_generate_bin_fail)
 {
     std::string testDir = "test/ut/resources/op_profiling/OPPO";
     std::string addDir = JoinPath({testDir, "device0/add/0/dump"});
-    std::string tmpDir = JoinPath({testDir, "tmp_dump/device0/0"});
+    std::string tmpDir = JoinPath({testDir, "tmp_dump/device0/21211/0"});
     MkdirRecusively(addDir);
     MkdirRecusively(tmpDir);
     std::experimental::filesystem::copy("test/ut/resources/op_profiling/device910B/dump/duration.bin", JoinPath({tmpDir, "duration.bin"}));
@@ -342,8 +342,8 @@ TEST(DeviceDataParse, ParseTmpDump_expert_generate_bin_success)
     std::string testDir = "test/ut/resources/op_profiling/OPPO";
     std::string addDir = JoinPath({testDir, "device0/add/0/dump"});
     std::string subDir = JoinPath({testDir, "device1/sub/0/dump"});
-    std::string tmp0Dir = JoinPath({testDir, "tmp_dump/device0/0"});
-    std::string tmp1Dir = JoinPath({testDir, "tmp_dump/device1/0"});
+    std::string tmp0Dir = JoinPath({testDir, "tmp_dump/device0/21211/0"});
+    std::string tmp1Dir = JoinPath({testDir, "tmp_dump/device1/21212/0"});
     MkdirRecusively(addDir);
     MkdirRecusively(subDir);
     MkdirRecusively(tmp0Dir);

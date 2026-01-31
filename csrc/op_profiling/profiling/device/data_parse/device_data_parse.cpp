@@ -579,23 +579,35 @@ void DeviceDataParse::ParseTmpDump(const string &tmpPath)
         return;
     }
     // device dir
-    regex orderPattern("[0-9]{1,3}");
     for (const string &deviceId : deviceIds) {
         string deviceIdDir = JoinPath({tmpPath, deviceId});
         if (!StartsWith(deviceId, "device") || !IsDir(deviceIdDir)) {
             continue;
         }
-        vector<string> orders;
-        if (!GetFileNames(deviceIdDir, orders)) {
+        // pid dir
+        vector<string> pids;
+        if (!GetFileNames(deviceIdDir, pids)) {
             continue;
         }
-        // order dir
-        for (const auto &order : orders) {
-            string orderDir = JoinPath({deviceIdDir, order});
-            if (!regex_match(order, orderPattern) || !IsDir(orderDir)) {
+        regex pidPattern("[0-9]{1,32}");
+        for (const auto &pid : pids) {
+            string pidsDir = JoinPath({deviceIdDir, pid});
+            if (!regex_match(pid, pidPattern) || !IsDir(pidsDir)) {
                 continue;
             }
-            ParseSingleRangeData(orderDir);
+            vector<string> orders;
+            if (!GetFileNames(pidsDir, orders)) {
+                continue;
+            }
+            // order dir
+            regex orderPattern("[0-9]{1,3}");
+            for (const auto &order : orders) {
+                string orderDir = JoinPath({pidsDir, order});
+                if (!regex_match(order, orderPattern) || !IsDir(orderDir)) {
+                    continue;
+                }
+                ParseSingleRangeData(orderDir);
+            }
         }
     }
 }
