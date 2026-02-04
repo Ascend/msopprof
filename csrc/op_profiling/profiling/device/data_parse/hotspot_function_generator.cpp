@@ -17,6 +17,7 @@
 
 #include "hotspot_function_generator.h"
 #include <json.hpp>
+#include <algorithm>
 #include <regex>
 #include "common/visualize.h"
 #include "filesystem.h"
@@ -796,6 +797,7 @@ bool HotSpotFunctionGenerator::GenInstrInfos(std::vector<InstrInfo> &instrInfos)
         }
         instrInfos.emplace_back(info);
     }
+    std::sort(instrInfos.begin(), instrInfos.end(), [](const InstrInfo &a, const InstrInfo &b) { return a.addr < b.addr; });
     return true;
 }
 
