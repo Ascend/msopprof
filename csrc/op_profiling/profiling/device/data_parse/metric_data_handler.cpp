@@ -115,7 +115,7 @@ bool DataHandler::ParseL2CacheBin(const std::string &filePath, const std::vector
     return true;
 }
 
-bool DataHandler::ParseDeviceData(ParserConfig &config, const map<string, ProfBinInfo> &profBinMap,
+bool DataHandler::ParseDeviceData(ParserConfig &config, const std::map<std::string, ProfBinInfo, FileNameCompare> &profBinMap,
     const Common::ProfMetricsAbilityConfig &metrics, const std::string &timeStamp)
 {
     profilingFileTimeStamp_ = timeStamp;
@@ -383,7 +383,7 @@ void DataHandler::MergeTotalPmuData(SplitBlockPmuData &blockData)
     }
 }
 
-bool DataHandler::HandlePmuData(const std::string &outputPath, const map<string, ProfBinInfo> &profBinMap,
+bool DataHandler::HandlePmuData(const std::string &outputPath, const std::map<std::string, ProfBinInfo, FileNameCompare> &profBinMap,
                                 Common::ProfMetricsAbilityConfig metrics)
 {
     // parse DeviceProfX.bin and L2Cache.bin to get all pmu values: totalPmuData_

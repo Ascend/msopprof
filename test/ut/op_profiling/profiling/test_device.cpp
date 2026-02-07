@@ -1574,10 +1574,10 @@ TEST(VisualizeDataAccuracy, test_SetScalarMemInfo_mix_operate_and_expect_return_
         ASSERT_STREQ(st.memInfoScalarMap_["Scalar Cube"][i].time.c_str(), cubeIndex[i].c_str());
     }
     for (auto i = 0; i < 9; i++) {
-        ASSERT_EQ(st.memInfoScalarMap_["Scalar Vectore Core0"][i].cycle, vec0Index[i]);
+        ASSERT_EQ(st.memInfoScalarMap_["Scalar Vector Core0"][i].cycle, vec0Index[i]);
     }
     for (auto i = 0; i < 9; i++) {
-        ASSERT_STREQ(st.memInfoScalarMap_["Scalar Vectore Core1"][i].time.c_str(), vec1Index[i].c_str());
+        ASSERT_STREQ(st.memInfoScalarMap_["Scalar Vector Core1"][i].time.c_str(), vec1Index[i].c_str());
     }
 }
 
@@ -1645,8 +1645,8 @@ TEST(VisualizeDataAccuracy, test_AddInternuclearScalarIndex_mix_operate_and_expe
     std::vector<uint64_t> indexValue = {1275UL, 3542UL, 4345UL, 6514UL, 3144UL, 5315UL, 6432UL, 3152UL, 5476UL, 2453UL, 653UL, 324UL, 424UL, 653UL, 536UL, 133UL};
     for (auto i = 0; i < 16; i++) {
         ASSERT_EQ(st.memInfoScalarMap_["Scalar Cube"][i].cycle, indexValue[i]);
-        ASSERT_EQ(st.memInfoScalarMap_["Scalar Vectore Core0"][i].cycle, indexValue[i]);
-        ASSERT_EQ(st.memInfoScalarMap_["Scalar Vectore Core1"][i].cycle, indexValue[i]);
+        ASSERT_EQ(st.memInfoScalarMap_["Scalar Vector Core0"][i].cycle, indexValue[i]);
+        ASSERT_EQ(st.memInfoScalarMap_["Scalar Vector Core1"][i].cycle, indexValue[i]);
     }
 }
 

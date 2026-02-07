@@ -194,7 +194,7 @@ ChipType g_chipType = ChipType::ASCEND910B;
 Common::ProfMetricsAbilityConfig metrics;
 ParserConfig parserConfig1;
 string timeStamp1;
-std::map<std::string, ProfBinInfo> eventMap_1;
+std::map<std::string, ProfBinInfo, FileNameCompare> eventMap_1;
 
 auto &handler1 = GetHandleTest1(g_chipType);
 bool rese1 = handler1->ParseDeviceData(parserConfig1, eventMap_1, metrics, timeStamp1);

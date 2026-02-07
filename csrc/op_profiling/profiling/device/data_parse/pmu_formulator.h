@@ -170,7 +170,7 @@ const std::map<std::string, CalInfo> FormulaFor910B = {
     {"aiv_scalar_dual_time(us)", {{113}, {}, FuncType::PIPE_TIME}},
     {"aiv_scalar_mte2_stall_time(us)", {{108}, {}, FuncType::PIPE_TIME}},
     {"aiv_scalar_mte3_stall_time(us)", {{109}, {}, FuncType::PIPE_TIME}},
-    {"aiv_scalar_stall_by_ub_time(us)", {{109}, {}, FuncType::PIPE_TIME}},
+    {"aiv_scalar_stall_by_ub_time(us)", {{106}, {}, FuncType::PIPE_TIME}},
     {"aiv_scalar_vector_stall_time(us)", {{111}, {}, FuncType::PIPE_TIME}},
     {"aiv_scalar_wait_ib_time(us)", {{114}, {}, FuncType::PIPE_TIME}},
     {"aiv_scalar_wait_time(us)", {{87}, {}, FuncType::PIPE_TIME}},

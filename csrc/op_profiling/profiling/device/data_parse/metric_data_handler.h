@@ -64,10 +64,39 @@ struct DefaultDeviceInfo {
     int64_t aiCoreNum;
 };
 
+struct FileNameCompare {
+    static int extractNumberFromFileName(const std::string &fileName)
+    {
+        // file格式为DeviceProfX.bin，10记录的是数字X的起始位置
+        size_t numStart = 10;
+        int num = 0;
+        for (size_t i = numStart; i < fileName.size(); i++) {
+            if (isdigit(fileName[i])) {
+                num = num * 10 + (fileName[i] - '0');
+            } else {
+                break;
+            }
+        }
+        return num;
+    }
+    bool operator()(const std::string &a, const std::string &b) const
+    {
+        if (a.length() < 10 || b.length() < 10) {
+            return a < b;
+        }
+        int numA = extractNumberFromFileName(a);
+        int numB = extractNumberFromFileName(b);
+        if (numA != numB) {
+            return numA < numB;
+        }
+        return a < b;
+    }
+};
+
 class DataHandler {
 public:
     virtual ~DataHandler() = default;
-    bool ParseDeviceData(ParserConfig &config, const std::map<std::string, ProfBinInfo> &profBinMap,
+    bool ParseDeviceData(ParserConfig &config, const std::map<std::string, ProfBinInfo, FileNameCompare> &profBinMap,
         const Common::ProfMetricsAbilityConfig &metrics, const std::string &timeStamp);
     void MergeTotalPmuData(SplitBlockPmuData &blockData);
     virtual void ParseProfBin(const std::vector<char> &binData, const size_t &fileSize, const ProfBinInfo &binInfo) {}
@@ -155,7 +184,7 @@ private:
     bool SaveOpBasicInfo(const std::string &outputPath);
     void HandleDuration(const std::string &outputPath);
     bool ParseBasicInfoFile(const std::string &filePath);
-    bool HandlePmuData(const std::string &outputPath, const std::map<std::string, ProfBinInfo> &profBinMap,
+    bool HandlePmuData(const std::string &outputPath, const std::map<std::string, ProfBinInfo, FileNameCompare> &profBinMap,
                        Common::ProfMetricsAbilityConfig metrics);
     bool CalMetrics(const ParserConfig &config, const Common::ProfMetricsAbilityConfig &metrics,
                     std::map<uint64_t, std::map<std::string, uint64_t>> &dbiMap);

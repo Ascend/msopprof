@@ -325,10 +325,10 @@ void DeviceDataParse::GetCalMetricItems(const ProfMetricsAbilityConfig &metrics)
 }
 
 // get aicEvents, aivEvents and related metrics of DeviceProfX.bin
-map<string, ProfBinInfo> DeviceDataParse::GetProfBinInfo(const ProfMetricsAbilityConfig &metrics,
+std::map<std::string, ProfBinInfo, FileNameCompare> DeviceDataParse::GetProfBinInfo(const ProfMetricsAbilityConfig &metrics,
                                                          const PmuEventsId &pmuEventsId) const
 {
-    map<string, ProfBinInfo> res;
+    std::map<std::string, ProfBinInfo, FileNameCompare> res;
     // 不采集pmu时仅仅完成1轮空的DeviceProf1.bin的解析，用于获取算子类型
     if (!metrics.HasEnabledPmu()) {
         ProfBinInfo info;

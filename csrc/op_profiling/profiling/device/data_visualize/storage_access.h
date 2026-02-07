@@ -102,8 +102,8 @@ public:
         {"Pipe Vector Core1", {"", "instructions", "cycle", "wait cycles", "active rate(%)", "active bw(GB/s)"}},
         {"Scalar", {"", "cycle", "time(us)"}},
         {"Scalar Cube", {"", "cycle", "time(us)"}},
-        {"Scalar Vectore Core0", {"", "cycle", "time(us)"}},
-        {"Scalar Vectore Core1", {"", "cycle", "time(us)"}},
+        {"Scalar Vector Core0", {"", "cycle", "time(us)"}},
+        {"Scalar Vector Core1", {"", "cycle", "time(us)"}},
     };
 
     nlohmann::json StorageAccessHeatMap_;

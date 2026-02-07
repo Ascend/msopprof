@@ -45,7 +45,7 @@ private:
         Common::MetricEventsMapType aivMetricEventsMap;
     };
     void GetCalMetricItems(const Common::ProfMetricsAbilityConfig &metrics);
-    std::map<std::string, ProfBinInfo> GetProfBinInfo(const Common::ProfMetricsAbilityConfig &metrics,
+    std::map<std::string, ProfBinInfo, FileNameCompare> GetProfBinInfo(const Common::ProfMetricsAbilityConfig &metrics,
                                                       const Common::PmuEventsId &pmuEventsId) const;
     void GetRelatedMap(const Common::ProfMetricsAbilityConfig &metrics,
                               const Common::MetricEventsMapType &metricEvents,
@@ -70,7 +70,7 @@ private:
     std::set<std::string> aicCalMetricItems_;
     std::set<std::string> aivCalMetricItems_;
     // key is file name
-    std::map<std::string, ProfBinInfo> eventMap_;
+    std::map<std::string, ProfBinInfo, FileNameCompare> eventMap_;
     Common::ChipType chipType_;
     Common::ChipProductType chipProductType_;
     Common::PmuEventsId pmuEventsId_;
