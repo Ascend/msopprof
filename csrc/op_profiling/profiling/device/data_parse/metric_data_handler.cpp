@@ -127,7 +127,7 @@ bool DataHandler::ParseDeviceData(ParserConfig &config, const map<string, ProfBi
     string pcSamplingBinPath = JoinPath({config.outputPath, "dump", "PcOffset.bin"});
     ParsePcSamplingRecords(pcSamplingBinPath);
     vector<MemRecord> memoryRecords;
-    ParseMemoryChartData(config.outputPath, metrics, memoryRecords, opInfoMap_["Op Name"]);
+    ParseMemoryChartData(config.outputPath, metrics, memoryRecords, config.rawKernelName);
     string recordBinPath = JoinPath({config.outputPath, "dump", "OperandRecord.bin"});
     ParseOperandRecords(recordBinPath);
     if (IsExist(recordBinPath)) {

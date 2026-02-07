@@ -30,6 +30,7 @@
 #include "common/visualize.h"
 #include "common/defs.h"
 #include "parse_timeline.h"
+#include "log.h"
 
 namespace Profiling {
 
@@ -123,7 +124,9 @@ public:
         if (args.kernelName.empty()) {
             beginAddr_[""] = 0;
             endAddr_[""] = UINT64_MAX;
+            Utility::LogDebug("Init Hotspot function, kernel name is null");
         } else {
+            Utility::LogDebug("Init Hotspot function, kernel name is %s", args.kernelName.c_str());
             size_t pos;
             kernelName_.emplace_back(args.kernelName);
             beginAddr_[args.kernelName] = UINT64_MAX;

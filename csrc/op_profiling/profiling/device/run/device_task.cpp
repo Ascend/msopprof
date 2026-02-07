@@ -56,6 +56,7 @@ bool DeviceTask::Run()
     // A2/A3 application需要采集PMU时需要额外采集1轮L2cache
     if (chipType_ == ChipType::ASCEND910B && profMessage_.l2CachePmu[0] != 0 && replayMode_ == ReplayMode::APPLICATION) {
         profMessage_.replayCount = 0;
+        profMessage_.dbiFlag = 0;
         ProfStub::InjectionEvent::Instance().StartDisposeClientAsk(profMessage_, profConfig_);
         Task::execStatus = ExecStatus::RUNNING;
         taskRes = OpRunner::RunOpBinary(cmd, env);

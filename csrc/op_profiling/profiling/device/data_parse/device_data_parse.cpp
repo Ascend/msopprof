@@ -177,12 +177,12 @@ unique_ptr<Visualize::CachelineHeatMap> GetCachelineHeatMapObj(unique_ptr<DataHa
     return parserPtr;
 }
 
-bool DeviceDataParse::ParseExactKernelData(const string &path)
+bool DeviceDataParse::ParseExactKernelData(const string &path, const string &kernelName)
 {
     Parse::DataCenter dataCenter;
     string timeStamp;
     GenerateTimeStamp(timeStamp, TimeAccuracy::MILLISECOND);
-    ParserConfig parserConfig = {path, aicCalMetricItems_, aivCalMetricItems_, metrics_.isKernelScale };
+    ParserConfig parserConfig = {kernelName, path, aicCalMetricItems_, aivCalMetricItems_, metrics_.isKernelScale };
     auto &handler = GetHandle(chipType_);
     if (!handler) {
         LogError("Get handle failed because of nullptr");
@@ -257,7 +257,7 @@ void DeviceDataParse::ParseKernelFile(const string &kernelDir, const string &ker
 
         LogInfo("Start analyze kernel on device: %s, kernel: %s, name is: %s", deviceId.c_str(), kernelName.c_str(),
                 fileName.c_str());
-        if (!ParseExactKernelData(orderDir)) {
+        if (!ParseExactKernelData(orderDir, kernelName)) {
             failedKernelNum_++;
             LogError("Analyzing kernel data failed, device: %s, kernel: %s, name is: %s", deviceId.c_str(),
                      kernelName.c_str(), fileName.c_str());

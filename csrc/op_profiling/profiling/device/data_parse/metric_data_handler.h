@@ -32,6 +32,7 @@
 
 namespace Profiling {
 struct ParserConfig {
+    std::string rawKernelName;
     std::string outputPath;
     std::set<std::string> aicCalMetricItems;
     std::set<std::string> aivCalMetricItems;

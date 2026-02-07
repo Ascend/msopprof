@@ -54,7 +54,7 @@ private:
                          const std::string &deviceId) override;
     bool CheckKernelFiles(const std::string &path, std::vector<std::string> &fileNames,
                           std::string &errorMsg) const;
-    bool ParseExactKernelData(const std::string &path);
+    bool ParseExactKernelData(const std::string &path, const std::string &kernelName = "");
     bool ParserInit();
     void ParseTmpDump(const std::string &tmpPath);
     void GetRangeFreq(const std::string &path, std::vector<std::string> &freqs) const;

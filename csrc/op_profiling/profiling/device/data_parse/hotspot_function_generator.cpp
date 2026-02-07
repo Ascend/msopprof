@@ -453,7 +453,6 @@ bool HotSpotFunctionGenerator::UpdateBBBMap(const std::string &bbbmapPath)
             continue;
         }
         std::string kernelName = matches[1];
-        kernelName = KernelNameConver(kernelName);
         size_t parseBlockId = id + 2;
         if (parseBlockId >= bbbmap.size() || !regex_search(bbbmap[id + 1], matches, addrPattern)) {
             continue;
