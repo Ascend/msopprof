@@ -29,7 +29,7 @@ bool InstrEncoding::Init(Common::ChipProductType socVersion)
         IsChipSeriesTypeValid(socVersion, Common::ChipProductType::ASCEND910_93_SERIES)) {
         mask2Groups_ = MaskOrder<uint32_t, InstrTable>(MASK2GROUPS_A2);
         return true;
-    } else if (IsChipSeriesTypeValid(socVersion, Common::ChipProductType::ASCEND910_95_SERIES)) {
+    } else if (IsChipSeriesTypeValid(socVersion, Common::ChipProductType::ASCEND950_SERIES)) {
         mask2Groups_ = MaskOrder<uint32_t, InstrTable>(MASK2GROUPS_A5);
         mask2Groups64Bit_ = MaskOrder<uint64_t, InstrTable64>(MASK2GROUPS_A5_64BIT);
         mask2Groups128Bit_ = MASK2GROUPS_A5_128BIT;

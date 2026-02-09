@@ -205,7 +205,7 @@ public:
         std::shared_ptr<BasicPmu> &basicPmuObj, std::unique_ptr<Visualize::PmuCalculator> &pmuCalculatorObj)
         : RoofLine(aicoreFreq, aiCoreNum, opBasicInfoObj, basicPmuObj, pmuCalculatorObj)
     {
-        chipType_ = Common::ChipType::ASCEND910_95;
+        chipType_ = Common::ChipType::ASCEND950;
         cubeCoreEvents_ = cubeEvents_;
         vecCoreEvents_ = vecEvents_;
     }

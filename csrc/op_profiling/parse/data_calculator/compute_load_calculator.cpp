@@ -38,7 +38,7 @@ PluginErrorCode ComputeLoadCalculator::Entry()
         ComputeLoadInfoFor910B(jsonMap);
     } else if (Common::IsChipSeriesTypeValid(chipType_, Common::ChipProductType::ASCEND310P_SERIES)) {
         ComputeLoadInfoFor310P(jsonMap);
-    } else if (Common::IsChipSeriesTypeValid(chipType_, Common::ChipProductType::ASCEND910_95_SERIES)) {
+    } else if (Common::IsChipSeriesTypeValid(chipType_, Common::ChipProductType::ASCEND950_SERIES)) {
         ComputeLoadInfoFor91095(jsonMap);
     }
     computeLoadInfoPtr->figure["subblock_detail"] = jsonMap[0];

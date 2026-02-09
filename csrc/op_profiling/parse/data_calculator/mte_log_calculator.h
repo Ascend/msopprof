@@ -34,7 +34,7 @@ public:
         RegisterPluginName("MteLogCalculator");
         RegisterMandatoryDb({});
         RegisterChip({Common::ChipProductType::ASCEND910B_SERIES, Common::ChipProductType::ASCEND910_93_SERIES,
-            Common::ChipProductType::ASCEND910_95_SERIES});
+            Common::ChipProductType::ASCEND950_SERIES});
     }
 private:
     void CalOneInstrThroughput(MteLogInstrType instrType, const std::unordered_map<uint64_t, MteLogReqInfo> &reqInfo,

@@ -32,7 +32,7 @@ DeviceDataParse::DeviceDataParse(Common::ChipType chipType, PmuEventsId pmuEvent
     ProfMetricsAbilityConfig metrics): DataParse(metrics), chipType_(chipType), pmuEventsId_(pmuEventsId)
 {
     // register different profiling data handler
-    chipInfoMap_ = {{ChipType::ASCEND910_95, {MetricHeaderForA5, Common::AIC_EVENTS_FOR_A5,
+    chipInfoMap_ = {{ChipType::ASCEND950, {MetricHeaderForA5, Common::AIC_EVENTS_FOR_A5,
                         Common::AIV_EVENTS_FOR_A5}},
                     {ChipType::ASCEND910B, {MetricHeaderFor910B, Common::AIC_EVENTS_FOR_910B,
                         Common::AIV_EVENTS_FOR_910B}},
@@ -63,7 +63,7 @@ unique_ptr<DataHandler> &GetHandle(ChipType chipType)
                 return Utility::MakeUnique<DataHandlerOf910B>();
             case ChipProductType::ASCEND310P_SERIES:
                 return Utility::MakeUnique<DataHandlerOf310P>();
-            case ChipProductType::ASCEND910_95_SERIES:
+            case ChipProductType::ASCEND950_SERIES:
                 return Utility::MakeUnique<DataHandlerOf91095>();
             default:
                 return Utility::MakeUnique<DataHandlerOf910B>();
@@ -113,7 +113,7 @@ unique_ptr<Visualize::Occupancy> &GetOccupancyObj(ChipType chipType,
     static unique_ptr<Visualize::Occupancy> occupancyPtr;
     if (chipType == ChipType::ASCEND910B) {
         occupancyPtr = Utility::MakeUnique<Occupancy910B>(opBasicInfoObj, basicPmuObj);
-    } else if (chipType == ChipType::ASCEND910_95) {
+    } else if (chipType == ChipType::ASCEND950) {
         occupancyPtr = Utility::MakeUnique<OccupancyA5>(opBasicInfoObj, basicPmuObj);
     } else {
         occupancyPtr = Utility::MakeUnique<Occupancy>(opBasicInfoObj, basicPmuObj);
@@ -332,8 +332,8 @@ std::map<std::string, ProfBinInfo, FileNameCompare> DeviceDataParse::GetProfBinI
     // 不采集pmu时仅仅完成1轮空的DeviceProf1.bin的解析，用于获取算子类型
     if (!metrics.HasEnabledPmu()) {
         ProfBinInfo info;
-        info.aicEvents = chipProductType_ == Common::ChipProductType::ASCEND910_95_SERIES ? vector<uint16_t>(PMU_EVENT_MAX_NUM_A5, 0) : vector<uint16_t>(PMU_EVENT_MAX_NUM, 0);
-        info.aivEvents = chipProductType_ == Common::ChipProductType::ASCEND910_95_SERIES ? vector<uint16_t>(PMU_EVENT_MAX_NUM_A5, 0) : vector<uint16_t>(PMU_EVENT_MAX_NUM, 0);
+        info.aicEvents = chipProductType_ == Common::ChipProductType::ASCEND950_SERIES ? vector<uint16_t>(PMU_EVENT_MAX_NUM_A5, 0) : vector<uint16_t>(PMU_EVENT_MAX_NUM, 0);
+        info.aivEvents = chipProductType_ == Common::ChipProductType::ASCEND950_SERIES ? vector<uint16_t>(PMU_EVENT_MAX_NUM_A5, 0) : vector<uint16_t>(PMU_EVENT_MAX_NUM, 0);
         res.insert({std::string {MSPROF_DUMPFILE_PREFIX} + "1.bin", info});
         return res;
     }
@@ -346,7 +346,7 @@ std::map<std::string, ProfBinInfo, FileNameCompare> DeviceDataParse::GetProfBinI
     GetRelatedMap(metrics, chipInfo_.aivMetricEventsMap, aivRelatedMap);
     uint16_t maxSize = max(aicEvents.size(), aivEvents.size());
     int size = PMU_EVENT_MAX_NUM;
-    if (chipProductType_ == Common::ChipProductType::ASCEND910_95_SERIES) {
+    if (chipProductType_ == Common::ChipProductType::ASCEND950_SERIES) {
         size = PMU_EVENT_MAX_NUM_A5;
     }
     int profBinNum = static_cast<int>((maxSize + size - 1) / size);
@@ -428,7 +428,7 @@ void DeviceDataParse::GetRangeFreq(const string &path, vector<string> &freqs) co
 void DeviceDataParse::GetRangeKernelDurBin(const string &path)
 {
     uint16_t acsqLength = ACSQ_LENGTH;
-    if (chipProductType_ == ChipProductType::ASCEND910_95_SERIES) {
+    if (chipProductType_ == ChipProductType::ASCEND950_SERIES) {
         acsqLength = ACSQ_LENGTH_A5;
     }
     string durFilePath = JoinPath({path, "duration.bin"});
@@ -557,7 +557,7 @@ void DeviceDataParse::ParseSingleRangeData(const string &path)
     GetRangeKernelDurBin(path);
     int profBinCount = 1;
     if (!metrics_.isBasicInfo || metrics_.HasEnabledPmu()) {
-        if (chipProductType_ == ChipProductType::ASCEND910_95_SERIES) {
+        if (chipProductType_ == ChipProductType::ASCEND950_SERIES) {
             profBinCount = static_cast<int>(max(REPLAY_AIC_EVENTS_FOR_A5.size(), REPLAY_AIV_EVENTS_FOR_A5.size()) / PMU_EVENT_MAX_NUM_A5);
         } else {
             profBinCount = static_cast<int>(max(REPLAY_AIC_EVENTS_FOR_910B.size(), REPLAY_AIV_EVENTS_FOR_910B.size()) / PMU_EVENT_MAX_NUM);

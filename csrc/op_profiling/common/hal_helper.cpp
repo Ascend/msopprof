@@ -82,7 +82,7 @@ ChipType HalHelper::GetPlatformType(void) const
  
     uint32_t platformType = (static_cast<uint64_t>(versionInfo) >> 8) & 0xff;
     if ((platformType > static_cast<uint32_t>(ChipType::ASCEND310B) &&
-        platformType < static_cast<uint32_t>(ChipType::ASCEND910_95)) ||
+        platformType < static_cast<uint32_t>(ChipType::ASCEND950)) ||
         platformType >= static_cast<uint32_t>(ChipType::END_TYPE)) {
         LogError("Fail to get soc platform because of invalid type:%u.", platformType);
         return ChipType::END_TYPE;
@@ -139,7 +139,7 @@ bool HalHelper::IsSupportPlatform(void) const
 bool HalHelper::IsSupportPlatform(ChipType chipType) const
 {
     return chipType == ChipType::ASCEND910B || chipType == ChipType::ASCEND310P || chipType == ChipType::ASCEND310B
-        || chipType == ChipType::ASCEND910_95;
+        || chipType == ChipType::ASCEND950;
 }
 
 bool HalHelper::DcmiInit()

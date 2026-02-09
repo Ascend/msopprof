@@ -25,7 +25,7 @@ namespace Parse {
 PluginErrorCode InstrParser::Entry()
 {
     // matchMode 0表示按pc匹配， 1表示按id匹配
-    MatchMode matchMode = IsChipSeriesTypeValid(chipType_, Common::ChipProductType::ASCEND910_95_SERIES) ?
+    MatchMode matchMode = IsChipSeriesTypeValid(chipType_, Common::ChipProductType::ASCEND950_SERIES) ?
         MatchMode::ID_MATCH : MatchMode::PC_MATCH;
     std::vector<PoppedInstrParseInfo> poppedInstrList;
     PopLogParser popParser(dataParserConfig_);

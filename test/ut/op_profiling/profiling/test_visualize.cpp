@@ -166,7 +166,7 @@ inline unique_ptr<Visualize::Occupancy> &GetOccupancyObjTest1(ChipType chipType,
     static unique_ptr<Visualize::Occupancy> occupancyPtr;
     if (chipType == ChipType::ASCEND910B) {
         occupancyPtr = Utility::MakeUnique<Occupancy910B>(opBasicInfoObj, basicPmuObj);
-    } else if (chipType == ChipType::ASCEND910_95) {
+    } else if (chipType == ChipType::ASCEND950) {
         occupancyPtr = Utility::MakeUnique<OccupancyA5>(opBasicInfoObj, basicPmuObj);
     } else {
         occupancyPtr = Utility::MakeUnique<Occupancy>(opBasicInfoObj, basicPmuObj);

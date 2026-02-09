@@ -62,7 +62,7 @@ void CodeLine::ToJson(const std::string &socVersion, nlohmann::json &lineDetails
     } else {
         lineDetails["Process Bytes"] = -1;
     }
-    if (IsChipSeriesTypeValid(chipType, Common::ChipProductType::ASCEND910_95_SERIES)) {
+    if (IsChipSeriesTypeValid(chipType, Common::ChipProductType::ASCEND950_SERIES)) {
         for (size_t i = 0; i < this->pcSampling.size() && i < PC_SAMPLING_STATE.size(); ++i) {
             lineDetails[PC_SAMPLING_STATE.at(i)] = this->pcSampling[i];
         }
@@ -88,7 +88,7 @@ void InstrInfo::ToJson(const std::string &socVersion, nlohmann::json &instrDetai
     } else {
         instrDetails["Process Bytes"] = -1;
     }
-    if (IsChipSeriesTypeValid(chipType, Common::ChipProductType::ASCEND910_95_SERIES)) {
+    if (IsChipSeriesTypeValid(chipType, Common::ChipProductType::ASCEND950_SERIES)) {
         for (size_t i = 0; i < this->pcSampling.size() && i < PC_SAMPLING_STATE.size(); ++i) {
             instrDetails[PC_SAMPLING_STATE.at(i)] = this->pcSampling[i];
         }
@@ -137,7 +137,7 @@ bool HotSpotFunctionGenerator::CalculateData(const std::string &outputPath,
     if (pcSamplingEnable_) {
         UpdatePcSampling(dumpPath);
     }
-    if (IsChipSeriesTypeValid(chipType, Common::ChipProductType::ASCEND910_95_SERIES) && !GenTlvdata(kernelPath, dumpPath)) {
+    if (IsChipSeriesTypeValid(chipType, Common::ChipProductType::ASCEND950_SERIES) && !GenTlvdata(kernelPath, dumpPath)) {
         Utility::LogWarn("Failed to gen register data");
     }
     if (memdetailEnable_) {
@@ -219,7 +219,7 @@ bool HotSpotFunctionGenerator::ProcessBBCount(const std::string &dumpPath)
     Common::ChipProductType chipType = Common::GetProductSeriesTypeBySocVersion(socVersion_);
     if (!IsChipSeriesTypeValid(chipType, Common::ChipProductType::ASCEND910B_SERIES) &&
         !IsChipSeriesTypeValid(chipType, Common::ChipProductType::ASCEND910_93_SERIES) &&
-        !IsChipSeriesTypeValid(chipType, Common::ChipProductType::ASCEND910_95_SERIES)) {
+        !IsChipSeriesTypeValid(chipType, Common::ChipProductType::ASCEND950_SERIES)) {
         return true;
     }
     if (!sourceEnable_) {
@@ -633,7 +633,7 @@ bool HotSpotFunctionGenerator::GenLine2Encodings(const std::string &kernelPath,
                 addrVec.emplace_back(std::to_string(addr));
             }
         }
-    } else if (Common::IsChipSeriesTypeValid(chipType, Common::ChipProductType::ASCEND910_95_SERIES)) {
+    } else if (Common::IsChipSeriesTypeValid(chipType, Common::ChipProductType::ASCEND950_SERIES)) {
         for (const auto &item : encodings_) {
             addrVec.emplace_back(std::to_string(item.second.addr));
         }

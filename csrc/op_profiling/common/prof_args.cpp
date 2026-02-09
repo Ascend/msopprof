@@ -208,7 +208,7 @@ std::vector<uint16_t> PmuEventsId::GetSortedEventsByMetrics(
     // default ASCEND910B
     uint32_t eventMaxNum = EVENT_MAX_NUM;
     uint32_t pmuMaxNum = PMU_EVENT_MAX_NUM;
-    if (chipType == ChipType::ASCEND910_95) {
+    if (chipType == ChipType::ASCEND950) {
         eventMaxNum = EVENT_MAX_NUM_A5;
         pmuMaxNum = PMU_EVENT_MAX_NUM_A5;
         // A5下pmu=0为有效数据，当出现时不能放置每轮重放的第一个pmu
@@ -263,7 +263,7 @@ void PmuEventsId::LoadPmuVec(const ProfMetricsAbilityConfig &metrics, ChipType c
     MetricEventsMapType aivMetricEventsMap = AIV_EVENTS_FOR_910B;
     std::vector<uint16_t> aicTotalEvents = REPLAY_AIC_EVENTS_FOR_910B;
     std::vector<uint16_t> aivTotalEvents = REPLAY_AIV_EVENTS_FOR_910B;
-    if (chipType == ChipType::ASCEND910_95) {
+    if (chipType == ChipType::ASCEND950) {
         aicMetricEventsMap = AIC_EVENTS_FOR_A5;
         aivMetricEventsMap = AIV_EVENTS_FOR_A5;
         aicTotalEvents = REPLAY_AIC_EVENTS_FOR_A5;

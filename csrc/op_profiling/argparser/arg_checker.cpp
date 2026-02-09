@@ -48,28 +48,28 @@ const AicMetricsSupportMap DEVICE_AIC_METRICS_SUPPORT_MAP{
     {std::string(Common::MsprofMetrics::DEFAULT),                 {Common::ChipProductType::ALL_PRODUCT_TYPE}},
     {std::string(Common::MsprofMetrics::KERNEL_SCALE),            {Common::ChipProductType::ASCEND910B_SERIES,
                                                                    Common::ChipProductType::ASCEND910_93_SERIES,
-                                                                   Common::ChipProductType::ASCEND910_95_SERIES}},
+                                                                   Common::ChipProductType::ASCEND950_SERIES}},
     {std::string(Common::MsprofMetrics::OCCUPANCY),               {Common::ChipProductType::ASCEND910B_SERIES,
                                                                    Common::ChipProductType::ASCEND910_93_SERIES,
-                                                                   Common::ChipProductType::ASCEND910_95_SERIES}},
+                                                                   Common::ChipProductType::ASCEND950_SERIES}},
     {std::string(Common::MsprofMetrics::TIMELINE_DETAIL),         {Common::ChipProductType::ASCEND910B_SERIES,
                                                                    Common::ChipProductType::ASCEND910_93_SERIES}},
     {std::string(Common::MsprofMetrics::ROOFLINE),                {Common::ChipProductType::ASCEND910B_SERIES,
                                                                    Common::ChipProductType::ASCEND910_93_SERIES,
                                                                    Common::ChipProductType::ASCEND310P_SERIES,
-                                                                   Common::ChipProductType::ASCEND910_95_SERIES}},
+                                                                   Common::ChipProductType::ASCEND950_SERIES}},
     {std::string(Common::MsprofMetrics::BASIC_INFO),              {Common::ChipProductType::ASCEND910B_SERIES,
                                                                    Common::ChipProductType::ASCEND910_93_SERIES,
-                                                                   Common::ChipProductType::ASCEND910_95_SERIES,
+                                                                   Common::ChipProductType::ASCEND950_SERIES,
                                                                    Common::ChipProductType::ASCEND310P_SERIES}},
     {std::string(Common::MsprofMetrics::SOURCE),                  {Common::ChipProductType::ASCEND910B_SERIES,
                                                                    Common::ChipProductType::ASCEND910_93_SERIES,
-                                                                   Common::ChipProductType::ASCEND910_95_SERIES}},
+                                                                   Common::ChipProductType::ASCEND950_SERIES}},
     {std::string(Common::MsprofMetrics::MEMORYDETAIL),            {Common::ChipProductType::ASCEND910B_SERIES,
                                                                    Common::ChipProductType::ASCEND910_93_SERIES,
-                                                                   Common::ChipProductType::ASCEND910_95_SERIES}},
-    {std::string(Common::MsprofMetrics::TIMELINE),                {Common::ChipProductType::ASCEND910_95_SERIES}},
-    {std::string(Common::MsprofMetrics::PCSAMPLING),              {Common::ChipProductType::ASCEND910_95_SERIES}},
+                                                                   Common::ChipProductType::ASCEND950_SERIES}},
+    {std::string(Common::MsprofMetrics::TIMELINE),                {Common::ChipProductType::ASCEND950_SERIES}},
+    {std::string(Common::MsprofMetrics::PCSAMPLING),              {Common::ChipProductType::ASCEND950_SERIES}},
 };
 // 仿真模式下支持的AIC指标，key是指标名称，value是支持的产品类型列表
 const AicMetricsSupportMap SIMULATOR_AIC_METRICS_SUPPORT_MAP{
@@ -79,7 +79,7 @@ const AicMetricsSupportMap SIMULATOR_AIC_METRICS_SUPPORT_MAP{
                                                                    Common::ChipProductType::ASCEND310P_SERIES}},
     {std::string(Common::MsprofMetrics::PMSAMPLING),              {Common::ChipProductType::ASCEND910B_SERIES,
                                                                    Common::ChipProductType::ASCEND910_93_SERIES,
-                                                                   Common::ChipProductType::ASCEND910_95_SERIES}},
+                                                                   Common::ChipProductType::ASCEND950_SERIES}},
 };
 
 ArgChecker::ArgChecker(const std::string &runMode)
@@ -345,7 +345,7 @@ bool ArgChecker::CheckReplayMode(const Common::ProfArgs &config, std::string &ms
 {
     std::set<std::string> targetModes = {"application", "kernel"};
     ChipType chipType = Common::HalHelper::Instance().GetPlatformType();
-    if (chipType == ChipType::ASCEND910B || chipType == ChipType::ASCEND910_95) {
+    if (chipType == ChipType::ASCEND910B || chipType == ChipType::ASCEND950) {
         targetModes.insert("range");
     }
     if (targetModes.count(config.argReplayMode) == 0) {

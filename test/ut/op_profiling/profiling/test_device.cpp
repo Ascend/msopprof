@@ -168,8 +168,8 @@ TEST(DeviceDataParse, Parse_data_expect_success_A5)
     ProfMetricsAbilityConfig metricsConfig;
     config.argOutput = "test/ut/resources/op_profiling/deviceA5";
     metricsConfig.occupancyEnable = true;
-    pmuEventsId.LoadPmuVec(metricsConfig, ChipType::ASCEND910_95);
-    DeviceDataParse deviceDataParse(ChipType::ASCEND910_95, pmuEventsId, metricsConfig);
+    pmuEventsId.LoadPmuVec(metricsConfig, ChipType::ASCEND950);
+    DeviceDataParse deviceDataParse(ChipType::ASCEND950, pmuEventsId, metricsConfig);
 
     deviceDataParse.ParserInit();
     ASSERT_TRUE(deviceDataParse.ParseExactKernelData(config.argOutput));
@@ -1192,11 +1192,11 @@ TEST(EquationsUtils, BandWidth_expect_success)
 
 TEST(EquationsUtils, BandWidthUsage_expect_success)
 {
-    auto res1 = BandWidthUsage(10, 0, TransportType::GM_TO_L1, ChipProductType::ASCEND910_9599);
+    auto res1 = BandWidthUsage(10, 0, TransportType::GM_TO_L1, ChipProductType::ASCEND950PR_9599);
     ASSERT_STREQ(res1.c_str(), "NA");
-    auto res2 = BandWidthUsage(10, 1, TransportType::UNKNOWN, ChipProductType::ASCEND910_9599);
+    auto res2 = BandWidthUsage(10, 1, TransportType::UNKNOWN, ChipProductType::ASCEND950PR_9599);
     ASSERT_STREQ(res2.c_str(), "NA");
-    auto res3 = BandWidthUsage(0.0001, 1, TransportType::GM_TO_L1, ChipProductType::ASCEND910_9599);
+    auto res3 = BandWidthUsage(0.0001, 1, TransportType::GM_TO_L1, ChipProductType::ASCEND950PR_9599);
     ASSERT_STREQ(res3.c_str(), "1.564328");
 }
 
@@ -1213,7 +1213,7 @@ TEST(CalMetricItems, CalMetricItems_A5_success)
     pmuEventValueMap.erase(pmuEventValueMap.begin());
     PmuMap pmuMap(pmuEventValueMap);
 
-    CalculateParams params = { 1000, 1000, 1, "Ascend910_9599", pmuMap};
+    CalculateParams params = { 1000, 1000, 1, "Ascend950PR_9599", pmuMap};
     set<std::string> metricItems;
     for (const auto &temp : MetricHeaderForA5) {
         metricItems.insert(temp.second.begin(), temp.second.end());
@@ -1232,7 +1232,7 @@ TEST(CalMetricItems, CalMetricItems_A5_success)
 TEST(DeviceDataParse, a5_execute_func_when_pcStart_not_found_and_expect_no_throw)
 {
     DataHandlerOf91095 dataHandlerA5;
-    dataHandlerA5.soc_ = "Ascend910_9599";
+    dataHandlerA5.soc_ = "Ascend950PR_9599";
     string outputPath;
     ProfMetricsAbilityConfig metrics;
     metrics.pcSamplingEnable = true;
@@ -1250,7 +1250,7 @@ TEST(DeviceDataParse, process_encoding_when_soc_is_a5_and_expect_success)
 {
     GlobalMockObject::verify();
     string kernelPath;
-    string soc = "Ascend910_9599";
+    string soc = "Ascend950PR_9599";
     std::shared_ptr<L2Cache> l2CachePtr;
     std::vector<Encode::EncodingInfo> instrEncodingVec = {
         {{0, 0}, 0, EncodingType::BIT32, "PIPEA", "NAMEA"}, {{1, 0}, 1, EncodingType::BIT32, "PIPEB", "NAMEB"},
@@ -1279,7 +1279,7 @@ TEST(DeviceDataParse, process_update_pcsampling_given_bin_and_expect_success)
 {
     GlobalMockObject::verify();
 
-    string soc = "Ascend910_9599";
+    string soc = "Ascend950PR_9599";
     string dir = "test/ut/resources/op_profiling/instr_prof";
     HotSpotFunctionGenerator hotSpotFunctionGenerator({soc, "", 0, false, true, false});
     hotSpotFunctionGenerator.startPc_ = 0;

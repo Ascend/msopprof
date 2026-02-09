@@ -114,7 +114,7 @@ uint32_t DeviceTask::GetReplayTimes()
 {
     uint32_t replayTimes = 1U;
     if (replayMode_ == ReplayMode::APPLICATION) {
-        uint32_t pmuEventMaxNum = chipType_ == ChipType::ASCEND910_95 ? PMU_EVENT_MAX_NUM_A5 : PMU_EVENT_MAX_NUM;
+        uint32_t pmuEventMaxNum = chipType_ == ChipType::ASCEND950 ? PMU_EVENT_MAX_NUM_A5 : PMU_EVENT_MAX_NUM;
         uint32_t aicMaxTimes = static_cast<uint32_t>(std::ceil(static_cast<double>
             (pmuValue_.aicPmu.size()) / pmuEventMaxNum));
         uint32_t aivMaxTimes = static_cast<uint32_t>(std::ceil(static_cast<double>
@@ -129,7 +129,7 @@ uint32_t DeviceTask::GetReplayTimes()
                 dbiTypes.emplace_back(ProfDBIType::AS_IS);
             }
         }
-        if (chipType_ == ChipType::ASCEND910_95) {
+        if (chipType_ == ChipType::ASCEND950) {
             dbiTypes.emplace_back(ProfDBIType::OPERAND_RECORD);
             replayTimes++;
         }
@@ -173,7 +173,7 @@ bool DeviceTask::PreProcess()
     if (metrics_.isKernelScale) {
         profMessage_.useProfileMode = true;
     }
-    profMessage_.dbiFlag = chipType_ == ChipType::ASCEND910_95 ? DBI_FLAG_OPERAND_RECORD : 0;
+    profMessage_.dbiFlag = chipType_ == ChipType::ASCEND950 ? DBI_FLAG_OPERAND_RECORD : 0;
     profMessage_.dbiFlag |= metrics_.isMemoryDetail ? DBI_FLAG_MEMORY_CHART : 0;
     profMessage_.dbiFlag |= metrics_.pcSamplingEnable ? DBI_FLAG_INSTR_PROF_START : 0;
     profMessage_.dbiFlag |= metrics_.timelineEnable ? DBI_FLAG_INSTR_PROF_END : 0;

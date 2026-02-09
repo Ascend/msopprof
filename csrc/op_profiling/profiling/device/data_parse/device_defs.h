@@ -70,7 +70,7 @@ enum class TransportType : uint16_t {
     GM_TO_L0B,
     UNKNOWN
 };
- 
+
 const std::map<TransportType, uint16_t> REQ_DATA_OF_910B = {
     {TransportType::READ_MAIN_MEMORY,        128},
     {TransportType::WRITE_MAIN_MEMORY,       128},
@@ -148,7 +148,7 @@ const std::map<TransportType, uint16_t> REQ_DATA_OF_310P = {
 const std::map<Common::ChipProductType, std::map<TransportType, uint16_t>> REQ_DATA_ALL = {
     {Common::ChipProductType::ASCEND910B_SERIES,       REQ_DATA_OF_910B},
     {Common::ChipProductType::ASCEND310P_SERIES,       REQ_DATA_OF_310P},
-    {Common::ChipProductType::ASCEND910_95_SERIES,     REQ_DATA_OF_A5}
+    {Common::ChipProductType::ASCEND950_SERIES,     REQ_DATA_OF_A5}
 };
 
 const std::map<TransportType, float> maxBwRateOf910B1 = {
@@ -159,7 +159,7 @@ const std::map<TransportType, float> maxBwRateOf910B1 = {
     {TransportType::GM_TO_UB, Common::MAX_BW_910B1.at(std::string {Common::GM_TO_UB})},
     {TransportType::UB_TO_GM, Common::MAX_BW_910B1.at(std::string {Common::UB_TO_GM})},
 };
- 
+
 const std::map<TransportType, float> maxBwRateOf910B1GmCJ = {
     {TransportType::GM_TO_L1, 296},
     {TransportType::L1_TO_GM, Common::MAX_BW_910B1_CJ.at(std::string {Common::L1_TO_GM})},
@@ -168,7 +168,7 @@ const std::map<TransportType, float> maxBwRateOf910B1GmCJ = {
     {TransportType::GM_TO_UB, Common::MAX_BW_910B1_CJ.at(std::string {Common::GM_TO_UB})},
     {TransportType::UB_TO_GM, Common::MAX_BW_910B1_CJ.at(std::string {Common::UB_TO_GM})},
 };
- 
+
 const std::map<TransportType, float> maxBwRateOf910B4 = {
     {TransportType::GM_TO_L1, 222},
     {TransportType::L1_TO_GM, Common::MAX_BW_910B4.at(std::string {Common::L1_TO_GM})},
@@ -177,7 +177,7 @@ const std::map<TransportType, float> maxBwRateOf910B4 = {
     {TransportType::GM_TO_UB, Common::MAX_BW_910B4.at(std::string {Common::GM_TO_UB})},
     {TransportType::UB_TO_GM, Common::MAX_BW_910B4.at(std::string {Common::UB_TO_GM})},
 };
- 
+
 const std::map<TransportType, float> maxBwRateOf910B4GmCJ = {
     {TransportType::GM_TO_L1, 274},
     {TransportType::L1_TO_GM, Common::MAX_BW_910B4.at(std::string {Common::L1_TO_GM})},
@@ -186,8 +186,8 @@ const std::map<TransportType, float> maxBwRateOf910B4GmCJ = {
     {TransportType::GM_TO_UB, Common::MAX_BW_910B4.at(std::string {Common::GM_TO_UB})},
     {TransportType::UB_TO_GM, Common::MAX_BW_910B4.at(std::string {Common::UB_TO_GM})},
 };
- 
-const std::map<TransportType, float> maxBwRateOf910_959X = {
+
+const std::map<TransportType, float> maxBwRateOf950_959X = {
     {TransportType::GM_TO_L1,                6392.52},
     {TransportType::L1_TO_GM,                5176.44},
     {TransportType::L0C_TO_L1,               14837.4},
@@ -201,7 +201,7 @@ const std::map<TransportType, float> maxBwRateOf910_959X = {
     {TransportType::UB_TO_GM,                5174.64},
 };
 
-const std::map<TransportType, float> maxBwRateOf910_958X = {
+const std::map<TransportType, float> maxBwRateOf950_958X = {
     {TransportType::GM_TO_L1,                5208.72},
     {TransportType::L1_TO_GM,                4217.84},
     {TransportType::L0C_TO_L1,               12089.73},
@@ -215,7 +215,7 @@ const std::map<TransportType, float> maxBwRateOf910_958X = {
     {TransportType::UB_TO_GM,                4216.37},
 };
 
-const std::map<TransportType, float> maxBwRateOf910_957X = {
+const std::map<TransportType, float> maxBwRateOf950_957X = {
     {TransportType::GM_TO_L1,                4557.63},
     {TransportType::L1_TO_GM,                3690.61},
     {TransportType::L0C_TO_L1,               10578.52},
@@ -229,7 +229,7 @@ const std::map<TransportType, float> maxBwRateOf910_957X = {
     {TransportType::UB_TO_GM,                3689.33},
 };
 
-const std::map<TransportType, float> maxBwRateOf910_950X = {
+const std::map<TransportType, float> maxBwRateOf950_950X = {
     {TransportType::GM_TO_L1,                1302.18},
     {TransportType::L1_TO_GM,                1054.46},
     {TransportType::L0C_TO_L1,               3022.43},
@@ -244,39 +244,40 @@ const std::map<TransportType, float> maxBwRateOf910_950X = {
 };
 
 const std::map<std::string, std::map<TransportType, float>> MAX_BW_RATE_A5 = {
-    {"Ascend910_950x",  maxBwRateOf910_950X},
-    {"Ascend910_950y",  maxBwRateOf910_950X},
-    {"Ascend910_950z",  maxBwRateOf910_950X},
-    {"Ascend910_9571",  maxBwRateOf910_957X},
-    {"Ascend910_9572",  maxBwRateOf910_957X},
-    {"Ascend910_9573",  maxBwRateOf910_957X},
-    {"Ascend910_9574",  maxBwRateOf910_957X},
-    {"Ascend910_9575",  maxBwRateOf910_957X},
-    {"Ascend910_9576",  maxBwRateOf910_957X},
-    {"Ascend910_9577",  maxBwRateOf910_957X},
-    {"Ascend910_9578",  maxBwRateOf910_957X},
-    {"Ascend910_9579",  maxBwRateOf910_957X},
-    {"Ascend910_957b",  maxBwRateOf910_957X},
-    {"Ascend910_957c",  maxBwRateOf910_957X},
-    {"Ascend910_957d",  maxBwRateOf910_957X},
-    {"Ascend910_9581",  maxBwRateOf910_958X},
-    {"Ascend910_9582",  maxBwRateOf910_958X},
-    {"Ascend910_9583",  maxBwRateOf910_958X},
-    {"Ascend910_9584",  maxBwRateOf910_958X},
-    {"Ascend910_9585",  maxBwRateOf910_958X},
-    {"Ascend910_9586",  maxBwRateOf910_958X},
-    {"Ascend910_9587",  maxBwRateOf910_958X},
-    {"Ascend910_9588",  maxBwRateOf910_958X},
-    {"Ascend910_9589",  maxBwRateOf910_958X},
-    {"Ascend910_958a",  maxBwRateOf910_958X},
-    {"Ascend910_958b",  maxBwRateOf910_958X},
-    {"Ascend910_9591",  maxBwRateOf910_959X},
-    {"Ascend910_9592",  maxBwRateOf910_959X},
-    {"Ascend910_9595",  maxBwRateOf910_959X},
-    {"Ascend910_9596",  maxBwRateOf910_959X},
-    {"Ascend910_9599",  maxBwRateOf910_959X},
+    {"Ascend950DT_950x",  maxBwRateOf950_950X},
+    {"Ascend950DT_950y",  maxBwRateOf950_950X},
+    {"Ascend950DT_9571",  maxBwRateOf950_957X},
+    {"Ascend950DT_9572",  maxBwRateOf950_957X},
+    {"Ascend950DT_9573",  maxBwRateOf950_957X},
+    {"Ascend950DT_9574",  maxBwRateOf950_957X},
+    {"Ascend950DT_9575",  maxBwRateOf950_957X},
+    {"Ascend950DT_9576",  maxBwRateOf950_957X},
+    {"Ascend950DT_9577",  maxBwRateOf950_957X},
+    {"Ascend950DT_9578",  maxBwRateOf950_957X},
+    {"Ascend950DT_9581",  maxBwRateOf950_958X},
+    {"Ascend950DT_9582",  maxBwRateOf950_958X},
+    {"Ascend950DT_9583",  maxBwRateOf950_958X},
+    {"Ascend950DT_9584",  maxBwRateOf950_958X},
+    {"Ascend950DT_9585",  maxBwRateOf950_958X},
+    {"Ascend950DT_9586",  maxBwRateOf950_958X},
+    {"Ascend950DT_9587",  maxBwRateOf950_958X},
+    {"Ascend950DT_9588",  maxBwRateOf950_958X},
+    {"Ascend950DT_9591",  maxBwRateOf950_959X},
+    {"Ascend950DT_9592",  maxBwRateOf950_959X},
+    {"Ascend950DT_9595",  maxBwRateOf950_959X},
+    {"Ascend950DT_9596",  maxBwRateOf950_959X},
+    {"Ascend950DT_95A1",  maxBwRateOf950_959X},
+    {"Ascend950DT_95A2",  maxBwRateOf950_959X},
+    {"Ascend950PR_950z",  maxBwRateOf950_950X},
+    {"Ascend950PR_9579",  maxBwRateOf950_957X},
+    {"Ascend950PR_957b",  maxBwRateOf950_957X},
+    {"Ascend950PR_957c",  maxBwRateOf950_957X},
+    {"Ascend950PR_957d",  maxBwRateOf950_957X},
+    {"Ascend950PR_9589",  maxBwRateOf950_958X},
+    {"Ascend950PR_958b",  maxBwRateOf950_958X},
+    {"Ascend950PR_9599",  maxBwRateOf950_959X},
 };
- 
+
 const std::map<std::string, std::map<TransportType, float>> MAX_BW_RATE = {
     {"Ascend910B1",   maxBwRateOf910B1},
     {"Ascend910B2",   maxBwRateOf910B1},
@@ -285,7 +286,7 @@ const std::map<std::string, std::map<TransportType, float>> MAX_BW_RATE = {
     {"Ascend910B4-1", maxBwRateOf910B4},
     {"Ascend910B2C",  maxBwRateOf910B1}
 };
- 
+
 const std::map<std::string, std::map<TransportType, float>> MAX_BW_RATE_GM_CJ = {
     {"Ascend910B1",   maxBwRateOf910B1GmCJ},
     {"Ascend910B2",   maxBwRateOf910B1GmCJ},
@@ -294,7 +295,7 @@ const std::map<std::string, std::map<TransportType, float>> MAX_BW_RATE_GM_CJ = 
     {"Ascend910B4-1", maxBwRateOf910B4GmCJ},
     {"Ascend910B2C",  maxBwRateOf910B1GmCJ}
 };
- 
+
 const std::map<Common::GmType, std::map<std::string, std::map<TransportType, float>>> GM_PRODUCT_BW = {
     {Common::GmType::CJ, MAX_BW_RATE_GM_CJ},
     {Common::GmType::SK, MAX_BW_RATE},
@@ -315,48 +316,38 @@ const std::map<std::pair<Common::ChipProductType, Common::GmType>, std::map<Tran
     {{Common::ChipProductType::ASCEND910B4,     Common::GmType::CJ},             maxBwRateOf910B4GmCJ},
     {{Common::ChipProductType::ASCEND910B4_1,   Common::GmType::CJ},             maxBwRateOf910B4GmCJ},
     {{Common::ChipProductType::ASCEND910B2C,    Common::GmType::CJ},             maxBwRateOf910B4GmCJ},
-    {{Common::ChipProductType::ASCEND910_9599,  Common::GmType::DEFAULT},        maxBwRateOf910_959X},
-    {{Common::ChipProductType::ASCEND910_9581,  Common::GmType::DEFAULT},        maxBwRateOf910_958X},
-    {{Common::ChipProductType::ASCEND910_9589,  Common::GmType::DEFAULT},        maxBwRateOf910_958X},
-    {{Common::ChipProductType::ASCEND910_958A,  Common::GmType::DEFAULT},        maxBwRateOf910_958X},
-    {{Common::ChipProductType::ASCEND910_958B,  Common::GmType::DEFAULT},        maxBwRateOf910_958X},
-    {{Common::ChipProductType::ASCEND910_9579,  Common::GmType::DEFAULT},        maxBwRateOf910_957X},
-    {{Common::ChipProductType::ASCEND910_957B,  Common::GmType::DEFAULT},        maxBwRateOf910_957X},
-    {{Common::ChipProductType::ASCEND910_957C,  Common::GmType::DEFAULT},        maxBwRateOf910_957X},
-    {{Common::ChipProductType::ASCEND910_957D,  Common::GmType::DEFAULT},        maxBwRateOf910_957X},
-    {{Common::ChipProductType::ASCEND910_950Z,  Common::GmType::DEFAULT},        maxBwRateOf910_950X},
-    {{Common::ChipProductType::ASCEND910_950X,  Common::GmType::DEFAULT},        maxBwRateOf910_950X},
-    {{Common::ChipProductType::ASCEND910_950Y,  Common::GmType::DEFAULT},        maxBwRateOf910_950X},
-    {{Common::ChipProductType::ASCEND910_950Z,  Common::GmType::DEFAULT},        maxBwRateOf910_950X},
-    {{Common::ChipProductType::ASCEND910_9571,  Common::GmType::DEFAULT},        maxBwRateOf910_957X},
-    {{Common::ChipProductType::ASCEND910_9572,  Common::GmType::DEFAULT},        maxBwRateOf910_957X},
-    {{Common::ChipProductType::ASCEND910_9573,  Common::GmType::DEFAULT},        maxBwRateOf910_957X},
-    {{Common::ChipProductType::ASCEND910_9574,  Common::GmType::DEFAULT},        maxBwRateOf910_957X},
-    {{Common::ChipProductType::ASCEND910_9575,  Common::GmType::DEFAULT},        maxBwRateOf910_957X},
-    {{Common::ChipProductType::ASCEND910_9576,  Common::GmType::DEFAULT},        maxBwRateOf910_957X},
-    {{Common::ChipProductType::ASCEND910_9577,  Common::GmType::DEFAULT},        maxBwRateOf910_957X},
-    {{Common::ChipProductType::ASCEND910_9578,  Common::GmType::DEFAULT},        maxBwRateOf910_957X},
-    {{Common::ChipProductType::ASCEND910_9579,  Common::GmType::DEFAULT},        maxBwRateOf910_957X},
-    {{Common::ChipProductType::ASCEND910_957B,  Common::GmType::DEFAULT},        maxBwRateOf910_957X},
-    {{Common::ChipProductType::ASCEND910_957C,  Common::GmType::DEFAULT},        maxBwRateOf910_957X},
-    {{Common::ChipProductType::ASCEND910_957D,  Common::GmType::DEFAULT},        maxBwRateOf910_957X},
-    {{Common::ChipProductType::ASCEND910_9581,  Common::GmType::DEFAULT},        maxBwRateOf910_958X},
-    {{Common::ChipProductType::ASCEND910_9582,  Common::GmType::DEFAULT},        maxBwRateOf910_958X},
-    {{Common::ChipProductType::ASCEND910_9583,  Common::GmType::DEFAULT},        maxBwRateOf910_958X},
-    {{Common::ChipProductType::ASCEND910_9584,  Common::GmType::DEFAULT},        maxBwRateOf910_958X},
-    {{Common::ChipProductType::ASCEND910_9585,  Common::GmType::DEFAULT},        maxBwRateOf910_958X},
-    {{Common::ChipProductType::ASCEND910_9586,  Common::GmType::DEFAULT},        maxBwRateOf910_958X},
-    {{Common::ChipProductType::ASCEND910_9587,  Common::GmType::DEFAULT},        maxBwRateOf910_958X},
-    {{Common::ChipProductType::ASCEND910_9588,  Common::GmType::DEFAULT},        maxBwRateOf910_958X},
-    {{Common::ChipProductType::ASCEND910_9589,  Common::GmType::DEFAULT},        maxBwRateOf910_958X},
-    {{Common::ChipProductType::ASCEND910_958A,  Common::GmType::DEFAULT},        maxBwRateOf910_958X},
-    {{Common::ChipProductType::ASCEND910_958B,  Common::GmType::DEFAULT},        maxBwRateOf910_958X},
-    {{Common::ChipProductType::ASCEND910_9591,  Common::GmType::DEFAULT},        maxBwRateOf910_959X},
-    {{Common::ChipProductType::ASCEND910_9592,  Common::GmType::DEFAULT},        maxBwRateOf910_959X},
-    {{Common::ChipProductType::ASCEND910_9595,  Common::GmType::DEFAULT},        maxBwRateOf910_959X},
-    {{Common::ChipProductType::ASCEND910_9596,  Common::GmType::DEFAULT},        maxBwRateOf910_959X},
-    {{Common::ChipProductType::ASCEND910_9599,  Common::GmType::DEFAULT},        maxBwRateOf910_959X},
+    {{Common::ChipProductType::ASCEND950DT_950X,  Common::GmType::DEFAULT},        maxBwRateOf950_950X},
+    {{Common::ChipProductType::ASCEND950DT_950Y,  Common::GmType::DEFAULT},        maxBwRateOf950_950X},
+    {{Common::ChipProductType::ASCEND950DT_9571,  Common::GmType::DEFAULT},        maxBwRateOf950_957X},
+    {{Common::ChipProductType::ASCEND950DT_9572,  Common::GmType::DEFAULT},        maxBwRateOf950_957X},
+    {{Common::ChipProductType::ASCEND950DT_9573,  Common::GmType::DEFAULT},        maxBwRateOf950_957X},
+    {{Common::ChipProductType::ASCEND950DT_9574,  Common::GmType::DEFAULT},        maxBwRateOf950_957X},
+    {{Common::ChipProductType::ASCEND950DT_9575,  Common::GmType::DEFAULT},        maxBwRateOf950_957X},
+    {{Common::ChipProductType::ASCEND950DT_9576,  Common::GmType::DEFAULT},        maxBwRateOf950_957X},
+    {{Common::ChipProductType::ASCEND950DT_9577,  Common::GmType::DEFAULT},        maxBwRateOf950_957X},
+    {{Common::ChipProductType::ASCEND950DT_9578,  Common::GmType::DEFAULT},        maxBwRateOf950_957X},
+    {{Common::ChipProductType::ASCEND950DT_9581,  Common::GmType::DEFAULT},        maxBwRateOf950_958X},
+    {{Common::ChipProductType::ASCEND950DT_9582,  Common::GmType::DEFAULT},        maxBwRateOf950_958X},
+    {{Common::ChipProductType::ASCEND950DT_9583,  Common::GmType::DEFAULT},        maxBwRateOf950_958X},
+    {{Common::ChipProductType::ASCEND950DT_9584,  Common::GmType::DEFAULT},        maxBwRateOf950_958X},
+    {{Common::ChipProductType::ASCEND950DT_9585,  Common::GmType::DEFAULT},        maxBwRateOf950_958X},
+    {{Common::ChipProductType::ASCEND950DT_9586,  Common::GmType::DEFAULT},        maxBwRateOf950_958X},
+    {{Common::ChipProductType::ASCEND950DT_9587,  Common::GmType::DEFAULT},        maxBwRateOf950_958X},
+    {{Common::ChipProductType::ASCEND950DT_9588,  Common::GmType::DEFAULT},        maxBwRateOf950_958X},
+    {{Common::ChipProductType::ASCEND950DT_9591,  Common::GmType::DEFAULT},        maxBwRateOf950_959X},
+    {{Common::ChipProductType::ASCEND950DT_9592,  Common::GmType::DEFAULT},        maxBwRateOf950_959X},
+    {{Common::ChipProductType::ASCEND950DT_9595,  Common::GmType::DEFAULT},        maxBwRateOf950_959X},
+    {{Common::ChipProductType::ASCEND950DT_9596,  Common::GmType::DEFAULT},        maxBwRateOf950_959X},
+    {{Common::ChipProductType::ASCEND950DT_95A1,  Common::GmType::DEFAULT},        maxBwRateOf950_959X},
+    {{Common::ChipProductType::ASCEND950DT_95A2,  Common::GmType::DEFAULT},        maxBwRateOf950_959X},
+    {{Common::ChipProductType::ASCEND950PR_950Z,  Common::GmType::DEFAULT},        maxBwRateOf950_950X},
+    {{Common::ChipProductType::ASCEND950PR_9579,  Common::GmType::DEFAULT},        maxBwRateOf950_957X},
+    {{Common::ChipProductType::ASCEND950PR_957B,  Common::GmType::DEFAULT},        maxBwRateOf950_957X},
+    {{Common::ChipProductType::ASCEND950PR_957C,  Common::GmType::DEFAULT},        maxBwRateOf950_957X},
+    {{Common::ChipProductType::ASCEND950PR_957D,  Common::GmType::DEFAULT},        maxBwRateOf950_957X},
+    {{Common::ChipProductType::ASCEND950PR_9589,  Common::GmType::DEFAULT},        maxBwRateOf950_958X},
+    {{Common::ChipProductType::ASCEND950PR_958B,  Common::GmType::DEFAULT},        maxBwRateOf950_958X},
+    {{Common::ChipProductType::ASCEND950PR_9599,  Common::GmType::DEFAULT},        maxBwRateOf950_959X},
 };
 }
- 
 #endif // __MSOPPROF_PROFILING_DEVICE_DEF_H__

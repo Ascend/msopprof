@@ -288,15 +288,14 @@ const std::map<std::string, float> MEMORY_PIPE_MAX_BW_RATE_A5 = {
 };
 
 const std::map<std::string, std::map<std::string, float>> MAX_BW_REQ_A5 = {
-    {"Ascend910_9599",   MEMORY_PIPE_MAX_BW_RATE_A5},
-    {"Ascend910_9589",   MEMORY_PIPE_MAX_BW_RATE_A5},
-    {"Ascend910_9581",   MEMORY_PIPE_MAX_BW_RATE_A5},
-    {"Ascend910_958a",   MEMORY_PIPE_MAX_BW_RATE_A5},
-    {"Ascend910_958b",   MEMORY_PIPE_MAX_BW_RATE_A5},
-    {"Ascend910_9579",   MEMORY_PIPE_MAX_BW_RATE_A5},
-    {"Ascend910_957b",   MEMORY_PIPE_MAX_BW_RATE_A5},
-    {"Ascend910_957d",   MEMORY_PIPE_MAX_BW_RATE_A5},
-    {"Ascend910_950z",   MEMORY_PIPE_MAX_BW_RATE_A5},
+    {"Ascend950PR_9599",   MEMORY_PIPE_MAX_BW_RATE_A5},
+    {"Ascend950PR_9589",   MEMORY_PIPE_MAX_BW_RATE_A5},
+    {"Ascend950DT_9581",   MEMORY_PIPE_MAX_BW_RATE_A5},
+    {"Ascend950PR_958b",   MEMORY_PIPE_MAX_BW_RATE_A5},
+    {"Ascend950PR_9579",   MEMORY_PIPE_MAX_BW_RATE_A5},
+    {"Ascend950PR_957b",   MEMORY_PIPE_MAX_BW_RATE_A5},
+    {"Ascend950PR_957d",   MEMORY_PIPE_MAX_BW_RATE_A5},
+    {"Ascend950PR_950z",   MEMORY_PIPE_MAX_BW_RATE_A5},
 };
 
 const std::map<Common::GmType, std::map<std::string, std::map<std::string, float>>> GM_PRODUCT_MAX_BW_REQ = {

@@ -314,7 +314,7 @@ bool DataHandler::CalMetrics(const ParserConfig &config, const Common::ProfMetri
         if (pair.second.blockType == OpType::CUBE) {
             if (SOC_STRING_TO_CHIP_PRODUCT.find(socVersion_) != SOC_STRING_TO_CHIP_PRODUCT.end() &&
                 IsChipSeriesTypeValid(SOC_STRING_TO_CHIP_PRODUCT.at(socVersion_),
-                ChipProductType::ASCEND910_95_SERIES)) {
+                ChipProductType::ASCEND950_SERIES)) {
                 metricValues = CalMetricItems(params, config.aicCalMetricItems, formulaOfA5_);
             } else {
                 metricValues = CalMetricItems(cal, config.aicCalMetricItems, formula, dbiMap[pair.first.first]);
@@ -322,7 +322,7 @@ bool DataHandler::CalMetrics(const ParserConfig &config, const Common::ProfMetri
         } else {
             if (SOC_STRING_TO_CHIP_PRODUCT.find(socVersion_) != SOC_STRING_TO_CHIP_PRODUCT.end() &&
                 IsChipSeriesTypeValid(SOC_STRING_TO_CHIP_PRODUCT.at(socVersion_),
-                ChipProductType::ASCEND910_95_SERIES)) {
+                ChipProductType::ASCEND950_SERIES)) {
                 metricValues = CalMetricItems(params, config.aivCalMetricItems, formulaOfA5_);
             } else {
                 metricValues = CalMetricItems(cal, config.aivCalMetricItems, formula, dbiMap[pair.first.first]);
@@ -930,7 +930,7 @@ void DataHandlerOf91095::ParseProfBin(const std::vector<char> &binData, const si
     blockIdCoreIdPairVec_.clear();
     for (size_t i = 0; i < fileSize; i = i + FFTS_LENGTH) {
         vector<char> splitBinData{&binData[i], &binData[i] + FFTS_LENGTH};
-        FftsBlockBean fftsBlockBean(Common::ChipProductType::ASCEND910_95_SERIES, splitBinData);
+        FftsBlockBean fftsBlockBean(Common::ChipProductType::ASCEND950_SERIES, splitBinData);
         if (fftsBlockBean.GetFuncType() != FUNC_TYPE_BLOCK_PMU) {
             continue;
         }
@@ -952,7 +952,7 @@ void DataHandlerOf91095::ParseDurationBin(const std::string &outputPath, const s
 {
     for (size_t i = 0; i < fileSize; i = i + ACSQ_LENGTH_A5) {  // 这里的start和end存的是aicore的起止时间
         vector<char> splitBinData{&binData[i], &binData[i] + ACSQ_LENGTH_A5};
-        AcsqBean acsqBean(Common::ChipProductType::ASCEND910_95_SERIES, splitBinData);
+        AcsqBean acsqBean(Common::ChipProductType::ASCEND950_SERIES, splitBinData);
         SqeType taskType = static_cast<SqeType>(acsqBean.GetTaskType());
         Common::TimeType timeType = acsqBean.GetTimeType();
         uint64_t systemTime = acsqBean.GetSystemTime();

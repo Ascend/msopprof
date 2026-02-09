@@ -28,7 +28,7 @@ namespace Parse {
 const std::map<Common::ChipProductType, std::regex> patternMap = {
     {Common::ChipProductType::ASCEND310P_SERIES,
      std::regex(R"(X(\d{1,2})|x[a-z]:0x(\d{1,2})|x[a-z]:(\d{1,2})|x\[(\d{1,2})\])")},
-    {Common::ChipProductType::ASCEND910_95_SERIES, std::regex(R"(R([a-z0-9]{1,2}):([0-9a-f]{1,2})\|R)")},
+    {Common::ChipProductType::ASCEND950_SERIES, std::regex(R"(R([a-z0-9]{1,2}):([0-9a-f]{1,2})\|R)")},
     {Common::ChipProductType::ASCEND910B_SERIES, std::regex(R"(X(\d{1,2}))")},
     {Common::ChipProductType::ASCEND910_93_SERIES, std::regex(R"(X(\d{1,2}))")},
 };
@@ -55,7 +55,7 @@ public:
         RegisterPluginName("GPRLiveRegisterCalculator");
         RegisterMandatoryDb({typeid(InstrDetailTable)});
         RegisterChip({Common::ChipProductType::ASCEND310P_SERIES,
-                      Common::ChipProductType::ASCEND910_95_SERIES,
+                      Common::ChipProductType::ASCEND950_SERIES,
                       Common::ChipProductType::ASCEND910B_SERIES,
                       Common::ChipProductType::ASCEND910_93_SERIES});
     }

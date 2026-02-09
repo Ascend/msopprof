@@ -114,7 +114,7 @@ void PrintDeviceHelp(ChipType chipType)
     if (chipType == Common::ChipType::ASCEND910B) {
         std::cout << "/ Occupancy / TimelineDetail / KernelScale / Source / MemoryDetail ";
     }
-    if (chipType == Common::ChipType::ASCEND910_95) {
+    if (chipType == Common::ChipType::ASCEND950) {
         std::cout << "/ Occupancy / KernelScale / Timeline / Source / PCSampling / MemoryDetail ";
     }
     std::cout
@@ -128,7 +128,7 @@ void PrintDeviceHelp(ChipType chipType)
         << "                                                   starting to analyze the kernel,"
         << " number in [0, 1000]. " << std::endl
         << "   --replay-mode                        <Optional> Data collection replay Mode, select application / kernel";
-    if (chipType == Common::ChipType::ASCEND910B || chipType == Common::ChipType::ASCEND910_95) {
+    if (chipType == Common::ChipType::ASCEND910B || chipType == Common::ChipType::ASCEND950) {
         std::cout << " / range";
     }
     std::cout << ", the default value is kernel." << std::endl

@@ -296,7 +296,7 @@ PluginErrorCode GPRLiveRegisterCalculator::Entry()
         auto instrName = mergeInfo[i].name;
         std::vector<std::string> dstRegisters;
         std::vector<std::string> srcRegisters;
-        if (Common::IsChipSeriesTypeValid(chipType_, Common::ChipProductType::ASCEND910_95_SERIES)) {
+        if (Common::IsChipSeriesTypeValid(chipType_, Common::ChipProductType::ASCEND950_SERIES)) {
             GetDstAndSrcRegisterA5(dstRegisters, srcRegisters, mergeInfo[i]);
         } else {
             GetDstAndSrcRegister(dstRegisters, srcRegisters, mergeInfo[i]);

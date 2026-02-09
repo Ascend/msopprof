@@ -33,7 +33,7 @@ public:
         RegisterPluginName("MteLogParser");
         RegisterMandatoryDb({});
         RegisterChip({Common::ChipProductType::ASCEND910B_SERIES, Common::ChipProductType::ASCEND910_93_SERIES,
-            Common::ChipProductType::ASCEND910_95_SERIES});
+            Common::ChipProductType::ASCEND950_SERIES});
     }
 protected:
     void ParseMTELogLine(const Common::DvcMteLog &mteLog, MteLogInstrMap &mteLogInstrMap) const;

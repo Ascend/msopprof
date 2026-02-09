@@ -639,7 +639,7 @@ void RoofLineOfA5::InsertMaxBw()
     auto iter = MAX_BW_RATE_A5.find(socVersion);
     map<TransportType, float> bw;
     if (iter == MAX_BW_RATE_A5.end()) {
-        bw = MAX_BW_RATE_A5.at("Ascend910_9599");
+        bw = MAX_BW_RATE_A5.at("Ascend950PR_9599");
     } else {
         bw = iter->second;
     }

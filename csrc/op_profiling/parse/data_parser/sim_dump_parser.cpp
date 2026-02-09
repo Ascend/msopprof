@@ -153,7 +153,7 @@ void CalCulateDetail(Parse::DataCenter &dataCenter, const Common::ChipProductTyp
     bool supportPart = IsChipSeriesTypeValid(chipTypeSeries, ChipProductType::ASCEND310P_SERIES) ||
         IsChipSeriesTypeValid(chipTypeSeries, ChipProductType::ASCEND910B_SERIES) ||
         IsChipSeriesTypeValid(chipTypeSeries, ChipProductType::ASCEND910_93_SERIES);
-    bool supportGpr = supportPart || IsChipSeriesTypeValid(chipTypeSeries, ChipProductType::ASCEND910_95_SERIES);
+    bool supportGpr = supportPart || IsChipSeriesTypeValid(chipTypeSeries, ChipProductType::ASCEND950_SERIES);
     if (!supportGpr) {
         return;
     }

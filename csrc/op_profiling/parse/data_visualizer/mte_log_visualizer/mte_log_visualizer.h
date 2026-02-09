@@ -37,7 +37,7 @@ public:
         RegisterPluginName("MteLogVisualizer");
         RegisterMandatoryDb({});
         RegisterChip({Common::ChipProductType::ASCEND910B_SERIES, Common::ChipProductType::ASCEND910_93_SERIES,
-            Common::ChipProductType::ASCEND910_95_SERIES});
+            Common::ChipProductType::ASCEND950_SERIES});
     }
 private:
     void FillData(std::vector<nlohmann::json> &mteThroughputJson, const std::vector<double> &valueList, size_t ts);

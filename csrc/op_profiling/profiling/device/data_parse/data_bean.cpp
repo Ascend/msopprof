@@ -41,7 +41,7 @@ void GetStreamAndTaskId(uint16_t &streamId, uint16_t &taskId)
 
 FftsBlockBean::FftsBlockBean(const Common::ChipProductType &chip, const vector<char> &bin)
 {
-    if (IsChipSeriesTypeValid(chip, Common::ChipProductType::ASCEND910_95_SERIES)) {
+    if (IsChipSeriesTypeValid(chip, Common::ChipProductType::ASCEND950_SERIES)) {
         InitA5(bin);
     } else {
         InitA2(bin);
@@ -153,7 +153,7 @@ AcsqBean::AcsqBean(const Common::ChipProductType &chip, const vector<char> &bin)
     constexpr uint16_t taskTypeOffset = 10;
     constexpr uint16_t funcTypeAndOperation = 63;
     constexpr uint16_t systemTimeIndex = 0;
-    if (IsChipSeriesTypeValid(chip, Common::ChipProductType::ASCEND910_95_SERIES)) {
+    if (IsChipSeriesTypeValid(chip, Common::ChipProductType::ASCEND950_SERIES)) {
         if (memcpy_s(&acsqA5Construct_, sizeof(acsqA5Construct_), &bin[0], bin.size()) != EOK) {
             return;
         }

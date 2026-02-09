@@ -289,7 +289,7 @@ public:
         opBasicHeader = OpBasicHeaderForA5;
         formulaOfA5_ = FormulaForA5;
         defaultDeviceInfo_ = {DEFAULT_AICORE_FREQ, DEFAULT_TSCPU_FREQ, DEFAULT_AICORE_NUM};
-        chipType_ = Common::ChipType::ASCEND910_95;
+        chipType_ = Common::ChipType::ASCEND950;
         InitPlatformInfo();
     }
 

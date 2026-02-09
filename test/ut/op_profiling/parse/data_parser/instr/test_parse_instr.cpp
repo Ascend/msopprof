@@ -39,7 +39,7 @@ SimDataParserConfig GetSimConfig (const Common::ChipProductType &type, bool show
     CoreNameAndPreFixPair coreNamePair910B {"core0.veccore0", "core0.veccore0."};
     CoreNameAndPreFixPair coreNamePair91095 {"core0.veccore0", "core0.veccore0."};
     std::set<int> parseIds = {0};
-    if (type == Common::ChipProductType::ASCEND910_9599) {
+    if (type == Common::ChipProductType::ASCEND950PR_9599) {
         SimDataParserConfig config {dumpPath91095, coreNamePair91095, parseIds, showSetWait, type };
         return config;
     }
@@ -73,7 +73,7 @@ TEST(InstrParser, test_910B1_InstrParser_should_return_ture_when_parse_ok) {
  */
 TEST(InstrParser, test_9109599_InstrParser_should_return_ture_when_parse_ok) {
     DataCenter dataCenter;
-    SimDataParserConfig config = GetSimConfig(Common::ChipProductType::ASCEND910_9599, true);
+    SimDataParserConfig config = GetSimConfig(Common::ChipProductType::ASCEND950PR_9599, true);
     InstrParser instrParse {dataCenter, config};
     ASSERT_TRUE(instrParse.Entry() == PluginErrorCode::SUCCESS);
     auto instrPtr = dataCenter.GetDbPtr<InstrDetailTable>();
