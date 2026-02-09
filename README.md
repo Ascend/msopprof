@@ -38,7 +38,7 @@ msOpProf工具安装操作请参见[MindStudio Ops Profiler安装指南](./docs/
 
 ## 快速入门
 
-以一个简单样例介绍如何使用msOpProf工具进行数据采集和性能调优。具体内容请参见[MindStudio Ops Profiler快速入门](./docs/zh/msopprof_quick_start.md)。
+详细操作步骤请参见[快速入门](./docs/zh/quick_start/msopprof_quick_start.md)。
 
 ## 工具限制与注意事项
 
