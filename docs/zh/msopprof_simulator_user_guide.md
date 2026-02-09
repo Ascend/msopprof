@@ -353,14 +353,16 @@ msOpProf工具协助用户定位算子内存、算子代码以及算子指令的
 >    ```
 
 1. 登录运行环境，需要使用msopprof simulator开启算子仿真调优，并配合使用仿真可选参数和用户待调优程序（app \[arguments\]）进行调优，仿真可选参数请参考[命令参考](#命令参考)。算子仿真调优可以通过以下两种方式执行：
-    - 基于可执行文件。
-        - 单算子场景，以*add\_custom\_npu*为例。
+    - 基于可执行文件
+        - 单算子场景，以*test*为例
+            > [!NOTE] 说明   
+            > 示例中的可执行文件名称`test`仅作为示例展示，实际名称请以当前工程中编译生成的可执行文件为准。
 
             ```shell
-            msprof op simulator --soc-version=Ascendxxxyy --output=./output_data ./add_custom_npu    # xxxyy为用户实际使用的具体芯片类型
+            msprof op simulator --soc-version=Ascendxxxyy --output=./output_data ./test    # xxxyy为用户实际使用的具体芯片类型
             ```
 
-        - 多算子场景。
+        - 多算子场景
 
             若test中有Add，MatlMul，Sub算子，可配合--launch-count和--kernel-name使用，可以指定采集Add和Sub算子。
 
@@ -368,7 +370,7 @@ msOpProf工具协助用户定位算子内存、算子代码以及算子指令的
             msprof op simulator --soc-version=Ascendxxxyy --launch-count=10 --kernel-name="Add|Sub" --output=./output_data ./test    # xxxyy为用户实际使用的具体芯片类型，./test需要放置在命令末尾
             ```
 
-    - 基于输入算子二进制文件*.o的配置文件.json。
+    - 基于输入算子二进制文件*.o的配置文件.json
 
         > [!NOTE] 说明   
         > --config场景下，仅支持使用LD\_LIBRARY\_PATH导入环境变量，不支持使用--soc-version参数。

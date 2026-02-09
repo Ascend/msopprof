@@ -346,19 +346,21 @@ msOpProf工具协助用户定位算子内存、算子代码以及算子指令的
     ```
 
 2. 通过以下两种方式执行算子调优：
-    - 基于可执行文件，
-        - 单算子场景，以*add\_custom\_npu*为例。
+    - 基于可执行文件
+        - 单算子场景，以*test*为例。
+            > [!NOTE] 说明   
+            > 示例中的可执行文件名称`test`仅作为示例展示，实际名称请以当前工程中编译生成的可执行文件为准。
 
             示例一：
 
             ```shell
-            msprof op ./add_custom_npu
+            msprof op ./test
             ```
 
             示例二：
 
             ```shell
-            msprof op --aic-metrics=<select_metrics> --output=./output_data ./add_custom_npu 
+            msprof op --aic-metrics=<select_metrics> --output=./output_data ./test 
             ```
 
         - 多算子场景。

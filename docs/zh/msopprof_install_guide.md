@@ -16,7 +16,9 @@ git config --global credential.helper store
 
 **准备工具**
  
-- 软件包构建之前，需要确保已安装编译器bisheng，并且其可执行文件所在路径在环境变量${PATH}中。请确保bisheng的版本为2025-11-25T20:00:35+08:00 clang version 15.0.5 (clang-5c68a1cb1231 flang-5c68a1cb1231)或更新的版本。
+- 软件包构建之前，需要确保已安装编译器bisheng，并且其可执行文件所在路径在环境变量${PATH}中。请确保bisheng的版本为2025-11-25T20:00:35+08:00 clang version 15.0.5 (clang-5c68a1cb1231 flang-5c68a1cb1231)或更新的版本。  
+    > [!NOTE] 说明  
+    > 若环境已安装CANN，则默认包含bisheng编译器，无需额外安装。
  
 - 编译工具CMake版本应大于或等于3.20.2，小于或等于3.31.10。
  
