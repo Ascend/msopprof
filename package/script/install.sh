@@ -98,9 +98,9 @@ function check_parent_dir_permission(){
 
     local _mode=$(stat -c %a "${_ppath}/${_cur_dir}")
     _mode=$(convert_mode ${_mode})
-    if [ ${_mode} -lt 755 ]; then
+    if [ ${_mode} -lt 700 ]; then
         log_and_print $LEVEL_WARN "The dir [${_cur_dir}] permission is too small, " \
-            "it is recommended that the permission be 755 for the root user."
+            "it is recommended that the permission be 700 for the root user."
         return 2
     fi
 
