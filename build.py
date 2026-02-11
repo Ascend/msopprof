@@ -78,7 +78,7 @@ if __name__ == "__main__":
     # ut使用单独的目录构建，与build区分开，避免相互影响，并传入对应的参数
     if 'test' in args.command:
         build_path = os.path.join(currentDir, "build_ut")
-        cmake_cmd = ["cmake", "..", "-DBUILD_TESTS=ON"]
+        cmake_cmd = ["cmake", "..", "-DBUILD_TESTS=ON", "-DCMAKE_BUILD_TYPE=Debug"]
         make_cmd.append("install")
         test_cmd = ["./test/ut/msopt_test", "--gtest_output=xml:test_detail.xml"]
  

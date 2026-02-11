@@ -31,6 +31,7 @@ ExternalProject_Add(build_msopprof
                     SOURCE_DIR  ${MSOPPROF_SRC_DIR}
                     CMAKE_ARGS  -DBUILD_TESTS=${BUILD_TESTS} 
                                 -DFUZZ_TESTS=${FUZZ_TESTS}
+                                -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
                                 -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
                     BUILD_COMMAND $(MAKE)
                     INSTALL_COMMAND $(MAKE) install

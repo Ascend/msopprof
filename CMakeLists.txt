@@ -12,6 +12,15 @@ endif()
 project(msopt)
 set(CMAKE_SKIP_RPATH TRUE)
 
+# 启用编译命令导出，用于IDE代码导航（跳转到定义）
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+# 设置默认构建类型为 Release
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build type (Debug/Release)" FORCE)
+endif()
+message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+
 get_filename_component(ROOT_DIR ${CMAKE_CURRENT_LIST_DIR} ABSOLUTE)
 get_filename_component(MSOPT_SRC_DIR csrc ABSOLUTE)
 get_filename_component(THIRD_PARTY_DIR thirdparty ABSOLUTE)
