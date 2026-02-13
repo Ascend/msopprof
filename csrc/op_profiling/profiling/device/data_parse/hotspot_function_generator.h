@@ -143,6 +143,16 @@ public:
                 beginAddr_[otherTypeName] = UINT64_MAX;
                 endAddr_[otherTypeName] = 0;
             }
+            if (args.kernelName.find(Common::MIX_AIC_TAIL) ==std::string::npos && args.kernelName.find(Common::MIX_AIV_TAIL)) {
+                auto aicName = args.kernelName + Common::MIX_AIC_TAIL;
+                auto aivName = args.kernelName + Common::MIX_AIV_TAIL;
+                kernelName_.emplace_back(aicName);
+                kernelName_.emplace_back(aivName);
+                beginAddr_[aicName] = UINT64_MAX;
+                endAddr_[aicName] = 0;
+                beginAddr_[aivName] = UINT64_MAX;
+                endAddr_[aivName] = 0;
+            }
         }
     }
     /*
