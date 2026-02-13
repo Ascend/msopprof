@@ -175,7 +175,6 @@ bool DataHandler::LoadOpBasicInfoTxtFile(const std::string &filePath)
         return false;
     }
     HalHelper::Instance().SetCurrentDeviceId(currentDeviceId);
-    HalHelper::Instance().CheckGmType();
     return true;
 }
 

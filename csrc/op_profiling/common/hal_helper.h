@@ -38,13 +38,11 @@ public:
 
     bool IsSupportPlatform(ChipType chipType) const;
 
-    void CheckGmType();
-
     void SetCurrentDeviceId(unsigned int deviceId);
 
     int GetCurrentDeviceId() const;
 
-    GmType GetGmType() const;
+    GmType GetGmType();
 private:
     GmType gmType_ = GmType::DEFAULT;
     unsigned int deviceId_ = 0;
@@ -54,6 +52,7 @@ private:
     ~HalHelper();
     HalHelper(HalHelper const &) = delete;
     HalHelper &operator=(HalHelper const &) = delete;
+    void CheckGmType();
     bool DcmiInit();
     bool GetCardIdDeviceIdFromLogicId(int *cardId, int *chipId, unsigned int logicId) const;
     bool SetGmType(int cardId, int deviceId, dcmi_gm_product_info_t &gmInfo) const;

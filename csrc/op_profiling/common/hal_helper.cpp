@@ -35,16 +35,11 @@ HalHelper &HalHelper::Instance(void)
 HalHelper::HalHelper()
 {
     std::string halSo = GetSoFromEnvVar("libascend_hal.so");
-    std::string dcmiSo = GetSoFromEnvVar("libdcmi.so");
-    if (dcmiSo.empty() || !CheckInputFileValid(dcmiSo, "so")) {
-        LogWarn("Can't find valid libdcmi.so, please check your LD_LIBRARY_PATH");
-    }
     if (halSo.empty() || !CheckInputFileValid(halSo, "so")) {
         LogWarn("Can't find valid libascend_hal.so, please check your LD_LIBRARY_PATH");
         return;
     }
     handleHal_ = dlopen(halSo.c_str(), RTLD_LAZY);
-    handleDcmi_ = dlopen(dcmiSo.c_str(), RTLD_LAZY | RTLD_LOCAL);
     if (handleHal_ == nullptr) {
         return;
     }
@@ -204,6 +199,16 @@ bool HalHelper::SetGmType(int cardId, int deviceId, dcmi_gm_product_info_t &gmIn
 
 void HalHelper::CheckGmType()
 {
+    ChipType chipType = GetPlatformType();
+    if (handleDcmi_ != nullptr || chipType != ChipType::ASCEND910B) {
+        return;
+    }
+    std::string dcmiSo = GetSoFromEnvVar("libdcmi.so");
+    if (dcmiSo.empty() || !CheckInputFileValid(dcmiSo, "so")) {
+        LogWarn("Can't find valid libdcmi.so, will use default gm type value");
+        return;
+    }
+    handleDcmi_ = dlopen(dcmiSo.c_str(), RTLD_LAZY | RTLD_LOCAL);
     gmType_ = GmType::DEFAULT;
     if (!DcmiInit()) {
         LogWarn("Failed to get gm info, the default parameters will be used.");
@@ -233,8 +238,9 @@ int HalHelper::GetCurrentDeviceId() const
     return deviceId_;
 }
 
-GmType HalHelper::GetGmType() const
+GmType HalHelper::GetGmType()
 {
+    CheckGmType();
     return gmType_;
 }
 }  // namespace Common
