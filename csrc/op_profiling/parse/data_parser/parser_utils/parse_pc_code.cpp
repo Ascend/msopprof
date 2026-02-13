@@ -227,7 +227,16 @@ bool ParsePcCode::GetPcSetByKernelName(const std::string &kernelName)
                      start.c_str(), size.c_str(), lineVec.at(5).c_str(), pcSet_.size()); // index 5 means kernel name
         }
     }
-    isGetPcOffsetByKernelName_ = true;
+    if (!pcSet_.empty()) {
+        isGetPcOffsetByKernelName_ = true;
+    } else if (kernelName.find(MIX_AIC_TAIL) == std::string::npos && kernelName.find(MIX_AIV_TAIL) == std::string::npos) {
+        LogDebug("PcSet is empty, try to get pcSet by kernel name %s append tail", kernelName.c_str());
+        GetPcSetByKernelName(kernelName + MIX_AIC_TAIL);
+    } else {
+        LogDebug("Failed to get kernel name %s", kernelName.c_str());
+        return false;
+    }
+    
     return true;
 }
 }
