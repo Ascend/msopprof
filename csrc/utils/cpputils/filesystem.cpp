@@ -22,6 +22,7 @@
 #include <unistd.h>
 #include <limits>
 #include <sys/mman.h>
+#include <array>
 #include "number_operation.h"
 #include "filesystem.h"
 
@@ -188,7 +189,9 @@ bool MkdirRecusively(std::string const &path, mode_t mode)
                 LogWarn("Mkdir dir %s failed, dir already exist, msg : %s", current.c_str(), msg.c_str());
                 continue;
             }
-            LogError("Mkdir [%s] failed, error message: %s", path.c_str(), std::strerror(errno));
+            std::array<char, 256> err_buf{};
+            strerror_r(errno, err_buf.data(), err_buf.size());
+            LogError("Mkdir [%s] failed, errno: %d, reason: %s", path.c_str(), errno, err_buf.data());
             return false;
         }
     }
@@ -466,7 +469,9 @@ bool Mkdir(std::string const &path, mode_t mode, bool ignoreExist)
         return false;
     }
     if (mkdir(path.c_str(), mode) < 0) {
-        LogError("Mkdir [%s] failed, error message: %s.", path.c_str(), std::strerror(errno));
+        std::array<char, 256> err_buf{};
+        strerror_r(errno, err_buf.data(), err_buf.size());
+        LogError("Mkdir [%s] failed, errno: %d, reason: %s", path.c_str(), errno, err_buf.data());
         return false;
     }
     return true;

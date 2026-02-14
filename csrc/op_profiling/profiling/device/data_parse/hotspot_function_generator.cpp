@@ -40,15 +40,39 @@ static constexpr int PC_SAMPLING_DATA_STATUS_OFFSET = 3;
 static constexpr int PC_SAMPLING_STATUS_NUM = 9;
 
 const std::unordered_map<int, std::string> PC_SAMPLING_STATE = {
-    {0, "Stall_IBuf_Empty"},                   // Byte 3
-    {1, "Stall_Cycles"},                       // Byte 4
-    {2, "Stall_Scoreboard_Not_Ready"},         // Byte 5
-    {3, "Stall_Register_bank_conflict"},       // Byte 6
-    {4, "Stall_Resource_conflict"},            // Byte 7
-    {5, "Stall_Warp_Level_Sync"},              // Byte 8
-    {6, "Stall_Divergence_Stack_Spill"},       // Byte 9
-    {7, "Stall_Others"},                       // Byte 10
+    {0, "IBuf_Empty"},                   // Byte 3
+    {1, "Nop_Cycles"},                   // Byte 4
+    {2, "Scoreboard_Not_Ready"},         // Byte 5
+    {3, "Register_bank_conflict"},       // Byte 6
+    {4, "Resource_conflict"},            // Byte 7
+    {5, "Warp_Level_Sync"},              // Byte 8
+    {6, "Divergence_Stack_Spill"},       // Byte 9
+    {7, "Others"},                       // Byte 10
+    {8, "Active"}                        // Byte 11
 };
+
+nlohmann::json BaseSource::GenStallSampling(bool allSample) const
+{
+    nlohmann::json samplingJson;
+    samplingJson["Percent"] = allSample ? this->samplingPercentAllSample : this->samplingPercentNotIssue;
+    size_t stateCnt = allSample ? PC_SAMPLING_STATE.size() : PC_SAMPLING_STATE.size() - 1;
+    nlohmann::json dataDetail;
+    for (size_t i = 0; i < stateCnt; ++i) {
+        dataDetail[PC_SAMPLING_STATE.at(i)] = this->pcSampling[i];
+    }
+    samplingJson["Details"] = dataDetail;
+    return samplingJson;
+}
+
+void BaseSource::AddCommonFieldsToJson(nlohmann::json &jsonObj) const
+{
+    jsonObj["GPR Count"] = this->gprCount;
+    if (this->processBytes != 0) {
+        jsonObj["Process Bytes"] = this->processBytes;
+    } else {
+        jsonObj["Process Bytes"] = -1;
+    }
+}
 
 void CodeLine::ToJson(const std::string &socVersion, nlohmann::json &lineDetails)
 {
@@ -56,16 +80,11 @@ void CodeLine::ToJson(const std::string &socVersion, nlohmann::json &lineDetails
     lineDetails["Line"] = this->line;
     lineDetails["Address Range"] = this->addrRange;
     lineDetails["Instructions Executed"] = this->callCount;
-    lineDetails["GPR Count"] = this->gprCount;
-    if (this->processBytes != 0) {
-        lineDetails["Process Bytes"] = this->processBytes;
-    } else {
-        lineDetails["Process Bytes"] = -1;
-    }
+    AddCommonFieldsToJson(lineDetails);
+
     if (IsChipSeriesTypeValid(chipType, Common::ChipProductType::ASCEND950_SERIES)) {
-        for (size_t i = 0; i < this->pcSampling.size() && i < PC_SAMPLING_STATE.size(); ++i) {
-            lineDetails[PC_SAMPLING_STATE.at(i)] = this->pcSampling[i];
-        }
+        lineDetails["Stall Sampling(Not Issue)"] = GenStallSampling(false);
+        lineDetails["Stall Sampling(All Samples)"] = GenStallSampling(true);
         return;
     }
     if (IsChipSeriesTypeValid(chipType, Common::ChipProductType::ASCEND910B_SERIES) ||
@@ -81,17 +100,12 @@ void InstrInfo::ToJson(const std::string &socVersion, nlohmann::json &instrDetai
     instrDetails["AscendC Inner Code"] = this->cceCode;
     instrDetails["Source"] = this->instr;
     instrDetails["Pipe"] = this->pipe;
-    instrDetails["GPR Count"] = this->gprCount;
     instrDetails["Instructions Executed"] = this->callCount;
-    if (this->processBytes != 0) {
-        instrDetails["Process Bytes"] = this->processBytes;
-    } else {
-        instrDetails["Process Bytes"] = -1;
-    }
+    AddCommonFieldsToJson(instrDetails);
+
     if (IsChipSeriesTypeValid(chipType, Common::ChipProductType::ASCEND950_SERIES)) {
-        for (size_t i = 0; i < this->pcSampling.size() && i < PC_SAMPLING_STATE.size(); ++i) {
-            instrDetails[PC_SAMPLING_STATE.at(i)] = this->pcSampling[i];
-        }
+        instrDetails["Stall Sampling(Not Issue)"] = GenStallSampling(false);
+        instrDetails["Stall Sampling(All Samples)"] = GenStallSampling(true);
         return;
     }
     if (IsChipSeriesTypeValid(chipType, Common::ChipProductType::ASCEND910B_SERIES) ||
@@ -179,6 +193,13 @@ bool HotSpotFunctionGenerator::IsObjKernelPcAddr(uint64_t pc)
 bool HotSpotFunctionGenerator::VisualizeData(const std::string &outputPath,
                                              std::map<std::string, std::vector<Encoding>> &line2Encodings)
 {
+    // 计算所有指令的总 pcSampling 计数
+    totalPcSamplingNotIssue_ = 0;
+    totalPcSamplingAllSample_ = 0;
+    for (const auto &item : encodings_) {
+        AccumulatePcSampling(item.second.pcSampling, totalPcSamplingNotIssue_, totalPcSamplingAllSample_);
+    }
+
     std::vector<CodeFile> codeFiles;
     if (!GenCodeFiles(outputPath, line2Encodings, codeFiles)) {
         Utility::LogDebug("Failed to gen CodeFiles");
@@ -680,6 +701,23 @@ bool HotSpotFunctionGenerator::GenCodeLine(const std::string &line, const std::v
         codeLine.l2cacheHitRate = PERCENTAGE * static_cast<float>(l2cacheHit) /
                 static_cast<float>(l2cacheHit + l2cacheMiss);
     }
+
+    // 计算 CodeLine 的 pcSampling 百分比
+    uint64_t linePcSamplingNotIssue = 0;
+    uint64_t linePcSamplingAllSample = 0;
+    AccumulatePcSampling(codeLine.pcSampling, linePcSamplingNotIssue, linePcSamplingAllSample);
+
+    codeLine.samplingPercentNotIssue = 0.0f;
+    codeLine.samplingPercentAllSample = 0.0f;
+    if (totalPcSamplingNotIssue_ > 0) {
+        codeLine.samplingPercentNotIssue = static_cast<float>(linePcSamplingNotIssue) /
+                static_cast<float>(totalPcSamplingNotIssue_);
+    }
+    if (totalPcSamplingAllSample_ > 0) {
+        codeLine.samplingPercentAllSample = static_cast<float>(linePcSamplingAllSample) /
+                static_cast<float>(totalPcSamplingAllSample_);
+    }
+
     std::vector<std::vector<std::string>> addrRange = MergeAddrRange(addrSet);
     if (addrRange.empty()) {
         Utility::LogDebug("Failed to MergeAddrRange");
@@ -780,16 +818,55 @@ bool HotSpotFunctionGenerator::GenAddr2Lines(const std::string &kernelPath, cons
     return true;
 }
 
+void HotSpotFunctionGenerator::AccumulatePcSampling(const std::vector<uint64_t> &pcSampling,
+                                                    uint64_t &notIssue,
+                                                    uint64_t &allSample) const
+{
+    for (size_t i = 0; i < pcSampling.size() && i < PC_SAMPLING_STATUS_NUM; ++i) {
+        allSample += pcSampling[i];
+        if (i < PC_SAMPLING_STATUS_NUM - 1) {
+            notIssue += pcSampling[i];
+        }
+    }
+}
+
 bool HotSpotFunctionGenerator::GenInstrInfos(std::vector<InstrInfo> &instrInfos)
 {
     if (encodings_.empty()) {
         Utility::LogDebug("Encoding is empty, can not gen InstrInfo");
         return false;
     }
+
     for (const auto &item : encodings_) {
         const Encoding &instr = item.second;
-        InstrInfo info{Utility::NumToHexString(instr.addr + startPc_, ADDR_SIZE), instr.cceCode, instr.source,
-                       instr.pipe, {static_cast<int>(instr.calls)}, -1, instr.processBytes, instr.gprCount, instr.pcSampling};
+        // 计算当前指令的 pcSampling 总和
+        uint64_t instrPcSamplingSumNotIssue = 0;
+        uint64_t instrPcSamplingSumAllSample = 0;
+        AccumulatePcSampling(instr.pcSampling, instrPcSamplingSumNotIssue, instrPcSamplingSumAllSample);
+
+        // 计算百分比
+        float samplingNotIssuePercent = 0.0f;
+        float samplingAllSamplePercent = 0.0f;
+        if (totalPcSamplingNotIssue_ > 0) {
+            samplingNotIssuePercent = static_cast<float>(instrPcSamplingSumNotIssue) /
+                    static_cast<float>(totalPcSamplingNotIssue_);
+        }
+        if (totalPcSamplingAllSample_ > 0) {
+            samplingAllSamplePercent = static_cast<float>(instrPcSamplingSumAllSample) /
+                    static_cast<float>(totalPcSamplingAllSample_);
+        }
+
+        InstrInfo info;
+        info.addr = Utility::NumToHexString(instr.addr + startPc_, ADDR_SIZE);
+        info.cceCode = instr.cceCode;
+        info.instr = instr.source;
+        info.pipe = instr.pipe;
+        info.callCount = {static_cast<int>(instr.calls)};
+        info.samplingPercentNotIssue = samplingNotIssuePercent;
+        info.samplingPercentAllSample = samplingAllSamplePercent;
+        info.processBytes = instr.processBytes;
+        info.gprCount = instr.gprCount;
+        info.pcSampling = instr.pcSampling;
         if (instr.l2cacheHit + instr.l2cacheMiss != 0) {
             info.l2cacheHitRate = PERCENTAGE * static_cast<float>(instr.l2cacheHit) /
                     static_cast<float>(instr.l2cacheHit + instr.l2cacheMiss);
@@ -807,9 +884,8 @@ void HotSpotFunctionGenerator::SetFileDtype(nlohmann::json &apiJson) const
     fileJson["Address Range"] = fileDtype.addrRange;
     fileJson["Line"] = fileDtype.line;
     if (pcSamplingEnable_) {
-        for (size_t i = 0; i < PC_SAMPLING_STATE.size(); ++i) {
-            fileJson[PC_SAMPLING_STATE.at(i)] = fileDtype.pcSampling;
-        }
+        fileJson["Stall Sampling(All Samples)"] = fileDtype.pcSampling;
+        fileJson["Stall Sampling(Not Issue)"] = fileDtype.pcSampling;
     }
     Common::ChipProductType chipType = Common::GetProductSeriesTypeBySocVersion(socVersion_);
     if (IsChipSeriesTypeValid(chipType, Common::ChipProductType::ASCEND910B_SERIES) ||
@@ -835,9 +911,8 @@ void HotSpotFunctionGenerator::SetInstrDtype(nlohmann::json &apiJson) const
     instrJson["Address"] = instructionsDtype.address;
     instrJson["AscendC Inner Code"] = instructionsDtype.ascendCInnerCode;
     if (pcSamplingEnable_) {
-        for (size_t i = 0; i < PC_SAMPLING_STATE.size(); ++i) {
-            instrJson[PC_SAMPLING_STATE.at(i)] = instructionsDtype.pcSampling;
-        }
+        instrJson["Stall Sampling(All Samples)"] = instructionsDtype.pcSampling;
+        instrJson["Stall Sampling(Not Issue)"] = instructionsDtype.pcSampling;
     }
     Common::ChipProductType chipType = Common::GetProductSeriesTypeBySocVersion(socVersion_);
     if (IsChipSeriesTypeValid(chipType, Common::ChipProductType::ASCEND910B_SERIES) ||

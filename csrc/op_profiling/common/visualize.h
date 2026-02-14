@@ -31,6 +31,7 @@ enum class VisualizeBinDType : int {
     FLOAT = 2,
     STRING = 3,
     PERCENTAGE = 4,
+    CUSTOM_PERCENTAGE = 100,     // 定制类型，悬浮展示百分比
 };
 
 enum class VisualizeType : uint8_t {

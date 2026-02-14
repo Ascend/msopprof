@@ -47,32 +47,65 @@ struct Encoding {
     std::vector<uint64_t> pcSampling;
 };
 
-struct CodeLine {
-    int line{};
-    std::vector<int> callCount;
-    std::vector<std::vector<std::string>> addrRange;
+// Base class for pcSampling-related data (CodeLine and InstrInfo)
+class BaseSource {
+public:
     float l2cacheHitRate;
+    float samplingPercentNotIssue;
+    float samplingPercentAllSample;
     int processBytes;
     uint32_t gprCount;
     std::vector<uint64_t> pcSampling;
+
+    BaseSource()
+        : l2cacheHitRate(-1.0f)
+        , samplingPercentNotIssue(0.0f)
+        , samplingPercentAllSample(0.0f)
+        , processBytes(0)
+        , gprCount(0)
+        , pcSampling(9, 0)
+    {
+    }
+
+    virtual ~BaseSource() = default;
+
+    // Generate stall sampling JSON structure
+    nlohmann::json GenStallSampling(bool allSample) const;
+
+protected:
+    // Helper function to add common fields to JSON
+    void AddCommonFieldsToJson(nlohmann::json &jsonObj) const;
+};
+
+// CodeLine represents a line of source code with profiling data
+class CodeLine : public BaseSource {
+public:
+    int line{};
+    std::vector<int> callCount;
+    std::vector<std::vector<std::string>> addrRange;
+
+    CodeLine() : BaseSource(), line(0) {}
+
     void ToJson(const std::string &socVersion, nlohmann::json &lineDetails);
 };
 
+// CodeFile represents a source file with multiple code lines
 struct CodeFile {
     std::string file;
     std::vector<CodeLine> lines;
 };
 
-struct InstrInfo {
+// InstrInfo represents an instruction with profiling data
+class InstrInfo : public BaseSource {
+public:
     std::string addr;
     std::string cceCode;
     std::string instr;
     std::string pipe;
     std::vector<int> callCount;
-    float l2cacheHitRate;
-    int processBytes;
-    uint32_t gprCount;
-    std::vector<uint64_t> pcSampling;
+
+    InstrInfo() : BaseSource() {}
+
     void ToJson(const std::string &socVersion, nlohmann::json &instrDetails) const;
 };
 
@@ -83,7 +116,7 @@ struct FileDtype {
     int l2cacheHitRate = static_cast<int>(Utility::VisualizeBinDType::PERCENTAGE);
     int processBytes = static_cast<int>(Utility::VisualizeBinDType::INT);
     int gprCount = static_cast<int>(Utility::VisualizeBinDType::INT);
-    int pcSampling = static_cast<int>(Utility::VisualizeBinDType::INT);
+    int pcSampling = static_cast<int>(Utility::VisualizeBinDType::CUSTOM_PERCENTAGE);
 };
 
 struct InstructionsDtype {
@@ -94,7 +127,7 @@ struct InstructionsDtype {
     int source = static_cast<int>(Utility::VisualizeBinDType::STRING);
     int l2cacheHitRate = static_cast<int>(Utility::VisualizeBinDType::PERCENTAGE);
     int processBytes = static_cast<int>(Utility::VisualizeBinDType::INT);
-    int pcSampling = static_cast<int>(Utility::VisualizeBinDType::INT);
+    int pcSampling = static_cast<int>(Utility::VisualizeBinDType::CUSTOM_PERCENTAGE);
     int gprCount = static_cast<int>(Utility::VisualizeBinDType::INT);
 };
 
@@ -248,6 +281,7 @@ private:
     bool VisualizeData(const std::string &outputPath, std::map<std::string, std::vector<Encoding>> &line2Encodings);
     bool IsObjKernel(const std::string &kernelName);
     bool IsObjKernelPcAddr(uint64_t pc);
+    void AccumulatePcSampling(const std::vector<uint64_t> &pcSampling, uint64_t &notIssue, uint64_t &allSample) const;
 
     std::map<uint64_t, std::pair<uint64_t, uint64_t>> bbCalls_; // bbCalls_[beginAddr] = {endAddr, calls}
     std::unordered_map<std::string, uint64_t> kernelStartAddr_; // {kernelName, start_addr}
@@ -256,6 +290,10 @@ private:
     uint64_t startPc_ = 0;
     uint64_t startPcForPcSampling_ = 0;
     uint64_t pcOffset_ = 0;
+    uint64_t samplingWithNotIssueSum_;
+    uint64_t samplingWithAllSum_;
+    uint64_t totalPcSamplingNotIssue_ = 0;
+    uint64_t totalPcSamplingAllSample_ = 0;
     std::string socVersion_;
     bool sourceEnable_ {false};
     bool pcSamplingEnable_ {false};
