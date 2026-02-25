@@ -31,6 +31,7 @@ enum class VisualizeBinDType : int {
     FLOAT = 2,
     STRING = 3,
     PERCENTAGE = 4,
+    JSON_STR = 5,     // 展示寄存器状态信息数据
     CUSTOM_PERCENTAGE = 100,     // 定制类型，悬浮展示百分比
 };
 

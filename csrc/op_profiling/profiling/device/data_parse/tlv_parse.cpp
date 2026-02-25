@@ -176,7 +176,7 @@ bool TlvParser::ParseRegLivenessTag(const std::vector<uint8_t>& data, size_t& of
             case TlvTag::RegNumberTag:
                 result = ParseRegNumberTag(data, offset, subLength);
                 break;
-            case TlvTag::instNumTag:
+            case TlvTag::InstNumTag:
                 result = ParseInstNumTag(data, offset, subLength);
                 break;
             case TlvTag::RFunctionNameNumTag:
@@ -264,7 +264,7 @@ bool TlvParser::ParseInstNumTag(const std::vector<uint8_t>& data, size_t& offset
     if (!ReadData(data, offset, containerEnd, parsedRegLiveness_.instNum)) {
         return false;
     }
-    if (!ValidateDataReadOver("instNumTag", offset, containerEnd)) {
+    if (!ValidateDataReadOver("InstNumTag", offset, containerEnd)) {
         return false;
     }
     return true;
@@ -534,26 +534,107 @@ bool TlvParser::ParseInstRecordRegTag(const std::vector<uint8_t>& data, size_t& 
     return true;
 }
 
+std::string TlvParser::GetRegType(const RegType& type)
+{
+    static const std::unordered_map<RegType, std::string> typeMap = {
+        {RegType::P, "P"},
+        {RegType::X, "X"},
+        {RegType::R, "R"},
+        {RegType::S, "S"}
+    };
+    auto it = typeMap.find(type);
+    if (it != typeMap.end()) {
+        return it->second;
+    }
+    Utility::LogDebug("GetRegType: Unknown register type, %zu", type);
+    return "Unknown";
+}
+
+void TlvParser::UpdateRegStatus(uint64_t pcAddr, const std::string& regName, uint64_t length)
+{
+    if (gprStatus_.find(pcAddr) == gprStatus_.end()) {
+        return ;
+    }
+    for (auto& reg : gprStatus_[pcAddr]) {
+        if (reg.regIndex.compare(regName) == 0) {
+            reg.survivalTime = length;
+        }
+    }
+}
+
+// 辅助函数：处理单个寄存器记录，更新寄存器状态和存活时间
+void TlvParser::ProcessRegisterRecord(const std::string& regType, const RecordValue& gpr, uint64_t pcAddr, size_t pcIndex)
+{
+    std::string regName = regType + std::to_string(gpr.regIndex);
+    
+    // 更新寄存器状态
+    RecordStatus status = {regName, gpr.operation, 0};
+    gprStatus_[pcAddr].emplace_back(status);
+    
+    // 更新寄存器存活时间
+    auto it = regSurvivalTime_.find(regName);
+    if (it == regSurvivalTime_.end()) {
+        // 首次出现该寄存器
+        regSurvivalTime_[regName] = {pcAddr, pcIndex, 1};
+    } else {
+        RegLength& length = it->second;
+        if (length.lastIndex + 1 == pcIndex) {
+            // 连续出现，延长存活时间
+            length.lastIndex = pcIndex;
+            length.survivalTime += 1;
+        } else {
+            // 不连续，更新之前的存活时间并重新开始计数
+            UpdateRegStatus(length.beginAddr, regName, length.survivalTime);
+            length = {pcAddr, pcIndex, 1};
+        }
+    }
+}
+
+// 辅助函数：处理单个PC记录组
+void TlvParser::ProcessPcGroup(const std::vector<InstRecord>& pcGroup, const std::string& regType)
+{
+    regSurvivalTime_.clear();
+    
+    for (size_t pcIndex = 0; pcIndex < pcGroup.size(); ++pcIndex) {
+        const auto& pcRecord = pcGroup[pcIndex];
+        uint64_t pcAddr = pcRecord.address;
+        
+        // 更新PC寄存器计数
+        pcNumCount_[pcAddr] += pcRecord.regRecord.size();
+        
+        // 处理该PC下的所有寄存器记录
+        for (const auto& gpr : pcRecord.regRecord) {
+            ProcessRegisterRecord(regType, gpr, pcAddr, pcIndex);
+        }
+    }
+    
+    // 处理该寄存器类型下所有寄存器的最终存活时间
+    for (const auto& [regName, length] : regSurvivalTime_) {
+        UpdateRegStatus(length.beginAddr, regName, length.survivalTime);
+    }
+}
+
 // PC寄存器统计函数实现
 bool TlvParser::CountPCNum()
 {
     // 幂等性设计：每次调用先清空统计结果
-    pcNumCount.clear();
-
+    pcNumCount_.clear();
+    gprStatus_.clear();
+    
     // 校验解析结果有效性
     const auto& instRecordList = parsedRegLiveness_.instRecordList;
     if (instRecordList.empty()) {
         Utility::LogDebug("CountPCNum: No valid data parsed, please call ParseStream() first");
         return false;
     }
-
-    // 遍历所有寄存器种类分组 → 累加每个PC的寄存器数
-    for (const auto& pcGroup : instRecordList) {
-        for (const auto& pcRecord : pcGroup) {
-            uint64_t pcAddr = pcRecord.address;
-            pcNumCount[pcAddr] += pcRecord.regRecord.size();
-        }
+    
+    // 遍历所有寄存器种类分组
+    for (size_t groupIndex = 0; groupIndex < instRecordList.size(); ++groupIndex) {
+        const auto& pcGroup = instRecordList[groupIndex];
+        std::string regType = GetRegType(parsedRegLiveness_.regType[groupIndex]);
+        ProcessPcGroup(pcGroup, regType);
     }
+    
     return true;
 }
 

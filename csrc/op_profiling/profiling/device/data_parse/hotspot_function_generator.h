@@ -30,6 +30,7 @@
 #include "common/visualize.h"
 #include "common/defs.h"
 #include "parse_timeline.h"
+#include "tlv_parse.h"
 #include "log.h"
 
 namespace Profiling {
@@ -45,6 +46,7 @@ struct Encoding {
     int processBytes;
     uint32_t gprCount;
     std::vector<uint64_t> pcSampling;
+    std::vector<RecordStatus> gprStatus;
 };
 
 // Base class for pcSampling-related data (CodeLine and InstrInfo)
@@ -103,7 +105,7 @@ public:
     std::string instr;
     std::string pipe;
     std::vector<int> callCount;
-
+    std::vector<RecordStatus> gprStatus;
     InstrInfo() : BaseSource() {}
 
     void ToJson(const std::string &socVersion, nlohmann::json &instrDetails) const;
@@ -129,6 +131,7 @@ struct InstructionsDtype {
     int processBytes = static_cast<int>(Utility::VisualizeBinDType::INT);
     int pcSampling = static_cast<int>(Utility::VisualizeBinDType::CUSTOM_PERCENTAGE);
     int gprCount = static_cast<int>(Utility::VisualizeBinDType::INT);
+    int gprStatus = static_cast<int>(Utility::VisualizeBinDType::JSON_STR);
 };
 
 struct HotspotFuncArgs {

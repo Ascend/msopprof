@@ -100,6 +100,13 @@ void InstrInfo::ToJson(const std::string &socVersion, nlohmann::json &instrDetai
     instrDetails["AscendC Inner Code"] = this->cceCode;
     instrDetails["Source"] = this->instr;
     instrDetails["Pipe"] = this->pipe;
+    std::vector<nlohmann::json> statusJson;
+    for (const auto& status : this->gprStatus) {
+        nlohmann::json jsonData;
+        status.ToJson(jsonData);
+        statusJson.emplace_back(jsonData);
+    }
+    instrDetails["GPR Status"] = statusJson;
     instrDetails["Instructions Executed"] = this->callCount;
     AddCommonFieldsToJson(instrDetails);
 
@@ -569,20 +576,25 @@ bool HotSpotFunctionGenerator::GenTlvdata(const std::string &kernelPath, const s
         Utility::LogDebug("Failed to parse TLvdata");
         return false;
     }
-    if (!parser.CountPCNum() || parser.pcNumCount.empty()) {
+    if (!parser.CountPCNum() || parser.GetPcNumCount().empty()) {
         Utility::LogDebug("Failed to count gpr num");
         return false;
     }
     // 将统计好的相关数据写入到encoding中
     // 判断标志位，如果判断出为非simt算子，则不显示寄存器列
     bool sign = false;
-    for (auto &item : parser.pcNumCount) {
+    for (auto &item : parser.GetPcNumCount()) {
         uint64_t pc = item.first;
         if (encodings_.find(pc) == encodings_.end()) {
             Utility::LogDebug("PC %llu not found in encodings", pc);
             continue;
         }
         encodings_[pc].gprCount = item.second;
+        const auto& gprStatusMap = parser.GetGprStatus();
+        auto it = gprStatusMap.find(pc);
+        if (it != gprStatusMap.end()) {
+            encodings_[pc].gprStatus = it->second;
+        }
         sign = item.second > 0 ? true : sign;
     }
     if (!sign) {
@@ -866,6 +878,7 @@ bool HotSpotFunctionGenerator::GenInstrInfos(std::vector<InstrInfo> &instrInfos)
         info.samplingPercentAllSample = samplingAllSamplePercent;
         info.processBytes = instr.processBytes;
         info.gprCount = instr.gprCount;
+        info.gprStatus = instr.gprStatus;
         info.pcSampling = instr.pcSampling;
         if (instr.l2cacheHit + instr.l2cacheMiss != 0) {
             info.l2cacheHitRate = PERCENTAGE * static_cast<float>(instr.l2cacheHit) /
@@ -924,6 +937,7 @@ void HotSpotFunctionGenerator::SetInstrDtype(nlohmann::json &apiJson) const
     }
     if (skipKeys_.find("GPR Count") == skipKeys_.end()) {
         instrJson["GPR Count"] = instructionsDtype.gprCount;
+        instrJson["GPR Status"] = instructionsDtype.gprStatus;
     }
     instrJson["Instructions Executed"] = instructionsDtype.instructionExecuted;
     instrJson["Pipe"] = instructionsDtype.pipe;

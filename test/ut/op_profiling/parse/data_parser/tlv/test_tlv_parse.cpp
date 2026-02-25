@@ -2,11 +2,7 @@
 #include <iostream>
 #include "mockcpp/mockcpp.hpp"
 #include "filesystem.h"
-#define private public
-#define protected public
 #include "profiling/device/data_parse/tlv_parse.h"
-#undef protected
-#undef private
 
 
 /**
@@ -28,7 +24,7 @@ TEST(TlvParser, test_parse_tlv_return_eq)
     ASSERT_EQ(result.functionNameNum, 3);
     ASSERT_EQ(result.functionNameList[1], "func2");
     ASSERT_EQ(result.functionPositionStartIdx[1], 0);
-    ASSERT_EQ(parser.pcNumCount[result.instRecordList[0][1].address], 3);
+    ASSERT_EQ(parser.GetPcNumCount().at(result.instRecordList[0][1].address), 3);
 }
 
 TEST(TlvParser, test_parse_tlv2_return_eq)
@@ -43,7 +39,7 @@ TEST(TlvParser, test_parse_tlv2_return_eq)
     ASSERT_EQ(result.functionNameNum, 3);
     ASSERT_EQ(result.functionNameList[1], "tell_me");
     ASSERT_EQ(result.functionPositionStartIdx[1], 1);
-    ASSERT_EQ(parser.pcNumCount[result.instRecordList[0][1].address], 9);
+    ASSERT_EQ(parser.GetPcNumCount().at(result.instRecordList[0][1].address), 9);
 }
 
 /**
@@ -67,5 +63,5 @@ TEST(TlvParser, test_parse_tlv3_return_eq)
     ASSERT_EQ(result.functionPositionStartIdx[0], 0);
     ASSERT_EQ(result.functionPositionStartIdx[1], 53);
     ASSERT_EQ(result.functionPositionStartIdx[2], 148);
-    ASSERT_EQ(parser.pcNumCount[result.instRecordList[0][55].address], 4);
+    ASSERT_EQ(parser.GetPcNumCount().at(result.instRecordList[0][55].address), 4);
 }

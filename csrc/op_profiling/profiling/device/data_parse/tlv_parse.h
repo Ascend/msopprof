@@ -22,6 +22,7 @@
 #include <string>
 #include <stdexcept>
 #include <unordered_map>
+#include "json.hpp"
 
 // 统一TLV长度类型（修改长度类型时仅需改此处）
 using TlvLengthType = uint64_t;
@@ -41,6 +42,24 @@ enum RegType : uint32_t {
     S = 1,
     P = 2,
     X = 3,
+};
+
+struct RecordStatus {
+    inline void ToJson(nlohmann::json &jsonData) const
+    {
+        jsonData["regIndex"] = this->regIndex;
+        jsonData["regStatus"] = this->operation;
+        jsonData["survivalTime"] = this->survivalTime;
+    }
+    std::string regIndex;
+    OperationType operation;
+    uint32_t survivalTime;
+};
+
+struct RegLength {
+    uint64_t beginAddr;
+    uint64_t lastIndex;
+    uint64_t survivalTime;
 };
 
 // 寄存器记录结构体（强制1字节对齐，避免内存填充）
@@ -71,7 +90,7 @@ enum class TlvTag : uint32_t {
     RegLivenessTag = 0,          // 顶层标签
     RegTypeTag = 1,              // 寄存器种类列表
     RegNumberTag = 2,            // 寄存器总数列表
-    instNumTag = 3,              // PC数量
+    InstNumTag = 3,              // PC数量
     RFunctionNameNumTag = 4,     // 函数名称数量
     FunctionNameListTag = 5,     // 函数名称列表容器
     FunctionNameTag = 6,         // 单个函数名称
@@ -110,10 +129,22 @@ public:
     // 公共接口：统计每个PC使用的所有寄存器总数（跨种类累加）
     bool CountPCNum();
 
-    // 公共成员：存储PC寄存器统计结果（key=PC地址，value=总寄存器数）
-    std::unordered_map<uint64_t, uint64_t> pcNumCount;
+    // 公共接口：获取PC寄存器统计结果
+    const std::unordered_map<uint64_t, uint64_t>& GetPcNumCount() const { return pcNumCount_; }
+
+    // 公共接口：获取寄存器状态
+    const std::unordered_map<uint64_t, std::vector<RecordStatus>>& GetGprStatus() const { return gprStatus_; }
+
+    // 公共接口：获取寄存器存活时间
+    const std::unordered_map<std::string, RegLength>& GetRegSurvivalTime() const { return regSurvivalTime_; }
 
 private:
+    // 辅助函数：处理单个寄存器记录，更新寄存器状态和存活时间
+    void ProcessRegisterRecord(const std::string& regType, const RecordValue& gpr, uint64_t pcAddr, size_t pcIndex);
+    
+    // 辅助函数：处理单个PC记录组
+    void ProcessPcGroup(const std::vector<InstRecord>& pcGroup, const std::string& regType);
+
     // 通用函数：读取数据
     template <typename T>
     bool ReadData(const std::vector<uint8_t>& data, size_t& offset, size_t containerEnd, T& outData) const;
@@ -157,7 +188,18 @@ private:
     RegLiveness parsedRegLiveness_;
 
     std::string tlvPath_;
+    
+    // 私有成员：存储PC寄存器统计结果（key=PC地址，value=总寄存器数）
+    std::unordered_map<uint64_t, uint64_t> pcNumCount_;
 
+    std::unordered_map<uint64_t, std::vector<RecordStatus>> gprStatus_;
+
+    std::unordered_map<std::string, RegLength> regSurvivalTime_;
+
+    std::string GetRegType(const RegType& type);
+
+    void UpdateRegStatus(uint64_t pcAddr, const std::string& regName, uint64_t length);
+    
     // 校验标签有效性
     static constexpr bool IsValidTag(TlvTag tag)
     {
