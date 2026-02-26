@@ -549,7 +549,7 @@ trace.json文件可分别通过Chrome浏览器和MindStudio Insight展示，visu
 
     **表 1**  msopprof simulator热点图的功能介绍<a id="simulator热点图的功能介绍"></a>
 
-    |列名|<term>Atlas A2 训练系列产品/Atlas A2 推理系列产品</term>|<term>Atlas A3 训练系列产品/Atlas A3 推理系列产品</term>|<term>Atlas 推理系列产品</term>|<term>昇腾950 AI处理器</term>|说明|
+    |列名|<term>Atlas A2 训练系列产品/Atlas A2 推理系列产品</term>|<term>Atlas A3 训练系列产品/Atlas A3 推理系列产品</term>|<term>Atlas 推理系列产品</term>|<term>昇腾910_95 AI处理器</term>|说明|
     |---|---|---|---|---|---|
     |源码|支持|支持|支持|支持|-|
     |指令PC地址|支持|支持|支持|支持|-|
