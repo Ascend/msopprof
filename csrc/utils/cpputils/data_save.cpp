@@ -17,39 +17,12 @@
 
 #include "data_save.h"
 
-#include <fstream>
 #include <sys/stat.h>
 #include <cstring>
 #include <array>
 #include <cerrno>
 
-#include "log.h"
-
 namespace Utility {
-
-template <typename DataType>
-bool DataSave::Save(const std::string& saveFilePath,
-                    const std::vector<std::vector<DataType>> &saveData, bool appendMode) const
-{
-    std::ofstream file;
-    if (appendMode) {
-        file.open(saveFilePath, std::ios::app);
-    } else {
-        file.open(saveFilePath, std::ios::out);
-    }
-    if (!file.is_open()) {
-        LogError("Cannot create file [%s]", saveFilePath.c_str());
-        return false;
-    }
-    for (std::vector<DataType> row : saveData) {
-        for (DataType element : row) {
-            file << element << ",";
-        }
-        file << "\n";
-    }
-    file.close();
-    return true;
-}
 
 bool DataSave::CsvSave(const std::string &saveFilePath,
                        const std::vector<std::string> &headers, const CsvData &saveCsvData) const

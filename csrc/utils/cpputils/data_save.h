@@ -18,8 +18,10 @@
 #ifndef __MSOPPROF_UTILITY_DATA_SAVE_H__
 #define __MSOPPROF_UTILITY_DATA_SAVE_H__
 
+#include <fstream>
 #include "data_format.h"
 #include "csv_parser.h"
+#include "log.h"
 
 namespace Utility {
 
@@ -32,6 +34,30 @@ public:
                  const Utility::CsvData &saveCsvData) const;
     bool CsvSave(const Utility::CsvFileStruct &saveFileStruct) const;
 };
+
+template <typename DataType>
+bool DataSave::Save(const std::string &saveFilePath,
+                    const std::vector<std::vector<DataType>> &saveData, bool appendMode) const
+{
+    std::ofstream file;
+    if (appendMode) {
+        file.open(saveFilePath, std::ios::app);
+    } else {
+        file.open(saveFilePath, std::ios::out);
+    }
+    if (!file.is_open()) {
+        LogError("Cannot create file [%s]", saveFilePath.c_str());
+        return false;
+    }
+    for (const std::vector<DataType> &row : saveData) {
+        for (const DataType &element : row) {
+            file << element << ",";
+        }
+        file << "\n";
+    }
+    file.close();
+    return true;
+}
 
 }
 
