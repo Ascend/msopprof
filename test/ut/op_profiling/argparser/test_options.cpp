@@ -33,7 +33,7 @@ TEST(Options, on_string_input_into_onoff_expect_success_and_get_true_value)
 TEST(Options, off_string_input_into_onoff_expect_success_and_get_false_value)
 {
     OnOff onoff;
-    std::string ss = "false";
+    std::string ss = "off";
     ParseValue(ss, onoff);
     ASSERT_FALSE(onoff.isOn);
 }

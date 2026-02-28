@@ -15,79 +15,82 @@
 # MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 # See the Mulan PSL v2 for more details.
 # -------------------------------------------------------------------------
-
-import os
-import sys
-import logging
-import subprocess
-import multiprocessing
 import argparse
-import tarfile
-import glob
-import shutil
+import logging
+import multiprocessing
+import os
+import subprocess
+import sys
+import traceback
+from pathlib import Path
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
-def exec_cmd(cmd):
-    result = subprocess.run(cmd, capture_output=False, text=True, timeout=36000)
-    if result.returncode != 0:
-        logging.error("execute command %s failed, please check the log", " ".join(cmd))
-        sys.exit(result.returncode)
+class BuildManager:
+    """
+    统一构建管理：依赖拉取 → CMake 配置 → 并行编译 → 安装 / 测试。
 
+    用法:
+        python build.py                  完整构建（拉取依赖 + Release 编译）
+        python build.py local            本地构建（跳过依赖拉取，Release 编译）
+        python build.py test             单元测试（拉取依赖 + Debug 编译 + 执行测试）
+        python build.py test local       单元测试（跳过依赖拉取, Debug 编译 + 执行测试）
+        python build.py -r <revision>    指定依赖的内部源码仓(例如msopcom)的 Git 分支/标签/commit
 
-def execute_build(build_path, cmake_cmd, make_cmd):
-    if not os.path.exists(build_path):
-        os.makedirs(build_path, mode=0o755)
-    os.chdir(build_path)
-    exec_cmd(cmake_cmd)
-    exec_cmd(make_cmd)
+    参数说明:
+        - 参数: command : 构建动作: 为空时为全构建, local 为跳过依赖下载, test 为运行单元测试。
+        - 参数: -r, --revision : 指定 Git 修订版本或标签用于依赖检出。
+    """
 
+    def __init__(self):
+        self.project_root = Path(__file__).resolve().parent
+        self.build_jobs = multiprocessing.cpu_count()
+        argument_parser = argparse.ArgumentParser(description='Build the project and optionally run tests.')
+        argument_parser.add_argument('command', nargs='*', default=[],
+                                     choices=[[], 'local', 'test'],
+                                     help='Build action: omit for full build, "local" to skip dependency download, "test" to run unit tests')
+        argument_parser.add_argument('-r', '--revision',
+                                     help='Specify Git revision for internal dependent repo (e.g., msopcom).')
+        self.parsed_arguments = argument_parser.parse_args()
 
-def execute_test(build_path, test_cmd):
-    os.chdir(build_path)
-    if test_cmd != []:
-        os.environ['MSOPT_UT_RESOURCE'] = os.getcwd() + "test/ut/resources"
-        os.environ['LD_LIBRARY_PATH'] = os.getcwd() + os.pathsep + os.environ.get('LD_LIBRARY_PATH', '')
-        exec_cmd(test_cmd)
+    def _execute_command(self, command_sequence, timeout_seconds=36000, cwd=None):
+        logging.info("Running: %s", " ".join(command_sequence))
+        subprocess.run(command_sequence, timeout=timeout_seconds, check=True, cwd=cwd)
 
+    def run(self):
+        os.chdir(self.project_root)
 
-def create_arg_parser():
-    parser = argparse.ArgumentParser(description='Build script with optional testing')
-    parser.add_argument('command', nargs='*', default=[],
-                        choices=[[], 'local', 'test'],
-                        help='Command to execute (python build.py [ |local|test])')
-    parser.add_argument('-r', '--revision',
-                        help="Build with specific revision or tag")
-    return parser
+        # 非 local 场景时按需更新代码；local 场景不更新代码只使用本地代码
+        if 'local' not in self.parsed_arguments.command:
+            from download_dependencies import DependencyManager
+            DependencyManager(self.parsed_arguments).run()
+
+        if 'test' in self.parsed_arguments.command:
+            # -------------------- 单元测试 --------------------
+            unit_test_build_dir = self.project_root / "build_ut"
+            unit_test_build_dir.mkdir(exist_ok=True)
+            os.chdir(unit_test_build_dir)
+
+            self._execute_command(["cmake", "..", "-DBUILD_TESTS=ON", "-DCMAKE_BUILD_TYPE=Debug"])
+            self._execute_command(["make", "-j", str(self.build_jobs), "install"])
+
+            os.environ['MSOPT_UT_RESOURCE'] = str((self.project_root / "test/ut/resources").resolve())
+            os.environ['LD_LIBRARY_PATH'] = str(unit_test_build_dir) + os.pathsep + os.environ.get('LD_LIBRARY_PATH', '')
+            self._execute_command(["./test/ut/msopt_test", "--gtest_output=xml:test_detail.xml"])
+        else:
+            # -------------------- 产品构建 --------------------
+            product_build_dir = self.project_root / "build"
+            product_build_dir.mkdir(exist_ok=True)
+            os.chdir(product_build_dir)
+
+            self._execute_command(["cmake", "../cmake"])
+            self._execute_command(["make", "-j", str(self.build_jobs)])
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
-    parser = create_arg_parser()
-    args = parser.parse_args()
-    
-    currentDir = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
-    os.chdir(currentDir)
-    cpuCores = multiprocessing.cpu_count()
-
-    build_path = os.path.join(currentDir, "build")
-    target = "all"
-    cmake_cmd = ["cmake", "../cmake"]
-    make_cmd = ["make", "-j", str(cpuCores)]
-    test_cmd = []
-
-    # ut使用单独的目录构建，与build区分开，避免相互影响，并传入对应的参数
-    if 'test' in args.command:
-        build_path = os.path.join(currentDir, "build_ut")
-        cmake_cmd = ["cmake", "..", "-DBUILD_TESTS=ON", "-DCMAKE_BUILD_TYPE=Debug"]
-        make_cmd.append("install")
-        test_cmd = ["./test/ut/msopt_test", "--gtest_output=xml:test_detail.xml"]
- 
-    # 解析入参是否为local，local场景使用本地代码构建，不更新子仓
-    if 'local' not in args.command:
-        from download_dependencies import update_submodule
-        update_submodule(args)
-
-    # 执行构建并打run包
-    execute_build(build_path, cmake_cmd, make_cmd)
-    # 执行测试
-    execute_test(build_path, test_cmd)
+    try:
+        BuildManager().run()
+    except Exception:
+        logging.error(f"Unexpected error: {traceback.format_exc()}")
+        sys.exit(1)

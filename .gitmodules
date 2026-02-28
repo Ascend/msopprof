@@ -1,9 +1,3 @@
-[submodule "thirdparty/boost"]
-	path = thirdparty/boost
-	url = https://github.com/boostorg/boost.git
-[submodule "thirdparty/googletest"]
-	path = thirdparty/googletest
-	url = https://gitcode.com/GitHub_Trending/go/googletest
 [submodule "thirdparty/json"]
 	path = thirdparty/json
 	url = https://gitcode.com/GitHub_Trending/js/json.git
