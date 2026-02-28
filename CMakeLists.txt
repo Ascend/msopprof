@@ -56,9 +56,9 @@ include(cmake/module/llvm.cmake)
 include(cmake/module/preparePackage.cmake)
 
 if (BUILD_TESTS)
-    include_directories(thirdparty/boost/libs/type_traits/include)
- 	include_directories(thirdparty/boost/libs/config/include)
- 	include_directories(thirdparty/boost/libs/typeof/include)
+    include_directories(msopscommon/thirdparty/boost/libs/type_traits/include)
+    include_directories(msopscommon/thirdparty/boost/libs/config/include)
+    include_directories(msopscommon/thirdparty/boost/libs/typeof/include)
 endif ()
 
 add_subdirectory(csrc)
