@@ -569,11 +569,6 @@ constexpr char const *GM_TO_L1 = "GM_TO_L1";
 constexpr char const *GM_TO_L0A_DATA = "GM_TO_L0A_DATA";
 constexpr char const *GM_TO_L0B_DATA = "GM_TO_L0B_DATA";
 constexpr char const *GM_TO_L1_DATA = "GM_TO_L1_DATA";
-constexpr char const *L1_TO_L0B_DATA = "L1_TO_L0B_DATA";
-constexpr char const *L1_TO_L0A_DATA = "L1_TO_L0A_DATA";
-constexpr char const *REG_TO_L1_DATA = "REG_TO_L1_DATA";
-constexpr char const *L1_TO_BT_DATA = "L1_TO_BT_DATA";
-constexpr char const *LOC_TO_GM_DATA = "LOC_TO_GM_DATA";
 constexpr char const * MIX_AIC_TAIL = "_mix_aic";
 constexpr char const * MIX_AIV_TAIL = "_mix_aiv";
 
@@ -588,38 +583,6 @@ const std::map<DumpMessageType, std::string> DUMP_MESSAGE_TYPE_ENUM_TO_STRING {
     {DumpMessageType::MAGIC, MAGIC},
     {DumpMessageType::TILING_DATA, TILING_DATA},
     {DumpMessageType::TILING_KEY, TILING_KEY},
-};
-
-const std::map<std::string, float> MAX_BW_910B1 {
-        {std::string {L1_TO_GM}, 199.43},
-        {std::string {L0C_TO_L1}, 216.88},
-        {std::string {L0C_TO_GM}, 209.32},
-        {std::string {GM_TO_UB}, 220.06},
-        {std::string {UB_TO_GM}, 186.8}
-};
-
-const std::map<std::string, float> MAX_BW_910B1_CJ {
-        {std::string {L1_TO_GM}, 187.72},
-        {std::string {L0C_TO_L1}, 220.48},
-        {std::string {L0C_TO_GM}, 202.41},
-        {std::string {GM_TO_UB}, 219.14},
-        {std::string {UB_TO_GM}, 197.82}
-};
-
-const std::map<std::string, float> MAX_BW_910B4 {
-        {std::string {L1_TO_GM}, 189.89},
-        {std::string {L0C_TO_L1}, 190.7},
-        {std::string {L0C_TO_GM}, 190.7},
-        {std::string {GM_TO_UB}, 195.27},
-        {std::string {UB_TO_GM}, 176.75}
-};
-
-const std::map<std::string, float> MAX_BW_A5 {
-        {std::string {L1_TO_GM}, 189.89},
-        {std::string {L0C_TO_L1}, 190.7},
-        {std::string {L0C_TO_GM}, 190.7},
-        {std::string {GM_TO_UB}, 195.27},
-        {std::string {UB_TO_GM}, 176.75}
 };
 
 // Manufacturers and the corresponding GM types.

@@ -331,31 +331,34 @@ void RoofLineOf910B::InsertPipeLineMaxBw(int64_t coreNum)
 {
     std::string socVersion = opBasicInfoObj_->GetSoc();
     std::string socName = (FREQ_MAP.count(socVersion) == 0) ? "Ascend910B1" : socVersion;
-    auto maxBwRate = pmuCalculatorObj_->GetBandWidthByWeight(basicPmu_["mteToL0aData"],
+    auto pipeBwMap = pmuCalculatorObj_->GetPipeBwByWeight(socName, basicPmu_["mteToL0aData"],
         basicPmu_["mteToL0bData"], basicPmu_["l0cWriteGm"], basicPmu_["fixpToL1Data"]);
-    for (auto &bw : maxBwRate[socName]) {
+    for (auto &bw : pipeBwMap) {
         bw.second /= BIT_CONVERSION;
         bw.second *= coreNum;
     }
-    maxBwRates_.insert(maxBwRate[socName].begin(), maxBwRate[socName].end());
+    maxBwRates_.insert(pipeBwMap.begin(), pipeBwMap.end());
 }
 
 void RoofLineOf910B::InsertMemPipeMaxBw(int64_t coreNum)
 {
-    std::map<std::string, std::map<std::string, float>> memoryPipeMaxBwRate;
-    GetPipeMaxBwByGmType(memoryPipeMaxBwRate);
     std::string socVersion = opBasicInfoObj_->GetSoc();
     std::string socName = (FREQ_MAP.count(socVersion) == 0) ? "Ascend910B1" : socVersion;
-    float freqRatio = static_cast<float>(FREQ_MAP.at("Ascend910B2")) / FREQ_MAP.at("Ascend910B1");
-    for (auto &bwPair : memoryPipeMaxBwRate["Ascend910B1"]) {
-        memoryPipeMaxBwRate["Ascend910B2"][bwPair.first] = bwPair.second * freqRatio;
+    map<TransportType, float> bw = GetMaxBwBySoc(socName, ChipProductType::ASCEND910B1);
+    const map<TransportType, string> transferMap = {
+        {TransportType::L1_TO_GM,   string(MemoryPipe::L1_TO_GM)},
+        {TransportType::L0C_TO_GM,  string(MemoryPipe::L0C_TO_GM)},
+        {TransportType::L0C_TO_L1,  string(MemoryPipe::L0C_TO_L1)},
+        {TransportType::MTE_TO_L0A, string(MemoryPipe::GM_L1_TO_L0A)},
+        {TransportType::MTE_TO_L0B, string(MemoryPipe::GM_L1_TO_L0B)},
+        {TransportType::UB_TO_GM,   string(MemoryPipe::UB_TO_GM)},
+        {TransportType::GM_TO_UB,   string(MemoryPipe::GM_TO_UB)},
+    };
+    for (const auto &iter : transferMap) {
+        bw[iter.first] /= BIT_CONVERSION;
+        bw[iter.first] *= coreNum;
+        maxBwRates_[iter.second] = bw[iter.first];
     }
-    memoryPipeMaxBwRate["Ascend910B3"] = memoryPipeMaxBwRate["Ascend910B2"];
-    for (auto &bw : memoryPipeMaxBwRate[socName]) {
-        bw.second /= BIT_CONVERSION;
-        bw.second *= coreNum;
-    }
-    maxBwRates_.insert(memoryPipeMaxBwRate[socName].begin(), memoryPipeMaxBwRate[socName].end());
 }
 
 void RoofLineOf910B::CubePipeLine()
@@ -636,13 +639,7 @@ void RoofLineOfA5::InsertMaxBw()
         bw.second /= BIT_CONVERSION;
     }
     maxBwRates_.insert(pipeBwMap.begin(), pipeBwMap.end());
-    auto iter = MAX_BW_RATE_A5.find(socVersion);
-    map<TransportType, float> bw;
-    if (iter == MAX_BW_RATE_A5.end()) {
-        bw = MAX_BW_RATE_A5.at("Ascend950PR_9599");
-    } else {
-        bw = iter->second;
-    }
+    map<TransportType, float> bw = GetMaxBwBySoc(socVersion, ChipProductType::ASCEND950PR_9599);
     maxBwRates_[string(MemoryUnit::WRITE_TO_L0A)] = bw.at(TransportType::L1_TO_L0A) / BIT_CONVERSION;
     maxBwRates_[string(MemoryUnit::WRITE_TO_L0B)] = bw.at(TransportType::L1_TO_L0B) / BIT_CONVERSION;
     maxBwRates_[string(MemoryPipe::L0C_TO_GM)] = bw.at(TransportType::L0C_TO_GM) / BIT_CONVERSION;
@@ -838,17 +835,6 @@ void RoofLineOf910B::GetTheoryL2CacheByGmType(std::map<std::string, float> &l2Ca
         l2CacheBw = GM_PRODUCT_THEORY_L2CACHE_BW.at(type);
     } else {
         l2CacheBw = GM_PRODUCT_THEORY_L2CACHE_BW.at(GmType::DEFAULT);
-    }
-}
- 
-void RoofLineOf910B::GetPipeMaxBwByGmType(std::map<std::string, std::map<std::string, float>>
-    &memoryPipeMaxBwRate) const
-{
-    GmType type = HalHelper::Instance().GetGmType();
-    if (GM_PRODUCT_MAX_BW_REQ.find(type) != GM_PRODUCT_MAX_BW_REQ.end()) {
-        memoryPipeMaxBwRate = GM_PRODUCT_MAX_BW_REQ.at(type);
-    } else {
-        memoryPipeMaxBwRate = GM_PRODUCT_MAX_BW_REQ.at(GmType::DEFAULT);
     }
 }
 }

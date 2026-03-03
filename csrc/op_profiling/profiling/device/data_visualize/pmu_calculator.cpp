@@ -27,44 +27,6 @@ using namespace Profiling;
 using namespace std;
 
 namespace Visualize {
-
-// L0A:MTE->L0A, L0B:MTE->L0B, MTE1 = (L0A + L0B)/2, FIXP = (L0C2GM + L0C2L1)/2
-// MTE2 = max(GM->L0A,GM->L0B,GM->L1), MTE2 vector = MTE->UB, MTE3 vector = UB->MTE
-const std::map<std::string, float> BW_910B1 = {{"L0A", 437.5}, {"L0B", 210.5},
-    {"L0C2GM", 209.32}, {"L0C2L1", 216.88}, {"MTE1", 324.0}, {"FIXP", 208.155},
-    {"MTE2", 340.1}, {"MTE3", 199.43}, {"MTE2 vector", 186.8}, {"MTE3 vector", 220.06}
-};
-
-const std::map<std::string, float> BW_910B4 = {{"L0A", 368.2}, {"L0B", 173.81},
-    {"L0C2GM", 189.89}, {"L0C2L1", 190.7}, {"MTE1", 271.005}, {"FIXP", 190.295},
-    {"MTE2", 222.17}, {"MTE3", 189.89}, {"MTE2 vector", 176.75}, {"MTE3 vector", 195.27}
-};
-
-const std::map<std::string, float> BW_910B1_CJ = {{"L0A", 439.32}, {"L0B", 220.1},
-    {"L0C2GM", 202.41}, {"L0C2L1", 220.48}, {"MTE1", 329.71}, {"FIXP", 211.45},
-    {"MTE2", 302.32}, {"MTE3", 187.72}, {"MTE2 vector", 197.82}, {"MTE3 vector", 219.14}
-};
-
-const std::map<std::string, float> BW_910B4_CJ = {{"L0A", 391.82}, {"L0B", 196.3},
-    {"L0C2GM", 189.08}, {"L0C2L1", 196.27}, {"MTE1", 294.06}, {"FIXP", 192.675},
-    {"MTE2", 274}, {"MTE3", 182.07}, {"MTE2 vector", 176.06}, {"MTE3 vector", 195.52}
-};
-
-const std::map<std::string, std::map<std::string, float>> MAX_BW_GM = {
-    {"Ascend910B1", BW_910B1}, {"Ascend910B4", BW_910B4}, {"Ascend910B4-1", BW_910B4}
-};
-
-const std::map<std::string, std::map<std::string, float>> MAX_BW_GM_CJ = {
-    {"Ascend910B1", BW_910B1_CJ}, {"Ascend910B4", BW_910B4_CJ}, {"Ascend910B4-1", BW_910B4_CJ}
-};
-
-const std::map<GmType, std::map<std::string, std::map<std::string, float>>> GM_PRODUCT_MAX_CHANNEL_BW = {
-    {GmType::CJ, MAX_BW_GM_CJ},
-    {GmType::SK, MAX_BW_GM},
-    {GmType::SS, MAX_BW_GM},
-    {GmType::DEFAULT, MAX_BW_GM}
-};
-
 float PmuCalculator::CalculatePer(uint64_t value1, uint64_t value2) const
 {
     if (value2 == 0 || value1 > value2) {
@@ -129,53 +91,35 @@ void PmuCalculator::Init(std::shared_ptr<BasicPmu> &basicPmuObj)
     }
 }
 
-void PmuCalculator910B::GetMaxBwRateByGmType(std::map<std::string, std::map<std::string, float>> &maxBwRate) const
-{
-    GmType type = HalHelper::Instance().GetGmType();
-    if (GM_PRODUCT_MAX_CHANNEL_BW.find(type) != GM_PRODUCT_MAX_CHANNEL_BW.end()) {
-        maxBwRate = GM_PRODUCT_MAX_CHANNEL_BW.at(type);
-    } else {
-        maxBwRate = GM_PRODUCT_MAX_CHANNEL_BW.at(GmType::DEFAULT);
-    }
-}
-
-std::map<std::string, std::map<std::string, float>> PmuCalculator910B::GetBandWidthByWeight(uint64_t l0aDatas,
+std::map<std::string, float> PmuCalculator910B::GetPipeBwByWeight(const string &socVersion, uint64_t l0aDatas,
     uint64_t l0bDatas, uint64_t l0cToGmDatas, uint64_t l0cToL1Datas) const
 {
     // 实验理论最大带宽，其中MTE1理论带宽待加权计算，初始化为1，避免作为除数时出现除0错误
-    std::map<std::string, std::map<std::string, float>> maxBwRate;
-    GetMaxBwRateByGmType(maxBwRate);
+    map<TransportType, float> maxBw = GetMaxBwBySoc(socVersion, ChipProductType::ASCEND910B1);
+    map<string, float> resBw = {
+        {"MTE1", (maxBw.at(TransportType::MTE_TO_L0A) + maxBw.at(TransportType::MTE_TO_L0B)) / 2},
+        {"MTE2", maxBw.at(TransportType::MTE2_WRITE)},
+        {"MTE3", maxBw.at(TransportType::L1_TO_GM)},
+        {"FIXP", (maxBw.at(TransportType::L0C_TO_L1) + maxBw.at(TransportType::L0C_TO_GM)) / 2},
+        {"MTE2 vector", maxBw.at(TransportType::GM_TO_UB)},
+        {"MTE3 vector", maxBw.at(TransportType::UB_TO_GM)},
+    };
+
     float l0aRatio = (l0aDatas == 0 || (l0aDatas + l0bDatas) == 0) ?
         0.0f : static_cast<float>(l0aDatas) / (l0aDatas + l0bDatas);
     float l0bRatio = (l0bDatas == 0 || (l0aDatas + l0bDatas) == 0) ?
         0.0f : static_cast<float>(l0bDatas) / (l0aDatas + l0bDatas);
     if ((!Utility::SafeEqual(l0aRatio, 0.0f)) || (!Utility::SafeEqual(l0bRatio, 0.0f))) {
-        maxBwRate["Ascend910B1"]["MTE1"] =
-            maxBwRate["Ascend910B1"]["L0A"] * l0aRatio + maxBwRate["Ascend910B1"]["L0B"] * l0bRatio;
-        maxBwRate["Ascend910B4"]["MTE1"] =
-            maxBwRate["Ascend910B4"]["L0A"] * l0aRatio + maxBwRate["Ascend910B4"]["L0B"] * l0bRatio;
+        resBw["MTE1"] = maxBw.at(TransportType::MTE_TO_L0A) * l0aRatio + maxBw.at(TransportType::MTE_TO_L0B) * l0bRatio;
     }
-
     float l0c2GmRatio = (l0cToGmDatas == 0 || (l0cToGmDatas + l0cToL1Datas) == 0) ?
         0.0f : static_cast<float>(l0cToGmDatas) / (l0cToGmDatas + l0cToL1Datas);
     float l0c2L1Ratio = (l0cToL1Datas == 0 || (l0cToGmDatas + l0cToL1Datas) == 0) ?
         0.0f :  static_cast<float>(l0cToL1Datas) / (l0cToGmDatas + l0cToL1Datas);
     if ((!Utility::SafeEqual(l0c2GmRatio, 0.0f)) || (!Utility::SafeEqual(l0c2L1Ratio, 0.0f))) {
-        maxBwRate["Ascend910B1"]["FIXP"] =
-                maxBwRate["Ascend910B1"]["L0C2GM"] * l0c2GmRatio + maxBwRate["Ascend910B1"]["L0C2L1"] * l0c2L1Ratio;
-        maxBwRate["Ascend910B4"]["FIXP"] =
-                maxBwRate["Ascend910B4"]["L0C2GM"] * l0c2GmRatio + maxBwRate["Ascend910B4"]["L0C2L1"] * l0c2L1Ratio;
+        resBw["FIXP"] = maxBw.at(TransportType::L0C_TO_GM) * l0c2GmRatio + maxBw.at(TransportType::L0C_TO_L1) * l0c2L1Ratio;
     }
-    float freqRatio = static_cast<float>(FREQ_MAP.at("Ascend910B2")) / FREQ_MAP.at("Ascend910B1");
-    maxBwRate["Ascend910B2"] = {
-        {"MTE1", maxBwRate["Ascend910B1"]["MTE1"] * freqRatio},
-        {"MTE2", maxBwRate["Ascend910B1"]["MTE2"] * freqRatio},
-        {"MTE3", maxBwRate["Ascend910B1"]["MTE3"] * freqRatio},
-        {"MTE2 vector", maxBwRate["Ascend910B1"]["MTE2 vector"] * freqRatio},
-        {"MTE3 vector", maxBwRate["Ascend910B1"]["MTE3 vector"] * freqRatio}
-    };
-    maxBwRate["Ascend910B3"] = maxBwRate["Ascend910B2"];
-    return maxBwRate;
+    return resBw;
 }
 
 void PmuCalculator910B::LoadLineMap(const std::string &opType)
@@ -404,13 +348,7 @@ float PmuCalculator910B::GetDurCalBandWidth(std::unique_ptr<OpBasicInfo> &opBasi
 
 map<string, float> PmuCalculatorA5::GetPipeBwMap(const string &socVersion)
 {
-    auto iter = MAX_BW_RATE_A5.find(socVersion);
-    map<TransportType, float> bw;
-    if (iter == MAX_BW_RATE_A5.end()) {
-        bw = MAX_BW_RATE_A5.at("Ascend950PR_9599");
-    } else {
-        bw = iter->second;
-    }
+    map<TransportType, float> bw = GetMaxBwBySoc(socVersion, ChipProductType::ASCEND950PR_9599);
     return {{"MTE1", max(max(bw.at(TransportType::L1_TO_L0A), bw.at(TransportType::L1_TO_L0B)), bw.at(TransportType::L1_TO_UB))},
             {"MTE2", bw.at(TransportType::GM_TO_L1)},
             {"MTE3", bw.at(TransportType::UB_TO_L1)},

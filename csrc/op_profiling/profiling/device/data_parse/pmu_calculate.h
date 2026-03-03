@@ -179,7 +179,6 @@ public:
     std::string CalUbToGmBwUsageRate(const uint64_t &pmu1) const;
     std::string CalL2CacheHitRate(const uint64_t &pmu1, const uint64_t &pmu2, const uint64_t &pmu3) const;
     std::string CalTransportBwUsageRate(const uint64_t &pmu, const uint64_t type) const;
-    std::map<std::string, std::map<TransportType, float>> GetMaxBwRateByGmType() const;
     std::string CalAicMte1ActivateBw(const Mte1BwPmusWithSize &mte1) const;
     std::string CalAicMte2ActivateBw(const uint64_t &gmToL1, const uint64_t &gmToL0a,
                                      const uint64_t &gmToL0b, const uint64_t &pmu) const;

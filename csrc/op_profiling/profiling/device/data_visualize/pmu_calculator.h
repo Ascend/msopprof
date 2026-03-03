@@ -33,8 +33,7 @@ public:
     std::map<std::string, std::uint64_t> GetCycleMap(const std::string &opType, MemMapDetail &detail) const;
     std::map<std::string, std::vector<std::string>> GetTableLineAiCore() { return tableLineAiCore_; };
     std::map<std::string, std::vector<MemInfoPipe>> GetMemInfoPipeMap() { return memInfoPipeMap_; };
-    virtual void GetMaxBwRateByGmType(std::map<std::string, std::map<std::string, float>> &maxBwRate) const {};
-    virtual std::map<std::string, std::map<std::string, float>> GetBandWidthByWeight(std::uint64_t l0aDatas,
+    virtual std::map<std::string, float> GetPipeBwByWeight(const std::string &socVersion, std::uint64_t l0aDatas,
         std::uint64_t l0bDatas, std::uint64_t l0cToGmDatas = 0, std::uint64_t l0cToL1Datas = 0) const { return {}; };
     virtual std::map<std::string, float> GetPipeBwMap(const std::string &socVersion) { return {}; };
     void Init(std::shared_ptr<BasicPmu> &basicPmuObj);
@@ -65,9 +64,8 @@ class PmuCalculator910B : public PmuCalculator {
 public:
     explicit PmuCalculator910B() = default;
 
-    std::map<std::string, std::map<std::string, float>> GetBandWidthByWeight(std::uint64_t l0aDatas,
+    std::map<std::string, float> GetPipeBwByWeight(const std::string &socVersion, std::uint64_t l0aDatas,
         std::uint64_t l0bDatas, std::uint64_t l0cToGmDatas = 0, std::uint64_t l0cToL1Datas = 0) const override;
-    void GetMaxBwRateByGmType(std::map<std::string, std::map<std::string, float>> &maxBwRate) const override;
 private:
     void LoadLineMap(const std::string &opType) override;
     void SetMemInfoPipeMap(const std::string &opType, MemMapDetail &memMapDetail) override;

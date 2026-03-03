@@ -17,7 +17,7 @@
 #include "pmu_calculate.h"
 #include "log.h"
 #include "number_operation.h"
-#include "common/hal_helper.h"
+#include "equation_utils.h"
 #include "metric_csv_header.h"
 
 using namespace std;
@@ -369,7 +369,6 @@ string Calculate::CalTransportDatas(const uint64_t &pmu, const TransportType &ty
 
 string Calculate::CalTransportBwUsageRate(const uint64_t &pmu, const uint64_t type) const
 {
-    auto maxBwRecord = GetMaxBwRateByGmType();
     if (pmu == std::numeric_limits<uint64_t>::max()) {
         return EMPTY_METRIC_VALUE;
     }
@@ -383,12 +382,7 @@ string Calculate::CalTransportBwUsageRate(const uint64_t &pmu, const uint64_t ty
         return EMPTY_METRIC_VALUE;
     }
     uint16_t dataOfSingleReq = dataIt->second;
-    auto rateIt = maxBwRecord.find(socVersion_);
-    if (rateIt == maxBwRecord.end()) {
-        LogDebug("Missing theoretical bandwidth for soc %s, using default value", socVersion_.c_str());
-        rateIt = maxBwRecord.find("Ascend910B1");
-    }
-    map<TransportType, float> transportBwMap = rateIt->second;
+    map<TransportType, float> transportBwMap = GetMaxBwBySoc(socVersion_, ChipProductType::ASCEND910B1);
     auto typeIt = transportBwMap.find(transportType);
     if (typeIt == transportBwMap.end()) {
         return EMPTY_METRIC_VALUE;
@@ -460,18 +454,6 @@ std::string Calculate::CalAivMteActivateBw(const uint64_t &pipSize, const uint64
     float dataSize = static_cast<float>(pmu1 * pipSize);
     return std::to_string(dataSize / aivMte2Time / BIT_CONVERSION / BIT_CONVERSION / BIT_CONVERSION
         * TIME_CONVERSION * TIME_CONVERSION);
-}
-
-std::map<std::string, std::map<TransportType, float>> Calculate::GetMaxBwRateByGmType() const
-{
-    std::map<std::string, std::map<TransportType, float>> maxBwRecord;
-    GmType type = HalHelper::Instance().GetGmType();
-    if (GM_PRODUCT_BW.find(type) != GM_PRODUCT_BW.end()) {
-        maxBwRecord = GM_PRODUCT_BW.at(type);
-    } else {
-        maxBwRecord = GM_PRODUCT_BW.at(GmType::DEFAULT);
-    }
-    return maxBwRecord;
 }
 
 uint64_t GetPmuValue(const map<uint16_t, uint64_t> &pmuEventValueMap, const uint64_t &eventId)

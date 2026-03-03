@@ -68,6 +68,7 @@ enum class TransportType : uint16_t {
     GM_WRITE,
     GM_TO_L0A,
     GM_TO_L0B,
+    MTE2_WRITE,
     UNKNOWN
 };
 
@@ -145,46 +146,76 @@ const std::map<TransportType, uint16_t> REQ_DATA_OF_310P = {
     {TransportType::VEC_TO_UB,               16},
 };
 
-const std::map<Common::ChipProductType, std::map<TransportType, uint16_t>> REQ_DATA_ALL = {
-    {Common::ChipProductType::ASCEND910B_SERIES,       REQ_DATA_OF_910B},
-    {Common::ChipProductType::ASCEND310P_SERIES,       REQ_DATA_OF_310P},
-    {Common::ChipProductType::ASCEND950_SERIES,     REQ_DATA_OF_A5}
-};
-
 const std::map<TransportType, float> maxBwRateOf910B1 = {
-    {TransportType::GM_TO_L1, 264},
-    {TransportType::L1_TO_GM, Common::MAX_BW_910B1.at(std::string {Common::L1_TO_GM})},
-    {TransportType::L0C_TO_L1, Common::MAX_BW_910B1.at(std::string {Common::L0C_TO_L1})},
-    {TransportType::L0C_TO_GM, Common::MAX_BW_910B1.at(std::string {Common::L0C_TO_GM})},
-    {TransportType::GM_TO_UB, Common::MAX_BW_910B1.at(std::string {Common::GM_TO_UB})},
-    {TransportType::UB_TO_GM, Common::MAX_BW_910B1.at(std::string {Common::UB_TO_GM})},
+    {TransportType::GM_TO_L1,     264},
+    {TransportType::L1_TO_GM,     199.43},
+    {TransportType::L0C_TO_L1,    216.88},
+    {TransportType::L0C_TO_GM,    209.32},
+    {TransportType::GM_TO_UB,     220.06},
+    {TransportType::UB_TO_GM,     186.8},
+    {TransportType::MTE_TO_L0A,   437.5},
+    {TransportType::MTE_TO_L0B,   210.5},
+    {TransportType::MTE2_WRITE,   340.1},
 };
 
 const std::map<TransportType, float> maxBwRateOf910B1GmCJ = {
-    {TransportType::GM_TO_L1, 296},
-    {TransportType::L1_TO_GM, Common::MAX_BW_910B1_CJ.at(std::string {Common::L1_TO_GM})},
-    {TransportType::L0C_TO_L1, Common::MAX_BW_910B1_CJ.at(std::string {Common::L0C_TO_L1})},
-    {TransportType::L0C_TO_GM, Common::MAX_BW_910B1_CJ.at(std::string {Common::L0C_TO_GM})},
-    {TransportType::GM_TO_UB, Common::MAX_BW_910B1_CJ.at(std::string {Common::GM_TO_UB})},
-    {TransportType::UB_TO_GM, Common::MAX_BW_910B1_CJ.at(std::string {Common::UB_TO_GM})},
+    {TransportType::GM_TO_L1,     296},
+    {TransportType::L1_TO_GM,     187.72},
+    {TransportType::L0C_TO_L1,    220.48},
+    {TransportType::L0C_TO_GM,    202.41},
+    {TransportType::GM_TO_UB,     219.14},
+    {TransportType::UB_TO_GM,     197.82},
+    {TransportType::MTE_TO_L0A,   439.32},
+    {TransportType::MTE_TO_L0B,   220.10},
+    {TransportType::MTE2_WRITE,   302.32},
+};
+
+const std::map<TransportType, float> maxBwRateOf910B2 = {
+    {TransportType::GM_TO_L1,     256.86},
+    {TransportType::L1_TO_GM,     193.99},
+    {TransportType::L0C_TO_L1,    211.00},
+    {TransportType::L0C_TO_GM,    203.66},
+    {TransportType::GM_TO_UB,     214.11},
+    {TransportType::UB_TO_GM,     181.75},
+    {TransportType::MTE_TO_L0A,   425.68},
+    {TransportType::MTE_TO_L0B,   204.81},
+    {TransportType::MTE2_WRITE,   330.91},
+};
+
+const std::map<TransportType, float> maxBwRateOf910B2GmCJ = {
+    {TransportType::GM_TO_L1,     288.00},
+    {TransportType::L1_TO_GM,     182.65},
+    {TransportType::L0C_TO_L1,    214.52},
+    {TransportType::L0C_TO_GM,    196.94},
+    {TransportType::GM_TO_UB,     213.22},
+    {TransportType::UB_TO_GM,     192.47},
+    {TransportType::MTE_TO_L0A,   427.45},
+    {TransportType::MTE_TO_L0B,   214.15},
+    {TransportType::MTE2_WRITE,   294.15},
 };
 
 const std::map<TransportType, float> maxBwRateOf910B4 = {
-    {TransportType::GM_TO_L1, 222},
-    {TransportType::L1_TO_GM, Common::MAX_BW_910B4.at(std::string {Common::L1_TO_GM})},
-    {TransportType::L0C_TO_L1, Common::MAX_BW_910B4.at(std::string {Common::L0C_TO_L1})},
-    {TransportType::L0C_TO_GM, Common::MAX_BW_910B4.at(std::string {Common::L0C_TO_GM})},
-    {TransportType::GM_TO_UB, Common::MAX_BW_910B4.at(std::string {Common::GM_TO_UB})},
-    {TransportType::UB_TO_GM, Common::MAX_BW_910B4.at(std::string {Common::UB_TO_GM})},
+    {TransportType::GM_TO_L1,     222},
+    {TransportType::L1_TO_GM,     189.89},
+    {TransportType::L0C_TO_L1,    190.7},
+    {TransportType::L0C_TO_GM,    190.7},
+    {TransportType::GM_TO_UB,     195.27},
+    {TransportType::UB_TO_GM,     176.75},
+    {TransportType::MTE_TO_L0A,   368.2},
+    {TransportType::MTE_TO_L0B,   173.81},
+    {TransportType::MTE2_WRITE,   222.17},
 };
 
 const std::map<TransportType, float> maxBwRateOf910B4GmCJ = {
-    {TransportType::GM_TO_L1, 274},
-    {TransportType::L1_TO_GM, Common::MAX_BW_910B4.at(std::string {Common::L1_TO_GM})},
-    {TransportType::L0C_TO_L1, Common::MAX_BW_910B4.at(std::string {Common::L0C_TO_L1})},
-    {TransportType::L0C_TO_GM, Common::MAX_BW_910B4.at(std::string {Common::L0C_TO_GM})},
-    {TransportType::GM_TO_UB, Common::MAX_BW_910B4.at(std::string {Common::GM_TO_UB})},
-    {TransportType::UB_TO_GM, Common::MAX_BW_910B4.at(std::string {Common::UB_TO_GM})},
+    {TransportType::GM_TO_L1,     274},
+    {TransportType::L1_TO_GM,     182.07},
+    {TransportType::L0C_TO_L1,    196.27},
+    {TransportType::L0C_TO_GM,    189.08},
+    {TransportType::GM_TO_UB,     195.52},
+    {TransportType::UB_TO_GM,     176.06},
+    {TransportType::MTE_TO_L0A,   391.82},
+    {TransportType::MTE_TO_L0B,   196.3},
+    {TransportType::MTE2_WRITE,   274},
 };
 
 const std::map<TransportType, float> maxBwRateOf950_959X = {
@@ -243,79 +274,20 @@ const std::map<TransportType, float> maxBwRateOf950_950X = {
     {TransportType::UB_TO_GM,                1054.09},
 };
 
-const std::map<std::string, std::map<TransportType, float>> MAX_BW_RATE_A5 = {
-    {"Ascend950DT_950x",  maxBwRateOf950_950X},
-    {"Ascend950DT_950y",  maxBwRateOf950_950X},
-    {"Ascend950DT_9571",  maxBwRateOf950_957X},
-    {"Ascend950DT_9572",  maxBwRateOf950_957X},
-    {"Ascend950DT_9573",  maxBwRateOf950_957X},
-    {"Ascend950DT_9574",  maxBwRateOf950_957X},
-    {"Ascend950DT_9575",  maxBwRateOf950_957X},
-    {"Ascend950DT_9576",  maxBwRateOf950_957X},
-    {"Ascend950DT_9577",  maxBwRateOf950_957X},
-    {"Ascend950DT_9578",  maxBwRateOf950_957X},
-    {"Ascend950DT_9581",  maxBwRateOf950_958X},
-    {"Ascend950DT_9582",  maxBwRateOf950_958X},
-    {"Ascend950DT_9583",  maxBwRateOf950_958X},
-    {"Ascend950DT_9584",  maxBwRateOf950_958X},
-    {"Ascend950DT_9585",  maxBwRateOf950_958X},
-    {"Ascend950DT_9586",  maxBwRateOf950_958X},
-    {"Ascend950DT_9587",  maxBwRateOf950_958X},
-    {"Ascend950DT_9588",  maxBwRateOf950_958X},
-    {"Ascend950DT_9591",  maxBwRateOf950_959X},
-    {"Ascend950DT_9592",  maxBwRateOf950_959X},
-    {"Ascend950DT_9595",  maxBwRateOf950_959X},
-    {"Ascend950DT_9596",  maxBwRateOf950_959X},
-    {"Ascend950DT_95A1",  maxBwRateOf950_959X},
-    {"Ascend950DT_95A2",  maxBwRateOf950_959X},
-    {"Ascend950PR_950z",  maxBwRateOf950_950X},
-    {"Ascend950PR_9579",  maxBwRateOf950_957X},
-    {"Ascend950PR_957b",  maxBwRateOf950_957X},
-    {"Ascend950PR_957c",  maxBwRateOf950_957X},
-    {"Ascend950PR_957d",  maxBwRateOf950_957X},
-    {"Ascend950PR_9589",  maxBwRateOf950_958X},
-    {"Ascend950PR_958b",  maxBwRateOf950_958X},
-    {"Ascend950PR_9599",  maxBwRateOf950_959X},
-};
-
-const std::map<std::string, std::map<TransportType, float>> MAX_BW_RATE = {
-    {"Ascend910B1",   maxBwRateOf910B1},
-    {"Ascend910B2",   maxBwRateOf910B1},
-    {"Ascend910B3",   maxBwRateOf910B1},
-    {"Ascend910B4",   maxBwRateOf910B4},
-    {"Ascend910B4-1", maxBwRateOf910B4},
-    {"Ascend910B2C",  maxBwRateOf910B1}
-};
-
-const std::map<std::string, std::map<TransportType, float>> MAX_BW_RATE_GM_CJ = {
-    {"Ascend910B1",   maxBwRateOf910B1GmCJ},
-    {"Ascend910B2",   maxBwRateOf910B1GmCJ},
-    {"Ascend910B3",   maxBwRateOf910B1GmCJ},
-    {"Ascend910B4",   maxBwRateOf910B4GmCJ},
-    {"Ascend910B4-1", maxBwRateOf910B4GmCJ},
-    {"Ascend910B2C",  maxBwRateOf910B1GmCJ}
-};
-
-const std::map<Common::GmType, std::map<std::string, std::map<TransportType, float>>> GM_PRODUCT_BW = {
-    {Common::GmType::CJ, MAX_BW_RATE_GM_CJ},
-    {Common::GmType::SK, MAX_BW_RATE},
-    {Common::GmType::SS, MAX_BW_RATE},
-    {Common::GmType::DEFAULT, MAX_BW_RATE}
-};
-
 const std::map<std::pair<Common::ChipProductType, Common::GmType>, std::map<TransportType, float>> MAX_BW_RATE_ALL = {
-    {{Common::ChipProductType::ASCEND910B1,     Common::GmType::DEFAULT},        maxBwRateOf910B1},
-    {{Common::ChipProductType::ASCEND910B2,     Common::GmType::DEFAULT},        maxBwRateOf910B1},
-    {{Common::ChipProductType::ASCEND910B3,     Common::GmType::DEFAULT},        maxBwRateOf910B1},
-    {{Common::ChipProductType::ASCEND910B4,     Common::GmType::DEFAULT},        maxBwRateOf910B4},
-    {{Common::ChipProductType::ASCEND910B4_1,   Common::GmType::DEFAULT},        maxBwRateOf910B4},
-    {{Common::ChipProductType::ASCEND910B2C,    Common::GmType::DEFAULT},        maxBwRateOf910B4},
-    {{Common::ChipProductType::ASCEND910B1,     Common::GmType::CJ},             maxBwRateOf910B1GmCJ},
-    {{Common::ChipProductType::ASCEND910B2,     Common::GmType::CJ},             maxBwRateOf910B1GmCJ},
-    {{Common::ChipProductType::ASCEND910B3,     Common::GmType::CJ},             maxBwRateOf910B1GmCJ},
-    {{Common::ChipProductType::ASCEND910B4,     Common::GmType::CJ},             maxBwRateOf910B4GmCJ},
-    {{Common::ChipProductType::ASCEND910B4_1,   Common::GmType::CJ},             maxBwRateOf910B4GmCJ},
-    {{Common::ChipProductType::ASCEND910B2C,    Common::GmType::CJ},             maxBwRateOf910B4GmCJ},
+    {{Common::ChipProductType::ASCEND910B1,       Common::GmType::DEFAULT},        maxBwRateOf910B1},
+    {{Common::ChipProductType::ASCEND910B2,       Common::GmType::DEFAULT},        maxBwRateOf910B2},
+    {{Common::ChipProductType::ASCEND910B2C,      Common::GmType::DEFAULT},        maxBwRateOf910B2},
+    {{Common::ChipProductType::ASCEND910B3,       Common::GmType::DEFAULT},        maxBwRateOf910B2},
+    {{Common::ChipProductType::ASCEND910B4,       Common::GmType::DEFAULT},        maxBwRateOf910B4},
+    {{Common::ChipProductType::ASCEND910B4_1,     Common::GmType::DEFAULT},        maxBwRateOf910B4},
+    {{Common::ChipProductType::ASCEND910B1,       Common::GmType::CJ},             maxBwRateOf910B1GmCJ},
+    {{Common::ChipProductType::ASCEND910B2,       Common::GmType::CJ},             maxBwRateOf910B2GmCJ},
+    {{Common::ChipProductType::ASCEND910B2C,      Common::GmType::CJ},             maxBwRateOf910B2GmCJ},
+    {{Common::ChipProductType::ASCEND910B3,       Common::GmType::CJ},             maxBwRateOf910B2GmCJ},
+    {{Common::ChipProductType::ASCEND910B4,       Common::GmType::CJ},             maxBwRateOf910B4GmCJ},
+    {{Common::ChipProductType::ASCEND910B4_1,     Common::GmType::CJ},             maxBwRateOf910B4GmCJ},
+    {{Common::ChipProductType::ASCEND910B2C,      Common::GmType::CJ},             maxBwRateOf910B4GmCJ},
     {{Common::ChipProductType::ASCEND950DT_950X,  Common::GmType::DEFAULT},        maxBwRateOf950_950X},
     {{Common::ChipProductType::ASCEND950DT_950Y,  Common::GmType::DEFAULT},        maxBwRateOf950_950X},
     {{Common::ChipProductType::ASCEND950DT_9571,  Common::GmType::DEFAULT},        maxBwRateOf950_957X},

@@ -622,23 +622,6 @@ TEST(DeviceDataParse, pmu_calculate_test)
     ASSERT_EQ(metricValues2.at("L0C_to_GM_bw_usage_rate(%)"), "1.031439");
 }
 
-TEST(DeviceDataParse, Cal_GetMaxBwRateByGmType_Return_True)
-{
-    map<uint16_t, uint64_t> pmuEventValueMap = {
-            {11, 100}, {4, 123}, {73, 456}, {76, 100}, {77, 200}, {174, 300}, {49, 400}, {50, 750}, {74, 44}, {19, 600},
-            {518, 700}, {524, 800}, {106, 102}, {120, 100}, {121, 1}, {10, 500}
-    };
-    set<std::string> metricItems = {"aic_total_cycles", "aic_mte1_ratio", "aic_mte1_instructions", "aic_vec_fp16_ratio",
-                                    "aic_l1_read_bw(GB/s)", "aic_cube_time(us)", "aic_write_cache_hit", "aic_l2_cache_hit_rate(%)", "unknown"};
-    Calculate cal(pmuEventValueMap, 10000, {ChipType::ASCEND910B, 1150, 8, 24, "Ascend910B1"});
-    HalHelper::Instance().gmType_ = GmType::CJ;
-    auto gmCJ = cal.GetMaxBwRateByGmType();
-    HalHelper::Instance().gmType_ = GmType::DEFAULT;
-    auto gm = cal.GetMaxBwRateByGmType();
-    EXPECT_TRUE(abs(gm["Ascend910B1"][TransportType::GM_TO_L1] - 264) < 0.001);
-    EXPECT_TRUE(abs(gmCJ["Ascend910B1"][TransportType::GM_TO_L1] - 296) < 0.001);
-}
-
 TEST(DeviceDataParse, LoadOpBasicInfoTxtFile_expect_false)
 {
     DataHandler dataHandler;
@@ -1174,7 +1157,7 @@ TEST(DeviceDataParse, HotSpot_GenInstrInfos_expect_true)
     ASSERT_TRUE(hotSpotFunctionGenerator.GenInstrInfos(instrInfos));
 }
 
-TEST(EquationsUtils, Ratio_expetc_success)
+TEST(EquationsUtils, Ratio_expect_success)
 {
     auto res1 = Ratio(100, 20);
     ASSERT_STREQ(res1.c_str(), "5.000000");
@@ -1198,6 +1181,18 @@ TEST(EquationsUtils, BandWidthUsage_expect_success)
     ASSERT_STREQ(res2.c_str(), "NA");
     auto res3 = BandWidthUsage(0.0001, 1, TransportType::GM_TO_L1, ChipProductType::ASCEND950PR_9599);
     ASSERT_STREQ(res3.c_str(), "1.564328");
+}
+
+TEST(EquationsUtils, GetMaxBwBySocCal_expect_success)
+{
+    HalHelper::Instance().gmType_ = GmType::CJ;
+    auto resCJ = GetMaxBwBySoc("Ascend910B1", ChipProductType::ASCEND910B1);
+    EXPECT_FLOAT_EQ(resCJ[TransportType::GM_TO_L1], 296);
+    EXPECT_FLOAT_EQ(resCJ[TransportType::MTE_TO_L0A], 439.32);
+    HalHelper::Instance().gmType_ = GmType::DEFAULT;
+    auto res = GetMaxBwBySoc("Ascend910B1", ChipProductType::ASCEND910B1);
+    EXPECT_FLOAT_EQ(res[TransportType::GM_TO_L1], 264);
+    EXPECT_FLOAT_EQ(res[TransportType::MTE_TO_L0A], 437.5);
 }
 
 // A5正式出来后该函数需要修改使用真实数据校验

@@ -114,4 +114,21 @@ std::string BandWidthUsage(float val, float duration, TransportType type, const 
     auto chipType = GetProductSeriesTypeBySocVersion(socVersion);
     return BandWidthUsage(val, duration, type, chipType);
 }
+
+std::map<TransportType, float> GetMaxBwBySoc(const std::string &socVersion, const ChipProductType &defalutChip)
+{
+    // defalutChip must in MAX_BW_RATE_ALL
+    auto chipType = GetProductSeriesTypeBySocVersion(socVersion);
+    GmType gmType = GmType::DEFAULT;
+    if (defalutChip == ChipProductType::ASCEND910B1) {
+        gmType = HalHelper::Instance().GetGmType();
+    }
+    auto iter = MAX_BW_RATE_ALL.find({chipType, gmType});
+    if (iter != MAX_BW_RATE_ALL.end()) {
+        return iter->second;
+    } else {
+        Utility::LogDebug("Missing theoretical bandwidth for soc %s, using default value", socVersion.c_str());
+        return MAX_BW_RATE_ALL.at({defalutChip, GmType::DEFAULT});
+    }
+}
 }

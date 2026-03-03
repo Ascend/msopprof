@@ -33,6 +33,7 @@ uint64_t GetDataNumber(uint64_t pmu, uint64_t request);
 float GetDataNumberFp(uint64_t pmu, uint64_t request, const std::string& unit = "GB");
 std::string BandWidthUsage(float val, float duration, TransportType type, Common::ChipProductType chipType);
 std::string BandWidthUsage(float val, float duration, TransportType type, const std::string &socVersion);
+std::map<TransportType, float> GetMaxBwBySoc(const std::string &socVersion, const Common::ChipProductType &defalutChip);
 }
  
 #endif // __MSOPPROF_PROFILING_EQUATION_UTILS_H__

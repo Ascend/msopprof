@@ -586,28 +586,28 @@ void StorageAccess910B::GetPipePeak(std::map<std::string, uint64_t> basicPmu, Me
     // 1.Calculate the theoretical bandwidth of MTE1 based on the weighted channel bandwidth.
     uint64_t l0aDatas = basicPmu["L0A Read"] * REQ_DATA_OF_910B.at(TransportType::L1_TO_L0A);
     uint64_t l0bDatas = basicPmu["L0B Read"] * REQ_DATA_OF_910B.at(TransportType::L1_TO_L0B);
-    auto maxBwRate = pmuCalculatorObj_->GetBandWidthByWeight(l0aDatas, l0bDatas);
-
-    // 2.Obtains the peak value of each pipe channel.
     std::string socName = opBasicInfoObj_->GetSoc();
     socName = (FREQ_MAP.count(socName) == 0) ? "Ascend910B1" : socName;
+    auto maxBwRate = pmuCalculatorObj_->GetPipeBwByWeight(socName, l0aDatas, l0bDatas);
+
+    // 2.Obtains the peak value of each pipe channel.
     if (opType == Common::OpType::VECTOR) {
-        peakMap_["Pipe MTE2"] = memInfoAiCoreMap_["UB"][0].throughput / maxBwRate[socName]["MTE2"];
-        peakMap_["Pipe MTE3"] = memInfoAiCoreMap_["UB"][1].throughput / maxBwRate[socName]["MTE3"];
+        peakMap_["Pipe MTE2"] = memInfoAiCoreMap_["UB"][0].throughput / maxBwRate["MTE2"];
+        peakMap_["Pipe MTE3"] = memInfoAiCoreMap_["UB"][1].throughput / maxBwRate["MTE3"];
         return;
     }
     std::string mteCube = "Pipe MTE";
     if (opType != Common::OpType::CUBE) {
         mteCube = "Pipe Cube MTE";
         peakMap_["Pipe Vector Core0 MTE2"] =
-            memInfoAiCoreMap_["UB Core0"][0].throughput / maxBwRate[socName]["MTE2 vector"];
+            memInfoAiCoreMap_["UB Core0"][0].throughput / maxBwRate["MTE2 vector"];
         peakMap_["Pipe Vector Core0 MTE3"] =
-            memInfoAiCoreMap_["UB Core0"][1].throughput / maxBwRate[socName]["MTE3 vector"];
+            memInfoAiCoreMap_["UB Core0"][1].throughput / maxBwRate["MTE3 vector"];
 
         peakMap_["Pipe Vector Core1 MTE2"] =
-            memInfoAiCoreMap_["UB Core1"][0].throughput / maxBwRate[socName]["MTE2 vector"];
+            memInfoAiCoreMap_["UB Core1"][0].throughput / maxBwRate["MTE2 vector"];
         peakMap_["Pipe Vector Core1 MTE3"] =
-            memInfoAiCoreMap_["UB Core1"][1].throughput / maxBwRate[socName]["MTE3 vector"];
+            memInfoAiCoreMap_["UB Core1"][1].throughput / maxBwRate["MTE3 vector"];
     }
     std::vector<uint64_t> mteBytesVec = {
         basicPmu["MTE Write"] * REQ_DATA_OF_910B.at(TransportType::L1_TO_MTE) -
@@ -622,7 +622,7 @@ void StorageAccess910B::GetPipePeak(std::map<std::string, uint64_t> basicPmu, Me
     for (size_t i = 0; i < mteBytesVec.size(); ++i) {
         std::string pipeIndex = std::to_string(i + 1);
         peakMap_[mteCube + pipeIndex] = (FunctionsFp.at(FuncType::BW_USAGE_REQ_FP)(cal, {mteBytesVec[i], 1})) /
-            maxBwRate[socName]["MTE" + pipeIndex];
+            maxBwRate["MTE" + pipeIndex];
     }
 }
 

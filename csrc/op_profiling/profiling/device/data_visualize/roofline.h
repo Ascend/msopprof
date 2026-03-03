@@ -123,7 +123,6 @@ private:
     void InsertMemPipeMaxBw(int64_t coreNum);
     void GetTheoryBwByGmType(std::map<std::string, float> &gmBw) const;
     void GetTheoryL2CacheByGmType(std::map<std::string, float> &l2CacheBw) const;
-    void GetPipeMaxBwByGmType(std::map<std::string, std::map<std::string, float>> &memoryPipeMaxBwRate) const;
 
     const std::vector<Event> cubeEvents_ = {
         // fops

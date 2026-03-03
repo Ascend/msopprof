@@ -323,27 +323,6 @@ TEST(DataVisualize, occupancy_getOccupancyBlockJson_expect_success)
     ASSERT_TRUE(res1.size()==3);
 }
 
-TEST(DeviceDataParse, StorageAccess_GetMaxBwRateByGmType_Return_True)
-{
-    ChipType chipType = ChipType::ASCEND910B;
-    auto &handler2 = GetHandleTest1(chipType);
-    bool resu = handler2->ParseDeviceData(parserConfig1, eventMap_1, metrics, timeStamp1);
-    auto &opBasicInfoObj = GetOpBasicInfoObjTest1(chipType, handler2);
-    auto &basicPmuObj = GetBasicPmuObjTest1(chipType, handler2);
-    opBasicInfoObj->SetBlockDetail();
-    auto pmuCalculatorPtr = PmuCalculator910B();
-    pmuCalculatorPtr.Init(basicPmuObj);
-
-    std::map<std::string, std::map<std::string, float>> maxBwRate;
-    std::map<std::string, std::map<std::string, float>> maxBwRateCJ;
-    HalHelper::Instance().gmType_ = GmType::CJ;
-    pmuCalculatorPtr.GetMaxBwRateByGmType(maxBwRateCJ);
-    HalHelper::Instance().gmType_ = GmType::DEFAULT;
-    pmuCalculatorPtr.GetMaxBwRateByGmType(maxBwRate);
-    EXPECT_TRUE(abs(maxBwRate["Ascend910B1"]["L0A"] - 437.5) < 0.001);
-    EXPECT_TRUE(abs(maxBwRateCJ["Ascend910B1"]["L0A"] - 439.32) < 0.001);
-}
-
 TEST(DeviceDataParse, SaveOpBasicInfo_Return_True)
 {
     GlobalMockObject::verify();
@@ -367,7 +346,7 @@ TEST(DataVisualize, genfreadvice_low_freq_advice)
     EXPECT_EQ(res[0], "The current frequency is lower than the rated frequency");
 }
 
-TEST(DataVisualize, getbandwidthbyweight_by_freq_datas_success)
+TEST(DataVisualize, GetPipeBwByWeight_by_freq_datas_success)
 {
     ChipType chipType = ChipType::ASCEND910B;
     auto &handler2 = GetHandleTest1(chipType);
@@ -381,40 +360,38 @@ TEST(DataVisualize, getbandwidthbyweight_by_freq_datas_success)
     uint64_t l0bDatas = 0;
     uint64_t l0cToGmDatas = 0;
     uint64_t l0cToL1Datas = 0;
-    auto res = pmuCalculatorObj->GetBandWidthByWeight(l0aDatas, l0bDatas, l0cToGmDatas, l0cToL1Datas);
-    EXPECT_EQ(res.size(), 5);
-    EXPECT_EQ(res["Ascend910B1"].size(), 10);
-    EXPECT_EQ(res["Ascend910B4"].size(), 10);
     // 有效可用通路为MTE1\MTE2\MTE3\MTE2 Vector\MTE3 Vector 5种
-    EXPECT_EQ(res["Ascend910B2"].size(), 5);
-    EXPECT_EQ(res["Ascend910B3"].size(), 5);
-    float freqRatio = static_cast<float>(1800) / 1850;
-    EXPECT_FLOAT_EQ(res["Ascend910B1"]["L0A"], 437.5);
-    EXPECT_FLOAT_EQ(res["Ascend910B1"]["L0B"], 210.5);
-    EXPECT_FLOAT_EQ(res["Ascend910B1"]["L0C2GM"], 209.32);
-    EXPECT_FLOAT_EQ(res["Ascend910B1"]["L0C2L1"], 216.88);
-    EXPECT_FLOAT_EQ(res["Ascend910B1"]["FIXP"], 208.155);
-
-    EXPECT_FLOAT_EQ(res["Ascend910B4"]["L0A"], 368.2);
-    EXPECT_FLOAT_EQ(res["Ascend910B4"]["L0B"], 173.81);
-    EXPECT_FLOAT_EQ(res["Ascend910B4"]["L0C2GM"], 189.89);
-    EXPECT_FLOAT_EQ(res["Ascend910B4"]["L0C2L1"], 190.7);
-    EXPECT_FLOAT_EQ(res["Ascend910B4"]["FIXP"], 190.295);
-    // 频率不同，根据频率百分比求值，且B2=B3
-    EXPECT_FLOAT_EQ(res["Ascend910B3"]["MTE1"], 324.0 * freqRatio);
-    EXPECT_FLOAT_EQ(res["Ascend910B3"]["MTE2"], 340.1 * freqRatio);
-    EXPECT_FLOAT_EQ(res["Ascend910B3"]["MTE3"], 199.43 * freqRatio);
-    EXPECT_FLOAT_EQ(res["Ascend910B3"]["MTE2 vector"], 186.8 * freqRatio);
-    EXPECT_FLOAT_EQ(res["Ascend910B3"]["MTE3 vector"], 220.06 * freqRatio);
-    for (auto &pipe : res["Ascend910B3"]) {
-        EXPECT_FLOAT_EQ(pipe.second, res["Ascend910B2"][pipe.first]);
+    auto resB1 = pmuCalculatorObj->GetPipeBwByWeight("Ascend910B1", l0aDatas, l0bDatas, l0cToGmDatas, l0cToL1Datas);
+    EXPECT_FLOAT_EQ(resB1["MTE1"], 324.0);
+    EXPECT_FLOAT_EQ(resB1["MTE2"], 340.1);
+    EXPECT_FLOAT_EQ(resB1["MTE3"], 199.43);
+    EXPECT_FLOAT_EQ(resB1["MTE2 vector"], 220.06);
+    EXPECT_FLOAT_EQ(resB1["MTE3 vector"], 186.8);
+    // B2=B3
+    auto resB2 = pmuCalculatorObj->GetPipeBwByWeight("Ascend910B2", l0aDatas, l0bDatas, l0cToGmDatas, l0cToL1Datas);
+    auto resB3 = pmuCalculatorObj->GetPipeBwByWeight("Ascend910B3", l0aDatas, l0bDatas, l0cToGmDatas, l0cToL1Datas);
+    EXPECT_FLOAT_EQ(resB2["MTE1"], 315.245);
+    EXPECT_FLOAT_EQ(resB2["MTE2"], 330.91);
+    EXPECT_FLOAT_EQ(resB2["MTE3"], 193.99);
+    EXPECT_FLOAT_EQ(resB2["MTE2 vector"], 214.11);
+    EXPECT_FLOAT_EQ(resB2["MTE3 vector"], 181.75);
+    for (auto &pipe : resB3) {
+        EXPECT_FLOAT_EQ(pipe.second, resB2[pipe.first]);
     }
+    auto resB4 = pmuCalculatorObj->GetPipeBwByWeight("Ascend910B4", l0aDatas, l0bDatas, l0cToGmDatas, l0cToL1Datas);
+    EXPECT_FLOAT_EQ(resB4["MTE1"], 271.005);
+    EXPECT_FLOAT_EQ(resB4["MTE2"], 222.17);
+    EXPECT_FLOAT_EQ(resB4["MTE3"], 189.89);
+    EXPECT_FLOAT_EQ(resB4["MTE2 vector"], 195.27);
+    EXPECT_FLOAT_EQ(resB4["MTE3 vector"], 176.75);
+
     // 输入数据量有效时，根据数据占比求峰值带宽
-    res = pmuCalculatorObj->GetBandWidthByWeight(100, 300, 100, 700);
-    EXPECT_FLOAT_EQ(res["Ascend910B1"]["MTE1"], res["Ascend910B1"]["L0A"] * 0.25 + res["Ascend910B1"]["L0B"] * 0.75);
-    EXPECT_FLOAT_EQ(res["Ascend910B4"]["MTE1"], res["Ascend910B4"]["L0A"] * 0.25 + res["Ascend910B4"]["L0B"] * 0.75);
-    EXPECT_FLOAT_EQ(res["Ascend910B1"]["FIXP"], res["Ascend910B1"]["L0C2GM"] * 0.125 + res["Ascend910B1"]["L0C2L1"] * 0.875);
-    EXPECT_FLOAT_EQ(res["Ascend910B4"]["FIXP"], res["Ascend910B4"]["L0C2GM"] * 0.125 + res["Ascend910B4"]["L0C2L1"] * 0.875);
+    resB1 = pmuCalculatorObj->GetPipeBwByWeight("Ascend910B1", 100, 300, 100, 700);
+    resB4 = pmuCalculatorObj->GetPipeBwByWeight("Ascend910B4", 100, 300, 100, 700);
+    EXPECT_FLOAT_EQ(resB1["MTE1"], maxBwRateOf910B1.at(TransportType::MTE_TO_L0A) * 0.25 + maxBwRateOf910B1.at(TransportType::MTE_TO_L0B) * 0.75);
+    EXPECT_FLOAT_EQ(resB4["MTE1"], maxBwRateOf910B4.at(TransportType::MTE_TO_L0A) * 0.25 + maxBwRateOf910B4.at(TransportType::MTE_TO_L0B) * 0.75);
+    EXPECT_FLOAT_EQ(resB1["FIXP"], maxBwRateOf910B1.at(TransportType::L0C_TO_GM) * 0.125 + maxBwRateOf910B1.at(TransportType::L0C_TO_L1) * 0.875);
+    EXPECT_FLOAT_EQ(resB4["FIXP"], maxBwRateOf910B4.at(TransportType::L0C_TO_GM) * 0.125 + maxBwRateOf910B4.at(TransportType::L0C_TO_L1) * 0.875);
 }
 
 TEST(DataVisualize, addbasicpmu910b_success)

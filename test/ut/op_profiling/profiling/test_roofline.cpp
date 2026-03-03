@@ -241,16 +241,22 @@ TEST(RoofLine, GetTheoryL2CacheByGmType_Return_True)
     EXPECT_TRUE(abs(l2CacheBwCJ["Ascend910B1"] - 7.4) < 0.001);
 }
 
-TEST(RoofLine, GetPipeMaxBwByGmType_Return_True)
+TEST(RoofLine, InsertMemPipeMaxBw_return_expect_value)
 {
-    std::map<std::string, std::map<std::string, float>> memoryPipeMaxBwRate;
-    std::map<std::string, std::map<std::string, float>> memoryPipeMaxBwRateCJ;
+    ChipType chipType = ChipType::ASCEND910B;
+    auto &handler = GetHandleTest(chipType);
+    auto &opBasicInfoObj = GetOpBasicInfoObjTest(chipType, handler);
+    auto &basicPmuObj = GetBasicPmuObjTest(chipType, handler);
+    opBasicInfoObj->soc_ = "Ascend910B1";
+    auto &pmuCalculatorObj = GetPmuCalculatorObjTest(chipType, opBasicInfoObj, basicPmuObj);
+    RoofLineOf910B roofLine(freqRoofline, aiCoreNumRoofline, opBasicInfoObj, basicPmuObj, pmuCalculatorObj);
+    
     HalHelper::Instance().gmType_ = GmType::CJ;
-    roofLineTest.GetPipeMaxBwByGmType(memoryPipeMaxBwRateCJ);
+    roofLine.InsertMemPipeMaxBw(1);
+    EXPECT_FLOAT_EQ(roofLine.maxBwRates_["L1 to GM"], 187.72 / BIT_CONVERSION);
     HalHelper::Instance().gmType_ = GmType::DEFAULT;
-    roofLineTest.GetPipeMaxBwByGmType(memoryPipeMaxBwRate);
-    EXPECT_TRUE(abs(memoryPipeMaxBwRate["Ascend910B1"]["L1 to GM"] - 199.43) < 0.001);
-    EXPECT_TRUE(abs(memoryPipeMaxBwRateCJ["Ascend910B1"]["L1 to GM"] - 187.72) < 0.001);
+    roofLine.InsertMemPipeMaxBw(1);
+    EXPECT_FLOAT_EQ(roofLine.maxBwRates_["L1 to GM"], 199.43 / BIT_CONVERSION);
 }
 
 TEST(RoofLine, generaterooflines_test_advice_rooflines_success)
