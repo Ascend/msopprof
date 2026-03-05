@@ -157,12 +157,9 @@ void ComputeLoadCalculator::ComputeLoadInfoFor91095(std::map<uint8_t, std::vecto
             Visualize::DetailInfo info{"Vector " + OperandTypeStrMap.at(simd.first), UnitType::INSTR, 1};
             GenBlockDetail(detail, instr, info, jsonMap);
         }
-        Visualize::DetailInfo info{"Vector All Active", UnitType::INSTR, 1};
-        GenBlockDetail(detail, totalInstrNum, info, jsonMap);
-
         uint64_t wait = (detail.freq <= 0 || eventMap[12] == UINT64_MAX) ?
             0 : static_cast<uint64_t>(eventMap[12] / detail.freq);
-        std::vector<uint64_t> eventResVecAiv = {eventMap[1281], wait};
+        std::vector<uint64_t> eventResVecAiv = {eventMap[1281], totalInstrNum, wait};
         for (size_t i = 0; i < detailInfoAivA5_.size(); ++i) {
             GenBlockDetail(detail, eventResVecAiv[i], detailInfoAivA5_[i], jsonMap);
         }

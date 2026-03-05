@@ -513,7 +513,7 @@ const std::vector<uint16_t> REPLAY_AIV_EVENTS_FOR_A5 = {
     52,   53,   516,  518,  1058, 1059, 1391, 1393, 1394, 0,
     1395, 1396, 1397, 1398, 1407, 1408, 0,    0,    0,    0,
     10,   12,   14,   15,   0,    0,    0,    0,    0,    0,
-    1,    514,  515,  1281, 1282, 1283, 1284, 0,    0,    0
+    1,    514,  515,  1281, 1282, 1283, 1284, 1466, 1467, 1468,
 };
 
 const std::vector<std::string> MAGICS = {"RT_DEV_BINARY_MAGIC_ELF_AIVEC", "RT_DEV_BINARY_MAGIC_ELF_AICUBE",
@@ -599,6 +599,12 @@ const std::map<unsigned short, GmType> GM_PRODUCT {
         {88, GmType::CJ},
         {0, GmType::DEFAULT},
 };
+
+template<class TKey, class TValue>
+using PairVector = std::vector<std::pair<TKey, TValue>>;
+
+template<class T>
+using RefOf = std::reference_wrapper<T>;
 } // namespace Common
 
 #endif  // __MSOPPROF_COMMON_DEFS_H__

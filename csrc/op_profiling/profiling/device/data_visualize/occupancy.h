@@ -21,6 +21,7 @@
 #include "filesystem.h"
 #include "basic_op_and_pmu.h"
 #include "pmu_calculator.h"
+#include "common/defs.h"
 #include "number_operation.h"
 
 namespace Visualize {
@@ -53,6 +54,10 @@ constexpr uint64_t EVENT_WRITE_CLOSE_VICTIM = 1068;
 constexpr uint64_t EVENT_WRITE_FAR_HIT = 1069;
 constexpr uint64_t EVENT_WRITE_FAR_MISS = 1070;
 constexpr uint64_t EVENT_WRITE_FAR_VICTIM = 1071;
+constexpr uint64_t PMU_IDC_AIV_VEC_INSTR_SIMT_VF_BUSY_O = 1284;
+constexpr uint64_t WSU_PMU_EXU_INS_ISSUE = 1466;
+constexpr uint64_t WSU_PMU_DVG_INS_ISSUE = 1467;
+constexpr uint64_t WSU_PMU_DCU_INS_ISSUE = 1468;
 
 constexpr float OCCUPANCY_BALANCE_THRESHOLD = 0.9;
 
@@ -60,13 +65,21 @@ enum class OccupancyDataType {
     OCPY_CYCLES = 0,
     OCPY_THROUGHPUT,
     OCPY_CACHE_HIT_RATE,
+    OCPY_SIMT_INSTR,
     OCPY_MAX,
+};
+
+struct SimtComputeLoadMetrics {
+    uint64_t cycles;
+    uint64_t instrNum;
 };
 
 struct OccupancyMetrics {
     uint64_t cycles;
     uint64_t throughput;
     float cacheHitRate;
+    bool hasSimtMetrics;
+    SimtComputeLoadMetrics simtMetrics;
 };
 
 class Occupancy {
@@ -93,15 +106,18 @@ private:
     void MergeSameCorePmu(std::vector<MemMapDetail> &pmuMapDetails);
     std::map<uint64_t, uint64_t> MergeEventMap(std::map<uint64_t, uint64_t> &eventMap1,
                                                std::map<uint64_t, uint64_t> &eventMap2) const;
-    template<typename T>
-    std::vector<std::string> AnalysisOccupy(std::vector<std::pair<std::string, T>> &Ocpy, OccupancyDataType OcpyType);
-    std::string GetAdvice();
+    void AnalyzeOccupy(Common::PairVector<std::string, double> &Ocpy, OccupancyDataType OcpyType,
+                       std::vector<std::string> &adviceList) const;
+    bool NormalizeOccupy(Common::PairVector<std::string, double> &Ocpy, OccupancyDataType OcpyType) const;
+    std::string GetAdviceFromOcpyData(const Common::PairVector<Common::RefOf<Common::PairVector<std::string, double>>, OccupancyDataType> &ocpyData) const;
+    std::string GetAdvice() const;
 
     std::string opType_;
     // 融合的pmu event，纯vector或纯cube算子，把相同物理核的pmu相加，blockID使用最小的
     std::vector<MemMapDetail> fusionPmuMapDetails_;
-    std::vector<std::pair<uint16_t, uint16_t>> blockIdCoreIdPairVec_;
+    Common::PairVector<uint16_t, uint16_t> blockIdCoreIdPairVec_;
     std::regex pattern_;
+    static const std::unordered_map<OccupancyDataType, double> ReportThresholds;
 };
 
 class Occupancy910B : public Occupancy {

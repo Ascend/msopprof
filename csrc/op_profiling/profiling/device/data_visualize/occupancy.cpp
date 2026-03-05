@@ -38,21 +38,18 @@ struct OccupancyEvent {
         jsonData["throughput"] = std::to_string(this->metric.throughput);
         jsonData["cycles"] = std::to_string(this->metric.cycles);
         jsonData["L2cache_hit_rate"] = std::to_string(this->metric.cacheHitRate);
+        if (!metric.hasSimtMetrics) {
+            return;
+        }
+        nlohmann::json simtMetricsJson;
+        simtMetricsJson["instructions"] = this->metric.simtMetrics.instrNum;
+        simtMetricsJson["instruction_per_cycle"] = static_cast<double>(this->metric.simtMetrics.instrNum) / this->metric.simtMetrics.cycles;
+        jsonData["simt_vf_instructions"] = simtMetricsJson;
     }
     std::string subcoreType;
     std::string subcoreId;
     OccupancyMetrics metric;
 };
-
-template<typename T>
-bool UpdataMaxAndMin(T &max, T &min, const std::vector<std::pair<std::string, T>> &Ocpy)
-{
-    for (const auto &metricsValue : Ocpy) {
-        max = std::max(max, metricsValue.second);
-        min = std::min(min, metricsValue.second);
-    }
-    return !IsZero<T>(max);
-}
 
 void Occupancy::ClearOccupancyJson()
 {
@@ -62,71 +59,194 @@ void Occupancy::ClearOccupancyJson()
 }
 
 template<typename T>
-std::vector<std::string> Occupancy::AnalysisOccupy(std::vector<std::pair<std::string, T>> &Ocpy,
-                                                   OccupancyDataType OcpyType)
-{
-    std::vector<std::string> adviceList;
-    if (Ocpy.empty()) {
-        return adviceList;
+static std::string JoinVectorElements(const std::vector<T>& elements, const std::string& delimiter) {
+    std::ostringstream oss;
+    for (auto it = elements.begin(); it != elements.end(); ++it) {
+        if (it != elements.begin()) oss << delimiter;
+        oss << *it;
     }
-    T maxOcpy = std::numeric_limits<T>::min();
-    T minOcpy = std::numeric_limits<T>::max();
-    if (!UpdataMaxAndMin<T>(maxOcpy, minOcpy, Ocpy)) {
-        return adviceList;
-    }
-    // 最小值大于最大值*0.9，认为负载均衡
-    if (static_cast<float>(minOcpy) / maxOcpy >= OCCUPANCY_BALANCE_THRESHOLD) {
-        return adviceList;
-    }
+    return oss.str();
+}
 
-    // 收集分析结果
+static std::string GetAdviceForOccupancyType(OccupancyDataType ocpy, const std::string &coreType)
+{
+    static const std::unordered_map<OccupancyDataType, std::string> ocpyMap = {
+        {OccupancyDataType::OCPY_CYCLES, "take more time than other "},
+        {OccupancyDataType::OCPY_THROUGHPUT, "write/read more data than other "},
+        {OccupancyDataType::OCPY_CACHE_HIT_RATE, "cache hit rate lower than other "},
+        {OccupancyDataType::OCPY_SIMT_INSTR, "execute more instructions than other "},
+    };
+    auto it = ocpyMap.find(ocpy);
+    if (it == ocpyMap.end()) {
+        return "";
+    }
+    return it->second + coreType + " cores";
+}
+
+static void SummarizeCubeReport(const std::vector<uint16_t> &cubeCoreReport, OccupancyDataType ocpy, std::vector<std::string> &adviceList) {
+    if (cubeCoreReport.empty()) {
+        return;
+    }
+    std::ostringstream adviceOss;
+    adviceOss << "cube0 of core[";
+    adviceOss << JoinVectorElements(cubeCoreReport, ",");
+    adviceOss << "] ";
+    adviceOss << GetAdviceForOccupancyType(ocpy, "cube");
+    adviceList.emplace_back(adviceOss.str());
+}
+
+static void SummarizeVecReport(const PairVector<uint16_t, uint16_t> &vecCoreReport, OccupancyDataType ocpy, std::vector<std::string> &adviceList) {
+    if (vecCoreReport.empty()) {
+        return;
+    }
+    std::map<uint16_t, uint16_t> vecCoreMap;
+    for (std::pair<uint16_t, uint16_t> idPair : vecCoreReport) {
+        vecCoreMap[idPair.first] += idPair.second == 0 ? 1 : 2;
+    }
+    std::vector<uint16_t> subCore0;
+    std::vector<uint16_t> subCore1;
+    std::vector<uint16_t> subCore2;
+    for (auto it = vecCoreMap.begin(); it != vecCoreMap.end(); ++it) {
+        if (it->second == 1) {
+            subCore0.emplace_back(it->first);
+        } else if (it->second == 2) {
+            subCore1.emplace_back(it->first);
+        } else {
+            subCore2.emplace_back(it->first);
+        }
+    }
+    PairVector<RefOf<std::vector<uint16_t>>, std::string> subCorePairs = {
+        {subCore2, "vector0, vector1 of core["},
+        {subCore0, "vector0 of core["},
+        {subCore1, "vector1 of core["},
+    };
+    std::vector<std::string> subCoreNameList;
+    for (auto it = subCorePairs.begin(); it != subCorePairs.end(); ++it) {
+        if (it->first.get().empty()) {
+            continue;
+        }
+        std::ostringstream oss;
+        oss << it->second;
+        oss << JoinVectorElements(it->first.get(), ",");
+        oss << "]";
+        subCoreNameList.emplace_back(oss.str());
+    }
+    std::ostringstream adviceOss;
+    adviceOss << JoinVectorElements(subCoreNameList, ", ");
+    adviceOss << " ";
+    adviceOss << GetAdviceForOccupancyType(ocpy, "vector");
+    adviceList.emplace_back(adviceOss.str());
+}
+
+static double ZScore(double x, double average, double stdDeviationInverse)
+{
+    return (x - average) * stdDeviationInverse;
+}
+
+static double Sigmoid(double x, bool reflect) {
+    return 1.0 / (1.0 + exp(reflect ? x : -x));
+}
+
+const std::unordered_map<OccupancyDataType, double> Occupancy::ReportThresholds = {
+    {OccupancyDataType::OCPY_CYCLES, 0.6},
+    {OccupancyDataType::OCPY_THROUGHPUT, 0.6},
+    {OccupancyDataType::OCPY_CACHE_HIT_RATE, 0.6},
+    {OccupancyDataType::OCPY_SIMT_INSTR, 0.6},
+};
+
+void Occupancy::AnalyzeOccupy(PairVector<std::string, double> &Ocpy, OccupancyDataType OcpyType,
+                              std::vector<std::string> &adviceList) const {
+
+    if (ReportThresholds.find(OcpyType) == ReportThresholds.end()) {
+        return;
+    }
     std::smatch matchRes;
     uint16_t blockId = 0;
     uint16_t subBlockId = 0;
-    for (auto &metricsValue : Ocpy) {
-        // metricsValue pair 第一个字段表示核名字，第二个字段表示指标值
-        if (std::regex_search(metricsValue.first, matchRes, pattern_)) {
-            std::string blockIdStr = matchRes[1];    // 1表示blockId
-            std::string blockTypeStr = matchRes[2];  // 2 表示block类型 cube vector
-            std::string subBlockIdStr = matchRes[3]; // 3 表示subblockId
-
-            if (!Utility::StringToNum(blockIdStr, blockId)) {
-                continue;
-            }
-            if (!Utility::StringToNum(subBlockIdStr, subBlockId)) {
-                continue;
-            }
-            
-            uint16_t coreId = (opType_ == Common::OpType::VECTOR) ? blockId / 2 : blockId;
-            uint16_t subCoreId = (opType_ == Common::OpType::VECTOR) ? blockId % 2 : subBlockId;
-            if (OcpyType == OccupancyDataType::OCPY_CYCLES && SafeEqual(metricsValue.second, maxOcpy, T(0))) {
-                adviceList.emplace_back("core" + std::to_string(coreId) + " " + blockTypeStr +
-                    std::to_string(subCoreId) + " took more time than other " + blockTypeStr + " cores");
-                continue;
-            }
-            if (OcpyType == OccupancyDataType::OCPY_THROUGHPUT && SafeEqual(metricsValue.second, maxOcpy, T(0))) {
-                adviceList.emplace_back("core" + std::to_string(coreId) + " " + blockTypeStr +
-                    std::to_string(subCoreId) + " write/read more data than other "+ blockTypeStr + " cores");
-                continue;
-            }
-            if (OcpyType == OccupancyDataType::OCPY_CACHE_HIT_RATE && SafeEqual(metricsValue.second, minOcpy, T(0))) {
-                adviceList.emplace_back("core" + std::to_string(coreId) + " " + blockTypeStr +
-                    std::to_string(subCoreId) + " cache hit rate lower than other "+ blockTypeStr + " cores");
-                continue;
-            }
+    std::vector<uint16_t> cubeCoreReport;
+    PairVector<uint16_t, uint16_t> vecCoreReport;
+    for (auto it = Ocpy.begin(); it != Ocpy.end(); ++it) {
+        if (!std::regex_search(it->first, matchRes, pattern_)) {
+            continue;
+        }
+        std::string blockIdStr = matchRes[1];    // 1表示blockId
+        std::string blockTypeStr = matchRes[2];  // 2 表示block类型 cube vector
+        std::string subBlockIdStr = matchRes[3]; // 3 表示subblockId
+        if (!Utility::StringToNum(blockIdStr, blockId) || !Utility::StringToNum(subBlockIdStr, subBlockId)) {
+            continue;
+        }
+        uint16_t coreId = (opType_ == Common::OpType::VECTOR) ? blockId / 2 : blockId;
+        uint16_t subCoreId = (opType_ == Common::OpType::VECTOR) ? blockId % 2 : subBlockId;
+        if (it->second < ReportThresholds.at(OcpyType)) {
+            continue;
+        }
+        if (blockTypeStr == "cube") {
+            cubeCoreReport.emplace_back(coreId);
+        } else {
+            vecCoreReport.emplace_back(coreId, subCoreId);
         }
     }
-    return adviceList;
+    std::sort(cubeCoreReport.begin(), cubeCoreReport.end());
+    SummarizeCubeReport(cubeCoreReport, OcpyType, adviceList);
+    SummarizeVecReport(vecCoreReport, OcpyType, adviceList);
 }
 
-std::string Occupancy::GetAdvice()
-{
-    std::vector<std::pair<std::string, uint64_t>> cyclesOccupancyVec;
-    std::vector<std::pair<std::string, float>> throughputOccupancyVec;
-    std::vector<std::pair<std::string, float>> cacheHitRateOccupancyVec;
-    std::vector<std::pair<std::string, uint64_t>> cyclesOccupancyCube;
-    std::vector<std::pair<std::string, float>> throughputOccupancyCube;
-    std::vector<std::pair<std::string, float>> cacheHitRateOccupancyCube;
+bool Occupancy::NormalizeOccupy(PairVector<std::string, double> &Ocpy, OccupancyDataType OcpyType) const {
+    if (Ocpy.empty()) {
+        return false;
+    }
+    double numInverse = 1.0 / Ocpy.size();
+    double average = 0.0;
+    for (auto it = Ocpy.begin(); it != Ocpy.end(); ++it) {
+        average += it->second;
+    }
+    average *= numInverse;
+    double variance = 0.0;
+    for (auto it = Ocpy.begin(); it != Ocpy.end(); ++it) {
+        variance += (it->second - average) * (it->second - average);
+    }
+    variance *= numInverse;
+    if (SafeEqual(variance, 0.0)) {
+        return false;
+    }
+    double stdDeviationInverse = 1.0 / std::sqrt(variance);
+    for (auto it = Ocpy.begin(); it != Ocpy.end(); ++it) {
+        // 对cache hit rate的zScore取反，让分数与缓存命中率反相关
+        it->second = Sigmoid(ZScore(it->second, average, stdDeviationInverse), OcpyType == OccupancyDataType::OCPY_CACHE_HIT_RATE);
+    }
+    return true;
+}
+
+std::string Occupancy::GetAdviceFromOcpyData(const PairVector<RefOf<PairVector<std::string, double>>, OccupancyDataType> &ocpyData) const {
+    std::vector<std::string> ocpySummary;
+    for (auto it = ocpyData.begin(); it != ocpyData.end(); ++it) {
+        if (!NormalizeOccupy(it->first.get(), it->second)) {
+            continue;
+        }
+        AnalyzeOccupy(it->first.get(), it->second, ocpySummary);
+    }
+    if (ocpySummary.empty()) {
+        return "";
+    }
+    std::ostringstream summaryOss;
+    int summaryIndex = 1;
+    for (auto &advice : ocpySummary) {
+        summaryOss << "\t" << summaryIndex << ") " << advice << ".\n";
+        summaryIndex++;
+    }
+    std::string summary = summaryOss.str();
+    Utility::LogSummary("Occupancy Summary Report:\n\n%s", summary.c_str());
+    return summary;
+}
+
+std::string Occupancy::GetAdvice() const {
+    PairVector<std::string, double> cyclesOccupancyVec;
+    PairVector<std::string, double> throughputOccupancyVec;
+    PairVector<std::string, double> cacheHitRateOccupancyVec;
+    PairVector<std::string, double> simtInstrOccupancyVec;
+    PairVector<std::string, double> cyclesOccupancyCube;
+    PairVector<std::string, double> throughputOccupancyCube;
+    PairVector<std::string, double> cacheHitRateOccupancyCube;
 
     // 建立对比数据结构
     std::regex vecPattern("[0-9]{1,2}vector[0,1]");
@@ -134,9 +254,12 @@ std::string Occupancy::GetAdvice()
     for (const auto &metrics : metricsMap_) {
         std::string coreName = metrics.first;
         if (std::regex_match(coreName, vecPattern)) {
-            cyclesOccupancyVec.push_back({coreName, metrics.second.cycles});
-            throughputOccupancyVec.push_back({coreName, metrics.second.throughput});
-            cacheHitRateOccupancyVec.push_back({coreName, metrics.second.cacheHitRate});
+            cyclesOccupancyVec.emplace_back(coreName, metrics.second.cycles);
+            throughputOccupancyVec.emplace_back(coreName, metrics.second.throughput);
+            cacheHitRateOccupancyVec.emplace_back(coreName, metrics.second.cacheHitRate);
+            if (metrics.second.hasSimtMetrics) {
+                simtInstrOccupancyVec.emplace_back(coreName, metrics.second.simtMetrics.instrNum);
+            }
         } else if (std::regex_match(coreName, cubePattern)) {
             cyclesOccupancyCube.push_back({coreName, metrics.second.cycles});
             throughputOccupancyCube.push_back({coreName, metrics.second.throughput});
@@ -145,38 +268,16 @@ std::string Occupancy::GetAdvice()
     }
     // 判断cycles是否负载均衡，并给出结论
     std::vector<std::string> ocpySummary;
-    std::vector<std::string> adviceList = AnalysisOccupy(cyclesOccupancyVec, OccupancyDataType::OCPY_CYCLES);
-    ocpySummary.insert(ocpySummary.end(), adviceList.begin(), adviceList.end());
-
-    adviceList = AnalysisOccupy(cyclesOccupancyCube, OccupancyDataType::OCPY_CYCLES);
-    ocpySummary.insert(ocpySummary.end(), adviceList.begin(), adviceList.end());
-
-    adviceList = AnalysisOccupy(throughputOccupancyVec, OccupancyDataType::OCPY_THROUGHPUT);
-    ocpySummary.insert(ocpySummary.end(), adviceList.begin(), adviceList.end());
-
-    adviceList = AnalysisOccupy(throughputOccupancyCube, OccupancyDataType::OCPY_THROUGHPUT);
-    ocpySummary.insert(ocpySummary.end(), adviceList.begin(), adviceList.end());
-
-    adviceList = AnalysisOccupy(cacheHitRateOccupancyVec, OccupancyDataType::OCPY_CACHE_HIT_RATE);
-    ocpySummary.insert(ocpySummary.end(), adviceList.begin(), adviceList.end());
-
-    adviceList = AnalysisOccupy(cacheHitRateOccupancyCube, OccupancyDataType::OCPY_CACHE_HIT_RATE);
-    ocpySummary.insert(ocpySummary.end(), adviceList.begin(), adviceList.end());
-    
-    std::string summary;
-    int summaryIndex = 1;
-    if (ocpySummary.empty()) {
-        return summary;
-    }
-    for (auto &advice : ocpySummary) {
-        summary += "\t";
-        summary += std::to_string(summaryIndex++);
-        summary += ") ";
-        summary += advice.c_str();
-        summary += ".\n";
-    }
-    Utility::LogSummary("Occupancy Summary Report:\n\n" + summary);
-    return summary;
+    PairVector<RefOf<PairVector<std::string, double>>, OccupancyDataType> ocpyData = {
+        {cyclesOccupancyVec, OccupancyDataType::OCPY_CYCLES},
+        {cyclesOccupancyCube, OccupancyDataType::OCPY_CYCLES},
+        {throughputOccupancyVec, OccupancyDataType::OCPY_THROUGHPUT},
+        {throughputOccupancyCube, OccupancyDataType::OCPY_THROUGHPUT},
+        {cacheHitRateOccupancyVec, OccupancyDataType::OCPY_CACHE_HIT_RATE},
+        {cacheHitRateOccupancyCube, OccupancyDataType::OCPY_CACHE_HIT_RATE},
+        {simtInstrOccupancyVec, OccupancyDataType::OCPY_SIMT_INSTR},
+    };
+    return GetAdviceFromOcpyData(ocpyData);
 }
 
 bool Occupancy910B::CheckCacheHitEventMap(const std::map<uint64_t, uint64_t> &pmuEvents) const
@@ -212,7 +313,7 @@ OccupancyMetrics Occupancy910B::GetSubBlockData(const std::map<uint64_t, uint64_
             cacheHitRate = static_cast<float>(PERCENTAGE_CONVERSION * hit) / total;
         }
     }
-    return OccupancyMetrics{totalCycles, throughput, cacheHitRate};
+    return OccupancyMetrics{totalCycles, throughput, cacheHitRate, false};
 }
 
 OccupancyMetrics OccupancyA5::GetSubBlockData(const std::map<uint64_t, uint64_t> &eventMap, uint64_t totalCycles)
@@ -235,7 +336,22 @@ OccupancyMetrics OccupancyA5::GetSubBlockData(const std::map<uint64_t, uint64_t>
     if (total > 0) {
         cacheHitRate = static_cast<float>(PERCENTAGE_CONVERSION * hit) / total;
     }
-    return OccupancyMetrics{totalCycles, throughput, cacheHitRate};
+    OccupancyMetrics metrics{};
+    metrics.cycles = totalCycles;
+    metrics.throughput = throughput;
+    metrics.cacheHitRate = cacheHitRate;
+    uint64_t simtCycles = pmu[PMU_IDC_AIV_VEC_INSTR_SIMT_VF_BUSY_O];
+    if (simtCycles == 0) {
+        metrics.hasSimtMetrics = false;
+        return metrics;
+    }
+    uint64_t instrNum = SafeAddAll<uint64_t>({pmu[WSU_PMU_EXU_INS_ISSUE],
+                                             pmu[WSU_PMU_DVG_INS_ISSUE],
+                                             pmu[WSU_PMU_DCU_INS_ISSUE]}, location);
+    metrics.hasSimtMetrics = true;
+    metrics.simtMetrics.cycles = simtCycles;
+    metrics.simtMetrics.instrNum = instrNum;
+    return metrics;
 }
 
 std::map<uint64_t, uint64_t> Occupancy::MergeEventMap(std::map<uint64_t, uint64_t> &eventMap1,

@@ -61,6 +61,7 @@ private:
     };
     const std::vector<Visualize::DetailInfo> detailInfoAivA5_ = {
         {"Vector All Active", Visualize::UnitType::PER, 0},
+        {"Vector All Active", Visualize::UnitType::INSTR, 1},
         {"Vector Wait", Visualize::UnitType::US, 1},
     };
 };

@@ -249,41 +249,53 @@ TEST(DataVisualize, occupancy_calculate_metric_and_expect_success)
     ASSERT_TRUE(metricsMapVector["0vector0"].cacheHitRate == 80);
 }
 
-TEST(DataVisualize, occupancy_analysis_occupy_and_expect_success)
+TEST(DataVisualize, occupancy_analyze_occupy_and_expect_success)
 {
-    std::vector<std::pair<std::string, uint64_t>> cyclesOccupancy = {
+    std::vector<std::pair<std::string, double>> cyclesOccupancy = {
         {"0vector0", 100}, {"1vector0", 101}, {"2vector0", 98}, {"3vector0", 200}, {"4vector0", 113}
     };
-    std::vector<std::pair<std::string, float>> throughputOccupancy = {
+    std::vector<std::pair<std::string, double>> throughputOccupancy = {
         {"0cube0", 1000}, {"1cube0", 1082}, {"2cube0", 1000}, {"3cube0", 1279}, {"4cube0", 1700}
     };
-    std::vector<std::pair<std::string, float>> cacheHitRateOccupancy = {
+    std::vector<std::pair<std::string, double>> cacheHitRateOccupancy = {
         {"0vector0", 70}, {"0vector1", 72}, {"1vector0", 70}, {"1vector1", 90}
+    };
+    std::vector<std::pair<std::string, double>> simtInstrOccupancy = {
+        {"0vector0", 1792768}, {"1vector0", 448}, {"2vector0", 448}, {"3vector0", 448},
+        {"4vector0", 448}, {"5vector0", 448}, {"6vector0", 448}, {"7vector0", 448},
     };
 
     std::vector<std::string> advicesCycles;
     std::vector<std::string> advicesThroughput;
     std::vector<std::string> advicesCacheHitRate;
+    std::vector<std::string> advicesSimtInstr;
     
     occupancy.opType_ = Common::OpType::VECTOR;
-    advicesCycles = occupancy.AnalysisOccupy(cyclesOccupancy,
-        Visualize::OccupancyDataType::OCPY_CYCLES);
+    occupancy.NormalizeOccupy(cyclesOccupancy, Visualize::OccupancyDataType::OCPY_CYCLES);
+    occupancy.AnalyzeOccupy(cyclesOccupancy,
+        Visualize::OccupancyDataType::OCPY_CYCLES, advicesCycles);
     occupancy.opType_ = Common::OpType::CUBE;
-    advicesThroughput = occupancy.AnalysisOccupy(throughputOccupancy,
-        Visualize::OccupancyDataType::OCPY_THROUGHPUT);
+    occupancy.NormalizeOccupy(throughputOccupancy, Visualize::OccupancyDataType::OCPY_THROUGHPUT);
+    occupancy.AnalyzeOccupy(throughputOccupancy,
+        Visualize::OccupancyDataType::OCPY_THROUGHPUT, advicesThroughput);
     occupancy.opType_ = Common::OpType::MIX;
-    advicesCacheHitRate = occupancy.AnalysisOccupy(cacheHitRateOccupancy,
-        Visualize::OccupancyDataType::OCPY_CACHE_HIT_RATE);
+    occupancy.NormalizeOccupy(cacheHitRateOccupancy, Visualize::OccupancyDataType::OCPY_CACHE_HIT_RATE);
+    occupancy.AnalyzeOccupy(cacheHitRateOccupancy,
+        Visualize::OccupancyDataType::OCPY_CACHE_HIT_RATE, advicesCacheHitRate);
+    occupancy.opType_ = Common::OpType::VECTOR;
+    occupancy.NormalizeOccupy(simtInstrOccupancy, Visualize::OccupancyDataType::OCPY_SIMT_INSTR);
+    occupancy.AnalyzeOccupy(simtInstrOccupancy,
+        Visualize::OccupancyDataType::OCPY_SIMT_INSTR, advicesSimtInstr);
     
-    std::vector<std::string> cyclesRes = {{"core1 vector1 took more time than other vector cores"}};
-    std::vector<std::string> throughtputRes = {{"core4 cube0 write/read more data than other cube cores"}};
-    std::vector<std::string> cacheHitRateRes = {{"core0 vector0 cache hit rate lower than other vector cores"},
-                                                {"core1 vector0 cache hit rate lower than other vector cores"}};
+    std::vector<std::string> cyclesRes = {{"vector1 of core[1] take more time than other vector cores"}};
+    std::vector<std::string> throughtputRes = {{"cube0 of core[4] write/read more data than other cube cores"}};
+    std::vector<std::string> cacheHitRateRes = {{"vector0, vector1 of core[0], vector0 of core[1] cache hit rate lower than other vector cores"}};
+    std::vector<std::string> simtInstrRes = {{"vector0 of core[0] execute more instructions than other vector cores"}};
 
-    EXPECT_EQ(advicesCycles[0], cyclesRes[0]);
-    EXPECT_EQ(advicesThroughput[0], throughtputRes[0]);
-    EXPECT_EQ(advicesCacheHitRate[0], cacheHitRateRes[0]);
-    EXPECT_EQ(advicesCacheHitRate[1], cacheHitRateRes[1]);
+    EXPECT_EQ(advicesCycles, cyclesRes);
+    EXPECT_EQ(advicesThroughput, throughtputRes);
+    EXPECT_EQ(advicesCacheHitRate, cacheHitRateRes);
+    EXPECT_EQ(advicesSimtInstr, simtInstrRes);
 }
 
 TEST(DataVisualize, 910b_gen_occupy_and_expect_success)
@@ -713,22 +725,23 @@ TEST(OpProf, test_cal_transport_bw_usage_rate_when_timefactor_is_zero_and_expect
 
 /**
 /* | 用例集 | DataVisualize
-/* |测试函数| AnalysisOccupy
+/* |测试函数| AnalyzeOccupy
 /* | 用例名 | test_analysis_occupy_when_given_zero_and_expect_no_throw
 /* |用例描述| 执行测试函数，当occupy中最大为0时，不抛出异常
 */
-TEST(DataVisualize, test_analysis_occupy_when_given_zero_and_expect_no_throw)
+TEST(DataVisualize, test_analyze_occupy_when_given_zero_and_expect_no_throw)
 {
-    std::vector<std::pair<std::string, uint64_t>> cyclesOccupancy = {
+    std::vector<std::pair<std::string, double>> cyclesOccupancy = {
         {"0vector0", 0}, {"1vector0", 0}, {"2vector0", 0}
     };
-    std::vector<std::pair<std::string, float>> throughputOccupancy = {
+    std::vector<std::pair<std::string, double>> throughputOccupancy = {
         {"0cube0", 0.0}, {"1cube0", 0.0}, {"2cube0", 0.0}
     };
+    std::vector<std::string> adviceList;
     occupancy.opType_ = Common::OpType::VECTOR;
-    ASSERT_NO_THROW(occupancy.AnalysisOccupy(cyclesOccupancy, Visualize::OccupancyDataType::OCPY_CYCLES));
+    ASSERT_NO_THROW(occupancy.AnalyzeOccupy(cyclesOccupancy, Visualize::OccupancyDataType::OCPY_CYCLES, adviceList));
     occupancy.opType_ = Common::OpType::CUBE;
-    ASSERT_NO_THROW(occupancy.AnalysisOccupy(throughputOccupancy, Visualize::OccupancyDataType::OCPY_THROUGHPUT));
+    ASSERT_NO_THROW(occupancy.AnalyzeOccupy(throughputOccupancy, Visualize::OccupancyDataType::OCPY_THROUGHPUT, adviceList));
 }
 
 /**
