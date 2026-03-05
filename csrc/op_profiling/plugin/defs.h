@@ -22,7 +22,7 @@ __aicore__ inline uint64_t GetBlockIdx()
 #if defined(__CCE_IS_AICORE__) && __CCE_IS_AICORE__ == 1 // AICORE
     #if (defined(__DAV_C220__) || defined(__DAV_C220_VEC__) || defined(__DAV_C220_CUBE__))
     return get_block_idx() * get_subblockdim() + get_subblockid();
-#elif defined(__NPU_ARCH__) && __NPU_ARCH__ == 3101
+#elif defined(__NPU_ARCH__) && (__NPU_ARCH__ == 3101 || __NPU_ARCH__ == 3510)
     #if defined(__DAV_VEC__) && defined(SIMT_MODE) // c310-simt
         return bisheng::cce::simt::get_block_idx();
     #else
@@ -38,7 +38,7 @@ __aicore__ inline uint64_t GetBlockIdx()
 __aicore__ __inline__ __attribute__((always_inline)) uint16_t GetThreadIdX()
 {
 #if defined(__CCE_IS_AICORE__) && __CCE_IS_AICORE__ == 1
-    #if defined(__NPU_ARCH__) && __NPU_ARCH__ == 3101 && defined(__DAV_VEC__)
+    #if defined(__NPU_ARCH__) && (__NPU_ARCH__ == 3101 || __NPU_ARCH__ == 3510) && defined(__DAV_VEC__)
     return __cce_simt_get_TID_X();
 #endif // AICORE
 #endif // SIMT_MODE
@@ -48,7 +48,7 @@ __aicore__ __inline__ __attribute__((always_inline)) uint16_t GetThreadIdX()
 __aicore__ __inline__ __attribute__((always_inline)) uint16_t GetThreadIdY()
 {
 #if defined(__CCE_IS_AICORE__) && __CCE_IS_AICORE__ == 1
-    #if defined(__NPU_ARCH__) && __NPU_ARCH__ == 3101 && defined(__DAV_VEC__)
+    #if defined(__NPU_ARCH__) && (__NPU_ARCH__ == 3101 || __NPU_ARCH__ == 3510) && defined(__DAV_VEC__)
     return __cce_simt_get_TID_Y();
 #endif // AICORE
 #endif // SIMT_MODE
@@ -58,7 +58,7 @@ __aicore__ __inline__ __attribute__((always_inline)) uint16_t GetThreadIdY()
 __aicore__ __inline__ __attribute__((always_inline)) uint16_t GetThreadIdZ()
 {
 #if defined(__CCE_IS_AICORE__) && __CCE_IS_AICORE__ == 1
-    #if defined(__NPU_ARCH__) && __NPU_ARCH__ == 3101 && defined(__DAV_VEC__)
+    #if defined(__NPU_ARCH__) && (__NPU_ARCH__ == 3101 || __NPU_ARCH__ == 3510) && defined(__DAV_VEC__)
     return __cce_simt_get_TID_Z();
 #endif // AICORE
 #endif // SIMT_MODE
@@ -69,7 +69,7 @@ __aicore__ __inline__ __attribute__((always_inline)) uint16_t GetThreadIdZ()
 __aicore__ __inline__ __attribute__((always_inline)) uint16_t GetThreadId()
 {
 #if defined(__CCE_IS_AICORE__) && __CCE_IS_AICORE__ == 1
-    #if defined(__NPU_ARCH__) && __NPU_ARCH__ == 3101 && defined(__DAV_VEC__)
+    #if defined(__NPU_ARCH__) && (__NPU_ARCH__ == 3101 || __NPU_ARCH__ == 3510) && defined(__DAV_VEC__)
     int32_t blockDimX = __cce_simt_get_BLOCK_DIM_X();
     int32_t blockDimY = __cce_simt_get_BLOCK_DIM_Y();
     int32_t threadIdX = GetThreadIdX();

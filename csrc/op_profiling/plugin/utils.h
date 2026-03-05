@@ -164,7 +164,7 @@ __aicore__ inline bool TryGetBlockIdx(uint64_t &blockIdx)
     uint64_t block = GetBlockIdx();
     int64_t coreId{};
 #if defined(__DAV_C220__) || defined(__DAV_C220_VEC__) || defined(__DAV_C220_CUBE__) || \
-    (defined(__NPU_ARCH__) && __NPU_ARCH__ == 3101)
+    (defined(__NPU_ARCH__) && (__NPU_ARCH__ == 3101 || __NPU_ARCH__ == 3510))
 #ifdef SIMT_MODE
     coreId = bisheng::cce::simt::get_coreid();
 #else
@@ -179,7 +179,7 @@ __aicore__ inline bool TryGetBlockIdx(uint64_t &blockIdx)
     } else {
         blockIdx = block + (block + 1) * (MIX_SUB_BLOCKDIM - 1);
     }
-#elif defined(__NPU_ARCH__) && __NPU_ARCH__ == 3101
+#elif defined(__NPU_ARCH__) && (__NPU_ARCH__ == 3101 || __NPU_ARCH__ == 3510)
     if ((coreId >= C310_A5_DEVICE_VEC_PHYS_SMALL_BOUND_CORE_START_IDS &&
         coreId <= C310_A5_DEVICE_VEC_PHYS_SMALL_BOUND_CORE_END_IDS) ||
         coreId >= C310_A5_DEVICE_VEC_PHYS_GREAT_BOUND_CORE_START_IDS) {
@@ -206,7 +206,7 @@ __aicore__ inline bool TryGetThreadId(uint64_t &threadId)
 __aicore__ inline void Flush(__gm__ uint8_t *gm)
 {
 #if defined(__CCE_IS_AICORE__) && __CCE_IS_AICORE__ == 1
-#if defined(__NPU_ARCH__) && __NPU_ARCH__ == 3101
+#if defined(__NPU_ARCH__) && (__NPU_ARCH__ == 3101 || __NPU_ARCH__ == 3510)
         dcci((__gm__ uint64_t*)gm, ENTIRE_DATA_CACHE, CACHELINE_ALL);
 #else
         dcci(gm, ENTIRE_DATA_CACHE);

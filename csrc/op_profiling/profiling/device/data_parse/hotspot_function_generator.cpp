@@ -758,7 +758,7 @@ bool HotSpotFunctionGenerator::GenCodeFiles(const std::string &outputPath,
         }
         Utility::Visualize::WriteBin<Utility::VisualizeType::CODE>(outputPath, fileContent, fileName);
         if (file2CodeLines[fileName].find(line) == file2CodeLines[fileName].end()) {
-            file2CodeLines[fileName][line].pcSampling = {0, 0, 0, 0, 0, 0, 0, 0};
+            file2CodeLines[fileName][line].pcSampling = {0, 0, 0, 0, 0, 0, 0, 0, 0};
         }
         if (!GenCodeLine(line, line2Encoding.second, file2CodeLines[fileName][line])) {
             return false;
