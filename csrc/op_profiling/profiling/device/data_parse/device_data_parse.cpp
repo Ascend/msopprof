@@ -310,7 +310,7 @@ bool DeviceDataParse::Execute(std::string dataPath)
     }
     std::string tmpPath = JoinPath({dataPath, "tmp_dump"});
     ParseTmpDump(tmpPath);
-    if (IsExist(tmpPath)) {
+    if (IsExist(tmpPath) && (Utility::Log::GetLog().GetLogLv() > Utility::LogLv::DEBUG)) {
         RemoveAll(tmpPath);
     }
     if (!ParserDeviceIdDir(dataPath)) {
