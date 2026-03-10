@@ -377,9 +377,7 @@ void DataHandler::MergeTotalPmuData(SplitBlockPmuData &blockData)
     // 使用最后1次重放的totalCycles计算aic_time/aiv_time
     totalPmuData_[key].totalCycles = blockData.totalCycles;
     totalPmuData_[key].pmuEventValueMap.insert(blockData.pmuEventValueMap.begin(), blockData.pmuEventValueMap.end());
-    if (isMC2_ || isLccl_) {
-        totalPmuData_[key].systemTime = {blockData.startSystemTime, blockData.endSystemTime};
-    }
+    totalPmuData_[key].systemTime = {blockData.startSystemTime, blockData.endSystemTime};
 }
 
 bool DataHandler::HandlePmuData(const std::string &outputPath, const std::map<std::string, ProfBinInfo, FileNameCompare> &profBinMap,
@@ -606,6 +604,7 @@ void DataHandlerOf910B::ParseDurationBin(const std::string &outputPath, const st
             aicpuStartTime = systemTime;
         }
     }
+    minTimeCyc_ = startTime;
     minMc2TimeCyc_ = min(aicpuStartTime, startTime);
     minLcclTimeCyc_ = startTime;
 }

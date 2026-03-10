@@ -156,6 +156,22 @@ unique_ptr<Visualize::MC2TimelineParser> GetMC2TimelineObj(unique_ptr<DataHandle
     return parserPtr;
 }
 
+unique_ptr<Visualize::AicoreTimelineParser> GetAicoreTimelineObj(unique_ptr<DataHandler> &handler,
+                                                           shared_ptr<OpBasicInfo> &opBasicInfoObj,
+                                                           shared_ptr<BasicPmu> &basicPmuObj)
+{
+    unique_ptr<Visualize::AicoreTimelineParser> parserPtr;
+    if (handler == nullptr) {
+        LogWarn("Get aicore timeline failed because of nullptr");
+        return parserPtr;
+    }
+    parserPtr = Utility::MakeUnique<Visualize::AicoreTimelineParser>(handler->GetMinTimeCyc(), opBasicInfoObj, basicPmuObj);
+    if (handler->GetMC2Flag() || handler->GetLcclFlag()) {
+        return nullptr;
+    }
+    return parserPtr;
+}
+
 unique_ptr<Visualize::LcclTimelineParser> GetLcclTimelineObj(unique_ptr<DataHandler> &handler,
                                                              shared_ptr<OpBasicInfo> &opBasicInfoObj,
                                                              shared_ptr<BasicPmu> &basicPmuObj)
@@ -206,6 +222,7 @@ bool DeviceDataParse::ParseExactKernelData(const string &path, const string &ker
     auto &occupancyObj = GetOccupancyObj(chipType_, opBasicInfoObj, basicPmuObj);
     auto &roofLineObj = GetRoofLineObj(handler, opBasicInfoObj, basicPmuObj, pmuCalculatorObj);
     auto mc2TimelineObj = GetMC2TimelineObj(handler, opBasicInfoObj, basicPmuObj);
+    auto aicoreTimelineObj = GetAicoreTimelineObj(handler, opBasicInfoObj, basicPmuObj);
     auto lcclTimelineObj = GetLcclTimelineObj(handler, opBasicInfoObj, basicPmuObj);
     auto cachelineHeatMapObj = GetCachelineHeatMapObj(handler);
     if (!storageAccessObj || !occupancyObj || !roofLineObj || !mc2TimelineObj ||
@@ -220,7 +237,7 @@ bool DeviceDataParse::ParseExactKernelData(const string &path, const string &ker
     calculatorPluginManager.RunAllPlugins(results);
 
     DataVisualizePtr ptr = { opBasicInfoObj, storageAccessObj, occupancyObj, roofLineObj, mc2TimelineObj,
-                             lcclTimelineObj, cachelineHeatMapObj };
+                             lcclTimelineObj, cachelineHeatMapObj, aicoreTimelineObj};
     auto dataVisualize = Utility::MakeShared<DataVisualize>(ptr);
     if (!dataVisualize || !storageAccessObj) {
         LogError("Get visualize data failed because of nullptr");
@@ -449,8 +466,8 @@ void DeviceDataParse::GetRangeKernelDurBin(const string &path)
 }
 
 void DeviceDataParse::GenerateRangeKernelBin(const vector<string> &outputVec, const vector<char> &profBinData,
-                                             const pair<uint16_t, uint16_t> &streamAndTaskId, int round,
-                                             size_t kernelIndex)
+                                             const pair<uint16_t, uint16_t> &streamAndTaskId, const std::string &path, 
+                                             int round, size_t kernelIndex)
 {
     if (kernelIndex > outputVec.size() - 1) {
         LogWarn("Cannot find output path, replay count is %d, kernel index is %d.", round, kernelIndex);
@@ -475,6 +492,11 @@ void DeviceDataParse::GenerateRangeKernelBin(const vector<string> &outputVec, co
     }
     string durBinPath = JoinPath({outputPath, "duration.bin"});
     WriteBinaryFile(durBinPath, iter->second.data(), iter->second.size());
+    string timeStampPath = JoinPath({path, "aic_timestamp.bin"});
+    if (IsExist(timeStampPath)) {
+        string parserTimeStamp = JoinPath({outputPath, "aic_timestamp.bin"});
+        CopyFile(timeStampPath, parserTimeStamp);
+    }
     rangeReplayDurBinMap_.erase(streamAndTaskId);
 }
 
@@ -499,7 +521,7 @@ void DeviceDataParse::ParseRangeKernelProfBin(const string &path, const vector<s
         uint16_t streamId = fftsBlockBean.GetStreamId();
         if (currentTaskId != taskId || currentStreamId != streamId) {
             if (currentTaskId != -1 && currentStreamId != -1) {
-                GenerateRangeKernelBin(outputVec, profBinData, {static_cast<uint16_t>(currentStreamId), static_cast<uint16_t>(currentTaskId)},
+                GenerateRangeKernelBin(outputVec, profBinData, {static_cast<uint16_t>(currentStreamId), static_cast<uint16_t>(currentTaskId)}, path,
                                        round, static_cast<size_t>(kernelIndex));
                 profBinData = {};
             }
@@ -510,7 +532,7 @@ void DeviceDataParse::ParseRangeKernelProfBin(const string &path, const vector<s
         profBinData.insert(profBinData.end(), splitBinData.begin(), splitBinData.end());
     }
     if (kernelIndex != -1) {
-        GenerateRangeKernelBin(outputVec, profBinData, {static_cast<uint16_t>(currentStreamId), static_cast<uint16_t>(currentTaskId)},
+        GenerateRangeKernelBin(outputVec, profBinData, {static_cast<uint16_t>(currentStreamId), static_cast<uint16_t>(currentTaskId)}, path,
                                round, static_cast<size_t>(kernelIndex));
     }
 }

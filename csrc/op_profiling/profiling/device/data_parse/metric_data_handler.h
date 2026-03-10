@@ -130,6 +130,7 @@ public:
     Visualize::AcsqTimeMapType GetAcsqTimeMap() { return acsqTimeMap_; }
     inline uint64_t GetMinMc2TimeCyc() const { return minMc2TimeCyc_; }
     inline uint64_t GetMinLcclTimeCyc() const { return minLcclTimeCyc_; }
+    inline uint64_t GetMinTimeCyc() const { return minTimeCyc_; }
     BlockPmuMapType GetTotalPmuData() { return totalPmuData_; }
     const std::shared_ptr<L2Cache> &GetL2CacheObj() { return l2Cache_; }
 
@@ -175,6 +176,7 @@ protected:
     Visualize::AcsqTimeMapType acsqTimeMap_;
     uint64_t minMc2TimeCyc_ = UINT64_MAX;
     uint64_t minLcclTimeCyc_ = UINT64_MAX;
+    uint64_t minTimeCyc_ = UINT64_MAX;
     bool isMC2_ = false;
     bool isLccl_ = false;
     std::vector<Visualize::MemMapDetail> memMapDetail_;

@@ -31,10 +31,7 @@ using namespace Utility;
 using namespace std;
 
 namespace Visualize {
-constexpr int64_t FREQ = 50000; // kHz
-constexpr uint16_t TIME_CONVERSION = 1000; // time in visualize.bin will be us, cyc/FREQ unit is ms
 constexpr uint64_t B_TO_GB = 1024 * 1024 * 1024;
-constexpr uint16_t SORT_BIAS = 10000;
 constexpr uint16_t COLORNUM = 9; // total 9 color in cnames
 constexpr uint16_t MSPROF_REPORT_AICPU_LEVEL = 6000;
 constexpr uint16_t MSPROF_REPORT_AICPU_MC2_EXECUTE_COMM_TIME = 4; // communication time
@@ -66,61 +63,6 @@ struct HcclTask {
     static constexpr char const *REDUCE_INLINE = "Reduce_Inline";
     static constexpr char const *RDMA_SEND = "RDMASend";
     static constexpr char const *INVALID_TYPE = "INVALID_TYPE";
-};
-
-struct AiCoreDot {
-    static constexpr char const *INIT = "INIT";
-    static constexpr char const *COMMIT = "COMMIT";
-    static constexpr char const *WAIT = "WAIT";
-    static constexpr char const *QUERY = "QUERY";
-    static constexpr char const *FINALIZE = "FINALIZE";
-    static constexpr char const *GROUP_SYNC = "GROUP_SYNC";
-    static constexpr char const *GET_WIN_IN = "GET_WINDOW_IN";
-    static constexpr char const *GET_WIN_OUT = "GET_WINDOW_OUT";
-    static constexpr char const *GET_RANK_ID = "GET_RANK_ID";
-    static constexpr char const *GET_RANK_DIM = "GET_RANK_DIM";
-    static constexpr char const *SET_CCTILING = "SET_CCTILING";
-    static constexpr char const *ALL_REDUCE = "ALL_REDUCE_PREPARE";
-    static constexpr char const *ALL_GATHER = "ALL_GATHER_PREPARE";
-    static constexpr char const *REDUCE_SCATTER = "REDUCE_SCATTER_PREPARE";
-    static constexpr char const *ALL_TO_ALL = "ALL_TO_ALL_PREPARE";
-    static constexpr char const *ALL_TO_ALL_V = "ALL_TO_ALL_V_PREPARE";
-};
-
-const map<uint32_t, string> AICORE_DOT_MAP = {
-    // start都是偶数，end都是奇数（start+1）
-    {0x1000, string(AiCoreDot::INIT)},
-    {0x1001, string(AiCoreDot::INIT)},
-    {0x1010, string(AiCoreDot::COMMIT)},
-    {0x1011, string(AiCoreDot::COMMIT)},
-    {0x1020, string(AiCoreDot::WAIT)},
-    {0x1021, string(AiCoreDot::WAIT)},
-    {0x1030, string(AiCoreDot::QUERY)},
-    {0x1031, string(AiCoreDot::QUERY)},
-    {0x1040, string(AiCoreDot::FINALIZE)},
-    {0x1041, string(AiCoreDot::FINALIZE)},
-    {0x1050, string(AiCoreDot::GROUP_SYNC)},
-    {0x1051, string(AiCoreDot::GROUP_SYNC)},
-    {0x1060, string(AiCoreDot::GET_WIN_IN)},
-    {0x1061, string(AiCoreDot::GET_WIN_IN)},
-    {0x1062, string(AiCoreDot::GET_WIN_OUT)},
-    {0x1063, string(AiCoreDot::GET_WIN_OUT)},
-    {0x1064, string(AiCoreDot::GET_RANK_ID)},
-    {0x1065, string(AiCoreDot::GET_RANK_ID)},
-    {0x1066, string(AiCoreDot::GET_RANK_DIM)},
-    {0x1067, string(AiCoreDot::GET_RANK_DIM)},
-    {0x1068, string(AiCoreDot::SET_CCTILING)},
-    {0x1069, string(AiCoreDot::SET_CCTILING)},
-    {0x1100, string(AiCoreDot::ALL_REDUCE)},
-    {0x1101, string(AiCoreDot::ALL_REDUCE)},
-    {0x1110, string(AiCoreDot::ALL_GATHER)},
-    {0x1111, string(AiCoreDot::ALL_GATHER)},
-    {0x1120, string(AiCoreDot::REDUCE_SCATTER)},
-    {0x1121, string(AiCoreDot::REDUCE_SCATTER)},
-    {0x1130, string(AiCoreDot::ALL_TO_ALL)},
-    {0x1131, string(AiCoreDot::ALL_TO_ALL)},
-    {0x1140, string(AiCoreDot::ALL_TO_ALL_V)},
-    {0x1141, string(AiCoreDot::ALL_TO_ALL_V)}
 };
 
 const vector<string> HCCL_CNAME_MAP = {
@@ -261,30 +203,6 @@ struct MC2Event {
     map<string, string> args;
 };
 
-void MC2TimelineParser::GetAicoreTimeStamps(vector<MsprofAicTimeStampInfo> &aicoreTimeStamps)
-{
-    string binFilePath = JoinPath({outputPath_, "dump/aic_timestamp.bin"});
-    size_t fileSize = GetFileSize(binFilePath);
-    size_t structSize = sizeof(MsprofAicTimeStampInfo);
-    vector<char> binData;
-    if (fileSize < structSize || !ReadBinFileByMultiStruct(binFilePath, fileSize, structSize, binData)) {
-        return;
-    }
-    for (size_t i = 0; i < fileSize; i = i + structSize) {
-        MsprofAicTimeStampInfo info{};
-        if (memcpy_s(&info, structSize, &binData[i], structSize) != EOK) {
-            continue;
-        }
-        if (AICORE_DOT_MAP.find(info.descId) == AICORE_DOT_MAP.end()) {
-            continue;
-        }
-        if (info.syscyc < minSysCyc_) {
-            continue;
-        }
-        aicoreTimeStamps.push_back(info);
-    }
-}
-
 void GetStreamIdAndTaskId(uint32_t &taskId, uint16_t &streamId)
 {
     // when the 13th bit of the stream id is set, the task id need to be exchanged.
@@ -357,22 +275,18 @@ void MC2TimelineParser::GetAicpuDatas(vector<AicpuKfcProfCommTurn> &aicpuTurns,
     }
 }
 
-void MC2TimelineParser::PreProcessData(BlockSystemTimeType &blockSystemTimes,
+void MC2TimelineParser::PreProcessData(AicoreTimelineParser &timelineParser,
                                        vector<MsprofAicTimeStampInfo> &aicoreTimeStamps,
                                        vector<AicpuKfcProfCommTurn> &aicpuTurns,
-                                       vector<MsprofAicpuHcclTaskInfo> &aicpuHcclTasks)
+                                       vector<MsprofAicpuHcclTaskInfo> &aicpuHcclTasks,
+                                       vector<std::string> &type)
 {
     // get aicore dot timestamp from aic_timestamp.bin
-    GetAicoreTimeStamps(aicoreTimeStamps);
+    timelineParser.GetAicoreTimeStamps(aicoreTimeStamps, type);
+    minSysCyc_ = timelineParser.GetMinSysCycle();
 
     // get aicpu datas from aicpu.bin
     GetAicpuDatas(aicpuTurns, aicpuHcclTasks);
-
-    // get aicore system time of every block
-    for (const auto &pair: basicPmuObj_->GetTotalPmuData()) {
-        blockSystemTimes[pair.first.first].emplace_back(pair.second.systemTime);
-        minSysCyc_ = min(pair.second.systemTime.first, minSysCyc_);
-    }
 }
 
 void ProcessOperationStart(const MsprofAicTimeStampInfo& item, const string& operationType,
@@ -443,44 +357,15 @@ json MC2TimelineParser::BuildAicoreDot(const OperationInfo& info, const string& 
     return resultItem;
 }
 
-void MC2TimelineParser::AddAicoreBlockDur(const BlockSystemTimeType &blockSystemTimes, set<uint16_t> &dotBlockIds)
-{
-    string opType = opBasicInfoObj_->GetOpType();
-    string location = "MC2 AICore Dur";
-    if (aicpuFreq_ == 0) {
-        return;
-    }
-    for (const auto &pair: blockSystemTimes) {
-        uint16_t blockIndex = pair.first;
-        auto timeVec = pair.second;
-        uint16_t subBlockNum = timeVec.size();
-        for (uint16_t i = 0; i < subBlockNum; i++) {
-            uint16_t dotBlockId = GetAicoreDotBlockId(opType, blockIndex, i, subBlockNum);
-            dotBlockIds.insert(dotBlockId);
-            json resultItem;
-            string cName = (dotBlockId >= CUBE_BLOCK_START_INDEX) ? string(VISUALIZE_COLOR_NAME::GRASS_GREEN) :
-                string(VISUALIZE_COLOR_NAME::GREEN);
-            resultItem["cname"] = cName;
-            resultItem["dur"] = static_cast<float>(SafeSub(timeVec[i].second, timeVec[i].first, location, false))
-                / aicpuFreq_ * TIME_CONVERSION;
-            resultItem["name"] = GetAicoreBlockName(dotBlockId);
-            resultItem["ph"] = "X";
-            resultItem["pid"] = GetAicoreTimeLinePid(dotBlockId);
-            resultItem["tid"] = dotBlockId;
-            resultItem["ts"] = static_cast<float>(SafeSub(timeVec[i].first, minSysCyc_, location, false)) / aicpuFreq_
-                * TIME_CONVERSION;
-            traceEvents_.push_back(resultItem);
-        }
-    }
-}
-
-void MC2TimelineParser::ProcessAicoreData(const BlockSystemTimeType &blockSystemTimes,
-                                          const vector<MsprofAicTimeStampInfo> &aicoreTimeStamps)
+void MC2TimelineParser::ProcessAicoreData(AicoreTimelineParser &timelineParser, const vector<MsprofAicTimeStampInfo> &aicoreTimeStamps, std::vector<std::string> &type)
 {
     set<uint16_t> dotBlockIds;
     // add aicore dot
     unordered_map<string, OperationInfo> operationMap;
     for (const auto& item: aicoreTimeStamps) {
+        if (AICORE_DOT_MAP.find(item.descId) == AICORE_DOT_MAP.end()) {
+            continue;
+        }
         dotBlockIds.insert(item.blockId);
         uint32_t descId = item.descId;
         const string& operationType = AICORE_DOT_MAP.at(descId); // descId has been verified, must be in AICORE_DOT_MAP
@@ -497,23 +382,11 @@ void MC2TimelineParser::ProcessAicoreData(const BlockSystemTimeType &blockSystem
         }
     }
     // add aicore block duration
-    AddAicoreBlockDur(blockSystemTimes, dotBlockIds);
-    // sort aicore timeline
-    for (const auto &dotBlockId: dotBlockIds) {
-        json nameItem;
-        nameItem["ph"] = "M";
-        nameItem["name"] = "thread_name";
-        nameItem["pid"] = GetAicoreTimeLinePid(dotBlockId);
-        nameItem["tid"] = dotBlockId;
-        nameItem["args"]["name"] = GetAicoreBlockName(dotBlockId);
-        traceEvents_.push_back(nameItem);
-        json sortItem;
-        sortItem["ph"] = "M";
-        sortItem["name"] = "thread_sort_index";
-        sortItem["pid"] = GetAicoreTimeLinePid(dotBlockId);
-        sortItem["tid"] = dotBlockId;
-        sortItem["args"]["sort_index"] = SORT_BIAS + dotBlockId;
-        traceEvents_.push_back(sortItem);
+    timelineParser.ProcessBlockDur(aicoreTimeStamps, type);
+    timelineParser.ProcessAicoreData(aicoreTimeStamps, type);
+    auto res = timelineParser.GetTraceEvent();
+    for (auto &item: res) {
+        traceEvents_.push_back(item);
     }
 }
 
@@ -691,10 +564,11 @@ void MC2TimelineParser::ProcessHcclData()
     SortTimelineByIds(streamIds, HCCL_PID, HCCL_TID);
 }
 
-void MC2TimelineParser::ProcessJsonData(const BlockSystemTimeType &blockSystemTimes,
+void MC2TimelineParser::ProcessJsonData(AicoreTimelineParser &timelineParser,
                                         const vector<MsprofAicTimeStampInfo> &aicoreTimeStamps,
                                         const vector<AicpuKfcProfCommTurn> &aicpuTurns,
-                                        const vector<MsprofAicpuHcclTaskInfo> &aicpuHcclTasks)
+                                        const vector<MsprofAicpuHcclTaskInfo> &aicpuHcclTasks,
+                                        std::vector<std::string> &type)
 {
     if (!Common::HalHelper::Instance().GetTaskSchedulerFreq(aicpuFreq_)) {
         LogWarn("Get task scheduler frequency failed. Use default value instead.");
@@ -713,7 +587,7 @@ void MC2TimelineParser::ProcessJsonData(const BlockSystemTimeType &blockSystemTi
         Profiling::ParsePcCode pc2Code(dumpPath, pcSet);
         pc2Code.Parse();
         pc2code_ = pc2Code.GetPc2Code();
-        ProcessAicoreData(blockSystemTimes, aicoreTimeStamps);
+        ProcessAicoreData(timelineParser, aicoreTimeStamps, type);
     } else {
         LogDebug("Can not parse aic_timestamp.bin, no need to generate AICore timeline.");
     }
@@ -736,8 +610,11 @@ bool MC2TimelineParser::MC2TimelineToJson(const string &outputPath)
     vector<MsprofAicTimeStampInfo> aicoreTimeStamps;
     vector<AicpuKfcProfCommTurn> aicpuTurns;
     vector<MsprofAicpuHcclTaskInfo> aicpuHcclTasks;
-    PreProcessData(blockSystemTimes, aicoreTimeStamps, aicpuTurns, aicpuHcclTasks);
-    ProcessJsonData(blockSystemTimes, aicoreTimeStamps, aicpuTurns, aicpuHcclTasks);
+    AicoreTimelineParser timelineParser = AicoreTimelineParser(minSysCyc_, opBasicInfoObj_, basicPmuObj_);
+    timelineParser.SetOutputPath(outputPath_);
+    std::vector<std::string> type;
+    PreProcessData(timelineParser, aicoreTimeStamps, aicpuTurns, aicpuHcclTasks, type);
+    ProcessJsonData(timelineParser, aicoreTimeStamps, aicpuTurns, aicpuHcclTasks, type);
     mc2TimelineJson_["profilingType"] = "op";
     mc2TimelineJson_["displayTimeUnit"] = "ns";
     mc2TimelineJson_["schemaVersion"] = 1;
@@ -748,26 +625,5 @@ bool MC2TimelineParser::MC2TimelineToJson(const string &outputPath)
         LogWarn("Generate %s failed.", tracePath.c_str());
     }
     return true;
-}
-
-uint16_t GetAicoreDotBlockId(const string &opType, uint16_t blockIndex, uint16_t subBlockIndex,
-                             uint16_t subBlockNum)
-{
-    if (opType == Common::OpType::VECTOR) {
-        return blockIndex;
-    }
-    if (opType == Common::OpType::CUBE) {
-        return blockIndex + CUBE_BLOCK_START_INDEX;
-    }
-    // for mix operator, index 0 is cube subblock, index 1/2 is vector subblock
-    if (subBlockIndex == 0) {
-        return blockIndex + CUBE_BLOCK_START_INDEX;
-    }
-    int vectorNum = subBlockNum - 1;  // cube subblock number is 1
-    if (blockIndex * vectorNum + subBlockIndex <= 0) {
-        LogWarn("Failed to Get block id,default set to 0");
-        return 0;
-    }
-    return blockIndex * vectorNum + subBlockIndex - 1;
 }
 }

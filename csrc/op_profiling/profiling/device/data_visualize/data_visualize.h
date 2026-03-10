@@ -41,6 +41,7 @@ struct DataVisualizePtr {
     std::unique_ptr<MC2TimelineParser> &mc2TimelineParser;
     std::unique_ptr<LcclTimelineParser> &lcclTimelineParser;
     std::unique_ptr<CachelineHeatMap> &cachelineHeatMapParser;
+    std::unique_ptr<AicoreTimelineParser> &aicoreTimelineParser;
 };
 
 class DataVisualize {
@@ -52,7 +53,8 @@ public:
           roofLine_(ptr.roofLine),
           mc2TimelineParser_(ptr.mc2TimelineParser),
           lcclTimelineParser_(ptr.lcclTimelineParser),
-          cachelineHeatMapParser_(ptr.cachelineHeatMapParser)
+          cachelineHeatMapParser_(ptr.cachelineHeatMapParser),
+          aicoreTimelineParser_(ptr.aicoreTimelineParser)
     {}
 
     void GenerateVisualizeData(Profiling::Parse::DataCenter &dataCenter, const std::string &outputPath,
@@ -69,6 +71,7 @@ private:
     std::unique_ptr<MC2TimelineParser> &mc2TimelineParser_;
     std::unique_ptr<LcclTimelineParser> &lcclTimelineParser_;
     std::unique_ptr<CachelineHeatMap> &cachelineHeatMapParser_;
+    std::unique_ptr<AicoreTimelineParser> &aicoreTimelineParser_;
 };
 } // namespace Visualize
 

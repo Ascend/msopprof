@@ -35,6 +35,9 @@ struct LcclInfo {
     std::string curPc;
 };
 
+uint16_t GetAicoreDotBlockId(const std::string &opType, uint16_t blockIndex, uint16_t subBlockIndex,
+                             uint16_t subBlockNum);
+
 class LcclTimelineParser {
 public:
     LcclTimelineParser(bool isLccl, uint64_t minLcclTimeCyc, std::shared_ptr<OpBasicInfo> &opBasicInfoObj,

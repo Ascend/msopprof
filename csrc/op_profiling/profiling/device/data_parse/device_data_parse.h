@@ -60,7 +60,7 @@ private:
     void GetRangeFreq(const std::string &path, std::vector<std::string> &freqs) const;
     void GetRangeKernelDurBin(const std::string &path);
     void GenerateRangeKernelBin(const std::vector<std::string> &outputVec, const std::vector<char> &profBinData,
-                                const std::pair<uint16_t, uint16_t> &streamAndTaskId, int round, size_t kernelIndex);
+                                const std::pair<uint16_t, uint16_t> &streamAndTaskId, const std::string &path, int round, size_t kernelIndex);
     void ParseRangeKernelProfBin(const std::string &path, const std::vector <std::string> &outputVec, int round);
     void ParseSingleRangeData(const std::string &path);
     /// mapping: ChipType -> specific data handler

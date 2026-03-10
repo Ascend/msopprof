@@ -28,9 +28,27 @@ using namespace Utility;
 using namespace std;
 
 namespace Visualize {
-constexpr int64_t FREQ = 50000; // kHz
-constexpr uint16_t TIME_CONVERSION = 1000; // time in visualize.bin will be us, cyc/FREQ unit is ms
-constexpr uint16_t SORT_BIAS = 10000;
+
+uint16_t GetAicoreDotBlockId(const std::string &opType, uint16_t blockIndex, uint16_t subBlockIndex,
+                             uint16_t subBlockNum)
+{
+    if (opType == Common::OpType::VECTOR) {
+        return blockIndex;
+    }
+    if (opType == Common::OpType::CUBE) {
+        return blockIndex + CUBE_BLOCK_START_INDEX;
+    }
+    // for mix operator, index 0 is cube subblock, index 1/2 is vector subblock
+    if (subBlockIndex == 0) {
+        return blockIndex + CUBE_BLOCK_START_INDEX;
+    }
+    int vectorNum = subBlockNum - 1;  // cube subblock number is 1
+    if (blockIndex * vectorNum + subBlockIndex <= 0) {
+        LogWarn("Failed to Get block id,default set to 0");
+        return 0;
+    }
+    return blockIndex * vectorNum + subBlockIndex - 1;
+}
 
 struct LcalApi {
     static constexpr char const *OVERALL = "OVERALL";
