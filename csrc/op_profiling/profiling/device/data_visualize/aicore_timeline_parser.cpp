@@ -109,7 +109,9 @@ bool AicoreTimelineParser::AicoreTimelineToJson(const std::string &outputPath)
     }
     std::vector<MsprofAicTimeStampInfo> aicoreTimeStamps;
     std::vector<std::string> type;
-    GetAicoreTimeStamps(aicoreTimeStamps, type);
+    if (!GetAicoreTimeStamps(aicoreTimeStamps, type)) {
+        return false;
+    }
     ProcessBlockDur(aicoreTimeStamps, type);
     GenPc2Code(aicoreTimeStamps);
     ProcessAicoreData(aicoreTimeStamps, type);
@@ -125,14 +127,17 @@ bool AicoreTimelineParser::AicoreTimelineToJson(const std::string &outputPath)
     return true;
 }
 
-void AicoreTimelineParser::GetAicoreTimeStamps(std::vector<MsprofAicTimeStampInfo> &aicoreTimeStamps, std::vector<std::string> &type)
+bool AicoreTimelineParser::GetAicoreTimeStamps(std::vector<MsprofAicTimeStampInfo> &aicoreTimeStamps, std::vector<std::string> &type)
 {
     std::string binPath = JoinPath({outputPath_, "dump/aic_timestamp.bin"});
     size_t fileSize = GetFileSize(binPath);
     size_t structSize = sizeof(MsprofAicTimeStampInfo);
     std::vector<char> binData;
+    if (!IsExist(binPath)) {
+        return false;
+    }
     if (fileSize < structSize || !ReadBinFileByMultiStruct(binPath, fileSize, structSize, binData)) {
-        return;
+        return false;
     }
     for (size_t i = 0; i < fileSize; i = i + structSize) {
         MsprofAicTimeStampInfo info {};
@@ -144,7 +149,11 @@ void AicoreTimelineParser::GetAicoreTimeStamps(std::vector<MsprofAicTimeStampInf
         }
         aicoreTimeStamps.push_back(info);
     }
+    if (aicoreTimeStamps.size() == 0) {
+        return false;
+    }
     GetTimeStampType(aicoreTimeStamps, type);
+    return true;
 }
 
 void AicoreTimelineParser::ProcessBlockDur(const std::vector<MsprofAicTimeStampInfo> &aicoreTimeStamps, std::vector<std::string> &type)

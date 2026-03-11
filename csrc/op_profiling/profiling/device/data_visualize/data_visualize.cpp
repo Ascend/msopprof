@@ -80,8 +80,7 @@ void DataVisualize::GenerateAllVisualizeData(Profiling::Parse::DataCenter
             Utility::Visualize::WriteBin<VT::TRACE>(outputPath, timelineVisualize.timelineJson_);
         }
     }
-    if (aicoreTimelineParser_ != nullptr) {
-        aicoreTimelineParser_->AicoreTimelineToJson(outputPath);
+    if (aicoreTimelineParser_ != nullptr && aicoreTimelineParser_->AicoreTimelineToJson(outputPath)) {
         Utility::Visualize::WriteBin<VT::TRACE>(outputPath, aicoreTimelineParser_->GetAicoreTimelineJson());
     } else if (mc2TimelineParser_->MC2TimelineToJson(outputPath)) {
         Utility::Visualize::WriteBin<VT::TRACE>(outputPath, mc2TimelineParser_->GetMC2TimelineJson());

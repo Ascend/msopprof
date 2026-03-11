@@ -120,7 +120,7 @@ public:
         }
     bool AicoreTimelineToJson(const std::string &outputPath);
     json GetAicoreTimelineJson() { return aicoreTimelineJson_; }
-    void GetAicoreTimeStamps(std::vector<MsprofAicTimeStampInfo> &aicoreTimeStamps, std::vector<std::string> &type);
+    bool GetAicoreTimeStamps(std::vector<MsprofAicTimeStampInfo> &aicoreTimeStamps, std::vector<std::string> &type);
     void GenPc2Code(std::vector<MsprofAicTimeStampInfo> &aicoreTimeStamps);
     void ProcessBlockDur(const std::vector<MsprofAicTimeStampInfo> &aicoreTimeStamps, std::vector<std::string> &type);
     void SetOutputPath(const std::string &outputPath) { outputPath_ = outputPath; };
