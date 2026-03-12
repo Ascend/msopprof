@@ -66,8 +66,7 @@ const AicMetricsSupportMap DEVICE_AIC_METRICS_SUPPORT_MAP{
                                                                    Common::ChipProductType::ASCEND910_93_SERIES,
                                                                    Common::ChipProductType::ASCEND950_SERIES}},
     {std::string(Common::MsprofMetrics::MEMORYDETAIL),            {Common::ChipProductType::ASCEND910B_SERIES,
-                                                                   Common::ChipProductType::ASCEND910_93_SERIES,
-                                                                   Common::ChipProductType::ASCEND950_SERIES}},
+                                                                   Common::ChipProductType::ASCEND910_93_SERIES}},
     {std::string(Common::MsprofMetrics::TIMELINE),                {Common::ChipProductType::ASCEND950_SERIES}},
     {std::string(Common::MsprofMetrics::PCSAMPLING),              {Common::ChipProductType::ASCEND950_SERIES}},
 };
