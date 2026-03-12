@@ -540,6 +540,11 @@ bool HotSpotFunctionGenerator::GenFdata(const std::string &bbmapPath, const std:
         Utility::LogDebug("bisheng-tune failed");
         return false;
     }
+    // 设置fdata的权限为 640
+    if (chmod(fdataPath.c_str(), 0640) != 0) {
+        Utility::LogDebug("Failed to set permissions for %s", fdataPath.c_str());
+        return false;
+    }
     if (!Utility::IsReadable(fdataPath)) {
         Utility::LogDebug("fdata is not readable");
         return false;
