@@ -65,7 +65,7 @@ if(FILE_CONTENT MATCHES "\\[PACKAGE\\]([^\\[]+)")
     endif()
 endif()
 
-set(packageName "Ascend-${NAME}-${PACKAGE_VERSION}_linux-${CMAKE_SYSTEM_PROCESSOR}.run")
+set(packageName "${NAME}_${PACKAGE_VERSION}_${CMAKE_SYSTEM_PROCESSOR}.run")
 set(makeselfTool  ${MSOPPROF_SRC_DIR}/thirdparty/makeself/makeself.sh)
 set(makeselfHeader ${MSOPPROF_SRC_DIR}/thirdparty/makeself/makeself-header.sh)
 set(helpInfo ${MSOPPROF_SRC_DIR}/package/conf/help.info)
