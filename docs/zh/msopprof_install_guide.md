@@ -23,6 +23,8 @@ git config --global credential.helper store
 - 编译工具CMake版本应大于或等于3.20.2，小于或等于3.31.10。
  
 - 安装Python库的numpy依赖，执行```pip install numpy```安装。
+
+- 生成run包依赖pigz，一般系统自带，执行```pigz --version```确认是否已安装。
  
 ## 安装步骤
  
