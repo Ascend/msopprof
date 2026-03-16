@@ -177,21 +177,51 @@ function create_file() {
 }
 
 function create_folder() {
-    local _path=$1
+    # 1. 定义局部变量（加双引号兼容空格路径）
+    local _path="$1"          # 目标文件夹路径（必填）
+    local _owner="$2"         # 要设置的属主/属组（如 root:root，可选）
+    local _mode="$3"          # 要设置的权限（如 755，可选）
+    local is_created=0        # 标记：是否本次创建了文件夹（0=未创建，1=已创建）
 
-    if [ -z ${_path} ]; then
+    # 2. 校验核心参数：路径不能为空
+    if [ -z "${_path}" ]; then
+        echo "错误：文件夹路径不能为空" >&2
         return 1
     fi
 
-    if [ ! -d ${_path} ]; then
-        mkdir -p ${_path} >/dev/null 2>&1
-        [ $? -ne 0 ] && return 1
+    # 3. 检查文件夹是否不存在，不存在则创建
+    if [ ! -d "${_path}" ]; then
+        # 递归创建文件夹（取消静默，保留错误输出便于排查）
+        mkdir -p "${_path}"
+        if [ $? -ne 0 ]; then
+            echo "错误：创建文件夹 ${_path} 失败" >&2
+            return 1
+        fi
+        is_created=1  # 标记：本次成功创建了文件夹
     fi
 
-    chown -hf $2 ${_path}
-    [ $? -ne 0 ] && return 1
-    change_dir_mode $3 ${_path}
-    [ $? -ne 0 ] && return 1
+    # 4. 仅当本次创建了文件夹时，才执行属组/权限变更
+    if [ ${is_created} -eq 1 ]; then
+        # 4.1 设置所属用户/组（仅传了_owner参数时执行）
+        if [ -n "${_owner}" ]; then
+            chown -hf "${_owner}" "${_path}"
+            if [ $? -ne 0 ]; then
+                echo "错误：为新建文件夹 ${_path} 设置属主 ${_owner} 失败" >&2
+                return 1
+            fi
+        fi
+
+        # 4.2 设置文件夹权限（仅传了_mode参数时执行，替换原自定义函数为原生chmod）
+        if [ -n "${_mode}" ]; then
+            chmod -f "${_mode}" "${_path}"
+            if [ $? -ne 0 ]; then
+                echo "错误：为新建文件夹 ${_path} 设置权限 ${_mode} 失败" >&2
+                return 1
+            fi
+        fi
+    fi
+
+    # 5. 所有操作成功（无论是否新建文件夹，只要无错误就返回0）
     return 0
 }
 
