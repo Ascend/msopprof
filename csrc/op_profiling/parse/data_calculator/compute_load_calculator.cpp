@@ -34,11 +34,11 @@ PluginErrorCode ComputeLoadCalculator::Entry()
     }
     std::map<uint8_t, std::vector<nlohmann::json>> jsonMap = { {0, std::vector<nlohmann::json>()},
                                                                {1, std::vector<nlohmann::json>()} };
-    if (Common::IsChipSeriesTypeValid(chipType_, Common::ChipProductType::ASCEND910B_SERIES)) {
+    if (IsChipSeriesTypeValid(chipType_, ChipProductType::ASCEND910B_SERIES)) {
         ComputeLoadInfoFor910B(jsonMap);
-    } else if (Common::IsChipSeriesTypeValid(chipType_, Common::ChipProductType::ASCEND310P_SERIES)) {
+    } else if (IsChipSeriesTypeValid(chipType_, ChipProductType::ASCEND310P_SERIES)) {
         ComputeLoadInfoFor310P(jsonMap);
-    } else if (Common::IsChipSeriesTypeValid(chipType_, Common::ChipProductType::ASCEND950_SERIES)) {
+    } else if (IsChipSeriesTypeValid(chipType_, ChipProductType::ASCEND950_SERIES)) {
         ComputeLoadInfoFor91095(jsonMap);
     }
     computeLoadInfoPtr->figure["subblock_detail"] = jsonMap[0];

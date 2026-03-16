@@ -28,11 +28,11 @@ using namespace Profiling;
 using namespace Parse;
 
 namespace TestVecUtils {
-DataCenter CreateTempDataCenter(Common::ChipProductType chipProductType)
+DataCenter CreateTempDataCenter(ChipProductType chipProductType)
 {
     Profiling::MergeInfo mergeInfo;
     std::vector<Profiling::MergeInfo> mergeVec;
-    if (chipProductType == Common::ChipProductType::ASCEND310P_SERIES) {
+    if (chipProductType == ChipProductType::ASCEND310P_SERIES) {
         // repeat mode, select 64 elements, detail with space
         mergeInfo.name = "movemask";
         mergeInfo.detail = "mask:0, X0:0xffffffffffffffff";
@@ -77,7 +77,7 @@ using namespace TestVecUtils;
  * | 用例描述 | 测试ElementCount函数应根据不同的mask mode模式返回正确的元素数量计算结果
  */
 TEST(VectorUtilizationCalculatorUT, test_ElementCount_should_return_correct_result_based_on_diff_mode) {
-    Common::ChipProductType testChipType = Common::ChipProductType::ALL_PRODUCT_TYPE;
+    ChipProductType testChipType = ChipProductType::ALL_PRODUCT_TYPE;
     InstrDetailConfig instrDetailContext {testChipType};
     DataCenter dataCenter = CreateTempDataCenter(testChipType);
     VectorUtilizationCalculator vectorUtilizationCalculator {dataCenter, instrDetailContext};
@@ -106,7 +106,7 @@ TEST(VectorUtilizationCalculatorUT, test_ElementCount_should_return_correct_resu
  * | 用例描述 | 测试ElementCount函数应根据不同的mask mode模式返回正确的元素数量计算结果
  */
 TEST(VectorUtilizationCalculatorUT, test_CalVecUtilization_should_return_correct_result_on_A2A3) {
-    Common::ChipProductType testChipType = Common::ChipProductType::ASCEND910_93_SERIES;
+    ChipProductType testChipType = ChipProductType::ASCEND910_93_SERIES;
     InstrDetailConfig instrDetailContext {testChipType};
     DataCenter dataCenter = CreateTempDataCenter(testChipType);
     VectorUtilizationCalculator vectorUtilizationCalculator {dataCenter, instrDetailContext};
@@ -129,7 +129,7 @@ TEST(VectorUtilizationCalculatorUT, test_CalVecUtilization_should_return_correct
  * | 用例描述 | 测试Entry函数在310P上的计算结果是否正确
  */
 TEST(VectorUtilizationCalculatorUT, test_Entry_should_success_and_save_result_into_data_center_on_310P) {
-    Common::ChipProductType testChipType = Common::ChipProductType::ASCEND310P_SERIES;
+    ChipProductType testChipType = ChipProductType::ASCEND310P_SERIES;
     InstrDetailConfig instrDetailContext {testChipType};
     DataCenter dataCenter = CreateTempDataCenter(testChipType);
     VectorUtilizationCalculator vectorUtilizationCalculator {dataCenter, instrDetailContext};
@@ -151,7 +151,7 @@ TEST(VectorUtilizationCalculatorUT, test_Entry_should_success_and_save_result_in
  * | 用例描述 | 测试Entry函数在310P上的计算结果是否正确
  */
 TEST(VectorUtilizationCalculatorUT, test_Entry_should_success_and_save_result_into_data_center_on_A3) {
-    Common::ChipProductType testChipType = Common::ChipProductType::ASCEND910_9391;
+    ChipProductType testChipType = ChipProductType::ASCEND910_9391;
     InstrDetailConfig instrDetailContext {testChipType};
     DataCenter dataCenter = CreateTempDataCenter(testChipType);
     VectorUtilizationCalculator vectorUtilizationCalculator {dataCenter, instrDetailContext};

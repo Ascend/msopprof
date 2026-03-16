@@ -194,7 +194,7 @@ std::vector<InstrInfo> SimPcToCode::GetInstrInfo()
     std::string waitFlagName{Profiling::WAIT_FLAG};
     std::string setFlagName{Profiling::SET_FLAG};
 
-    if (simConfig_.GetChipTypeProduct() == Common::ChipProductType::ASCEND310P_SERIES) {
+    if (simConfig_.GetChipTypeProduct() == ChipProductType::ASCEND310P_SERIES) {
         // 310P series
         waitSetPattern = "pipe_type:([A-Za-z0-9]+),tigger_pipe:([A-Za-z0-9]+),event_id:([A-Za-z0-9]+)";
         waitFlagName = Profiling::WAIT_EVENT;

@@ -129,7 +129,7 @@ std::string PipeType::FindPipe(const std::string &pipeValue, const std::string &
     return "ALL";
 }
 
-void MteThroughput::Process(const std::string &dumpDir, const Common::ChipProductType &chipType,
+void MteThroughput::Process(const std::string &dumpDir, const ChipProductType &chipType,
                             uint32_t threadPoolSize)
 {
     std::vector<std::string> dumpVec;

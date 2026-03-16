@@ -33,7 +33,7 @@ TEST(InjectionEvent, test_request_process_config_data_event)
     // set isSimulator to true, amd check this value in the end
     injectionEvent.profMessage_.isSimulator = true;
     std::string packet = injectionEvent.ProcessConfigDataEvent(nullptr, 10);
-    Utility::MessageOfProfConfig profMessage;
+    MessageOfProfConfig profMessage;
     Communication::Deserialize(packet, profMessage);
     EXPECT_EQ(profMessage.isSimulator, true);
 }

@@ -25,12 +25,12 @@
 namespace Profiling {
 namespace Parse {
 
-const std::map<Common::ChipProductType, std::regex> patternMap = {
-    {Common::ChipProductType::ASCEND310P_SERIES,
+const std::map<ChipProductType, std::regex> patternMap = {
+    {ChipProductType::ASCEND310P_SERIES,
      std::regex(R"(X(\d{1,2})|x[a-z]:0x(\d{1,2})|x[a-z]:(\d{1,2})|x\[(\d{1,2})\])")},
-    {Common::ChipProductType::ASCEND950_SERIES, std::regex(R"(R([a-z0-9]{1,2}):([0-9a-f]{1,2})\|R)")},
-    {Common::ChipProductType::ASCEND910B_SERIES, std::regex(R"(X(\d{1,2}))")},
-    {Common::ChipProductType::ASCEND910_93_SERIES, std::regex(R"(X(\d{1,2}))")},
+    {ChipProductType::ASCEND950_SERIES, std::regex(R"(R([a-z0-9]{1,2}):([0-9a-f]{1,2})\|R)")},
+    {ChipProductType::ASCEND910B_SERIES, std::regex(R"(X(\d{1,2}))")},
+    {ChipProductType::ASCEND910_93_SERIES, std::regex(R"(X(\d{1,2}))")},
 };
 
 void GetNormalDstAndSrcRegister(std::vector<std::string> &dstRegisters, std::vector<std::string> &srcRegisters,
@@ -43,7 +43,7 @@ public:
     explicit GPRLiveRegisterCalculator(DataCenter& dataCenter, InstrDetailConfig& instrDetailConfig)
         :InstrDetailCalculator(dataCenter, instrDetailConfig)
     {
-        Common::ChipProductType chiptypeSeries = Common::GetProductSeriesType(chipType_);
+        ChipProductType chiptypeSeries = GetProductSeriesType(chipType_);
         if (patternMap.find(chiptypeSeries) != patternMap.end()) {
             pattern_ = patternMap.at(chiptypeSeries);
         }
@@ -54,10 +54,10 @@ public:
     {
         RegisterPluginName("GPRLiveRegisterCalculator");
         RegisterMandatoryDb({typeid(InstrDetailTable)});
-        RegisterChip({Common::ChipProductType::ASCEND310P_SERIES,
-                      Common::ChipProductType::ASCEND950_SERIES,
-                      Common::ChipProductType::ASCEND910B_SERIES,
-                      Common::ChipProductType::ASCEND910_93_SERIES});
+        RegisterChip({ChipProductType::ASCEND310P_SERIES,
+                      ChipProductType::ASCEND950_SERIES,
+                      ChipProductType::ASCEND910B_SERIES,
+                      ChipProductType::ASCEND910_93_SERIES});
     }
 private:
     void UpdateDstRegister(InstrDetailTable &instrDetailTable,

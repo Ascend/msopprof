@@ -262,7 +262,7 @@ public:
      * @param: socVersion芯片类型
      */
 
-    bool Init(Common::ChipProductType socVersion);
+    bool Init(ChipProductType socVersion);
 
     /**
      * 获取算子文件中指令的十六进制编码以及对应指令名称。

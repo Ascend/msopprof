@@ -49,7 +49,7 @@ int CalCycles(const std::vector<MergeInfo> &instrList)
     return static_cast<int>(cycles);
 }
 
-float GetMicrosecond(const Common::ChipProductType &chipType, const uint64_t &cycles, int roundParam)
+float GetMicrosecond(const ChipProductType &chipType, const uint64_t &cycles, int roundParam)
 {
     double clockSpeed;
     auto find_soc = CLOCK_SPEED_SERIES_MAP.find(chipType);
@@ -61,7 +61,7 @@ float GetMicrosecond(const Common::ChipProductType &chipType, const uint64_t &cy
                                     pow(10, roundParam)) / pow(10, roundParam)); // 10:used to calculate round
 }
 
-float CalculateRunningTime(std::vector<MergeInfo> &instrList, const Common::ChipProductType &chipType)
+float CalculateRunningTime(std::vector<MergeInfo> &instrList, const ChipProductType &chipType)
 {
     uint64_t runningTime = 0;
     int roundParam = 2; // 2: Precise number of digits

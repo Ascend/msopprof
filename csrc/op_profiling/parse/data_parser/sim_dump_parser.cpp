@@ -46,7 +46,7 @@ void AnalySisFileByCore(Profiling::Parse::DataCenter &dataCenter, const SimParse
     pluginManager.RunAllPlugins(results);
 }
 
-void VisualizeByPlugin(const std::string &outputPath, Common::ChipProductType chipType, Pc2CodeMap &pc2Code,
+void VisualizeByPlugin(const std::string &outputPath, ChipProductType chipType, Pc2CodeMap &pc2Code,
                        std::shared_ptr<Profiling::Parse::DataCenter> &dataCenterPtr, uint32_t systemCores)
 {
     constexpr uint32_t visualPlugin = 2;
@@ -90,7 +90,7 @@ void GetphyCoreName(const Profiling::Parse::DataCenter &dataCenter, std::string 
     coreName = physisToLogicalPtr->first;
 }
 
-void Visualizedata(const std::string &outputPath, Common::ChipProductType chipType, Pc2CodeMap &pc2code,
+void Visualizedata(const std::string &outputPath, ChipProductType chipType, Pc2CodeMap &pc2code,
                    std::shared_ptr<Profiling::Parse::DataCenter> &dataCneterPtr, uint32_t systemCores)
 {
     auto simDataPtr = dataCneterPtr->GetDbPtr<std::map<std::string, SimData>>();
@@ -144,12 +144,12 @@ std::set<uint64_t> CollectPcFromCore(const std::shared_ptr<Profiling::Parse::Dat
     return pcSet;
 }
 
-void CalCulateDetail(Parse::DataCenter &dataCenter, const Common::ChipProductType &chipProductType, uint32_t calThread)
+void CalCulateDetail(Parse::DataCenter &dataCenter, const ChipProductType &chipProductType, uint32_t calThread)
 {
     using namespace Common;
     Parse::PluginManager pluginManager(calThread);
     Parse::InstrDetailConfig instrDetailContext {chipProductType};
-    Common::ChipProductType chipTypeSeries = Common::GetProductSeriesType(chipProductType);
+    ChipProductType chipTypeSeries = GetProductSeriesType(chipProductType);
     bool supportPart = IsChipSeriesTypeValid(chipTypeSeries, ChipProductType::ASCEND310P_SERIES) ||
         IsChipSeriesTypeValid(chipTypeSeries, ChipProductType::ASCEND910B_SERIES) ||
         IsChipSeriesTypeValid(chipTypeSeries, ChipProductType::ASCEND910_93_SERIES);
@@ -172,7 +172,7 @@ void CalCulateDetail(Parse::DataCenter &dataCenter, const Common::ChipProductTyp
 }
 
 void CalCulate(std::map<std::string, std::shared_ptr<Profiling::Parse::DataCenter>> &dataMap,
-               const std::shared_ptr<ParsePcCode> &pc2code, bool isNeedGetPc2Code, Common::ChipProductType chipType)
+               const std::shared_ptr<ParsePcCode> &pc2code, bool isNeedGetPc2Code, ChipProductType chipType)
 {
     auto poolSize = static_cast<uint32_t>(std::thread::hardware_concurrency() * MAX_THREAD_USAGE_RATIO);
     auto coreSize = dataMap.size();
@@ -312,7 +312,7 @@ bool CombineCoreData(const std::map<std::string, std::shared_ptr<Profiling::Pars
 }
 
 bool CombineCoreData(const std::map<std::string, std::shared_ptr<Profiling::Parse::DataCenter>> &dataCenterMap,
-    const Common::ChipProductType &chipProductType, std::shared_ptr<Profiling::Parse::DataCenter> &dataCenterPtr)
+    const ChipProductType &chipProductType, std::shared_ptr<Profiling::Parse::DataCenter> &dataCenterPtr)
 {
     std::map<std::string, SimData> allDataMap;
     for (const auto &coreDataCenter : dataCenterMap) {
@@ -322,8 +322,8 @@ bool CombineCoreData(const std::map<std::string, std::shared_ptr<Profiling::Pars
         if (instrPtr == nullptr || instrPtr->GetColumnData<MergeInfo>(InstrDetailTable::MERGE_INFO) == nullptr) {
             continue;
         }
-        if (Common::GetProductSeriesType(chipProductType) == Common::ChipProductType::ASCEND910_93_SERIES ||
-            Common::GetProductSeriesType(chipProductType) == Common::ChipProductType::ASCEND910B_SERIES) {
+        if (GetProductSeriesType(chipProductType) == ChipProductType::ASCEND910_93_SERIES ||
+            GetProductSeriesType(chipProductType) == ChipProductType::ASCEND910B_SERIES) {
             GetLogiCoreName(*tempDataCenter, coreName);
         }
         auto cachePtr = tempDataCenter->GetDbPtr<CacheDetailTable>();

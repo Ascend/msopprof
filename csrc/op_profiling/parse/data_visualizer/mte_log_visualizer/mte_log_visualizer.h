@@ -30,14 +30,14 @@ namespace Parse {
 class MteLogVisualizer : public PluginInterface {
 public:
     explicit MteLogVisualizer(DataCenter &dataCenter,
-                              const Common::ChipProductType &chipType) : PluginInterface(dataCenter, chipType) {};
+                              const ChipProductType &chipType) : PluginInterface(dataCenter, chipType) {};
     PluginErrorCode Entry() override;
     void DependencyRegister() override
     {
         RegisterPluginName("MteLogVisualizer");
         RegisterMandatoryDb({});
-        RegisterChip({Common::ChipProductType::ASCEND910B_SERIES, Common::ChipProductType::ASCEND910_93_SERIES,
-            Common::ChipProductType::ASCEND950_SERIES});
+        RegisterChip({ChipProductType::ASCEND910B_SERIES, ChipProductType::ASCEND910_93_SERIES,
+            ChipProductType::ASCEND950_SERIES});
     }
 private:
     void FillData(std::vector<nlohmann::json> &mteThroughputJson, const std::vector<double> &valueList, size_t ts);

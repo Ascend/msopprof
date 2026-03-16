@@ -31,7 +31,7 @@ public:
 
     Common::ChipType chipType_;
     Common::PmuEventsId pmuEventsId_;
-    Common::ReplayMode replayMode_;
+    ReplayMode replayMode_;
     uint16_t warmUp_;
     std::string coreId_;
 };

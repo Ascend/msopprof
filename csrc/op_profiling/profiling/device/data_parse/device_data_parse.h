@@ -72,7 +72,7 @@ private:
     // key is file name
     std::map<std::string, ProfBinInfo, FileNameCompare> eventMap_;
     Common::ChipType chipType_;
-    Common::ChipProductType chipProductType_;
+    ChipProductType chipProductType_;
     Common::PmuEventsId pmuEventsId_;
     // range replay duration map: map<pair<streamId, taskId>, vector<char>>
     std::map<std::pair<uint16_t, uint16_t>, std::vector<char>> rangeReplayDurBinMap_;

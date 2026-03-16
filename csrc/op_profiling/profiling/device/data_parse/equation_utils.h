@@ -28,12 +28,12 @@ std::string Ratio(uint64_t val1, uint64_t val2);
 float RatioFp(uint64_t val1, uint64_t val2);
 std::string BandWidth(float val, float duration, float timeFactor = 1.0);
 float BandWidthFp(float val, float duration, float timeFactor = 1.0);
-bool GetMaxBandWidthByType(const TransportType &type, const Common::ChipProductType &chipType, float &maxBw);
+bool GetMaxBandWidthByType(const TransportType &type, const ChipProductType &chipType, float &maxBw);
 uint64_t GetDataNumber(uint64_t pmu, uint64_t request);
 float GetDataNumberFp(uint64_t pmu, uint64_t request, const std::string& unit = "GB");
-std::string BandWidthUsage(float val, float duration, TransportType type, Common::ChipProductType chipType);
+std::string BandWidthUsage(float val, float duration, TransportType type, ChipProductType chipType);
 std::string BandWidthUsage(float val, float duration, TransportType type, const std::string &socVersion);
-std::map<TransportType, float> GetMaxBwBySoc(const std::string &socVersion, const Common::ChipProductType &defalutChip);
+std::map<TransportType, float> GetMaxBwBySoc(const std::string &socVersion, const ChipProductType &defalutChip);
 }
  
 #endif // __MSOPPROF_PROFILING_EQUATION_UTILS_H__

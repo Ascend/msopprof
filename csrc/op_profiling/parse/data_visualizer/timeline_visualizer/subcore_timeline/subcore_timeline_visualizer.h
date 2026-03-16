@@ -58,7 +58,7 @@ public:
     SubcoreTimelineVisualizer(DataCenter &dataCenter, SimVisualizerConfig &config)
         : SimDataVisualizer(dataCenter, config), pc2code_(config.GetPc2Code())
     {
-        if (Common::GetProductSeriesType(config.GetChipType()) == Common::ChipProductType::ASCEND310P_SERIES) {
+        if (GetProductSeriesType(config.GetChipType()) == ChipProductType::ASCEND310P_SERIES) {
             // 310P series
             waitFlagName_ = Profiling::WAIT_EVENT;
             setFlagName_ = Profiling::SET_EVENT;
@@ -75,7 +75,7 @@ public:
     {
         RegisterPluginName("SingleCoreTimeLineVisualizer");
         RegisterMandatoryDb({typeid(std::map<std::string, SimData>)});
-        RegisterChip({Common::ChipProductType::ALL_PRODUCT_TYPE});
+        RegisterChip({ChipProductType::ALL_PRODUCT_TYPE});
     }
 
 private:

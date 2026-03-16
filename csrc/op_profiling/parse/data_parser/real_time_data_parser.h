@@ -36,13 +36,13 @@ namespace Parse {
 class RealTimeICacheParserPlugin : public PluginInterface {
 public:
     RealTimeICacheParserPlugin(DataCenter& dataCenter,
-                               Common::ChipProductType chipType) : PluginInterface(dataCenter, chipType) {};
+                               ChipProductType chipType) : PluginInterface(dataCenter, chipType) {};
     PluginErrorCode Entry() override;
     void DependencyRegister() override
     {
         RegisterPluginName("RealTimeCacheParser");
         RegisterMandatoryDb({});
-        RegisterChip({Common::ChipProductType::ASCEND910B_SERIES, Common::ChipProductType::ASCEND910_93_SERIES});
+        RegisterChip({ChipProductType::ASCEND910B_SERIES, ChipProductType::ASCEND910_93_SERIES});
     }
 private:
     void ParseLine(const IcacheParseInfoForRealTime &info);
@@ -74,7 +74,7 @@ private:
 
 class RealTimeMteParserPlugin : public MteLogParser {
 public:
-    RealTimeMteParserPlugin(DataCenter &dataCenter, Common::ChipProductType chipType)
+    RealTimeMteParserPlugin(DataCenter &dataCenter, ChipProductType chipType)
         : MteLogParser(dataCenter, chipType)
     {
         static const uint16_t MAX_CORE_NUM = 100U;
@@ -85,7 +85,7 @@ public:
     {
         RegisterPluginName("RealTimeMteParser");
         RegisterMandatoryDb({});
-        RegisterChip({Common::ChipProductType::ASCEND910B_SERIES, Common::ChipProductType::ASCEND910_93_SERIES});
+        RegisterChip({ChipProductType::ASCEND910B_SERIES, ChipProductType::ASCEND910_93_SERIES});
     }
 private:
     std::vector<Parse::MteLogInstrMap> mteLogInstrVec_;

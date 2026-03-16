@@ -78,7 +78,7 @@ TEST(MteLogParserTest, test_entry_when_input_is_valid_and_expect_return_success)
     MteLogInstrMap mteLogInstrTblMap;
     mteLogInstrMapVecPtr->emplace_back(mteLogInstrTblMap);
     mteLogCfg.coreId = 0;
-    mteLogCfg.chipType = Common::ChipProductType::ASCEND910B4;
+    mteLogCfg.chipType = ChipProductType::ASCEND910B4;
     dataCenter.DataTableRegister(mteLogInstrMapVecPtr);
     MteLogParser mteLogParser(dataCenter, mteLogCfg);
     mteLogParser.DependencyRegister();

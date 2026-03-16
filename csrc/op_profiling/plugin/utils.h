@@ -101,46 +101,46 @@ __aicore__ inline void SetConfByUint(confT &config, uintT val)
     config |= mask;
 }
 
-__aicore__ inline uint64_t GetDataBits(Common::OperandType type)
+__aicore__ inline uint64_t GetDataBits(OperandType type)
 {
     switch (type) {
-        case Common::OperandType::DATA_B4:
-        case Common::OperandType::DATA_E1M2:
-        case Common::OperandType::DATA_E2M1:
+        case OperandType::DATA_B4:
+        case OperandType::DATA_E1M2:
+        case OperandType::DATA_E2M1:
             return 4UL;
-        case Common::OperandType::DATA_B8:
-        case Common::OperandType::DATA_S8:
-        case Common::OperandType::DATA_U8:
-        case Common::OperandType::DATA_E4M3:
-        case Common::OperandType::DATA_E5M2:
+        case OperandType::DATA_B8:
+        case OperandType::DATA_S8:
+        case OperandType::DATA_U8:
+        case OperandType::DATA_E4M3:
+        case OperandType::DATA_E5M2:
             return 8UL;
-        case Common::OperandType::DATA_B16:
-        case Common::OperandType::DATA_S16:
-        case Common::OperandType::DATA_U16:
-        case Common::OperandType::DATA_F16:
-        case Common::OperandType::DATA_F16X2:
-        case Common::OperandType::DATA_HALF:
-        case Common::OperandType::DATA_BF16:
-        case Common::OperandType::DATA_HIF8X2:
-        case Common::OperandType::DATA_F8E4M3X2:
-        case Common::OperandType::DATA_F8E5M2X2:
+        case OperandType::DATA_B16:
+        case OperandType::DATA_S16:
+        case OperandType::DATA_U16:
+        case OperandType::DATA_F16:
+        case OperandType::DATA_F16X2:
+        case OperandType::DATA_HALF:
+        case OperandType::DATA_BF16:
+        case OperandType::DATA_HIF8X2:
+        case OperandType::DATA_F8E4M3X2:
+        case OperandType::DATA_F8E5M2X2:
             return 16UL;
-        case Common::OperandType::DATA_B32:
-        case Common::OperandType::DATA_S32:
-        case Common::OperandType::DATA_U32:
-        case Common::OperandType::DATA_F32:
-        case Common::OperandType::DATA_SX32:
-        case Common::OperandType::DATA_ZX32:
-        case Common::OperandType::DATA_BF16X2:
-        case Common::OperandType::DATA_V2BF16:
-        case Common::OperandType::DATA_V2F16:
+        case OperandType::DATA_B32:
+        case OperandType::DATA_S32:
+        case OperandType::DATA_U32:
+        case OperandType::DATA_F32:
+        case OperandType::DATA_SX32:
+        case OperandType::DATA_ZX32:
+        case OperandType::DATA_BF16X2:
+        case OperandType::DATA_V2BF16:
+        case OperandType::DATA_V2F16:
             return 32UL;
-        case Common::OperandType::DATA_B64:
-        case Common::OperandType::DATA_S64:
-        case Common::OperandType::DATA_U64:
-        case Common::OperandType::DATA_F32X2:
+        case OperandType::DATA_B64:
+        case OperandType::DATA_S64:
+        case OperandType::DATA_U64:
+        case OperandType::DATA_F32X2:
             return 64UL;
-        case Common::OperandType::DATA_B128:
+        case OperandType::DATA_B128:
         default:
             return 128UL;
     }
@@ -188,7 +188,7 @@ __aicore__ inline bool TryGetBlockIdx(uint64_t &blockIdx)
         blockIdx = block + (block + 1) * (MIX_SUB_BLOCKDIM - 1);
     }
 #endif
-    if (blockIdx > Common::MAX_BLOCK) {
+    if (blockIdx > MAX_BLOCK) {
         return false;
     }
     return true;
@@ -197,7 +197,7 @@ __aicore__ inline bool TryGetBlockIdx(uint64_t &blockIdx)
 __aicore__ inline bool TryGetThreadId(uint64_t &threadId)
 {
     uint64_t thread = GetThreadId();
-    if (thread >= Common::MAX_THREAD_NUM) {
+    if (thread >= MAX_THREAD_NUM) {
         return false;
     }
     threadId = thread;

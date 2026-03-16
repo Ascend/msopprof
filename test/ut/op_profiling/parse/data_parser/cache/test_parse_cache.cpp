@@ -27,13 +27,13 @@ using namespace Profiling::Parse;
 using namespace Utility;
 using namespace Profiling;
 
-SimDataParserConfig GetSimDataConfig (const Common::ChipProductType &type) {
+SimDataParserConfig GetSimDataConfig (const ChipProductType &type) {
     std::string dumpPath910B = "test/ut/resources/dump/910B";
     std::string dumpPath310P = "test/ut/resources/dump/310P";
     CoreNameAndPreFixPair coreNamePair910B {"core0.veccore0", "core0.veccore0."};
     CoreNameAndPreFixPair coreNamePair310P {"core0", "core0."};
     std::set<int> parseIds = {0};
-    if (type == Common::ChipProductType::ASCEND310P1) {
+    if (type == ChipProductType::ASCEND310P1) {
         SimDataParserConfig config {dumpPath310P, coreNamePair310P, parseIds, false, type };
         return config;
     }
@@ -49,7 +49,7 @@ SimDataParserConfig GetSimDataConfig (const Common::ChipProductType &type) {
  */
 TEST(ICacheParser, test_ICacheParser_910B_should_return_ture_when_parse_ok) {
     DataCenter dataCenter;
-    SimDataParserConfig config = GetSimDataConfig(Common::ChipProductType::ASCEND910B1);
+    SimDataParserConfig config = GetSimDataConfig(ChipProductType::ASCEND910B1);
     ICacheParser cahcheParser {dataCenter, config};
     std::string dumpPath = "test/ut/resources/dump/910B/core0.veccore0.ifu.icache_log.dump";
     EXPECT_EQ(chmod(dumpPath.c_str(), 0640), 0);

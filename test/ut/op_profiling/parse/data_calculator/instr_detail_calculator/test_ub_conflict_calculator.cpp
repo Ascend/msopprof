@@ -28,10 +28,10 @@ using namespace Profiling;
 using namespace Parse;
 
 namespace TestUbConflict {
-DataCenter CreateTempDataCenter(Common::ChipProductType chipProductType)
+DataCenter CreateTempDataCenter(ChipProductType chipProductType)
 {
     MergeInfo mergeInfo;
-    if (chipProductType == Common::ChipProductType::ASCEND310P_SERIES) {
+    if (chipProductType == ChipProductType::ASCEND310P_SERIES) {
         mergeInfo.name = "vadd";
         mergeInfo.detail = "op0:4, op1:2, op2:1, type:5, repeat:1, dest_addr:0x400, src_addr:0x0, "
                            "src1_addr:0x200, dst_stride:0x1, src_stride:1, src1_stride:1, "
@@ -86,7 +86,7 @@ using namespace TestUbConflict;
  * | 用例描述 | 测试FindSameTimesMax函数应该返回元素值统计大于1的计数总和
  */
 TEST(UbConflictCalculatorUt, test_FindSameTimesMax_should_return_sum_of_unique_elements_counts_beyond_1) {
-    Common::ChipProductType testChipType = Common::ChipProductType::ALL_PRODUCT_TYPE;
+    ChipProductType testChipType = ChipProductType::ALL_PRODUCT_TYPE;
     InstrDetailConfig instrDetailContext {testChipType};
     DataCenter dataCenter = CreateTempDataCenter(testChipType);
     UbConflictCalculator ubConflictCalculator {dataCenter, instrDetailContext};
@@ -108,7 +108,7 @@ TEST(UbConflictCalculatorUt, test_FindSameTimesMax_should_return_sum_of_unique_e
  * | 用例描述 | 测试ConflictCalculator函数应该返回正确的conflict pair数据
  */
 TEST(UbConflictCalculatorUt, test_ConflictCalculator_should_correct_conflict_count_pair) {
-    Common::ChipProductType testChipType = Common::ChipProductType::ALL_PRODUCT_TYPE;
+    ChipProductType testChipType = ChipProductType::ALL_PRODUCT_TYPE;
     InstrDetailConfig instrDetailContext {testChipType};
     DataCenter dataCenter = CreateTempDataCenter(testChipType);
     UbConflictCalculator ubConflictCalculator {dataCenter, instrDetailContext};
@@ -132,7 +132,7 @@ TEST(UbConflictCalculatorUt, test_ConflictCalculator_should_correct_conflict_cou
  * | 用例描述 | 测试Get310PVecEvent应该成功获取到310P的InstrDetailEvent并保存到InstrDetailEvent
  */
 TEST(UbConflictCalculatorUt, test_Get310PVecEvent_should_get_instr_detail_event_from_merge_info_success) {
-    Common::ChipProductType testChipType = Common::ChipProductType::ASCEND310P1;
+    ChipProductType testChipType = ChipProductType::ASCEND310P1;
     InstrDetailConfig instrDetailContext {testChipType};
     DataCenter dataCenter = CreateTempDataCenter(testChipType);
     UbConflictCalculator ubConflictCalculator {dataCenter, instrDetailContext};
@@ -161,7 +161,7 @@ TEST(UbConflictCalculatorUt, test_Get310PVecEvent_should_get_instr_detail_event_
  * | 用例描述 | 测试GetA2A3VecEvent应该成功获取到310P的InstrDetailEvent并保存到InstrDetailEvent
  */
 TEST(UbConflictCalculatorUt, test_GetA2A3VecEvent_should_get_instr_detail_event_from_merge_info_success_when_binary_op) {
-    Common::ChipProductType testChipType = Common::ChipProductType::ASCEND910B1;
+    ChipProductType testChipType = ChipProductType::ASCEND910B1;
     InstrDetailConfig instrDetailContext {testChipType};
     DataCenter dataCenter = CreateTempDataCenter(testChipType);
     UbConflictCalculator ubConflictCalculator {dataCenter, instrDetailContext};
@@ -188,7 +188,7 @@ TEST(UbConflictCalculatorUt, test_GetA2A3VecEvent_should_get_instr_detail_event_
  * | 用例描述 | 测试GetA2A3VecEvent应该成功获取到310P的InstrDetailEvent并保存到InstrDetailEvent
  */
 TEST(UbConflictCalculatorUt, test_GetA2A3VecEvent_should_get_instr_detail_event_from_merge_info_success_when_unary_op) {
-    Common::ChipProductType testChipType = Common::ChipProductType::ASCEND910B1;
+    ChipProductType testChipType = ChipProductType::ASCEND910B1;
     InstrDetailConfig instrDetailContext {testChipType};
     DataCenter dataCenter = CreateTempDataCenter(testChipType);
     UbConflictCalculator ubConflictCalculator {dataCenter, instrDetailContext};
@@ -214,7 +214,7 @@ TEST(UbConflictCalculatorUt, test_GetA2A3VecEvent_should_get_instr_detail_event_
  * | 用例描述 | 测试Entry函数在310P上的计算结果是否正确
  */
 TEST(UbConflictCalculatorUt, test_Entry_should_success_and_save_result_into_data_center_on_310P) {
-    Common::ChipProductType testChipType = Common::ChipProductType::ASCEND310P_SERIES;
+    ChipProductType testChipType = ChipProductType::ASCEND310P_SERIES;
     InstrDetailConfig instrDetailContext {testChipType};
     DataCenter dataCenter = CreateTempDataCenter(testChipType);
     UbConflictCalculator ubConflictCalculator {dataCenter, instrDetailContext};
@@ -235,7 +235,7 @@ TEST(UbConflictCalculatorUt, test_Entry_should_success_and_save_result_into_data
  * | 用例描述 | 测试Entry函数在A3上的计算结果是否正确
  */
 TEST(UbConflictCalculatorUt, test_Entry_should_success_and_save_result_into_data_center_on_A3) {
-    Common::ChipProductType testChipType = Common::ChipProductType::ASCEND910_9372;
+    ChipProductType testChipType = ChipProductType::ASCEND910_9372;
     InstrDetailConfig instrDetailContext {testChipType};
     DataCenter dataCenter = CreateTempDataCenter(testChipType);
     UbConflictCalculator ubConflictCalculator {dataCenter, instrDetailContext};

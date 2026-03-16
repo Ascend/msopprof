@@ -53,7 +53,7 @@ struct SplitBlockPmuData {
 
 class FftsBlockBean {
 public:
-    explicit FftsBlockBean(const Common::ChipProductType &chip, const std::vector<char> &bin);
+    explicit FftsBlockBean(const ChipProductType &chip, const std::vector<char> &bin);
 
     SplitBlockPmuData GetBlockData(const std::vector<std::uint16_t> &aicEvents,
                                    const std::vector<std::uint16_t> &aivEvents) const;
@@ -110,7 +110,7 @@ private:
 
 class AcsqBean {
 public:
-    AcsqBean(const Common::ChipProductType &chip, const std::vector<char> &bin);
+    AcsqBean(const ChipProductType &chip, const std::vector<char> &bin);
 
     uint16_t GetTaskType() const;
 

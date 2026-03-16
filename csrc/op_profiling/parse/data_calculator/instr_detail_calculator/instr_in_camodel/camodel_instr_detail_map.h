@@ -53,7 +53,7 @@ enum class RegNameKey : uint32_t {
 };
 
 using RegDetailRegexMap = std::unordered_map<RegNameKey, std::regex>;
-bool GetRegDetailRegexMap(Common::ChipProductType seriesChipType, RegDetailRegexMap &resMap);
+bool GetRegDetailRegexMap(ChipProductType seriesChipType, RegDetailRegexMap &resMap);
 }
 }
 #endif // __MSOPPROF_PARSE_DATA_CALCULATOR_INSTR_DETAIL_CAMODEL_INSTR_DETAIL_MAP_H__

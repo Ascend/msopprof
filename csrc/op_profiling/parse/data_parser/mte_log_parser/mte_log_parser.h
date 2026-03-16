@@ -25,15 +25,15 @@ class MteLogParser : public PluginInterface {
 public:
     explicit MteLogParser(DataCenter &dataCenter, Parse::MteLogCfg &mteLogCfg)
         : PluginInterface(dataCenter, mteLogCfg.chipType), dumpFile_(mteLogCfg.dumpFile), coreId_(mteLogCfg.coreId) {}
-    explicit MteLogParser(DataCenter &dataCenter, Common::ChipProductType chipType)
+    explicit MteLogParser(DataCenter &dataCenter, ChipProductType chipType)
         : PluginInterface(dataCenter, chipType) {}
     PluginErrorCode Entry() override;
     void DependencyRegister() override
     {
         RegisterPluginName("MteLogParser");
         RegisterMandatoryDb({});
-        RegisterChip({Common::ChipProductType::ASCEND910B_SERIES, Common::ChipProductType::ASCEND910_93_SERIES,
-            Common::ChipProductType::ASCEND950_SERIES});
+        RegisterChip({ChipProductType::ASCEND910B_SERIES, ChipProductType::ASCEND910_93_SERIES,
+            ChipProductType::ASCEND950_SERIES});
     }
 protected:
     void ParseMTELogLine(const Common::DvcMteLog &mteLog, MteLogInstrMap &mteLogInstrMap) const;

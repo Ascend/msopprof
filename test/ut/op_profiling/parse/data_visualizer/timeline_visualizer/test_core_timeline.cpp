@@ -28,7 +28,7 @@ TEST(CoreTimeLineVisualizer, test_CoreTimeLineVisualizer_910B_should_return_ture
     std::string output = "test/ut/resources/dump/output";
     const std::string fileName1 = "test/ut/resources/dump/output/trace.json";
     const std::string fileName2 = "test/ut/resources/dump/output/visualize_data.bin";
-    SimVisualizerConfig config = GetVisualizeConfig(output, Common::ChipProductType::ASCEND910B1);
+    SimVisualizerConfig config = GetVisualizeConfig(output, ChipProductType::ASCEND910B1);
     std::vector<std::string> fileNames;
     MkdirRecusively(output);
     CoreTimeLineVisualizer core(dataCenter, config);
@@ -48,7 +48,7 @@ TEST(CoreTimeLineVisualizer, test_Entry_should_return_error_when_db_not_register
 {
     DataCenter dataCenter;
     std::string output = "test/ut/resources/dump/output";
-    SimVisualizerConfig config = GetVisualizeConfig(output, Common::ChipProductType::ASCEND910B1);
+    SimVisualizerConfig config = GetVisualizeConfig(output, ChipProductType::ASCEND910B1);
     CoreTimeLineVisualizer core(dataCenter, config);
     ASSERT_EQ(core.Entry(), PluginErrorCode::NONBLOCKING_ERROR);
 }
@@ -67,7 +67,7 @@ TEST(CoreTimeLineVisualizer, test_WriteFile_output_file_generate_success)
     std::string output = "test/ut/resources/dump/output";
     const std::string fileName1 = "test/ut/resources/dump/output/trace.json";
     const std::string fileName2 = "test/ut/resources/dump/output/visualize_data.bin";
-    SimVisualizerConfig config = GetVisualizeConfig(output, Common::ChipProductType::ASCEND910B1);
+    SimVisualizerConfig config = GetVisualizeConfig(output, ChipProductType::ASCEND910B1);
     std::vector<std::string> fileNames;
     MkdirRecusively(output);
     CoreTimeLineVisualizer core(dataCenter, config);
@@ -89,7 +89,7 @@ TEST(CoreTimeLineVisualizer, test_ParseByCore_should_return_ture_when_parse_succ
     auto simData = GetSimData();
     dataCenter.DataTableRegister(simData);
     std::string output = "test/ut/resources/dump/output";
-    SimVisualizerConfig config = GetVisualizeConfig(output, Common::ChipProductType::ASCEND910B1);
+    SimVisualizerConfig config = GetVisualizeConfig(output, ChipProductType::ASCEND910B1);
     CoreTimeLineVisualizer core(dataCenter, config);
     std::string coreName = "core0.veccore0";
     ASSERT_TRUE(core.ParseByCore(coreName, simData->at(coreName)));
@@ -108,7 +108,7 @@ TEST(CoreTimeLineVisualizer, test_ParseByCore_should_return_false_when_InstrDeta
     auto simData = GetSimData();
     dataCenter.DataTableRegister(simData);
     std::string output = "test/ut/resources/dump/output";
-    SimVisualizerConfig config = GetVisualizeConfig(output, Common::ChipProductType::ASCEND910B1);
+    SimVisualizerConfig config = GetVisualizeConfig(output, ChipProductType::ASCEND910B1);
     CoreTimeLineVisualizer core(dataCenter, config);
     std::string coreName = "core0.veccore0";
     SimData data;
@@ -127,7 +127,7 @@ TEST(CoreTimeLineVisualizer, test_CollectInstrEvents_collect_json_success_of_310
     auto simData = GetSimData();
     dataCenter.DataTableRegister(simData);
     std::string output = "test/ut/resources/dump/output";
-    Common::ChipProductType chipType = Common::ChipProductType::ASCEND310P1;
+    ChipProductType chipType = ChipProductType::ASCEND310P1;
     SimVisualizerConfig config = GetVisualizeConfig(output, chipType);
     CoreTimeLineVisualizer core(dataCenter, config);
     std::vector<nlohmann::json> coreJsonList;
@@ -193,7 +193,7 @@ TEST(CoreTimeLineVisualizer, test_AddFlag_add_set_instr_begin_and_end_json) {
     auto simData = GetSimData();
     dataCenter.DataTableRegister(simData);
     std::string output = "test/ut/resources/dump/output";
-    Common::ChipProductType chipType = Common::ChipProductType::ASCEND910B1;
+    ChipProductType chipType = ChipProductType::ASCEND910B1;
     SimVisualizerConfig config = GetVisualizeConfig(output, chipType);
     CoreTimeLineVisualizer core(dataCenter, config);
     std::vector<nlohmann::json> coreJsonList;
@@ -229,7 +229,7 @@ TEST(CoreTimeLineVisualizer, test_CollectUserMarkEvents_add_usermark_json_succes
     auto simData = GetSimData();
     dataCenter.DataTableRegister(simData);
     std::string output = "test/ut/resources/dump/output";
-    Common::ChipProductType chipType = Common::ChipProductType::ASCEND910B1;
+    ChipProductType chipType = ChipProductType::ASCEND910B1;
     SimVisualizerConfig config = GetVisualizeConfig(output, chipType);
     CoreTimeLineVisualizer core(dataCenter, config);
     std::vector<nlohmann::json> coreJsonList;
@@ -249,7 +249,7 @@ TEST(CoreTimeLineVisualizer, test_CollectUserMarkEvents_add_none_json_when_userm
     auto simData = GetSimData();
     dataCenter.DataTableRegister(simData);
     std::string output = "test/ut/resources/dump/output";
-    Common::ChipProductType chipType = Common::ChipProductType::ASCEND910B1;
+    ChipProductType chipType = ChipProductType::ASCEND910B1;
     SimVisualizerConfig config = GetVisualizeConfig(output, chipType);
     CoreTimeLineVisualizer core(dataCenter, config);
     std::vector<nlohmann::json> coreJsonList;
@@ -269,7 +269,7 @@ TEST(CoreTimeLineVisualizer, test_CollectUserMarkEvents_add_none_json_when_userm
     auto simData = GetSimData();
     dataCenter.DataTableRegister(simData);
     std::string output = "test/ut/resources/dump/output";
-    Common::ChipProductType chipType = Common::ChipProductType::ASCEND910B1;
+    ChipProductType chipType = ChipProductType::ASCEND910B1;
     SimVisualizerConfig config = GetVisualizeConfig(output, chipType);
     CoreTimeLineVisualizer core(dataCenter, config);
     std::vector<nlohmann::json> coreJsonList;

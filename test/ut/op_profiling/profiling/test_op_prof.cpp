@@ -108,12 +108,12 @@ TEST(OpProf, RunDataParse_with_OpSimProf_expect_failed)
 TEST(OpProf, test_band_width_usage_when_duration_or_maxbw_is_zero_and_expect_no_throw)
 {
     GlobalMockObject::verify();
-    ASSERT_NO_THROW(BandWidthUsage(10.0, 0.0, TransportType::GM_TO_UB, Common::ChipProductType::ASCEND910B_SERIES));
+    ASSERT_NO_THROW(BandWidthUsage(10.0, 0.0, TransportType::GM_TO_UB, ChipProductType::ASCEND910B_SERIES));
     float num = 0.0f;
     MOCKER(&GetMaxBandWidthByType)
         .stubs()
         .with(any(), any(), outBound(num))
         .will(returnValue(true));
-    ASSERT_NO_THROW(BandWidthUsage(10.0, 1.1, TransportType::GM_TO_UB, Common::ChipProductType::ASCEND910B_SERIES));
+    ASSERT_NO_THROW(BandWidthUsage(10.0, 1.1, TransportType::GM_TO_UB, ChipProductType::ASCEND910B_SERIES));
     GlobalMockObject::verify();
 }

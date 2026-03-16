@@ -38,7 +38,7 @@ public:
     {
         RegisterPluginName("CacheParser");
         RegisterMandatoryDb({});
-        RegisterChip({Common::ChipProductType::ALL_PRODUCT_TYPE});
+        RegisterChip({ChipProductType::ALL_PRODUCT_TYPE});
     }
 private:
     void ParseLine(const std::string &line);

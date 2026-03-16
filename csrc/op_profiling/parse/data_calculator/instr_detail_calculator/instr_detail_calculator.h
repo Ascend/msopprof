@@ -43,21 +43,21 @@ struct SpRegexStruct {
 
 class InstrDetailConfig {
 public:
-    explicit InstrDetailConfig(Common::ChipProductType chipType = Common::ChipProductType::ASCEND910B_SERIES)
+    explicit InstrDetailConfig(ChipProductType chipType = ChipProductType::ASCEND910B_SERIES)
         : chipType_(chipType) {};
 
-    Common::ChipProductType GetChipType() const
+    ChipProductType GetChipType() const
     {
         return chipType_;
     }
 
-    Common::ChipProductType GetProductSeriesType() const
+    ChipProductType GetProductSeriesType() const
     {
-        return Common::GetProductSeriesType(chipType_);
+        return ::GetProductSeriesType(chipType_);
     }
 
 private:
-    const Common::ChipProductType chipType_;
+    const ChipProductType chipType_;
 };
 
 

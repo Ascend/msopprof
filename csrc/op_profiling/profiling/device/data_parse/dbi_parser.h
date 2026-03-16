@@ -232,10 +232,10 @@ private:
     uint16_t GetSplitColumn(const T &record, uint16_t nColumn) const;
     template <uint32_t alignSize, typename T>
     T AlignUp(T value);
-    void ParseMemoryChart(std::size_t key, const std::string &msg, const ProfStub::DBIDataHeader &dbiDataHeader);
+    void ParseMemoryChart(std::size_t key, const std::string &msg, const DBIDataHeader &dbiDataHeader);
     void TryDumpMemoryChartMetrics(std::size_t clientId);
     void PacketHandler(std::size_t clientId, const std::string &msg);
-    bool HandleEndFlag(const ProfStub::DBIDataHeader &dbiDataHeader, std::size_t clientId, const std::string &msg);
+    bool HandleEndFlag(const DBIDataHeader &dbiDataHeader, std::size_t clientId, const std::string &msg);
     void VerifyAndDump(const MemoryChartMetrics& metrics);
     bool ValidateFixL0CGMRecord(const Common::FixL0CGMRecord &record, std::size_t key);
     bool ParseFixL0CGMRecord(const std::string &buffer, std::size_t &index, std::size_t key, uint16_t blockId);

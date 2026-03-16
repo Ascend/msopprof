@@ -21,7 +21,7 @@
 #include "smart_pointer.h"
 namespace ProfStub {
 using namespace Utility;
-bool InjectionEvent::StartDisposeClientAsk(const Utility::MessageOfProfConfig &profMessage,
+bool InjectionEvent::StartDisposeClientAsk(const MessageOfProfConfig &profMessage,
                                            const Utility::ProfConfig &profConfig)
 {
     isRunning_ = true;

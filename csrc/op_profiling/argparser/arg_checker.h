@@ -22,7 +22,7 @@
 #include "common/prof_args.h"
 
 namespace Parser {
-using AicMetricsSupportMap = std::unordered_map<std::string, std::vector<Common::ChipProductType>>;
+using AicMetricsSupportMap = std::unordered_map<std::string, std::vector<ChipProductType>>;
 
 class ArgChecker {
 public:
@@ -48,7 +48,7 @@ private:
     bool CheckWarmUp(const Common::ProfArgs &config, std::string &msg) const;
     bool CheckCoreId(const Common::ProfArgs &config, std::string &msg) const;
     bool CheckTimeout(const Common::ProfArgs &config, std::string &msg) const;
-    bool CheckMetrics(const std::vector<std::string> &metricsVec, const Common::ChipProductType &productType,
+    bool CheckMetrics(const std::vector<std::string> &metricsVec, const ChipProductType &productType,
                       const AicMetricsSupportMap &supports, std::string &msg) const;
     bool CheckDump(const Common::ProfArgs &config, std::string &msg) const;
 private:

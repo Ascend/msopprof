@@ -32,14 +32,14 @@ struct ComputeLoadInfo {
 
 class ComputeLoadCalculator : public PluginInterface {
 public:
-    explicit ComputeLoadCalculator(DataCenter& dataCenter, const Common::ChipProductType &chipType)
+    explicit ComputeLoadCalculator(DataCenter& dataCenter, const ChipProductType &chipType)
         : PluginInterface(dataCenter, chipType) {}
     PluginErrorCode Entry() override;
     void DependencyRegister() override
     {
         RegisterPluginName("ComputeLoadCalculator");
         RegisterMandatoryDb({});
-        RegisterChip({Common::ChipProductType::ALL_PRODUCT_TYPE});
+        RegisterChip({ChipProductType::ALL_PRODUCT_TYPE});
     }
 private:
     void ComputeLoadInfoFor910B(std::map<uint8_t, std::vector<nlohmann::json>> &jsonMap);

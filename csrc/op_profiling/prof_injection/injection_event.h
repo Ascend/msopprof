@@ -36,7 +36,7 @@ class InjectionEvent : public Singleton<InjectionEvent> {
 friend class Singleton<InjectionEvent>;
 public:
     // Start 1 thread to receive message
-    bool StartDisposeClientAsk(const Utility::MessageOfProfConfig &profMessage,
+    bool StartDisposeClientAsk(const MessageOfProfConfig &profMessage,
                                const Utility::ProfConfig &profConfig);
     void Stop();
     void RegisterPacketHandler(const PacketHandler &handler);
@@ -54,7 +54,7 @@ private:
 
     std::thread listenThread_;
     std::atomic<bool> isRunning_ {true};
-    Utility::MessageOfProfConfig profMessage_;
+    MessageOfProfConfig profMessage_;
     std::unique_ptr<Communication::Communication> communication_;
     DeviceProcessManager deviceProcessManager_;
     std::unordered_map<uint32_t, std::shared_ptr<Packet>> packetMap_;

@@ -37,7 +37,7 @@ public:
     {
         RegisterPluginName("InstrParser");
         RegisterMandatoryDb({});
-        RegisterChip({Common::ChipProductType::ALL_PRODUCT_TYPE});
+        RegisterChip({ChipProductType::ALL_PRODUCT_TYPE});
     }
 protected:
     bool MergeLog(const InstrLogParser &instrLogParser, const PopLogParser &popParser,

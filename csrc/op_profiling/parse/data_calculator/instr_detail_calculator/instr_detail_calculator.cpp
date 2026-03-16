@@ -380,8 +380,8 @@ const InstrProcessMap A2A3InstrProcessMap = {
     {"FIX_L0C_TO_DST",              {ConstructInstrFixPipe, InstrTypeTemplate::FIX_L0C_TO_DST}},
 };
 
-const std::unordered_map<Common::ChipProductType, InstrProcessMap> ChipBasedInstrRegDetailMap = {
-    {Common::ChipProductType::ASCEND310P_SERIES, {
+const std::unordered_map<ChipProductType, InstrProcessMap> ChipBasedInstrRegDetailMap = {
+    {ChipProductType::ASCEND310P_SERIES, {
         {"load_out_to_l0a_2d",      {ConstructInstrRegCommon, InstrTypeTemplate::LOAD_SRC_TO_DST_2D}},
         {"load_out_to_l0b_2d",      {ConstructInstrRegCommon, InstrTypeTemplate::LOAD_SRC_TO_DST_2D}},
         {"load_out_to_l1_2d",       {ConstructInstrRegCommon, InstrTypeTemplate::LOAD_SRC_TO_DST_2D}},
@@ -391,8 +391,8 @@ const std::unordered_map<Common::ChipProductType, InstrProcessMap> ChipBasedInst
         {"mov_out_to_l1",           {ConstructInstrRegCommon, InstrTypeTemplate::MOV_SRC_TO_DST}},
         {"mov_ub_to_out",           {ConstructInstrRegCommon, InstrTypeTemplate::MOV_SRC_TO_DST}},
     }},
-    {Common::ChipProductType::ASCEND910B_SERIES, A2A3InstrProcessMap},
-    {Common::ChipProductType::ASCEND910_93_SERIES, A2A3InstrProcessMap},
+    {ChipProductType::ASCEND910B_SERIES, A2A3InstrProcessMap},
+    {ChipProductType::ASCEND910_93_SERIES, A2A3InstrProcessMap},
 };
 
 bool InstrDetailCalculator::GetMemOpInfo(const MergeInfo &instrInfo, MemOpInfo &memOpInfo)
@@ -424,15 +424,15 @@ void InstrDetailCalculator::AttributeMapInit()
             {std::regex("SPR:CTRL,\\s?XN:X[0-9]{1,2}=(?:0x)?([0-9a-f]+)"), 1, 3}}
         },
     };
-    const std::unordered_map<Common::ChipProductType, SpStruct2RegexMap> SprRegNamePattern = {
-        {Common::ChipProductType::ASCEND310P_SERIES, {
+    const std::unordered_map<ChipProductType, SpStruct2RegexMap> SprRegNamePattern = {
+        {ChipProductType::ASCEND310P_SERIES, {
             {"movemask", {{std::regex("mask:([0-9]{1}),\\s?X[0-9]{1,2}:(?:0x)?([0-9a-f]+)"), 2, 0}}},
             {"scalar_mov_xd_special", {{std::regex("SPR_CTRL=\\s?(?:0x)?([0-9a-f]+)"), 1, 3}}},
         }},
-        {Common::ChipProductType::ASCEND910B_SERIES, sprRegexMapA2A3},
-        {Common::ChipProductType::ASCEND910_93_SERIES, sprRegexMapA2A3},
+        {ChipProductType::ASCEND910B_SERIES, sprRegexMapA2A3},
+        {ChipProductType::ASCEND910_93_SERIES, sprRegexMapA2A3},
     };
-    Common::ChipProductType chipSeriesType = instrDetailConfig_.GetProductSeriesType();
+    ChipProductType chipSeriesType = instrDetailConfig_.GetProductSeriesType();
     // chip type is check in DependencyCheck
     GetRegDetailRegexMap(chipSeriesType, regDetailRegexMap_);
     instrProcessMap_ = ChipBasedInstrRegDetailMap.at(chipSeriesType);
@@ -463,10 +463,10 @@ void InstrDetailCalculator::UpdateSpReg(const std::string &name, const std::stri
             uint64_t maskSelected;
             uint64_t value;
             // 临时特殊判断，后续仿真器修改后会移除。当前A2A3先mask再pos，310P先pos，再mask
-            if (Common::IsChipSeriesTypeValid(instrDetailConfig_.GetChipType(),
-                                              Common::ChipProductType::ASCEND910B_SERIES) ||
-                Common::IsChipSeriesTypeValid(instrDetailConfig_.GetChipType(),
-                                              Common::ChipProductType::ASCEND910_93_SERIES)) {
+            if (IsChipSeriesTypeValid(instrDetailConfig_.GetChipType(),
+                                      ChipProductType::ASCEND910B_SERIES) ||
+                IsChipSeriesTypeValid(instrDetailConfig_.GetChipType(),
+                                      ChipProductType::ASCEND910_93_SERIES)) {
                 value = resValueList[0];
                 maskSelected = resValueList[1];
             } else {

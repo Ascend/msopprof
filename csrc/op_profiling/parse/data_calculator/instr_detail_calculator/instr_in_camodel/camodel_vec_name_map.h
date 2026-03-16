@@ -28,7 +28,7 @@ namespace Parse {
 
 using InstrLogStr2Template = std::unordered_map<std::string, VecInstrTemplate>;
 
-bool GetInstrLogStr2TemplateMap(Common::ChipProductType seriesChipType, InstrLogStr2Template &resMap);
+bool GetInstrLogStr2TemplateMap(ChipProductType seriesChipType, InstrLogStr2Template &resMap);
 }
 }
 #endif // __MSOPPROF_PARSE_DATA_CALCULATOR_INSTR_DETAIL_CAMODEL_VEC_NAME_MAP_H__

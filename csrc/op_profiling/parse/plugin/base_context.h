@@ -29,7 +29,7 @@ public:
     BaseContext() = default;
     virtual ~BaseContext() = default;
 
-    virtual Common::ChipProductType GetChipType() const {return {};}
+    virtual ChipProductType GetChipType() const {return {};}
 };
 
 }

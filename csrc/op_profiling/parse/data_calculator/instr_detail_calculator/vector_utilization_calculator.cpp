@@ -87,7 +87,7 @@ float VectorUtilizationCalculator::CalVecUtilization(VecInstrTemplate vecType,
     constexpr float percentage = 100;
     float vecCalElementsNum = 0;
     uint64_t repeatTimes = 0;
-    if (Common::IsChipSeriesTypeValid(instrDetailConfig_.GetChipType(), Common::ChipProductType::ASCEND310P_SERIES)) {
+    if (IsChipSeriesTypeValid(instrDetailConfig_.GetChipType(), ChipProductType::ASCEND310P_SERIES)) {
         // 310P provide direct result
         uint64_t dtypeValue = static_cast<uint32_t>(VectorDtype310P::VEC_NA);
         if (!GetRegValue(regDetailRegexMap_.at(RegNameKey::VEC_REPEAT), mergeInfo.detail, repeatTimes,

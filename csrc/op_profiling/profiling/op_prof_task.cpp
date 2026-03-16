@@ -334,19 +334,19 @@ void Task::RegisterRunningEvent()
 {
     if (!needRegisterEvent_) { return; }
     ProfStub::InjectionEvent::Instance().RegisterPacketHandler(
-        {ProfStub::ProfPacketType::INSTR_LOG, [&](const std::shared_ptr<ProfStub::Packet>& pkt, size_t) {
+        {ProfPacketType::INSTR_LOG, [&](const std::shared_ptr<ProfStub::Packet>& pkt, size_t) {
             if (pkt != nullptr) { realTimeDataParser_->SetInstrLog(pkt->GetPayload().dvcInstrLog);}
             return "";
         }}
     );
     ProfStub::InjectionEvent::Instance().RegisterPacketHandler(
-        {ProfStub::ProfPacketType::POPPED_LOG, [&](const std::shared_ptr<ProfStub::Packet>& pkt, size_t) {
+        {ProfPacketType::POPPED_LOG, [&](const std::shared_ptr<ProfStub::Packet>& pkt, size_t) {
             if (pkt != nullptr) { realTimeDataParser_->SetPopInstrLog(pkt->GetPayload().dvcInstrLog); }
             return "";
         }}
     );
     ProfStub::InjectionEvent::Instance().RegisterPacketHandler(
-        {ProfStub::ProfPacketType::MTE_LOG, [&](const std::shared_ptr<ProfStub::Packet>& pkt, size_t) {
+        {ProfPacketType::MTE_LOG, [&](const std::shared_ptr<ProfStub::Packet>& pkt, size_t) {
             if (pkt != nullptr && realTimeSimParseContext_.metricsConfig.pmSamplingEnable) {
                 realTimeDataParser_->SetMteLog(pkt->GetPayload().dvcMteLog);
             }
@@ -354,13 +354,13 @@ void Task::RegisterRunningEvent()
         }}
     );
     ProfStub::InjectionEvent::Instance().RegisterPacketHandler(
-        {ProfStub::ProfPacketType::ICACHE_LOG, [&](const std::shared_ptr<ProfStub::Packet>& pkt, size_t) {
+        {ProfPacketType::ICACHE_LOG, [&](const std::shared_ptr<ProfStub::Packet>& pkt, size_t) {
             if (pkt != nullptr) { realTimeDataParser_->SetICacheLog(pkt->GetPayload().dvcIcacheLog); }
             return "";
         }}
     );
     ProfStub::InjectionEvent::Instance().RegisterPacketHandler(
-        {ProfStub::ProfPacketType::COLLECT_START, [&](const std::shared_ptr<ProfStub::Packet>& pkt, size_t) {
+        {ProfPacketType::COLLECT_START, [&](const std::shared_ptr<ProfStub::Packet>& pkt, size_t) {
             if (pkt == nullptr) { return "";}
             std::string kernelOutputPath = pkt->GetPayload().collectLogStart.outputPath;
             std::string kernelName = pkt->GetPayload().collectLogStart.kernelName;
@@ -372,7 +372,7 @@ void Task::RegisterRunningEvent()
         }}
     );
     ProfStub::InjectionEvent::Instance().RegisterPacketHandler(
-        {ProfStub::ProfPacketType::PROF_FINISH, [&](const std::shared_ptr<ProfStub::Packet>& pkt, size_t) {
+        {ProfPacketType::PROF_FINISH, [&](const std::shared_ptr<ProfStub::Packet>& pkt, size_t) {
             (void)pkt;
             realTimeDataParser_->Stop();
             return "SUC";

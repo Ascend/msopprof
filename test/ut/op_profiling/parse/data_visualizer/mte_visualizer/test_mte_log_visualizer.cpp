@@ -24,7 +24,7 @@ using namespace Utility;
 TEST(MteLogVisualizerTest, test_entry_when_input_is_invalid_and_expect_return_error)
 {
     DataCenter dataCenter;
-    MteLogVisualizer mteLogCalculator(dataCenter, Common::ChipProductType::ASCEND910B4);
+    MteLogVisualizer mteLogCalculator(dataCenter, ChipProductType::ASCEND910B4);
     mteLogCalculator.DependencyRegister();
     ASSERT_TRUE(mteLogCalculator.Entry() == PluginErrorCode::NONBLOCKING_ERROR);
 }
@@ -32,7 +32,7 @@ TEST(MteLogVisualizerTest, test_entry_when_input_is_invalid_and_expect_return_er
 TEST(MteLogVisualizerFill, test_entry_fill_data)
 {
     DataCenter dataCenter;
-    MteLogVisualizer mteLogCalculator(dataCenter, Common::ChipProductType::ASCEND910B4);
+    MteLogVisualizer mteLogCalculator(dataCenter, ChipProductType::ASCEND910B4);
     std::vector<double> valueList;
     valueList.resize(static_cast<size_t>(MteLogInstrType::END));
     size_t type = 0;
@@ -54,7 +54,7 @@ TEST(MteLogVisualizerFill, test_entry_fill_data)
 TEST(MteLogVisualizerTest, test_entry_when_input_is_valid_and_expect_success)
 {
     DataCenter dataCenter;
-    MteLogVisualizer mteLogVisualizer(dataCenter, Common::ChipProductType::ASCEND910B4);
+    MteLogVisualizer mteLogVisualizer(dataCenter, ChipProductType::ASCEND910B4);
     mteLogVisualizer.DependencyRegister();
 
     MteThroughputChart mteChart = {

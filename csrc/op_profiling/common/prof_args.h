@@ -31,12 +31,6 @@
 #include "data_format.h"
 
 namespace Common {
-enum class ReplayMode : uint8_t {
-    KERNEL = 0,
-    APPLICATION,
-    RANGE,
-};
-
 const std::map<std::string, ReplayMode> ReplayModeMap {
     {"kernel",       ReplayMode::KERNEL},
     {"application",  ReplayMode::APPLICATION},

@@ -28,7 +28,7 @@ TEST(SubcoreTimelineVisualizer, test_SubcoreTimelineVisualizer_910B_should_retur
     dataCenter.DataTableRegister(simData);
     std::string output = "test/ut/resources/dump/output";
     const std::string fileName = "test/ut/resources/dump/output/core0.veccore0/trace.json";
-    SimVisualizerConfig config = GetVisualizeConfig(output, Common::ChipProductType::ASCEND910B1);
+    SimVisualizerConfig config = GetVisualizeConfig(output, ChipProductType::ASCEND910B1);
     const std::string sepCoreOutput = JoinPath({output, "core0.veccore0"});
     MkdirRecusively(sepCoreOutput);
     SubcoreTimelineVisualizer core(dataCenter, config);
@@ -47,7 +47,7 @@ TEST(SubcoreTimelineVisualizer, test_Entry_should_return_error_when_db_not_regis
 {
     DataCenter dataCenter;
     std::string output = "test/ut/resources/dump/output";
-    SimVisualizerConfig config = GetVisualizeConfig(output, Common::ChipProductType::ASCEND910B1);
+    SimVisualizerConfig config = GetVisualizeConfig(output, ChipProductType::ASCEND910B1);
     SubcoreTimelineVisualizer core(dataCenter, config);
     ASSERT_EQ(core.Entry(), PluginErrorCode::NONBLOCKING_ERROR);
 }
@@ -64,7 +64,7 @@ TEST(SubcoreTimelineVisualizer, test_ParseByCore_should_return_ture_when_parse_s
     auto simData = GetSimData();
     dataCenter.DataTableRegister(simData);
     std::string output = "test/ut/resources/dump/output";
-    SimVisualizerConfig config = GetVisualizeConfig(output, Common::ChipProductType::ASCEND910B1);
+    SimVisualizerConfig config = GetVisualizeConfig(output, ChipProductType::ASCEND910B1);
     MOCKER(&SubcoreTimelineVisualizer::WriteSepJson).stubs().will(returnValue(true));
     SubcoreTimelineVisualizer core(dataCenter, config);
     std::string coreName = "core0.veccore0";
@@ -84,7 +84,7 @@ TEST(SubcoreTimelineVisualizer, test_ParseByCore_should_return_false_when_InstrD
     auto simData = GetSimData();
     dataCenter.DataTableRegister(simData);
     std::string output = "test/ut/resources/dump/output";
-    SimVisualizerConfig config = GetVisualizeConfig(output, Common::ChipProductType::ASCEND910B1);
+    SimVisualizerConfig config = GetVisualizeConfig(output, ChipProductType::ASCEND910B1);
     SubcoreTimelineVisualizer core(dataCenter, config);
     std::string coreName = "core0.veccore0";
     SimData data;
@@ -103,7 +103,7 @@ TEST(SubcoreTimelineVisualizer, test_ParseByCore_should_return_false_when_write_
     auto simData = GetSimData();
     dataCenter.DataTableRegister(simData);
     std::string output = "test/ut/resources/dump/output";
-    SimVisualizerConfig config = GetVisualizeConfig(output, Common::ChipProductType::ASCEND910B1);
+    SimVisualizerConfig config = GetVisualizeConfig(output, ChipProductType::ASCEND910B1);
     MOCKER(&SubcoreTimelineVisualizer::WriteSepJson).stubs().will(returnValue(false));
     SubcoreTimelineVisualizer core(dataCenter, config);
     std::string coreName = "core0.veccore0";
@@ -123,7 +123,7 @@ TEST(SubcoreTimelineVisualizer, test_CollectInstrEvents4SepTrace_collect_json_su
     auto simData = GetSimData();
     dataCenter.DataTableRegister(simData);
     std::string output = "test/ut/resources/dump/output";
-    Common::ChipProductType chipType = Common::ChipProductType::ASCEND310P1;
+    ChipProductType chipType = ChipProductType::ASCEND310P1;
     SimVisualizerConfig config = GetVisualizeConfig(output, chipType);
     MergeInfo m1;
     m1.pc = 0x10cfa000;
@@ -193,7 +193,7 @@ TEST(SubcoreTimelineVisualizer, test_CollectEvents_collect_json_success_of_910B_
     auto simData = GetSimData();
     dataCenter.DataTableRegister(simData);
     std::string output = "test/ut/resources/dump/output";
-    Common::ChipProductType chipType = Common::ChipProductType::ASCEND910B1;
+    ChipProductType chipType = ChipProductType::ASCEND910B1;
     SimVisualizerConfig config = GetVisualizeConfig(output, chipType);
     MergeInfo m1;
     m1.pc = 0x10cfa000;
@@ -241,7 +241,7 @@ TEST(SubcoreTimelineVisualizer, test_GetUserMarkTid_add_new_thread_metadata)
     auto simData = GetSimData();
     dataCenter.DataTableRegister(simData);
     std::string output = "test/ut/resources/dump/output";
-    Common::ChipProductType chipType = Common::ChipProductType::ASCEND910B1;
+    ChipProductType chipType = ChipProductType::ASCEND910B1;
     SimVisualizerConfig config = GetVisualizeConfig(output, chipType);
     SubcoreTimelineVisualizer core(dataCenter, config);
     MergeInfo instr;
@@ -264,7 +264,7 @@ TEST(SubcoreTimelineVisualizer, test_GetUserMarkTid_get_existed_tid)
     auto simData = GetSimData();
     dataCenter.DataTableRegister(simData);
     std::string output = "test/ut/resources/dump/output";
-    Common::ChipProductType chipType = Common::ChipProductType::ASCEND910B1;
+    ChipProductType chipType = ChipProductType::ASCEND910B1;
     SimVisualizerConfig config = GetVisualizeConfig(output, chipType);
     SubcoreTimelineVisualizer core(dataCenter, config);
     MergeInfo instr;
@@ -286,7 +286,7 @@ TEST(SubcoreTimelineVisualizer, test_CollectUserMarkEvents_add_usermark_json_suc
     auto simData = GetSimData();
     dataCenter.DataTableRegister(simData);
     std::string output = "test/ut/resources/dump/output";
-    Common::ChipProductType chipType = Common::ChipProductType::ASCEND910B1;
+    ChipProductType chipType = ChipProductType::ASCEND910B1;
     SimVisualizerConfig config = GetVisualizeConfig(output, chipType);
     MOCKER(&SubcoreTimelineVisualizer::GetUserMarkTid).stubs().will(returnValue(1));
     SubcoreTimelineVisualizer core(dataCenter, config);
@@ -311,7 +311,7 @@ TEST(SubcoreTimelineVisualizer, test_CollectUserMarkEvents_add_none_json_when_us
     auto simData = GetSimData();
     dataCenter.DataTableRegister(simData);
     std::string output = "test/ut/resources/dump/output";
-    Common::ChipProductType chipType = Common::ChipProductType::ASCEND910B1;
+    ChipProductType chipType = ChipProductType::ASCEND910B1;
     SimVisualizerConfig config = GetVisualizeConfig(output, chipType);
     SubcoreTimelineVisualizer core(dataCenter, config);
     std::vector<nlohmann::json> coreJsonList;
@@ -331,7 +331,7 @@ TEST(SubcoreTimelineVisualizer, test_CollectUserMarkEvents_add_none_json_when_us
     auto simData = GetSimData();
     dataCenter.DataTableRegister(simData);
     std::string output = "test/ut/resources/dump/output";
-    Common::ChipProductType chipType = Common::ChipProductType::ASCEND910B1;
+    ChipProductType chipType = ChipProductType::ASCEND910B1;
     SimVisualizerConfig config = GetVisualizeConfig(output, chipType);
     SubcoreTimelineVisualizer core(dataCenter, config);
     std::vector<nlohmann::json> coreJsonList;
@@ -364,7 +364,7 @@ TEST(SubcoreTimelineVisualizer, test_GetTid_add_new_thread)
     auto simData = GetSimData();
     dataCenter.DataTableRegister(simData);
     std::string output = "test/ut/resources/dump/output";
-    Common::ChipProductType chipType = Common::ChipProductType::ASCEND910B1;
+    ChipProductType chipType = ChipProductType::ASCEND910B1;
     SimVisualizerConfig config = GetVisualizeConfig(output, chipType);
     MOCKER(&SubcoreTimelineVisualizer::FindAvailableThread).stubs().will(returnValue(false));
     SubcoreTimelineVisualizer core(dataCenter, config);
@@ -390,7 +390,7 @@ TEST(SubcoreTimelineVisualizer, test_GetTid_find_available_thread)
     auto simData = GetSimData();
     dataCenter.DataTableRegister(simData);
     std::string output = "test/ut/resources/dump/output";
-    Common::ChipProductType chipType = Common::ChipProductType::ASCEND910B1;
+    ChipProductType chipType = ChipProductType::ASCEND910B1;
     SimVisualizerConfig config = GetVisualizeConfig(output, chipType);
     MOCKER(&SubcoreTimelineVisualizer::FindAvailableThread).stubs().will(returnValue(true));
     SubcoreTimelineVisualizer core(dataCenter, config);
@@ -416,7 +416,7 @@ TEST(SubcoreTimelineVisualizer, test_FindAvailableThread_should_return_true_when
     auto simData = GetSimData();
     dataCenter.DataTableRegister(simData);
     std::string output = "test/ut/resources/dump/output";
-    Common::ChipProductType chipType = Common::ChipProductType::ASCEND910B1;
+    ChipProductType chipType = ChipProductType::ASCEND910B1;
     SimVisualizerConfig config = GetVisualizeConfig(output, chipType);
     SubcoreTimelineVisualizer core(dataCenter, config);
     int curThreadNum = 1;
@@ -443,7 +443,7 @@ TEST(SubcoreTimelineVisualizer, test_FindAvailableThread_should_return_false_whe
     auto simData = GetSimData();
     dataCenter.DataTableRegister(simData);
     std::string output = "test/ut/resources/dump/output";
-    Common::ChipProductType chipType = Common::ChipProductType::ASCEND910B1;
+    ChipProductType chipType = ChipProductType::ASCEND910B1;
     SimVisualizerConfig config = GetVisualizeConfig(output, chipType);
     SubcoreTimelineVisualizer core(dataCenter, config);
     int curThreadNum = 0;
@@ -466,7 +466,7 @@ TEST(SubcoreTimelineVisualizer, test_AddProcessMetaData_add_json_success)
     auto simData = GetSimData();
     dataCenter.DataTableRegister(simData);
     std::string output = "test/ut/resources/dump/output";
-    Common::ChipProductType chipType = Common::ChipProductType::ASCEND910B1;
+    ChipProductType chipType = ChipProductType::ASCEND910B1;
     SimVisualizerConfig config = GetVisualizeConfig(output, chipType);
     SubcoreTimelineVisualizer core(dataCenter, config);
     std::vector<nlohmann::json> coreJsonList;
@@ -494,7 +494,7 @@ TEST(SubcoreTimelineVisualizer, test_AddThreadMetaData_add_json_success)
     auto simData = GetSimData();
     dataCenter.DataTableRegister(simData);
     std::string output = "test/ut/resources/dump/output";
-    Common::ChipProductType chipType = Common::ChipProductType::ASCEND910B1;
+    ChipProductType chipType = ChipProductType::ASCEND910B1;
     SimVisualizerConfig config = GetVisualizeConfig(output, chipType);
     SubcoreTimelineVisualizer core(dataCenter, config);
     std::vector<nlohmann::json> coreJsonList;
@@ -523,7 +523,7 @@ TEST(SubcoreTimelineVisualizer, test_WriteSepJson_should_return_ture_when_write_
     dataCenter.DataTableRegister(simData);
     std::string output = "test/ut/resources/dump/output";
     const std::string fileName = "test/ut/resources/dump/output/core0.veccore0/trace.json";
-    SimVisualizerConfig config = GetVisualizeConfig(output, Common::ChipProductType::ASCEND910B1);
+    SimVisualizerConfig config = GetVisualizeConfig(output, ChipProductType::ASCEND910B1);
     const std::string sepCoreOutput = JoinPath({output, "core0.veccore0"});
     MkdirRecusively(sepCoreOutput);
     SubcoreTimelineVisualizer core(dataCenter, config);
@@ -546,7 +546,7 @@ TEST(SubcoreTimelineVisualizer, test_WriteSepJson_should_return_false_when_write
     dataCenter.DataTableRegister(simData);
     std::string output = "test/ut/resources/dump/output";
     const std::string fileName = "test/ut/resources/dump/output/core0.veccore0/trace.json";
-    SimVisualizerConfig config = GetVisualizeConfig(output, Common::ChipProductType::ASCEND910B1);
+    SimVisualizerConfig config = GetVisualizeConfig(output, ChipProductType::ASCEND910B1);
     const std::string sepCoreOutput = JoinPath({output, "core0.veccore0"});
     SubcoreTimelineVisualizer core(dataCenter, config);
     std::vector<nlohmann::json> coreJsonList;

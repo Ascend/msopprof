@@ -69,11 +69,11 @@ using namespace TestInstrDetail;
  * | 用例描述 | 测试GetChipType函数，返回值应该与初始化时的chipType相同
  */
 TEST(InstrDetailConfigUt, test_GetChipType_should_return_chip_type_same_as_initializing) {
-    InstrDetailConfig instrDetailContext {Common::ChipProductType::ASCEND910B_SERIES};
-    ASSERT_EQ(instrDetailContext.GetChipType(), Common::ChipProductType::ASCEND910B_SERIES);
+    InstrDetailConfig instrDetailContext {ChipProductType::ASCEND910B_SERIES};
+    ASSERT_EQ(instrDetailContext.GetChipType(), ChipProductType::ASCEND910B_SERIES);
 
-    InstrDetailConfig instrDetailContext2 {Common::ChipProductType::ASCEND910B1};
-    ASSERT_EQ(instrDetailContext2.GetChipType(), Common::ChipProductType::ASCEND910B1);
+    InstrDetailConfig instrDetailContext2 {ChipProductType::ASCEND910B1};
+    ASSERT_EQ(instrDetailContext2.GetChipType(), ChipProductType::ASCEND910B1);
 }
 
 /**
@@ -83,17 +83,17 @@ TEST(InstrDetailConfigUt, test_GetChipType_should_return_chip_type_same_as_initi
  * | 用例描述 | 测试GetProductSeriesType函数，返回值应该为初始化值对应的芯片系列
  */
 TEST(InstrDetailConfigUt, test_GetProductSeriesType_should_return_correct_chip_type_series) {
-    InstrDetailConfig instrDetailContext {Common::ChipProductType::ASCEND310P_SERIES};
-    ASSERT_EQ(instrDetailContext.GetProductSeriesType(), Common::ChipProductType::ASCEND310P_SERIES);
+    InstrDetailConfig instrDetailContext {ChipProductType::ASCEND310P_SERIES};
+    ASSERT_EQ(instrDetailContext.GetProductSeriesType(), ChipProductType::ASCEND310P_SERIES);
 
-    InstrDetailConfig instrDetailContext2 {Common::ChipProductType::ASCEND910B1};
-    ASSERT_EQ(instrDetailContext2.GetProductSeriesType(), Common::ChipProductType::ASCEND910B_SERIES);
+    InstrDetailConfig instrDetailContext2 {ChipProductType::ASCEND910B1};
+    ASSERT_EQ(instrDetailContext2.GetProductSeriesType(), ChipProductType::ASCEND910B_SERIES);
 
-    InstrDetailConfig instrDetailContext3 {Common::ChipProductType::ASCEND910B4_1};
-    ASSERT_EQ(instrDetailContext3.GetProductSeriesType(), Common::ChipProductType::ASCEND910B_SERIES);
+    InstrDetailConfig instrDetailContext3 {ChipProductType::ASCEND910B4_1};
+    ASSERT_EQ(instrDetailContext3.GetProductSeriesType(), ChipProductType::ASCEND910B_SERIES);
 
-    InstrDetailConfig instrDetailContext4 {Common::ChipProductType::ASCEND615_SERIES};
-    ASSERT_EQ(instrDetailContext4.GetProductSeriesType(), Common::ChipProductType::ASCEND615_SERIES);
+    InstrDetailConfig instrDetailContext4 {ChipProductType::ASCEND615_SERIES};
+    ASSERT_EQ(instrDetailContext4.GetProductSeriesType(), ChipProductType::ASCEND615_SERIES);
 }
 
 
@@ -104,7 +104,7 @@ TEST(InstrDetailConfigUt, test_GetProductSeriesType_should_return_correct_chip_t
  * | 用例描述 | 测试MapInit函数，根据chipType初始化2个map:regDetailRegexMap_和instrDetailRegexMap_
  */
 TEST(InstrDetailCalculatorUt, test_AttributeMapInit_should_update_2_map_attribute_according_to_chip_series_type) {
-    InstrDetailConfig instrDetailContext {Common::ChipProductType::ASCEND910B_SERIES};
+    InstrDetailConfig instrDetailContext {ChipProductType::ASCEND910B_SERIES};
     DataCenter dataCenter;
     TestInstrDetailCalculator testClass {dataCenter, instrDetailContext};
 
@@ -130,7 +130,7 @@ TEST(InstrDetailCalculatorUt, test_AttributeMapInit_should_update_2_map_attribut
  */
 TEST(InstrDetailCalculatorUt,
      test_GetMemOpInfo_should_return_true_when_MemOpInfo_is_generate_success_on_A2_with_LOAD_SRC_TO_DST_2D) {
-    InstrDetailConfig instrDetailContext {Common::ChipProductType::ASCEND910B_SERIES};
+    InstrDetailConfig instrDetailContext {ChipProductType::ASCEND910B_SERIES};
     DataCenter dataCenter;
     TestInstrDetailCalculator testClass {dataCenter, instrDetailContext};
     testClass.AttributeMapInit();
@@ -155,7 +155,7 @@ TEST(InstrDetailCalculatorUt,
  */
 TEST(InstrDetailCalculatorUt,
      test_GetMemOpInfo_should_return_false_when_MemOpInfo_is_generate_success_on_A3_with_LOAD_OUT_TO_L1_IMAGE) {
-    InstrDetailConfig instrDetailContext {Common::ChipProductType::ASCEND910_9392};
+    InstrDetailConfig instrDetailContext {ChipProductType::ASCEND910_9392};
     DataCenter dataCenter;
     TestInstrDetailCalculator testClass {dataCenter, instrDetailContext};
     testClass.AttributeMapInit();
@@ -177,7 +177,7 @@ TEST(InstrDetailCalculatorUt,
  */
 TEST(InstrDetailCalculatorUt,
      test_GetMemOpInfo_should_return_true_when_MemOpInfo_is_generate_success_on_A3_with_MOV_SRC_TO_DST_ALIGN) {
-    InstrDetailConfig instrDetailContext {Common::ChipProductType::ASCEND910B4};
+    InstrDetailConfig instrDetailContext {ChipProductType::ASCEND910B4};
     DataCenter dataCenter;
     TestInstrDetailCalculator testClass {dataCenter, instrDetailContext};
     testClass.AttributeMapInit();
@@ -202,7 +202,7 @@ TEST(InstrDetailCalculatorUt,
  */
 TEST(InstrDetailCalculatorUt,
      test_GetMemOpInfo_should_return_true_when_MemOpInfo_is_generate_success_on_A2_with_MOV_OUT_TO_L1_MULTI_ND2NZ) {
-    InstrDetailConfig instrDetailContext {Common::ChipProductType::ASCEND910B4};
+    InstrDetailConfig instrDetailContext {ChipProductType::ASCEND910B4};
     DataCenter dataCenter;
     TestInstrDetailCalculator testClass {dataCenter, instrDetailContext};
     testClass.AttributeMapInit();
@@ -226,7 +226,7 @@ TEST(InstrDetailCalculatorUt,
  */
 TEST(InstrDetailCalculatorUt,
      test_GetMemOpInfo_should_return_true_when_MemOpInfo_is_generate_success_on_310P_with_MOV_SRC_TO_DST) {
-    InstrDetailConfig instrDetailContext {Common::ChipProductType::ASCEND310P1};
+    InstrDetailConfig instrDetailContext {ChipProductType::ASCEND310P1};
     DataCenter dataCenter;
     TestInstrDetailCalculator testClass {dataCenter, instrDetailContext};
     testClass.AttributeMapInit();
@@ -251,7 +251,7 @@ TEST(InstrDetailCalculatorUt,
  */
 TEST(InstrDetailCalculatorUt,
      test_GetMemOpInfo_should_return_true_when_MemOpInfo_is_generate_success_on_310P_with_LOAD_SRC_TO_SMASK) {
-    InstrDetailConfig instrDetailContext {Common::ChipProductType::ASCEND310P2};
+    InstrDetailConfig instrDetailContext {ChipProductType::ASCEND310P2};
     DataCenter dataCenter;
     TestInstrDetailCalculator testClass {dataCenter, instrDetailContext};
     testClass.AttributeMapInit();
@@ -275,7 +275,7 @@ TEST(InstrDetailCalculatorUt,
  */
 TEST(InstrDetailCalculatorUt, test_UpdateSpReg_should_update_vectorMask1_when_encounter_movemask_on_A2)
 {
-    InstrDetailConfig instrDetailContext {Common::ChipProductType::ASCEND910B3};
+    InstrDetailConfig instrDetailContext {ChipProductType::ASCEND910B3};
     DataCenter dataCenter;
     TestInstrDetailCalculator testClass {dataCenter, instrDetailContext};
     testClass.AttributeMapInit();
@@ -298,7 +298,7 @@ TEST(InstrDetailCalculatorUt, test_UpdateSpReg_should_update_vectorMask1_when_en
  */
 TEST(InstrDetailCalculatorUt, test_UpdateSpReg_should_update_vectorMask0_when_encounter_movemask_on_310P2)
 {
-    InstrDetailConfig instrDetailContext {Common::ChipProductType::ASCEND310P2};
+    InstrDetailConfig instrDetailContext {ChipProductType::ASCEND310P2};
     DataCenter dataCenter;
     TestInstrDetailCalculator testClass {dataCenter, instrDetailContext};
     testClass.AttributeMapInit();
@@ -321,7 +321,7 @@ TEST(InstrDetailCalculatorUt, test_UpdateSpReg_should_update_vectorMask0_when_en
  */
 TEST(InstrDetailCalculatorUt, test_UpdateSpReg_should_update_ndParaConfig_when_encounter_ndpara_register_on_A3)
 {
-    InstrDetailConfig instrDetailContext {Common::ChipProductType::ASCEND910_9382};
+    InstrDetailConfig instrDetailContext {ChipProductType::ASCEND910_9382};
     DataCenter dataCenter;
     TestInstrDetailCalculator testClass {dataCenter, instrDetailContext};
     testClass.AttributeMapInit();
@@ -344,7 +344,7 @@ TEST(InstrDetailCalculatorUt, test_UpdateSpReg_should_update_ndParaConfig_when_e
  */
 TEST(InstrDetailCalculatorUt, test_UpdateSpReg_should_update_maskMode_when_encounter_ctrl_register_on_310P1)
 {
-    InstrDetailConfig instrDetailContext {Common::ChipProductType::ASCEND310P1};
+    InstrDetailConfig instrDetailContext {ChipProductType::ASCEND310P1};
     DataCenter dataCenter;
     TestInstrDetailCalculator testClass {dataCenter, instrDetailContext};
     testClass.AttributeMapInit();
@@ -368,7 +368,7 @@ TEST(InstrDetailCalculatorUt, test_UpdateSpReg_should_update_maskMode_when_encou
  */
 TEST(InstrDetailCalculatorUt, test_UpdateSpReg_should_update_maskMode_when_encounter_ctrl_register_on_A2)
 {
-    InstrDetailConfig instrDetailContext {Common::ChipProductType::ASCEND910B4};
+    InstrDetailConfig instrDetailContext {ChipProductType::ASCEND910B4};
     DataCenter dataCenter;
     TestInstrDetailCalculator testClass {dataCenter, instrDetailContext};
     testClass.AttributeMapInit();

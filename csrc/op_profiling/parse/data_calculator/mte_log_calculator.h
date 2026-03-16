@@ -27,14 +27,14 @@ namespace Parse {
 class MteLogCalculator : public PluginInterface {
 public:
     explicit MteLogCalculator(DataCenter &dataCenter,
-                              const Common::ChipProductType &chipType) : PluginInterface(dataCenter, chipType) {};
+                              const ChipProductType &chipType) : PluginInterface(dataCenter, chipType) {};
     PluginErrorCode Entry() override;
     void DependencyRegister() override
     {
         RegisterPluginName("MteLogCalculator");
         RegisterMandatoryDb({});
-        RegisterChip({Common::ChipProductType::ASCEND910B_SERIES, Common::ChipProductType::ASCEND910_93_SERIES,
-            Common::ChipProductType::ASCEND950_SERIES});
+        RegisterChip({ChipProductType::ASCEND910B_SERIES, ChipProductType::ASCEND910_93_SERIES,
+            ChipProductType::ASCEND950_SERIES});
     }
 private:
     void CalOneInstrThroughput(MteLogInstrType instrType, const std::unordered_map<uint64_t, MteLogReqInfo> &reqInfo,

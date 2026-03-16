@@ -94,13 +94,13 @@ private:
     uint32_t GetReplayTimes();
 
     std::string kernelName_;
-    std::vector<Utility::ProfDBIType> dbiTypes;
+    std::vector<ProfDBIType> dbiTypes;
     Common::ProfMetricsAbilityConfig metrics_{};
     Common::ChipType chipType_{Common::ChipType::END_TYPE};
     uint16_t profMaxTimes_ {1};
     uint16_t profWarmUpTimes_ {0};
     uint16_t profSkipTimes_ {0};
-    Common::ReplayMode replayMode_ {Common::ReplayMode::KERNEL};
+    ReplayMode replayMode_ {ReplayMode::KERNEL};
     uint32_t replayCount_{7};
     Common::PmuEventsId pmuValue_;
     bool isDeviceToSimulator_ {false};

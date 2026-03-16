@@ -497,7 +497,7 @@ void DataHandlerOf910B::ParseProfBin(const std::vector<char> &binData, const siz
     blockIdCoreIdPairVec_.clear();
     for (size_t i = 0; i < fileSize; i = i + FFTS_LENGTH) {
         vector<char> splitBinData{&binData[i], &binData[i] + FFTS_LENGTH};
-        FftsBlockBean fftsBlockBean(Common::ChipProductType::ASCEND910B_SERIES, splitBinData);
+        FftsBlockBean fftsBlockBean(ChipProductType::ASCEND910B_SERIES, splitBinData);
         SplitBlockPmuData blockData = fftsBlockBean.GetBlockData(binInfo.aicEvents, binInfo.aivEvents);
         if (blockData.blockType == Common::OpType::CUBE) {
             isAic_ = true;
@@ -566,7 +566,7 @@ void DataHandlerOf910B::ParseDurationBin(const std::string &outputPath, const st
     uint64_t aicpuStartTime = UINT64_MAX;
     for (size_t i = 0; i < fileSize; i = i + ACSQ_LENGTH) {  // 这里的start和end存的是aicore的起止时间
         vector<char> splitBinData{&binData[i], &binData[i] + ACSQ_LENGTH};
-        AcsqBean acsqBean(Common::ChipProductType::ASCEND910B_SERIES, splitBinData);
+        AcsqBean acsqBean(ChipProductType::ASCEND910B_SERIES, splitBinData);
         uint16_t taskType = acsqBean.GetTaskType();
         Common::TimeType timeType = acsqBean.GetTimeType();
         uint16_t streamId = acsqBean.GetStreamId();
@@ -928,7 +928,7 @@ void DataHandlerOf91095::ParseProfBin(const std::vector<char> &binData, const si
     blockIdCoreIdPairVec_.clear();
     for (size_t i = 0; i < fileSize; i = i + FFTS_LENGTH) {
         vector<char> splitBinData{&binData[i], &binData[i] + FFTS_LENGTH};
-        FftsBlockBean fftsBlockBean(Common::ChipProductType::ASCEND950_SERIES, splitBinData);
+        FftsBlockBean fftsBlockBean(ChipProductType::ASCEND950_SERIES, splitBinData);
         if (fftsBlockBean.GetFuncType() != FUNC_TYPE_BLOCK_PMU) {
             continue;
         }
@@ -950,7 +950,7 @@ void DataHandlerOf91095::ParseDurationBin(const std::string &outputPath, const s
 {
     for (size_t i = 0; i < fileSize; i = i + ACSQ_LENGTH_A5) {  // 这里的start和end存的是aicore的起止时间
         vector<char> splitBinData{&binData[i], &binData[i] + ACSQ_LENGTH_A5};
-        AcsqBean acsqBean(Common::ChipProductType::ASCEND950_SERIES, splitBinData);
+        AcsqBean acsqBean(ChipProductType::ASCEND950_SERIES, splitBinData);
         SqeType taskType = static_cast<SqeType>(acsqBean.GetTaskType());
         Common::TimeType timeType = acsqBean.GetTimeType();
         uint64_t systemTime = acsqBean.GetSystemTime();

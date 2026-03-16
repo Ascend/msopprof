@@ -76,26 +76,26 @@ void BaseSource::AddCommonFieldsToJson(nlohmann::json &jsonObj) const
 
 void CodeLine::ToJson(const std::string &socVersion, nlohmann::json &lineDetails)
 {
-    Common::ChipProductType chipType = Common::GetProductSeriesTypeBySocVersion(socVersion);
+    ChipProductType chipType = GetProductTypeBySocVersion(socVersion);
     lineDetails["Line"] = this->line;
     lineDetails["Address Range"] = this->addrRange;
     lineDetails["Instructions Executed"] = this->callCount;
     AddCommonFieldsToJson(lineDetails);
 
-    if (IsChipSeriesTypeValid(chipType, Common::ChipProductType::ASCEND950_SERIES)) {
+    if (IsChipSeriesTypeValid(chipType, ChipProductType::ASCEND950_SERIES)) {
         lineDetails["Stall Sampling(Not Issue)"] = GenStallSampling(false);
         lineDetails["Stall Sampling(All Samples)"] = GenStallSampling(true);
         return;
     }
-    if (IsChipSeriesTypeValid(chipType, Common::ChipProductType::ASCEND910B_SERIES) ||
-        IsChipSeriesTypeValid(chipType, Common::ChipProductType::ASCEND910_93_SERIES)) {
+    if (IsChipSeriesTypeValid(chipType, ChipProductType::ASCEND910B_SERIES) ||
+        IsChipSeriesTypeValid(chipType, ChipProductType::ASCEND910_93_SERIES)) {
         lineDetails["L2Cache Hit Rate"] = this->l2cacheHitRate;
     }
 }
 
 void InstrInfo::ToJson(const std::string &socVersion, nlohmann::json &instrDetails) const
 {
-    Common::ChipProductType chipType = Common::GetProductSeriesTypeBySocVersion(socVersion);
+    ChipProductType chipType = GetProductTypeBySocVersion(socVersion);
     instrDetails["Address"] = this->addr;
     instrDetails["AscendC Inner Code"] = this->cceCode;
     instrDetails["Source"] = this->instr;
@@ -110,13 +110,13 @@ void InstrInfo::ToJson(const std::string &socVersion, nlohmann::json &instrDetai
     instrDetails["Instructions Executed"] = this->callCount;
     AddCommonFieldsToJson(instrDetails);
 
-    if (IsChipSeriesTypeValid(chipType, Common::ChipProductType::ASCEND950_SERIES)) {
+    if (IsChipSeriesTypeValid(chipType, ChipProductType::ASCEND950_SERIES)) {
         instrDetails["Stall Sampling(Not Issue)"] = GenStallSampling(false);
         instrDetails["Stall Sampling(All Samples)"] = GenStallSampling(true);
         return;
     }
-    if (IsChipSeriesTypeValid(chipType, Common::ChipProductType::ASCEND910B_SERIES) ||
-        IsChipSeriesTypeValid(chipType, Common::ChipProductType::ASCEND910_93_SERIES)) {
+    if (IsChipSeriesTypeValid(chipType, ChipProductType::ASCEND910B_SERIES) ||
+        IsChipSeriesTypeValid(chipType, ChipProductType::ASCEND910_93_SERIES)) {
         instrDetails["L2Cache Hit Rate"] = this->l2cacheHitRate;
     }
 }
@@ -148,7 +148,7 @@ bool HotSpotFunctionGenerator::CalculateData(const std::string &outputPath,
                                              const std::shared_ptr<L2Cache> &l2CachePtr,
                                              std::map<std::string, std::vector<Encoding>> &line2Encodings)
 {
-    Common::ChipProductType chipType = Common::GetProductSeriesTypeBySocVersion(socVersion_);
+    ChipProductType chipType = GetProductTypeBySocVersion(socVersion_);
     std::string dumpPath = Utility::JoinPath({outputPath, Common::DUMP});
     std::string kernelPath = Utility::JoinPath({dumpPath, Common::AICORE_KERNEL_NAME});
     if (!ProcessEncoding(kernelPath, l2CachePtr)) {
@@ -158,7 +158,7 @@ bool HotSpotFunctionGenerator::CalculateData(const std::string &outputPath,
     if (pcSamplingEnable_) {
         UpdatePcSampling(dumpPath);
     }
-    if (IsChipSeriesTypeValid(chipType, Common::ChipProductType::ASCEND950_SERIES) && !GenTlvdata(kernelPath, dumpPath)) {
+    if (IsChipSeriesTypeValid(chipType, ChipProductType::ASCEND950_SERIES) && !GenTlvdata(kernelPath, dumpPath)) {
         Utility::LogWarn("Failed to gen register data");
     }
     if (memdetailEnable_) {
@@ -244,10 +244,10 @@ bool HotSpotFunctionGenerator::Process(const std::string &outputPath,
 
 bool HotSpotFunctionGenerator::ProcessBBCount(const std::string &dumpPath)
 {
-    Common::ChipProductType chipType = Common::GetProductSeriesTypeBySocVersion(socVersion_);
-    if (!IsChipSeriesTypeValid(chipType, Common::ChipProductType::ASCEND910B_SERIES) &&
-        !IsChipSeriesTypeValid(chipType, Common::ChipProductType::ASCEND910_93_SERIES) &&
-        !IsChipSeriesTypeValid(chipType, Common::ChipProductType::ASCEND950_SERIES)) {
+    ChipProductType chipType = GetProductTypeBySocVersion(socVersion_);
+    if (!IsChipSeriesTypeValid(chipType, ChipProductType::ASCEND910B_SERIES) &&
+        !IsChipSeriesTypeValid(chipType, ChipProductType::ASCEND910_93_SERIES) &&
+        !IsChipSeriesTypeValid(chipType, ChipProductType::ASCEND950_SERIES)) {
         return true;
     }
     if (!sourceEnable_) {
@@ -391,7 +391,7 @@ bool HotSpotFunctionGenerator::ProcessEncoding(const std::string &kernelPath,
                                                const std::shared_ptr<L2Cache> &l2CachePtr)
 {
     std::vector<EncodingInfo> instrEncodingVec;
-    Common::ChipProductType chipType = Common::GetProductSeriesTypeBySocVersion(socVersion_);
+    ChipProductType chipType = GetProductTypeBySocVersion(socVersion_);
     if (!InstrEncoding::GetInstance().Init(chipType)) {
         return false;
     }
@@ -407,8 +407,8 @@ bool HotSpotFunctionGenerator::ProcessEncoding(const std::string &kernelPath,
         }
         Encoding newEncoding = {pc, instrEncodingVec[i].pipe, instrEncodingVec[i].name, "", 0, 0,
                                 0, 0, 0, {0, 0, 0, 0, 0, 0, 0, 0, 0}};
-        if ((IsChipSeriesTypeValid(chipType, Common::ChipProductType::ASCEND910B_SERIES) ||
-            IsChipSeriesTypeValid(chipType, Common::ChipProductType::ASCEND910_93_SERIES)) &&
+        if ((IsChipSeriesTypeValid(chipType, ChipProductType::ASCEND910B_SERIES) ||
+            IsChipSeriesTypeValid(chipType, ChipProductType::ASCEND910_93_SERIES)) &&
             l2CachePtr != nullptr) {
             auto cacheMetrics = l2CachePtr->GetPcBasedCacheData();
             if (cacheMetrics.find(pc) != cacheMetrics.end()) {
@@ -661,9 +661,9 @@ bool HotSpotFunctionGenerator::GenLine2Encodings(const std::string &kernelPath,
     }
 
     std::vector<std::string> addrVec(0);
-    Common::ChipProductType chipType = Common::GetProductSeriesTypeBySocVersion(socVersion_);
-    if (Common::IsChipSeriesTypeValid(chipType, Common::ChipProductType::ASCEND910_93_SERIES) ||
-        Common::IsChipSeriesTypeValid(chipType, Common::ChipProductType::ASCEND910B_SERIES)) {
+    ChipProductType chipType = GetProductTypeBySocVersion(socVersion_);
+    if (IsChipSeriesTypeValid(chipType, ChipProductType::ASCEND910_93_SERIES) ||
+        IsChipSeriesTypeValid(chipType, ChipProductType::ASCEND910B_SERIES)) {
         for (const auto &item : bbCalls_) {
             uint64_t begin = item.first;
             uint64_t end = item.second.first;
@@ -671,7 +671,7 @@ bool HotSpotFunctionGenerator::GenLine2Encodings(const std::string &kernelPath,
                 addrVec.emplace_back(std::to_string(addr));
             }
         }
-    } else if (Common::IsChipSeriesTypeValid(chipType, Common::ChipProductType::ASCEND950_SERIES)) {
+    } else if (IsChipSeriesTypeValid(chipType, ChipProductType::ASCEND950_SERIES)) {
         for (const auto &item : encodings_) {
             addrVec.emplace_back(std::to_string(item.second.addr));
         }
@@ -905,9 +905,9 @@ void HotSpotFunctionGenerator::SetFileDtype(nlohmann::json &apiJson) const
         fileJson["Stall Sampling(All Samples)"] = fileDtype.pcSampling;
         fileJson["Stall Sampling(Not Issue)"] = fileDtype.pcSampling;
     }
-    Common::ChipProductType chipType = Common::GetProductSeriesTypeBySocVersion(socVersion_);
-    if (IsChipSeriesTypeValid(chipType, Common::ChipProductType::ASCEND910B_SERIES) ||
-        IsChipSeriesTypeValid(chipType, Common::ChipProductType::ASCEND910_93_SERIES)) {
+    ChipProductType chipType = GetProductTypeBySocVersion(socVersion_);
+    if (IsChipSeriesTypeValid(chipType, ChipProductType::ASCEND910B_SERIES) ||
+        IsChipSeriesTypeValid(chipType, ChipProductType::ASCEND910_93_SERIES)) {
         fileJson["L2Cache Hit Rate"] = fileDtype.l2cacheHitRate;
     }
     if (memdetailEnable_) {
@@ -932,9 +932,9 @@ void HotSpotFunctionGenerator::SetInstrDtype(nlohmann::json &apiJson) const
         instrJson["Stall Sampling(All Samples)"] = instructionsDtype.pcSampling;
         instrJson["Stall Sampling(Not Issue)"] = instructionsDtype.pcSampling;
     }
-    Common::ChipProductType chipType = Common::GetProductSeriesTypeBySocVersion(socVersion_);
-    if (IsChipSeriesTypeValid(chipType, Common::ChipProductType::ASCEND910B_SERIES) ||
-        IsChipSeriesTypeValid(chipType, Common::ChipProductType::ASCEND910_93_SERIES)) {
+    ChipProductType chipType = GetProductTypeBySocVersion(socVersion_);
+    if (IsChipSeriesTypeValid(chipType, ChipProductType::ASCEND910B_SERIES) ||
+        IsChipSeriesTypeValid(chipType, ChipProductType::ASCEND910_93_SERIES)) {
         instrJson["L2Cache Hit Rate"] = instructionsDtype.l2cacheHitRate;
     }
     if (memdetailEnable_) {

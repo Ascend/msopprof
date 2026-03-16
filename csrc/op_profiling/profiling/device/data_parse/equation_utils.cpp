@@ -111,14 +111,14 @@ std::string BandWidthUsage(float val, float duration, TransportType type, ChipPr
 
 std::string BandWidthUsage(float val, float duration, TransportType type, const std::string &socVersion)
 {
-    auto chipType = GetProductSeriesTypeBySocVersion(socVersion);
+    auto chipType = GetProductTypeBySocVersion(socVersion);
     return BandWidthUsage(val, duration, type, chipType);
 }
 
 std::map<TransportType, float> GetMaxBwBySoc(const std::string &socVersion, const ChipProductType &defalutChip)
 {
     // defalutChip must in MAX_BW_RATE_ALL
-    auto chipType = GetProductSeriesTypeBySocVersion(socVersion);
+    auto chipType = GetProductTypeBySocVersion(socVersion);
     GmType gmType = GmType::DEFAULT;
     if (defalutChip == ChipProductType::ASCEND910B1) {
         gmType = HalHelper::Instance().GetGmType();

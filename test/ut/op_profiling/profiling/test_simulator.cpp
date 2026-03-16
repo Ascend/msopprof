@@ -503,5 +503,5 @@ TEST(MteThroughtput, test_process_when_given_valid_data_and_expect_no_throw)
         .stubs()
         .will(returnValue(1024));
     MteThroughput mteThroughtput;
-    ASSERT_NO_THROW(mteThroughtput.Process("", Common::ChipProductType::ASCEND910B4, 2));
+    ASSERT_NO_THROW(mteThroughtput.Process("", ChipProductType::ASCEND910B4, 2));
 }

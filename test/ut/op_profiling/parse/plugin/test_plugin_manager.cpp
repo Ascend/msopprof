@@ -49,14 +49,14 @@ DataCenter CreateTempDataCenter(bool db1 = true, bool db2 = true)
 
 class TestContext : public BaseContext {
 public:
-    TestContext(Common::ChipProductType chipType = Common::ChipProductType::ASCEND910B1) : chipType_(chipType) {}
-    Common::ChipProductType GetChipType() const override
+    TestContext(ChipProductType chipType = ChipProductType::ASCEND910B1) : chipType_(chipType) {}
+    ChipProductType GetChipType() const override
     {
         return chipType_;
     }
 
 private:
-    Common::ChipProductType chipType_;
+    ChipProductType chipType_;
 };
 
 class TestPlugin : public PluginInterface {
@@ -72,7 +72,7 @@ public:
     }
     void DependencyRegister() override
     {
-        RegisterChip({Common::ChipProductType::ALL_PRODUCT_TYPE});
+        RegisterChip({ChipProductType::ALL_PRODUCT_TYPE});
     }
 };
 
@@ -90,7 +90,7 @@ public:
     }
     void DependencyRegister() override
     {
-        RegisterChip({Common::ChipProductType::ALL_PRODUCT_TYPE});
+        RegisterChip({ChipProductType::ALL_PRODUCT_TYPE});
     }
 };
 }

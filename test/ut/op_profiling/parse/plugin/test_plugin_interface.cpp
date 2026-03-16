@@ -50,14 +50,14 @@ DataCenter CreateTempDataCenter(bool db1 = true, bool db2 = true)
 
 class TestContext : public BaseContext {
 public:
-    TestContext(Common::ChipProductType chipType = Common::ChipProductType::ASCEND910B1) : chipType_(chipType) {}
-    Common::ChipProductType GetChipType() const override
+    TestContext(ChipProductType chipType = ChipProductType::ASCEND910B1) : chipType_(chipType) {}
+    ChipProductType GetChipType() const override
     {
         return chipType_;
     }
 
 private:
-    Common::ChipProductType chipType_;
+    ChipProductType chipType_;
 };
 
 class TestPlugin : public PluginInterface {
@@ -74,7 +74,7 @@ public:
         RegisterPluginName("TestPlugin");
         RegisterMandatoryDb({typeid(TestDb1), typeid(TestDb2)});
         RegisterOptionalDb({typeid(TestOptionalDB)});
-        RegisterChip({Common::ChipProductType::ASCEND910B1});
+        RegisterChip({ChipProductType::ASCEND910B1});
     }
 };
 
@@ -91,7 +91,7 @@ public:
     void DependencyRegister() override
     {
         RegisterPluginName("TestPlugin2");
-        RegisterChip({Common::ChipProductType::ASCEND910B_SERIES});
+        RegisterChip({ChipProductType::ASCEND910B_SERIES});
     }
 };
 
@@ -107,7 +107,7 @@ public:
     void DependencyRegister() override
     {
         RegisterPluginName("TestPlugin3");
-        RegisterChip({Common::ChipProductType::ALL_PRODUCT_TYPE});
+        RegisterChip({ChipProductType::ALL_PRODUCT_TYPE});
     }
 };
 }
@@ -155,9 +155,9 @@ TEST(PluginInterfaceUTest, test_PluginInterface_RegisterChip_should_deduplicate_
     DataCenter testDc = CreateTempDataCenter();
     TestContext testContext {};
     TestPlugin testPlugin {testDc, testContext};
-    testPlugin.RegisterChip({Common::ChipProductType::ASCEND910B1, Common::ChipProductType::ASCEND310P1});
+    testPlugin.RegisterChip({ChipProductType::ASCEND910B1, ChipProductType::ASCEND310P1});
     ASSERT_EQ(testPlugin.pluginInfo_.chipSupport.size(), 2);
-    testPlugin.RegisterChip({Common::ChipProductType::ASCEND910B1, Common::ChipProductType::ASCEND910B1});
+    testPlugin.RegisterChip({ChipProductType::ASCEND910B1, ChipProductType::ASCEND910B1});
     ASSERT_EQ(testPlugin.pluginInfo_.chipSupport.size(), 1);
 }
 
@@ -184,7 +184,7 @@ TEST(PluginInterfaceUTest, test_PluginInterface_RegisterKeyPlugin_should_save_to
  */
 TEST(PluginInterfaceUTest, test_PluginInterface_DependencyCheck_should_return_true_when_all_requirement_are_satisfy) {
     DataCenter testDc = CreateTempDataCenter();
-    Common::ChipProductType testChipType = Common::ChipProductType::ASCEND910B1;
+    ChipProductType testChipType = ChipProductType::ASCEND910B1;
     TestContext testContext {};
 
     // 具体芯片类型被注册
@@ -215,7 +215,7 @@ TEST(PluginInterfaceUTest, test_PluginInterface_DependencyCheck_should_return_fa
     TestPlugin testPlugin {testDc, testContext};
     testPlugin.DependencyRegister();
 
-    Common::ChipProductType testChipType = Common::ChipProductType::ASCEND910B1;
+    ChipProductType testChipType = ChipProductType::ASCEND910B1;
     ASSERT_FALSE(testPlugin.DependencyCheck(testChipType));
 }
 
@@ -231,7 +231,7 @@ TEST(PluginInterfaceUTest, test_PluginInterface_DependencyCheck_should_return_fa
     TestPlugin testPlugin {testDc, testContext};
     testPlugin.DependencyRegister();
 
-    Common::ChipProductType testChipType = Common::ChipProductType::ASCEND910B1;
+    ChipProductType testChipType = ChipProductType::ASCEND910B1;
     ASSERT_TRUE(testPlugin.DependencyCheck(testChipType));
 }
 
@@ -247,7 +247,7 @@ TEST(PluginInterfaceUTest, test_PluginInterface_DependencyCheck_should_return_fa
     TestPlugin testPlugin {testDc, testContext};
     testPlugin.DependencyRegister();
 
-    Common::ChipProductType testChipType = Common::ChipProductType::ASCEND310P1;
+    ChipProductType testChipType = ChipProductType::ASCEND310P1;
     ASSERT_FALSE(testPlugin.DependencyCheck(testChipType));
 }
 
@@ -259,7 +259,7 @@ TEST(PluginInterfaceUTest, test_PluginInterface_DependencyCheck_should_return_fa
  */
 TEST(PluginInterfaceUTest, test_PluginInterface_Run_should_return_success_when_normal_usage) {
     DataCenter testDc = CreateTempDataCenter();
-    TestContext testContext {Common::ChipProductType::ASCEND910B1};
+    TestContext testContext {ChipProductType::ASCEND910B1};
     TestPlugin testPlugin {testDc, testContext};
     auto res = testPlugin.Run();
     ASSERT_EQ(res, PluginErrorCode::SUCCESS);
@@ -274,7 +274,7 @@ TEST(PluginInterfaceUTest, test_PluginInterface_Run_should_return_success_when_n
  */
 TEST(PluginInterfaceUTest, test_PluginInterface_Run_should_return_fatal_error_when_is_key_plugin_and_dependence_not_satisfy) {
     DataCenter testDc = CreateTempDataCenter();
-    TestContext testContext {Common::ChipProductType::ASCEND310P1};
+    TestContext testContext {ChipProductType::ASCEND310P1};
     TestPlugin testPlugin {testDc, testContext};
     testPlugin.RegisterKeyPlugin(true);
     auto res = testPlugin.Run();
@@ -289,7 +289,7 @@ TEST(PluginInterfaceUTest, test_PluginInterface_Run_should_return_fatal_error_wh
  */
 TEST(PluginInterfaceUTest, test_PluginInterface_Run_should_return_nonbloking_error_when_is_not_key_plugin_and_dependence_not_satisfy) {
     DataCenter testDc = CreateTempDataCenter();
-    TestContext testContext {Common::ChipProductType::ASCEND310P1};
+    TestContext testContext {ChipProductType::ASCEND310P1};
     TestPlugin testPlugin {testDc, testContext};
     testPlugin.RegisterKeyPlugin(false);
     auto res = testPlugin.Run();

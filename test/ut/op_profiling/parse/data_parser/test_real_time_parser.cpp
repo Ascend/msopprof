@@ -40,7 +40,7 @@ using namespace Utility;
 TEST(RealTimeDataParseTest, test_null_instr_log)
 {
     RealTimeSimParseContext realTimeSimParseContext;
-    realTimeSimParseContext.chipType = Common::ChipProductType::ASCEND910B4;
+    realTimeSimParseContext.chipType = ChipProductType::ASCEND910B4;
     RealTimeDataParser realTimeDataParse(realTimeSimParseContext);
     Common::DvcInstrLog dvcInstrLog{};
     Common::DvciCacheLog iCacheLog{};
@@ -62,7 +62,7 @@ TEST(RealTimeDataParseTest, test_null_instr_log)
 TEST(RealTimeDataParseTest, test_null_mte_log)
 {
     RealTimeSimParseContext realTimeSimParseContext;
-    realTimeSimParseContext.chipType = Common::ChipProductType::ASCEND910B4;
+    realTimeSimParseContext.chipType = ChipProductType::ASCEND910B4;
     realTimeSimParseContext.metricsConfig.pmSamplingEnable = true;
     RealTimeDataParser realTimeDataParse(realTimeSimParseContext);
     realTimeDataParse.Start("./aaa", "add");
@@ -82,7 +82,7 @@ TEST(RealTimeDataParseTest, test_null_mte_log)
 TEST(RealTimeDataParseTest, test_collect_mte_log)
 {
     RealTimeSimParseContext realTimeSimParseContext;
-    realTimeSimParseContext.chipType = Common::ChipProductType::ASCEND910B4;
+    realTimeSimParseContext.chipType = ChipProductType::ASCEND910B4;
     realTimeSimParseContext.metricsConfig.pmSamplingEnable = true;
     RealTimeDataParser realTimeDataParse(realTimeSimParseContext);
     realTimeDataParse.Start("./aaa", "add");
@@ -112,7 +112,7 @@ TEST(RealTimeDataParseTest, test_collect_instr_log)
 {
     GlobalMockObject::verify();
     RealTimeSimParseContext realTimeSimParseContext;
-    realTimeSimParseContext.chipType = Common::ChipProductType::ASCEND910B4;
+    realTimeSimParseContext.chipType = ChipProductType::ASCEND910B4;
     RealTimeDataParser realTimeDataParse(realTimeSimParseContext);
     Common::DvcInstrLog dvcInstrLog{};
     dvcInstrLog.coreId = 0;
@@ -144,7 +144,7 @@ TEST(RealTimeDataParseTest, test_collect_instr_log)
 TEST(RealTimeDataParseTest, test_wrong_subcore_instr_log)
 {
     RealTimeSimParseContext realTimeSimParseContext;
-    realTimeSimParseContext.chipType = Common::ChipProductType::ASCEND910B4;
+    realTimeSimParseContext.chipType = ChipProductType::ASCEND910B4;
     RealTimeDataParser realTimeDataParse(realTimeSimParseContext);
     Common::DvcInstrLog dvcInstrLog{};
     dvcInstrLog.coreId = 0;

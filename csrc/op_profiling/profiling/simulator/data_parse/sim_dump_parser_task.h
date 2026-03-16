@@ -33,7 +33,7 @@
 
 namespace Profiling {
 struct DumpParserArgs {
-    Common::ChipProductType chipType;
+    ChipProductType chipType;
     std::string coreName;
     bool enableResourceConflictRatio =  true;
     std::set<int> parseCoreIds;
@@ -65,7 +65,7 @@ struct SpRegexStruct {
 
 class MteThroughput {
 public:
-    void Process(const std::string &dumpDir, const Common::ChipProductType &chipType, uint32_t threadPoolSize);
+    void Process(const std::string &dumpDir, const ChipProductType &chipType, uint32_t threadPoolSize);
     std::vector<nlohmann::json> jsonList_;
 private:
     void SingleCoreParse(Parse::DataCenter &dataCenter, Parse::MteLogCfg mteLogCfg) const;

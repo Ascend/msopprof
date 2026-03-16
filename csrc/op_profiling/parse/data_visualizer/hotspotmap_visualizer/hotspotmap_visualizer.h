@@ -40,7 +40,7 @@ public:
     {
         RegisterPluginName("hotSpotMap");
         RegisterMandatoryDb({typeid(std::map<std::string, SimData>)});
-        RegisterChip({Common::ChipProductType::ALL_PRODUCT_TYPE});
+        RegisterChip({ChipProductType::ALL_PRODUCT_TYPE});
     }
 private:
     bool ParseCoreInfo(const std::string &coreName, std::vector<MergeInfo> instrs);

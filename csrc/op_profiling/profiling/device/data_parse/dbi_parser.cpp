@@ -62,12 +62,12 @@ T DBIParser::AlignUp(T value)
     return (value + static_cast<T>(alignSize) - 1U) / static_cast<T>(alignSize);
 }
 
-void DBIParser::ParseMemoryChart(std::size_t key, const std::string &msg, const ProfStub::DBIDataHeader &dbiDataHeader)
+void DBIParser::ParseMemoryChart(std::size_t key, const std::string &msg, const DBIDataHeader &dbiDataHeader)
 {
     if (dbiDataHeader.count == 0) {
         return;
     }
-    std::size_t index = sizeof(ProfStub::DBIDataHeader);
+    std::size_t index = sizeof(DBIDataHeader);
     std::vector<uint32_t> processed(static_cast<uint32_t>(Common::RecordType::END), 0);
     std::vector<uint32_t> failed(static_cast<uint32_t>(Common::RecordType::END), 0);
     uint64_t processedCount = 0;
@@ -127,7 +127,7 @@ void DBIParser::TryDumpMemoryChartMetrics(std::size_t clientId)
     VerifyAndDump(metrics);
 }
 
-bool DBIParser::HandleEndFlag(const ProfStub::DBIDataHeader &dbiDataHeader, std::size_t clientId,
+bool DBIParser::HandleEndFlag(const DBIDataHeader &dbiDataHeader, std::size_t clientId,
                               const std::string &msg)
 {
     if (dbiDataHeader.endFlag == 0) {
@@ -145,7 +145,7 @@ bool DBIParser::HandleEndFlag(const ProfStub::DBIDataHeader &dbiDataHeader, std:
 
 void DBIParser::PacketHandler(std::size_t clientId, const std::string &msg)
 {
-    ProfStub::DBIDataHeader dbiDataHeader{};
+    DBIDataHeader dbiDataHeader{};
     Communication::Deserialize(msg, dbiDataHeader);
     if (HandleEndFlag(dbiDataHeader, clientId, msg)) {
         return;

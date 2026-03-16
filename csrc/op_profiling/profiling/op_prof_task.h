@@ -38,7 +38,7 @@ struct TaskConfig {
     uint16_t profMaxTimes {1};
     uint16_t profSkipTimes {0};
     uint16_t profWarmUpTimes {0};
-    Common::ReplayMode replayMode {Common::ReplayMode::KERNEL};
+    ReplayMode replayMode {ReplayMode::KERNEL};
     Common::PmuEventsId pmuEventsId;
     bool killAdvance {false};
     bool isMstxEnable {false};
@@ -79,7 +79,7 @@ public:
     bool isSetSocVersion{false};
     bool isCaLogTransStartSuc_{false};
     std::string simSocVersion;
-    Utility::MessageOfProfConfig profMessage_{};
+    MessageOfProfConfig profMessage_{};
     Utility::ProfConfig profConfig_;
     int32_t timeout_ {-1};
     std::string tmpPath_;

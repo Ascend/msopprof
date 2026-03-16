@@ -233,7 +233,7 @@ enum class UnitType {
     OPS      // 操作数单位
 };
 
-using OperandRecordMap = std::map<Common::OperandType, Common::OperandRecord>;
+using OperandRecordMap = std::map<OperandType, OperandRecord>;
 struct TypeOperandRecord {
     OperandRecordMap simdMap;
     OperandRecordMap simtMap;

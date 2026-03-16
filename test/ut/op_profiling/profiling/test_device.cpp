@@ -532,7 +532,7 @@ TEST(DeviceDataParse, bean_test)
     vector<char> fftsBin(FFTS_LENGTH * 2);
     ReadBinaryFile("test/ut/resources/op_profiling/device910B/dump/DeviceProf1.bin", fftsBin);
     vector<char> fftsBinData{&fftsBin[0], &fftsBin[0] + FFTS_LENGTH};
-    FftsBlockBean fftsBean(Common::ChipProductType::ASCEND910B_SERIES, fftsBinData);
+    FftsBlockBean fftsBean(ChipProductType::ASCEND910B_SERIES, fftsBinData);
     SplitBlockPmuData fftsData = fftsBean.GetBlockData(events, events);
     ASSERT_EQ(fftsData.totalCycles, 10000);
     ASSERT_EQ(fftsData.blockType, "vector");
@@ -542,7 +542,7 @@ TEST(DeviceDataParse, bean_test)
     ReadBinaryFile("test/ut/resources/op_profiling/device910B/dump/duration.bin", acsqBin);
     for (size_t i = 0; i < HWTS_LENGTH * 2; i = i + HWTS_LENGTH) {
         vector<char> acsqBinData{&acsqBin[i], &acsqBin[i] + ACSQ_LENGTH};
-        AcsqBean acsqBean(Common::ChipProductType::ASCEND910B_SERIES, acsqBinData);
+        AcsqBean acsqBean(ChipProductType::ASCEND910B_SERIES, acsqBinData);
         uint64_t time = acsqBean.GetSystemTime();
         Common::TimeType type = acsqBean.GetTimeType();
         if (i == 0) {
@@ -802,8 +802,8 @@ TEST(DeviceDataParse, parse_mov_fp_record)
 TEST(DeviceDataParse, parse_packet)
 {
     DBIParser dbiParser("");
-    ProfStub::DBIDataHeader dataHeader{1, sizeof(MovFpRecord), 1, 0, 0};
-    std::string buffer(sizeof(ProfStub::DBIDataHeader) + 1 + sizeof(MovFpRecord), 0);
+    DBIDataHeader dataHeader{1, sizeof(MovFpRecord), 1, 0, 0};
+    std::string buffer(sizeof(DBIDataHeader) + 1 + sizeof(MovFpRecord), 0);
     MovFpRecord record{};
     record.pc = 11188;
     record.dstStride = 1024.;
@@ -814,11 +814,11 @@ TEST(DeviceDataParse, parse_packet)
     record.quantPreBits = 32;
     record.enUnitFlag = true;
     record.enNZ2ND = true;
-    if (memcpy_s(&buffer[0], sizeof(ProfStub::DBIDataHeader), &dataHeader, sizeof(ProfStub::DBIDataHeader)) != EOK) {
+    if (memcpy_s(&buffer[0], sizeof(DBIDataHeader), &dataHeader, sizeof(DBIDataHeader)) != EOK) {
         printf("memcpy_s failed\n");
     }
-    buffer[sizeof(ProfStub::DBIDataHeader)] = '/';
-    if (memcpy_s(&buffer[sizeof(ProfStub::DBIDataHeader) + 1],
+    buffer[sizeof(DBIDataHeader)] = '/';
+    if (memcpy_s(&buffer[sizeof(DBIDataHeader) + 1],
                  sizeof(MovFpRecord), &record, sizeof(MovFpRecord)) != EOK) {
         printf("memcpy_s failed\n");
     }
@@ -828,7 +828,7 @@ TEST(DeviceDataParse, parse_packet)
 TEST(DeviceDataParse, ParseMemoryChart_one_invalid_data) {
     DBIParser dbiParser("");
     dbiParser.ParseMemoryChart(0, "", {});
-    ProfStub::DBIDataHeader dbiDataHeader{};
+    DBIDataHeader dbiDataHeader{};
     dbiDataHeader.count = 1;
     RecordHeader rh;
     rh.recordType = RecordType::INVALID;
@@ -840,7 +840,7 @@ TEST(DeviceDataParse, ParseMemoryChart_one_invalid_data) {
 TEST(DeviceDataParse, ParseMemoryChart_memcpy_failed) {
     DBIParser dbiParser("");
     MOCKER(memcpy_s).stubs().will(returnValue(EOVERFLOW));
-    ProfStub::DBIDataHeader dbiDataHeader{};
+    DBIDataHeader dbiDataHeader{};
     dbiDataHeader.count = 1;
     string msg = Communication::Serialize(dbiDataHeader) + "123";
     dbiParser.ParseMemoryChart(0, msg, dbiDataHeader);
@@ -851,7 +851,7 @@ TEST(DeviceDataParse, ParseMemoryChart_memcpy_failed) {
 TEST(DeviceDataParse, ParseMemoryChart_invalid_record_type) {
     DBIParser dbiParser("");
     MovFpRecord record{};
-    ProfStub::DBIDataHeader dbiDataHeader{};
+    DBIDataHeader dbiDataHeader{};
     dbiDataHeader.count = 1;
     RecordHeader rh;
     rh.recordType = RecordType::INVALID;
@@ -873,7 +873,7 @@ TEST(DeviceDataParse, ParseMemoryChart_one_record)
     record.quantPreBits = 32;
     record.enUnitFlag = true;
     record.enNZ2ND = true;
-    ProfStub::DBIDataHeader dbiDataHeader{};
+    DBIDataHeader dbiDataHeader{};
     dbiDataHeader.count = 1;
     RecordHeader rh;
     rh.recordType = RecordType::MOV_FP;
@@ -959,17 +959,17 @@ TEST(DataHandler, test_GetOperandRecordMap_when_mix_return_right)
     DataHandler dataHandler;
     OperandRecord Record;
     Record.instructions = 10;
-    OperandRecordMap map1 = {{Common::OperandType::DATA_B4, Record}};
-    OperandRecordMap map2 = {{Common::OperandType::DATA_B8, Record}};
-    OperandRecordMap map3 = {{Common::OperandType::DATA_B16, Record}};
+    OperandRecordMap map1 = {{OperandType::DATA_B4, Record}};
+    OperandRecordMap map2 = {{OperandType::DATA_B8, Record}};
+    OperandRecordMap map3 = {{OperandType::DATA_B16, Record}};
     std::vector<TypeOperandRecord> operandRecords = {{map1, map1}, {map2, map2}, {map3, map3}};
     dataHandler.operandRecords_ = operandRecords;
     auto vector0 = dataHandler.GetOperandRecordMap(0, "vector0", Common::OpType::MIX);
-    ASSERT_EQ(vector0.simdMap.at(Common::OperandType::DATA_B4).instructions, 10);
+    ASSERT_EQ(vector0.simdMap.at(OperandType::DATA_B4).instructions, 10);
     auto vector1 = dataHandler.GetOperandRecordMap(0, "vector1", Common::OpType::MIX);
-    ASSERT_EQ(vector1.simdMap.at(Common::OperandType::DATA_B8).instructions, 10);
+    ASSERT_EQ(vector1.simdMap.at(OperandType::DATA_B8).instructions, 10);
     auto cube0 = dataHandler.GetOperandRecordMap(0, "cube0", Common::OpType::MIX);
-    ASSERT_EQ(cube0.simdMap.at(Common::OperandType::DATA_B16).instructions, 10);
+    ASSERT_EQ(cube0.simdMap.at(OperandType::DATA_B16).instructions, 10);
 }
 
 /**
@@ -984,26 +984,26 @@ TEST(DataHandler, test_GetOperandRecordMap_when_not_mix_return_right)
     DataHandler dataHandler;
     OperandRecord Record;
     Record.instructions = 10;
-    OperandRecordMap map1 = {{Common::OperandType::DATA_B4, Record}};
-    OperandRecordMap map2 = {{Common::OperandType::DATA_B8, Record}};
-    OperandRecordMap map3 = {{Common::OperandType::DATA_B16, Record}};
-    OperandRecordMap map4 = {{Common::OperandType::DATA_S8, Record}};
-    OperandRecordMap map5 = {{Common::OperandType::DATA_S16, Record}};
-    OperandRecordMap map6 = {{Common::OperandType::DATA_S32, Record}};
+    OperandRecordMap map1 = {{OperandType::DATA_B4, Record}};
+    OperandRecordMap map2 = {{OperandType::DATA_B8, Record}};
+    OperandRecordMap map3 = {{OperandType::DATA_B16, Record}};
+    OperandRecordMap map4 = {{OperandType::DATA_S8, Record}};
+    OperandRecordMap map5 = {{OperandType::DATA_S16, Record}};
+    OperandRecordMap map6 = {{OperandType::DATA_S32, Record}};
     std::vector<TypeOperandRecord> operandRecords = {{map1, map1}, {map2, map2}, {map3, map3}, {map4, map4}, {map5, map5}, {map6, map6}};
     dataHandler.operandRecords_ = operandRecords;
     auto vector0 = dataHandler.GetOperandRecordMap(0, "vector0", Common::OpType::VECTOR);
-    ASSERT_EQ(vector0.simdMap.at(Common::OperandType::DATA_B4).instructions, 10);
+    ASSERT_EQ(vector0.simdMap.at(OperandType::DATA_B4).instructions, 10);
     auto vector1 = dataHandler.GetOperandRecordMap(1, "vector0", Common::OpType::VECTOR);
-    ASSERT_EQ(vector1.simdMap.at(Common::OperandType::DATA_B8).instructions, 10);
+    ASSERT_EQ(vector1.simdMap.at(OperandType::DATA_B8).instructions, 10);
     auto vector2 = dataHandler.GetOperandRecordMap(2, "vector0", Common::OpType::VECTOR);
-    ASSERT_EQ(vector2.simdMap.at(Common::OperandType::DATA_S8).instructions, 10);
+    ASSERT_EQ(vector2.simdMap.at(OperandType::DATA_S8).instructions, 10);
     auto vector3 = dataHandler.GetOperandRecordMap(3, "vector0", Common::OpType::VECTOR);
-    ASSERT_EQ(vector3.simdMap.at(Common::OperandType::DATA_S16).instructions, 10);
+    ASSERT_EQ(vector3.simdMap.at(OperandType::DATA_S16).instructions, 10);
     auto cube0 = dataHandler.GetOperandRecordMap(0, "cube0", Common::OpType::CUBE);
-    ASSERT_EQ(cube0.simdMap.at(Common::OperandType::DATA_B16).instructions, 10);
+    ASSERT_EQ(cube0.simdMap.at(OperandType::DATA_B16).instructions, 10);
     auto cube1 = dataHandler.GetOperandRecordMap(1, "cube0", Common::OpType::CUBE);
-    ASSERT_EQ(cube1.simdMap.at(Common::OperandType::DATA_S32).instructions, 10);
+    ASSERT_EQ(cube1.simdMap.at(OperandType::DATA_S32).instructions, 10);
 }
 
 TEST(DeviceDataParse, HotSpot_ProcessBBCount_expect_false)

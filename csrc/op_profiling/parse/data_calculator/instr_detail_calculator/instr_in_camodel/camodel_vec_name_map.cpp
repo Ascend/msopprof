@@ -82,10 +82,10 @@ InstrLogStr2Template instrLogStr2TemplateA2A3 = {
     {"VTRANSPOSE", VecInstrTemplate::VTRANSPOSE}
 };
 
-const std::unordered_map<Common::ChipProductType, InstrLogStr2Template> CamodelVecInstrNameMap = {
-    {Common::ChipProductType::ASCEND910B_SERIES, instrLogStr2TemplateA2A3},
-    {Common::ChipProductType::ASCEND910_93_SERIES, instrLogStr2TemplateA2A3},
-    {Common::ChipProductType::ASCEND310P_SERIES, {
+const std::unordered_map<ChipProductType, InstrLogStr2Template> CamodelVecInstrNameMap = {
+    {ChipProductType::ASCEND910B_SERIES, instrLogStr2TemplateA2A3},
+    {ChipProductType::ASCEND910_93_SERIES, instrLogStr2TemplateA2A3},
+    {ChipProductType::ASCEND310P_SERIES, {
         {"ldvad", VecInstrTemplate::LD_VAD},
         {"vaadd", VecInstrTemplate::VAADD},
         {"vabs", VecInstrTemplate::VABS},
@@ -148,7 +148,7 @@ const std::unordered_map<Common::ChipProductType, InstrLogStr2Template> CamodelV
     }},
 };
 
-bool GetInstrLogStr2TemplateMap(Common::ChipProductType seriesChipType, InstrLogStr2Template &resMap)
+bool GetInstrLogStr2TemplateMap(ChipProductType seriesChipType, InstrLogStr2Template &resMap)
 {
     auto it = CamodelVecInstrNameMap.find(seriesChipType);
     if (it == CamodelVecInstrNameMap.end()) {

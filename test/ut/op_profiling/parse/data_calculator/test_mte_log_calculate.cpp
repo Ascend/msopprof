@@ -37,7 +37,7 @@ using namespace Utility;
 TEST(MteLogCalculatorTest, test_entry_when_input_is_invalid_and_expect_return_error)
 {
     DataCenter dataCenter;
-    MteLogCalculator mteLogCalculator(dataCenter, Common::ChipProductType::ASCEND910B4);
+    MteLogCalculator mteLogCalculator(dataCenter, ChipProductType::ASCEND910B4);
     ASSERT_TRUE(mteLogCalculator.Entry() == PluginErrorCode::NONBLOCKING_ERROR);
 }
 
@@ -68,7 +68,7 @@ TEST(MteLogCalculatorTest, test_entry_when_input_is_valid_and_expect_return_succ
     mteLogInstrMap[7].reqTbl[123].dataSize = 128;
     mteLogInstrMapVecPtr->emplace_back(mteLogInstrMap);
     dataCenter.DataTableRegister(mteLogInstrMapVecPtr);
-    MteLogCalculator mteLogCalculator(dataCenter, Common::ChipProductType::ASCEND910B4);
+    MteLogCalculator mteLogCalculator(dataCenter, ChipProductType::ASCEND910B4);
     ASSERT_TRUE(mteLogCalculator.Entry() == PluginErrorCode::SUCCESS);
     std::shared_ptr<MteThroughputChart> mteThroughputChartPtr = dataCenter.GetDbPtr<MteThroughputChart>();
     ASSERT_TRUE(mteThroughputChartPtr != nullptr);

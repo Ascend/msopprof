@@ -27,7 +27,7 @@
 using namespace Utility;
 
 namespace Profiling {
-Common::ChipProductType GetChipType(const Common::ProfArgs &args)
+ChipProductType GetChipType(const Common::ProfArgs &args)
 {
     using namespace Common;
     if (args.runMode == "device") {
@@ -65,9 +65,9 @@ OpProf::OpProf(const Common::ProfArgs &args)
     config_ = args.argConfig;
     kernelConfig_ = args.kernelConfig;
     if (args.argDump != "on") {
-        Common::ChipProductType chipType = GetChipType(args);
-        if (chipType == Common::ChipProductType::ASCEND910B_SERIES ||
-            chipType == Common::ChipProductType::ASCEND910_93_SERIES) {
+        ChipProductType chipType = GetChipType(args);
+        if (chipType == ChipProductType::ASCEND910B_SERIES ||
+            chipType == ChipProductType::ASCEND910_93_SERIES) {
             dump_ = false;
         }
     }

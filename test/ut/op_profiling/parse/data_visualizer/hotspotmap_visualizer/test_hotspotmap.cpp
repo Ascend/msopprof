@@ -46,7 +46,7 @@ TEST(HotSpot, test_HotSpot_910B_should_return_ture_when_parse_ok) {
     Utility::MkdirRecusively(sepCoreOutput);
     DataCenter dataCenter;
     dataCenter.DataTableRegister<std::map<std::string, SimData>>(GetSimData());
-    SimVisualizerConfig config = GetVisualizeConfig(output, Common::ChipProductType::ASCEND910B1);
+    SimVisualizerConfig config = GetVisualizeConfig(output, ChipProductType::ASCEND910B1);
     HotSpotMapVisualizer hotSpot {dataCenter, config};
 
     ASSERT_EQ(hotSpot.Entry(), PluginErrorCode::SUCCESS);
@@ -77,7 +77,7 @@ TEST(HotSpot, test_HotSpot_910B_should_return_ture_when_parse_ok) {
 TEST(HotSpot, test_Entry_should_return_error_when_db_not_register) {
     const std::string output = "test/ut/resources/dump/output";
     DataCenter dataCenter;
-    SimVisualizerConfig config = GetVisualizeConfig(output, Common::ChipProductType::ASCEND910B1);
+    SimVisualizerConfig config = GetVisualizeConfig(output, ChipProductType::ASCEND910B1);
     HotSpotMapVisualizer hotSpot {dataCenter, config};
     ASSERT_EQ(hotSpot.Entry(), PluginErrorCode::NONBLOCKING_ERROR);
 }
@@ -93,7 +93,7 @@ TEST(HotSpot, test_ParseCoreInfo_expect_true_when_instrs_time_cal_right) {
     std::vector<std::string> fileNames;
     DataCenter dataCenter;
     dataCenter.DataTableRegister<std::map<std::string, SimData>>(GetSimData());
-    SimVisualizerConfig config = GetVisualizeConfig(output, Common::ChipProductType::ASCEND910B1);
+    SimVisualizerConfig config = GetVisualizeConfig(output, ChipProductType::ASCEND910B1);
     HotSpotMapVisualizer hotSpot {dataCenter, config};
 
     MergeInfo m1; m1.startTick = 1; m1.endTick = 2; m1.tick = 1; m1.pc = 0x10cfa000; m1.pipe = "SCALAR"; m1.name = "MOV_XD_IMM"; m1.detail = "XD:X0=0, IMM:0x1,";
@@ -118,7 +118,7 @@ TEST(HotSpot, test_ParseCoreInfo_expect_false_when_instrs_tick_error) {
     std::vector<std::string> fileNames;
     DataCenter dataCenter;
     dataCenter.DataTableRegister<std::map<std::string, SimData>>(GetSimData());
-    SimVisualizerConfig config = GetVisualizeConfig(output, Common::ChipProductType::ASCEND910B1);
+    SimVisualizerConfig config = GetVisualizeConfig(output, ChipProductType::ASCEND910B1);
     HotSpotMapVisualizer hotSpot {dataCenter, config};
 
     MergeInfo m1; m1.startTick = 2; m1.endTick = 1; m1.tick = 1; m1.pc = 0x10cfa000; m1.pipe = "SCALAR"; m1.name = "MOV_XD_IMM"; m1.detail = "XD:X0=0, IMM:0x1,";
@@ -139,7 +139,7 @@ TEST(HotSpot, test_ParseCoreInfo_expect_skip_when_instrs_tick_error) {
     std::vector<std::string> fileNames;
     DataCenter dataCenter;
     dataCenter.DataTableRegister<std::map<std::string, SimData>>(GetSimData());
-    SimVisualizerConfig config = GetVisualizeConfig(output, Common::ChipProductType::ASCEND910B1);
+    SimVisualizerConfig config = GetVisualizeConfig(output, ChipProductType::ASCEND910B1);
     HotSpotMapVisualizer hotSpot {dataCenter, config};
 
     MergeInfo m1; m1.startTick = 2; m1.endTick = 1; m1.tick = 1; m1.pc = 0x10cfa000; m1.pipe = "SCALAR"; m1.name = "MOV_XD_IMM"; m1.detail = "XD:X0=0, IMM:0x1,";
@@ -181,7 +181,7 @@ TEST(DataVisualize, SimPcToCode_mergeInstr) {
     const std::string output = "test/ut/resources/dump/output";
     DataCenter dataCenter;
     dataCenter.DataTableRegister<std::map<std::string, SimData>>(GetSimData());
-    SimVisualizerConfig config = GetVisualizeConfig(output, Common::ChipProductType::ASCEND910B1);
+    SimVisualizerConfig config = GetVisualizeConfig(output, ChipProductType::ASCEND910B1);
     SimPcToCode simPcToCode{config, dataCenter, cores};
     simPcToCode.MergeInstr(mergeList);
     ASSERT_EQ(simPcToCode.cores_.size(), 1);
@@ -248,7 +248,7 @@ TEST(DataVisualize, SimPcToCode_statistic) {
 
     DataCenter dataCenter;
     dataCenter.DataTableRegister<std::map<std::string, SimData>>(GetSimData());
-    SimVisualizerConfig config = GetVisualizeConfig(output, Common::ChipProductType::ASCEND910B1);
+    SimVisualizerConfig config = GetVisualizeConfig(output, ChipProductType::ASCEND910B1);
 
     SimPcToCode simPcToCode {config, dataCenter, cores};
     simPcToCode.Statistic(coreName, data);
@@ -276,7 +276,7 @@ TEST(DataVisualize, SimPcToCode_updateInstr_waitevent_instr_expect_wait_event_l1
 
     DataCenter dataCenter;
     dataCenter.DataTableRegister<std::map<std::string, SimData>>(GetSimData());
-    SimVisualizerConfig config = GetVisualizeConfig(output, Common::ChipProductType::ASCEND910B1);
+    SimVisualizerConfig config = GetVisualizeConfig(output, ChipProductType::ASCEND910B1);
     SimPcToCode simPcToCode {config, dataCenter, cores};
     std::string realInstr = simPcToCode.UpdateInstr(instr, waitSetPattern, waitFlagName, setFlagName);
     EXPECT_EQ(realInstr, expectInstr);
@@ -303,7 +303,7 @@ TEST(Serialize, SimPcToCode_updateInstr_other_instr_expect_no_modify) {
 
     DataCenter dataCenter;
     dataCenter.DataTableRegister<std::map<std::string, SimData>>(GetSimData());
-    SimVisualizerConfig config = GetVisualizeConfig(output, Common::ChipProductType::ASCEND910B1);
+    SimVisualizerConfig config = GetVisualizeConfig(output, ChipProductType::ASCEND910B1);
     SimPcToCode simPcToCode {config, dataCenter, cores};
     std::string realInstr = simPcToCode.UpdateInstr(instr,waitSetPattern, waitFlagName, setFlagName);
 
@@ -330,7 +330,7 @@ TEST(Serialize, SimPcToCode_updateInstr_error_format_instr_expect_no_modify) {
 
     DataCenter dataCenter;
     dataCenter.DataTableRegister<std::map<std::string, SimData>>(GetSimData());
-    SimVisualizerConfig config = GetVisualizeConfig(output, Common::ChipProductType::ASCEND910B1);
+    SimVisualizerConfig config = GetVisualizeConfig(output, ChipProductType::ASCEND910B1);
     SimPcToCode simPcToCode {config, dataCenter, cores};
     std::string realInstr = simPcToCode.UpdateInstr(instr, waitSetPattern, waitFlagName, setFlagName);
 
@@ -357,7 +357,7 @@ TEST(Serialize, SimPcToCode_updateInstr_waitflag_instr_not_complete_expect_no_mo
 
     DataCenter dataCenter;
     dataCenter.DataTableRegister<std::map<std::string, SimData>>(GetSimData());
-    SimVisualizerConfig config = GetVisualizeConfig(output, Common::ChipProductType::ASCEND910B1);
+    SimVisualizerConfig config = GetVisualizeConfig(output, ChipProductType::ASCEND910B1);
     SimPcToCode simPcToCode {config, dataCenter, cores};
     std::string realInstr = simPcToCode.UpdateInstr(instr, waitSetPattern, waitFlagName, setFlagName);
 
@@ -384,7 +384,7 @@ TEST(Serialize, SimPcToCode_updateInstr_waitevent_instr_not_complete_expect_no_m
 
     DataCenter dataCenter;
     dataCenter.DataTableRegister<std::map<std::string, SimData>>(GetSimData());
-    SimVisualizerConfig config = GetVisualizeConfig(output, Common::ChipProductType::ASCEND910B1);
+    SimVisualizerConfig config = GetVisualizeConfig(output, ChipProductType::ASCEND910B1);
     SimPcToCode simPcToCode {config, dataCenter, cores};
 
     std::string realInstr = simPcToCode.UpdateInstr(instr, waitSetPattern, waitFlagName, setFlagName);
@@ -412,7 +412,7 @@ TEST(Serialize,SimPcToCode_updateInstr_setflag_instr_expect_set_flag_vec) {
 
     DataCenter dataCenter;
     dataCenter.DataTableRegister<std::map<std::string, SimData>>(GetSimData());
-    SimVisualizerConfig config = GetVisualizeConfig(output, Common::ChipProductType::ASCEND910B1);
+    SimVisualizerConfig config = GetVisualizeConfig(output, ChipProductType::ASCEND910B1);
     SimPcToCode simPcToCode {config, dataCenter, cores};
     std::string realInstr = simPcToCode.UpdateInstr(instr, waitSetPattern, waitFlagName, setFlagName);
 
@@ -439,7 +439,7 @@ TEST(Serialize, SimPcToCode_updateInstr_setevent_instr_expect_set_event_l2) {
 
     DataCenter dataCenter;
     dataCenter.DataTableRegister<std::map<std::string, SimData>>(GetSimData());
-    SimVisualizerConfig config = GetVisualizeConfig(output, Common::ChipProductType::ASCEND910B1);
+    SimVisualizerConfig config = GetVisualizeConfig(output, ChipProductType::ASCEND910B1);
     SimPcToCode simPcToCode {config, dataCenter, cores};
     std::string realInstr = simPcToCode.UpdateInstr(instr, waitSetPattern, waitFlagName, setFlagName);
 
@@ -466,7 +466,7 @@ TEST(Serialize, SimPcToCode_updateInstr_waitflag_instr_expect_wait_flag_mte3) {
 
     DataCenter dataCenter;
     dataCenter.DataTableRegister<std::map<std::string, SimData>>(GetSimData());
-    SimVisualizerConfig config = GetVisualizeConfig(output, Common::ChipProductType::ASCEND910B1);
+    SimVisualizerConfig config = GetVisualizeConfig(output, ChipProductType::ASCEND910B1);
     SimPcToCode simPcToCode {config, dataCenter, cores};
     std::string realInstr = simPcToCode.UpdateInstr(instr, waitSetPattern, waitFlagName, setFlagName);
 
@@ -535,7 +535,7 @@ TEST(DataVisualize, SimCodeToPc_statistic_should_run_no_error) {
     const std::string output = "test/ut/resources/dump/output";
     DataCenter dataCenter;
     dataCenter.DataTableRegister<std::map<std::string, SimData>>(GetSimData());
-    SimVisualizerConfig config = GetVisualizeConfig(output, Common::ChipProductType::ASCEND910B1);
+    SimVisualizerConfig config = GetVisualizeConfig(output, ChipProductType::ASCEND910B1);
     SimCodeToPc simCodeToPc {config, dataCenter, cores};
     simCodeToPc.Statistic(coreName, data);
     simCodeToPc.CalCulate();

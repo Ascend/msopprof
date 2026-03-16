@@ -121,7 +121,7 @@ PluginErrorCode UbConflictCalculator::Entry()
     }
 
     InstrLogStr2Template mapping;
-    Common::ChipProductType seriesType = instrDetailConfig_.GetProductSeriesType();
+    ChipProductType seriesType = instrDetailConfig_.GetProductSeriesType();
     if (!GetInstrLogStr2TemplateMap(seriesType, mapping)) {
         Utility::LogDebug("Get instr name to template map failed.");
         return PluginErrorCode::NONBLOCKING_ERROR;
@@ -140,7 +140,7 @@ PluginErrorCode UbConflictCalculator::Entry()
             continue;
         }
         InstrDetailEvent event;
-        if (Common::IsChipSeriesTypeValid(seriesType, Common::ChipProductType::ASCEND310P_SERIES)) {
+        if (IsChipSeriesTypeValid(seriesType, ChipProductType::ASCEND310P_SERIES)) {
             // 310P ca model
             Get310PVecEvent(*mergeInfo, event);
         } else {

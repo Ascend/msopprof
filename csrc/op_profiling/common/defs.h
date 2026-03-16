@@ -22,6 +22,7 @@
 #include <vector>
 #include <string>
 #include <set>
+#include "core/PlatformConfig.h"
 
 namespace Common {
 
@@ -129,157 +130,6 @@ struct DvcInstrLog {
     char execDescr[200];
 };
 
-enum class ChipProductType : uint32_t {
-    ALL_PRODUCT_TYPE = 0,
-    UNKNOWN_PRODUCT_TYPE = 1,
-
-    ASCEND310P_SERIES = 1 << RADIX, // ASCEND310P series product type
-    ASCEND310P1,
-    ASCEND310P2,
-    ASCEND310P3,
-    ASCEND310P4,
-    ASCEND310P5,
-    ASCEND310P7,
-
-    ASCEND310B_SERIES = 2 << RADIX, // ASCEND310B series product type
-    ASCEND310B1,
-    ASCEND310B2,
-    ASCEND310B3,
-    ASCEND310B4,
-
-    ASCEND910B_SERIES = 3 << RADIX, // ASCEND910B series product type
-    ASCEND910B1,
-    ASCEND910B2,
-    ASCEND910B3,
-    ASCEND910B4,
-    ASCEND910B2C,
-    ASCEND910B4_1,
-
-    ASCEND910_93_SERIES = 4 << RADIX, // ASCEND910_93 series product type
-    ASCEND910_9391,
-    ASCEND910_9392,
-    ASCEND910_9381,
-    ASCEND910_9382,
-    ASCEND910_9372,
-    ASCEND910_9362,
-
-    ASCEND310_SERIES = 5 << RADIX,
-    ASCEND310,
-
-    ASCEND910A_SERIES = 6 << RADIX,
-    ASCEND910A,
-    ASCEND910B,
-    ASCEND910PROA,
-    ASCEND910PROB,
-    ASCEND910PREMIUMA,
-
-    ASCEND610_SERIES = 7 << RADIX,
-    ASCEND615_SERIES = 8 << RADIX,
-
-    ASCEND950_SERIES = 9 << RADIX,
-    ASCEND950DT_950X,
-    ASCEND950DT_950Y,
-    ASCEND950DT_9571,
-    ASCEND950DT_9572,
-    ASCEND950DT_9573,
-    ASCEND950DT_9574,
-    ASCEND950DT_9575,
-    ASCEND950DT_9576,
-    ASCEND950DT_9577,
-    ASCEND950DT_9578,
-    ASCEND950DT_9581,
-    ASCEND950DT_9582,
-    ASCEND950DT_9583,
-    ASCEND950DT_9584,
-    ASCEND950DT_9585,
-    ASCEND950DT_9586,
-    ASCEND950DT_9587,
-    ASCEND950DT_9588,
-    ASCEND950DT_9591,
-    ASCEND950DT_9592,
-    ASCEND950DT_9595,
-    ASCEND950DT_9596,
-    ASCEND950DT_95A1,
-    ASCEND950DT_95A2,
-    ASCEND950PR_950Z,
-    ASCEND950PR_9579,
-    ASCEND950PR_957B,
-    ASCEND950PR_957C,
-    ASCEND950PR_957D,
-    ASCEND950PR_9589,
-    ASCEND950PR_958B,
-    ASCEND950PR_9599,
-};
-
-const std::map<std::string, ChipProductType> SOC_STRING_TO_CHIP_PRODUCT{
-    {"Ascend910B1",     ChipProductType::ASCEND910B1},
-    {"Ascend910B2",     ChipProductType::ASCEND910B2},
-    {"Ascend910B3",     ChipProductType::ASCEND910B3},
-    {"Ascend910B4",     ChipProductType::ASCEND910B4},
-    {"Ascend910B2C",    ChipProductType::ASCEND910B2C},
-    {"Ascend910B4-1",   ChipProductType::ASCEND910B4_1},
-
-    {"Ascend910_9391",  ChipProductType::ASCEND910_9391},
-    {"Ascend910_9392",  ChipProductType::ASCEND910_9392},
-    {"Ascend910_9381",  ChipProductType::ASCEND910_9381},
-    {"Ascend910_9382",  ChipProductType::ASCEND910_9382},
-    {"Ascend910_9372",  ChipProductType::ASCEND910_9372},
-    {"Ascend910_9362",  ChipProductType::ASCEND910_9362},
-
-    {"Ascend310B1",     ChipProductType::ASCEND310B1},
-    {"Ascend310B2",     ChipProductType::ASCEND310B2},
-    {"Ascend310B3",     ChipProductType::ASCEND310B3},
-    {"Ascend310B4",     ChipProductType::ASCEND310B4},
-
-    {"Ascend310P1",     ChipProductType::ASCEND310P1},
-    {"Ascend310P2",     ChipProductType::ASCEND310P2},
-    {"Ascend310P3",     ChipProductType::ASCEND310P3},
-    {"Ascend310P4",     ChipProductType::ASCEND310P4},
-    {"Ascend310P5",     ChipProductType::ASCEND310P5},
-    {"Ascend310P7",     ChipProductType::ASCEND310P7},
-
-    {"Ascend310",       ChipProductType::ASCEND310},
- 
-    {"Ascend910A",      ChipProductType::ASCEND910A},
-    {"Ascend910B",      ChipProductType::ASCEND910B},
-    {"Ascend910ProA",   ChipProductType::ASCEND910PROA},
-    {"Ascend910ProB",   ChipProductType::ASCEND910PROB},
-    {"AscendPremiumA",  ChipProductType::ASCEND910PREMIUMA},
-    
-        {"Ascend950DT_950x",  ChipProductType::ASCEND950DT_950X},
-    {"Ascend950DT_950y",  ChipProductType::ASCEND950DT_950Y},
-    {"Ascend950DT_9571",  ChipProductType::ASCEND950DT_9571},
-    {"Ascend950DT_9572",  ChipProductType::ASCEND950DT_9572},
-    {"Ascend950DT_9573",  ChipProductType::ASCEND950DT_9573},
-    {"Ascend950DT_9574",  ChipProductType::ASCEND950DT_9574},
-    {"Ascend950DT_9575",  ChipProductType::ASCEND950DT_9575},
-    {"Ascend950DT_9576",  ChipProductType::ASCEND950DT_9576},
-    {"Ascend950DT_9577",  ChipProductType::ASCEND950DT_9577},
-    {"Ascend950DT_9578",  ChipProductType::ASCEND950DT_9578},
-    {"Ascend950DT_9581",  ChipProductType::ASCEND950DT_9581},
-    {"Ascend950DT_9582",  ChipProductType::ASCEND950DT_9582},
-    {"Ascend950DT_9583",  ChipProductType::ASCEND950DT_9583},
-    {"Ascend950DT_9584",  ChipProductType::ASCEND950DT_9584},
-    {"Ascend950DT_9585",  ChipProductType::ASCEND950DT_9585},
-    {"Ascend950DT_9586",  ChipProductType::ASCEND950DT_9586},
-    {"Ascend950DT_9587",  ChipProductType::ASCEND950DT_9587},
-    {"Ascend950DT_9588",  ChipProductType::ASCEND950DT_9588},
-    {"Ascend950DT_9591",  ChipProductType::ASCEND950DT_9591},
-    {"Ascend950DT_9592",  ChipProductType::ASCEND950DT_9592},
-    {"Ascend950DT_9595",  ChipProductType::ASCEND950DT_9595},
-    {"Ascend950DT_9596",  ChipProductType::ASCEND950DT_9596},
-    {"Ascend950DT_95A1",  ChipProductType::ASCEND950DT_95A1},
-    {"Ascend950DT_95A2",  ChipProductType::ASCEND950DT_95A2},
-    {"Ascend950PR_950z",  ChipProductType::ASCEND950PR_950Z},
-    {"Ascend950PR_9579",  ChipProductType::ASCEND950PR_9579},
-    {"Ascend950PR_957b",  ChipProductType::ASCEND950PR_957B},
-    {"Ascend950PR_957c",  ChipProductType::ASCEND950PR_957C},
-    {"Ascend950PR_957d",  ChipProductType::ASCEND950PR_957D},
-    {"Ascend950PR_9589",  ChipProductType::ASCEND950PR_9589},
-    {"Ascend950PR_958b",  ChipProductType::ASCEND950PR_958B},
-    {"Ascend950PR_9599",  ChipProductType::ASCEND950PR_9599},
-};
-
 const std::map<ChipType, ChipProductType> CHIP_ARCHITECTURE_TO_PRODUCT_SERIES{
     {ChipType::ASCEND310,   ChipProductType::ASCEND310_SERIES},
     {ChipType::ASCEND910A,  ChipProductType::ASCEND910A_SERIES},
@@ -290,27 +140,6 @@ const std::map<ChipType, ChipProductType> CHIP_ARCHITECTURE_TO_PRODUCT_SERIES{
     {ChipType::ASCEND310B,   ChipProductType::ASCEND310B_SERIES},
     {ChipType::ASCEND950, ChipProductType::ASCEND950_SERIES}
 };
-
-inline ChipProductType GetProductSeriesType(const ChipProductType& chipProductType)
-{
-    return static_cast<ChipProductType>((static_cast<uint32_t>(chipProductType) >> RADIX) << RADIX);
-}
-
-inline bool IsChipSeriesTypeValid(const ChipProductType& inputType, const ChipProductType& requiredType)
-{
-    if (requiredType == ChipProductType::ALL_PRODUCT_TYPE) {
-        return true;
-    }
-    return GetProductSeriesType(inputType) == requiredType;
-}
-
-inline ChipProductType GetProductSeriesTypeBySocVersion(const std::string &socVersion)
-{
-    auto it = Common::SOC_STRING_TO_CHIP_PRODUCT.find(socVersion);
-    Common::ChipProductType chipType = it == Common::SOC_STRING_TO_CHIP_PRODUCT.end() ?
-        Common::ChipProductType::UNKNOWN_PRODUCT_TYPE : it->second;
-    return chipType;
-}
 
 /// 时间类型
 enum class TimeType : uint16_t {
@@ -594,10 +423,10 @@ enum class GmType {
 };
 
 const std::map<unsigned short, GmType> GM_PRODUCT {
-        {86, GmType::SK},
-        {87, GmType::SS},
-        {88, GmType::CJ},
-        {0, GmType::DEFAULT},
+    {86, GmType::SK},
+    {87, GmType::SS},
+    {88, GmType::CJ},
+    {0, GmType::DEFAULT},
 };
 
 template<class TKey, class TValue>

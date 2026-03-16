@@ -296,7 +296,7 @@ PluginErrorCode GPRLiveRegisterCalculator::Entry()
         auto instrName = mergeInfo[i].name;
         std::vector<std::string> dstRegisters;
         std::vector<std::string> srcRegisters;
-        if (Common::IsChipSeriesTypeValid(chipType_, Common::ChipProductType::ASCEND950_SERIES)) {
+        if (IsChipSeriesTypeValid(chipType_, ChipProductType::ASCEND950_SERIES)) {
             GetDstAndSrcRegisterA5(dstRegisters, srcRegisters, mergeInfo[i]);
         } else {
             GetDstAndSrcRegister(dstRegisters, srcRegisters, mergeInfo[i]);
@@ -424,15 +424,15 @@ void GPRLiveRegisterCalculator::GetDstAndSrcRegister(std::vector<std::string> &d
     const std::string &instrName = mergeInfo.name;
     ExtractRegister(mergeInfo.detail, pattern_, allRegisters);
     std::vector<uint16_t> dstRegisterLoc = {};
-    if ((Common::IsChipSeriesTypeValid(chipType_, Common::ChipProductType::ASCEND310P_SERIES)) &&
+    if ((IsChipSeriesTypeValid(chipType_, ChipProductType::ASCEND310P_SERIES)) &&
         A300DstRegisterLocation.count(instrName) > 0 &&
         InstrToFunctionMap.find(instrName) != InstrToFunctionMap.end()) {
         dstRegisterLoc = A300DstRegisterLocation.at(instrName);
         InstrToFunctionMap.at(instrName)(dstRegisters, srcRegisters, dstRegisterLoc, allRegisters);
         return;
     }
-    if (((Common::IsChipSeriesTypeValid(chipType_, Common::ChipProductType::ASCEND910_93_SERIES)) ||
-        (Common::IsChipSeriesTypeValid(chipType_, Common::ChipProductType::ASCEND910B_SERIES))) &&
+    if (((IsChipSeriesTypeValid(chipType_, ChipProductType::ASCEND910_93_SERIES)) ||
+        (IsChipSeriesTypeValid(chipType_, ChipProductType::ASCEND910B_SERIES))) &&
         A2DstRegisterLocation.count(instrName) > 0 && InstrToFunctionMap.find(instrName) != InstrToFunctionMap.end()) {
         dstRegisterLoc = A2DstRegisterLocation.at(instrName);
         InstrToFunctionMap.at(instrName)(dstRegisters, srcRegisters, dstRegisterLoc, allRegisters);

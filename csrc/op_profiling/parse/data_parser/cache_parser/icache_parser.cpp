@@ -25,20 +25,20 @@ const std::string I_CACHE_FILE_A2_A3 = "ifu.icache_log";
 const std::string I_CACHE_FILE_A300_910_A = "icache_log";
 const std::string I_CACHE_FILE_310_B = "ifu.icache_log";
 
-const std::map<Common::ChipProductType, std::regex> ICachePattern = {
-    {Common::ChipProductType::ASCEND910B_SERIES,
+const std::map<ChipProductType, std::regex> ICachePattern = {
+    {ChipProductType::ASCEND910B_SERIES,
         std::regex("^(?:\\[info\\] )?([0-9]+): icache read address is (0x[0-9a-f]{1,16})"
             ", (size is 0x[0-9a-f]{8}, type:[0-9]{0,3}, last:[0-9]{0,3}, status is MISS$)")},
-    {Common::ChipProductType::ASCEND910_93_SERIES,
+    {ChipProductType::ASCEND910_93_SERIES,
         std::regex("^(?:\\[info\\] )?([0-9]+): icache read address is (0x[0-9a-f]{1,16})"
             ", (size is 0x[0-9a-f]{8}, type:[0-9]{0,3}, last:[0-9]{0,3}, status is MISS$)")},
-    {Common::ChipProductType::ASCEND310B_SERIES,
+    {ChipProductType::ASCEND310B_SERIES,
         std::regex("(?:\\[info\\] )?@([0-9]+): icache read address is (0x[0-9a-f]{1,16})"
             ", (size is 0x[0-9a-f]{8}, status is MISS)")},
-    {Common::ChipProductType::ASCEND310P_SERIES,
+    {ChipProductType::ASCEND310P_SERIES,
         std::regex("(?:\\[info\\] )?\\[([0-9]+)\\]: icache read address is (0x[0-9a-f]{1,16})"
             ", (size is 0x[0-9a-f]{8}, status is MISS)")},
-    {Common::ChipProductType::ASCEND910A_SERIES,
+    {ChipProductType::ASCEND910A_SERIES,
         std::regex("(?:\\[info\\] )?\\[([0-9]+)\\]: icache read address is (0x[0-9a-f]{1,16})"
             ", (size is 0x[0-9a-f]{8}, status is MISS)")},
 };
@@ -47,30 +47,30 @@ const std::string DUMP_SUFFIX = ".dump";
 const std::string LOG_SUFFIX = ".log";
 
 // ICachePattern, ICacheFile, ICacheSuffix 中的数据key必须都一致
-const std::map<Common::ChipProductType, std::string> ICacheFile = {
-    {Common::ChipProductType::ASCEND910B_SERIES, I_CACHE_FILE_A2_A3},
-    {Common::ChipProductType::ASCEND910_93_SERIES, I_CACHE_FILE_A2_A3},
-    {Common::ChipProductType::ASCEND310B_SERIES, I_CACHE_FILE_310_B},
-    {Common::ChipProductType::ASCEND310P_SERIES, I_CACHE_FILE_A300_910_A},
-    {Common::ChipProductType::ASCEND910A_SERIES, I_CACHE_FILE_A300_910_A},
+const std::map<ChipProductType, std::string> ICacheFile = {
+    {ChipProductType::ASCEND910B_SERIES, I_CACHE_FILE_A2_A3},
+    {ChipProductType::ASCEND910_93_SERIES, I_CACHE_FILE_A2_A3},
+    {ChipProductType::ASCEND310B_SERIES, I_CACHE_FILE_310_B},
+    {ChipProductType::ASCEND310P_SERIES, I_CACHE_FILE_A300_910_A},
+    {ChipProductType::ASCEND910A_SERIES, I_CACHE_FILE_A300_910_A},
 };
 
-const std::map<Common::ChipProductType, std::string> ICacheSuffix = {
-    {Common::ChipProductType::ASCEND910B_SERIES, DUMP_SUFFIX},
-    {Common::ChipProductType::ASCEND910_93_SERIES, DUMP_SUFFIX},
-    {Common::ChipProductType::ASCEND310B_SERIES, LOG_SUFFIX},
-    {Common::ChipProductType::ASCEND310P_SERIES, DUMP_SUFFIX},
-    {Common::ChipProductType::ASCEND910A_SERIES, DUMP_SUFFIX},
+const std::map<ChipProductType, std::string> ICacheSuffix = {
+    {ChipProductType::ASCEND910B_SERIES, DUMP_SUFFIX},
+    {ChipProductType::ASCEND910_93_SERIES, DUMP_SUFFIX},
+    {ChipProductType::ASCEND310B_SERIES, LOG_SUFFIX},
+    {ChipProductType::ASCEND310P_SERIES, DUMP_SUFFIX},
+    {ChipProductType::ASCEND910A_SERIES, DUMP_SUFFIX},
 };
 
 ICacheParser::ICacheParser(DataCenter &dataCenter, SimDataParserConfig& config) : SimDataParser(dataCenter, config)
 {
-    Common::ChipProductType productSeries = dataParserConfig_.GetProductSeriesType();
+    ChipProductType productSeries = dataParserConfig_.GetProductSeriesType();
     const std::string &coreInfo = dataParserConfig_.GetCoreInfo().second;
     // 默认初始化，使用310P赋值
-    instrMatchPattern_ = ICachePattern.at(Common::ChipProductType::ASCEND310P_SERIES);
+    instrMatchPattern_ = ICachePattern.at(ChipProductType::ASCEND310P_SERIES);
     suffix_ = DUMP_SUFFIX;
-    fileName_ = coreInfo + ICacheFile.at(Common::ChipProductType::ASCEND310P_SERIES);
+    fileName_ = coreInfo + ICacheFile.at(ChipProductType::ASCEND310P_SERIES);
     // 在map中的其他类自行更新使用文件
     if (ICachePattern.find(productSeries) != ICachePattern.end() && ICacheFile.find(productSeries) != ICacheFile.end()
         && ICacheSuffix.find(productSeries) != ICacheSuffix.end()) {

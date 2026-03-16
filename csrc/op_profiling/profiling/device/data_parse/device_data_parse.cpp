@@ -349,8 +349,8 @@ std::map<std::string, ProfBinInfo, FileNameCompare> DeviceDataParse::GetProfBinI
     // 不采集pmu时仅仅完成1轮空的DeviceProf1.bin的解析，用于获取算子类型
     if (!metrics.HasEnabledPmu()) {
         ProfBinInfo info;
-        info.aicEvents = chipProductType_ == Common::ChipProductType::ASCEND950_SERIES ? vector<uint16_t>(PMU_EVENT_MAX_NUM_A5, 0) : vector<uint16_t>(PMU_EVENT_MAX_NUM, 0);
-        info.aivEvents = chipProductType_ == Common::ChipProductType::ASCEND950_SERIES ? vector<uint16_t>(PMU_EVENT_MAX_NUM_A5, 0) : vector<uint16_t>(PMU_EVENT_MAX_NUM, 0);
+        info.aicEvents = chipProductType_ == ChipProductType::ASCEND950_SERIES ? vector<uint16_t>(PMU_EVENT_MAX_NUM_A5, 0) : vector<uint16_t>(PMU_EVENT_MAX_NUM, 0);
+        info.aivEvents = chipProductType_ == ChipProductType::ASCEND950_SERIES ? vector<uint16_t>(PMU_EVENT_MAX_NUM_A5, 0) : vector<uint16_t>(PMU_EVENT_MAX_NUM, 0);
         res.insert({std::string {MSPROF_DUMPFILE_PREFIX} + "1.bin", info});
         return res;
     }
@@ -363,7 +363,7 @@ std::map<std::string, ProfBinInfo, FileNameCompare> DeviceDataParse::GetProfBinI
     GetRelatedMap(metrics, chipInfo_.aivMetricEventsMap, aivRelatedMap);
     uint16_t maxSize = max(aicEvents.size(), aivEvents.size());
     int size = PMU_EVENT_MAX_NUM;
-    if (chipProductType_ == Common::ChipProductType::ASCEND950_SERIES) {
+    if (chipProductType_ == ChipProductType::ASCEND950_SERIES) {
         size = PMU_EVENT_MAX_NUM_A5;
     }
     int profBinNum = static_cast<int>((maxSize + size - 1) / size);

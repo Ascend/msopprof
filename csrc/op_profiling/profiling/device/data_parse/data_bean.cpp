@@ -39,9 +39,9 @@ void GetStreamAndTaskId(uint16_t &streamId, uint16_t &taskId)
     }
 }
 
-FftsBlockBean::FftsBlockBean(const Common::ChipProductType &chip, const vector<char> &bin)
+FftsBlockBean::FftsBlockBean(const ChipProductType &chip, const vector<char> &bin)
 {
-    if (IsChipSeriesTypeValid(chip, Common::ChipProductType::ASCEND950_SERIES)) {
+    if (IsChipSeriesTypeValid(chip, ChipProductType::ASCEND950_SERIES)) {
         InitA5(bin);
     } else {
         InitA2(bin);
@@ -145,7 +145,7 @@ Common::TimeType CommonGetTimeType(uint16_t funcType)
     return Common::TimeType::OTHERS;
 }
 
-AcsqBean::AcsqBean(const Common::ChipProductType &chip, const vector<char> &bin)
+AcsqBean::AcsqBean(const ChipProductType &chip, const vector<char> &bin)
 {
     constexpr uint16_t typeIndex = 0;
     constexpr uint16_t streamIdIndex = 2;
@@ -153,7 +153,7 @@ AcsqBean::AcsqBean(const Common::ChipProductType &chip, const vector<char> &bin)
     constexpr uint16_t taskTypeOffset = 10;
     constexpr uint16_t funcTypeAndOperation = 63;
     constexpr uint16_t systemTimeIndex = 0;
-    if (IsChipSeriesTypeValid(chip, Common::ChipProductType::ASCEND950_SERIES)) {
+    if (IsChipSeriesTypeValid(chip, ChipProductType::ASCEND950_SERIES)) {
         if (memcpy_s(&acsqA5Construct_, sizeof(acsqA5Construct_), &bin[0], bin.size()) != EOK) {
             return;
         }

@@ -68,7 +68,7 @@ inline std::shared_ptr<std::map<std::string, SimData>> GetSimData()
     return dataMapPtr;
 }
 
-inline SimVisualizerConfig GetVisualizeConfig(const std::string &outputPath, const Common::ChipProductType &chipType)
+inline SimVisualizerConfig GetVisualizeConfig(const std::string &outputPath, const ChipProductType &chipType)
 {
     pc2code[0x10f86000] = {
             "/Ascend/ascend-toolkit/8.1.RC1/aarch64-linux/tikcpp/tikcfw/impl/dav_c220/kernel_operator_common_impl.h:0",
@@ -78,7 +78,7 @@ inline SimVisualizerConfig GetVisualizeConfig(const std::string &outputPath, con
             "/op_kernel/binary/ascend910b/kernel_meta/AddCustom_1e04ee05ab491cc5ae9c3d5c9ee8950b_2034756_kernel.cpp:60"};
 
     Profiling::Parse::SimVisualizerConfig config910B{"test/ut/resources/dump/output/910B", pc2code, 1,
-                                                     Common::ChipProductType::ASCEND910B1};
+                                                     ChipProductType::ASCEND910B1};
     SimVisualizerConfig config {outputPath, pc2code, 1, chipType};
     return config;
 }

@@ -174,21 +174,21 @@ struct ParseInfoStruct {
     DumpMaps maps;
     UserMarkMapType userMarkMap;
     std::string path;
-    Common::ChipProductType chipType;
+    ChipProductType chipType;
 };
 
 struct SimParseContext {
     std::set<CoreNameAndPreFixPair> coresNamePair;
     std::string dumpPath;
     std::string outputPath;
-    Common::ChipProductType chipType;
+    ChipProductType chipType;
     std::set<int> parseCorIds;
     Common::ProfMetricsAbilityConfig metricsConfig;
 };
 struct RealTimeSimParseContext {
     std::set<int> parseCoreId;
     bool enableResourceConflictRatio;
-    Common::ChipProductType chipType;
+    ChipProductType chipType;
     Common::ProfMetricsAbilityConfig metricsConfig;
 };
 
@@ -212,54 +212,54 @@ constexpr int DEFAULT_INT_VALUE = -1;
 constexpr float DEFAULT_FLOAT_VALUE = -1;
 constexpr int DEFAULT_MHZ = 1850;
 
-const std::map<Common::ChipProductType, int> CLOCK_SPEED_SERIES_MAP{
-    {Common::ChipProductType::ASCEND310B1,       1224},
-    {Common::ChipProductType::ASCEND310B2,       1224},
-    {Common::ChipProductType::ASCEND310B3,       1224},
-    {Common::ChipProductType::ASCEND310B4,       500},
-    {Common::ChipProductType::ASCEND310P1,       1060},
-    {Common::ChipProductType::ASCEND310P2,       1060},
-    {Common::ChipProductType::ASCEND310P3,       1060},
-    {Common::ChipProductType::ASCEND310P4,       1060},
-    {Common::ChipProductType::ASCEND310P5,       800},
-    {Common::ChipProductType::ASCEND310P7,       550},
-    {Common::ChipProductType::ASCEND910B1,       1850},
-    {Common::ChipProductType::ASCEND910B2,       1800},
-    {Common::ChipProductType::ASCEND910B2C,      1800},
-    {Common::ChipProductType::ASCEND910B3,       1800},
-    {Common::ChipProductType::ASCEND910B4,       1650},
-    {Common::ChipProductType::ASCEND950DT_950X,    1650},
-    {Common::ChipProductType::ASCEND950DT_950Y,    1650},
-    {Common::ChipProductType::ASCEND950PR_950Z,    1650},
-    {Common::ChipProductType::ASCEND950DT_9571,    1650},
-    {Common::ChipProductType::ASCEND950DT_9572,    1650},
-    {Common::ChipProductType::ASCEND950DT_9573,    1650},
-    {Common::ChipProductType::ASCEND950DT_9574,    1650},
-    {Common::ChipProductType::ASCEND950DT_9575,    1650},
-    {Common::ChipProductType::ASCEND950DT_9576,    1650},
-    {Common::ChipProductType::ASCEND950DT_9577,    1650},
-    {Common::ChipProductType::ASCEND950DT_9578,    1650},
-    {Common::ChipProductType::ASCEND950PR_9579,    1650},
-    {Common::ChipProductType::ASCEND950PR_957B,    1650},
-    {Common::ChipProductType::ASCEND950PR_957C,    1650},
-    {Common::ChipProductType::ASCEND950PR_957D,    1650},
-    {Common::ChipProductType::ASCEND950DT_9581,    1650},
-    {Common::ChipProductType::ASCEND950DT_9582,    1650},
-    {Common::ChipProductType::ASCEND950DT_9583,    1650},
-    {Common::ChipProductType::ASCEND950DT_9584,    1650},
-    {Common::ChipProductType::ASCEND950DT_9585,    1650},
-    {Common::ChipProductType::ASCEND950DT_9586,    1650},
-    {Common::ChipProductType::ASCEND950DT_9587,    1650},
-    {Common::ChipProductType::ASCEND950DT_9588,    1650},
-    {Common::ChipProductType::ASCEND950PR_9589,    1650},
-    {Common::ChipProductType::ASCEND950PR_958B,    1650},
-    {Common::ChipProductType::ASCEND950DT_9591,    1800},
-    {Common::ChipProductType::ASCEND950DT_9592,    1800},
-    {Common::ChipProductType::ASCEND950DT_9595,    1800},
-    {Common::ChipProductType::ASCEND950DT_9596,    1800},
-    {Common::ChipProductType::ASCEND950PR_9599,    1800},
-    {Common::ChipProductType::ASCEND950DT_95A1,    1800},
-    {Common::ChipProductType::ASCEND950DT_95A2,    1800},
+const std::map<ChipProductType, int> CLOCK_SPEED_SERIES_MAP{
+    {ChipProductType::ASCEND310B1,       1224},
+    {ChipProductType::ASCEND310B2,       1224},
+    {ChipProductType::ASCEND310B3,       1224},
+    {ChipProductType::ASCEND310B4,       500},
+    {ChipProductType::ASCEND310P1,       1060},
+    {ChipProductType::ASCEND310P2,       1060},
+    {ChipProductType::ASCEND310P3,       1060},
+    {ChipProductType::ASCEND310P4,       1060},
+    {ChipProductType::ASCEND310P5,       800},
+    {ChipProductType::ASCEND310P7,       550},
+    {ChipProductType::ASCEND910B1,       1850},
+    {ChipProductType::ASCEND910B2,       1800},
+    {ChipProductType::ASCEND910B2C,      1800},
+    {ChipProductType::ASCEND910B3,       1800},
+    {ChipProductType::ASCEND910B4,       1650},
+    {ChipProductType::ASCEND950DT_950X,    1650},
+    {ChipProductType::ASCEND950DT_950Y,    1650},
+    {ChipProductType::ASCEND950PR_950Z,    1650},
+    {ChipProductType::ASCEND950DT_9571,    1650},
+    {ChipProductType::ASCEND950DT_9572,    1650},
+    {ChipProductType::ASCEND950DT_9573,    1650},
+    {ChipProductType::ASCEND950DT_9574,    1650},
+    {ChipProductType::ASCEND950DT_9575,    1650},
+    {ChipProductType::ASCEND950DT_9576,    1650},
+    {ChipProductType::ASCEND950DT_9577,    1650},
+    {ChipProductType::ASCEND950DT_9578,    1650},
+    {ChipProductType::ASCEND950PR_9579,    1650},
+    {ChipProductType::ASCEND950PR_957B,    1650},
+    {ChipProductType::ASCEND950PR_957C,    1650},
+    {ChipProductType::ASCEND950PR_957D,    1650},
+    {ChipProductType::ASCEND950DT_9581,    1650},
+    {ChipProductType::ASCEND950DT_9582,    1650},
+    {ChipProductType::ASCEND950DT_9583,    1650},
+    {ChipProductType::ASCEND950DT_9584,    1650},
+    {ChipProductType::ASCEND950DT_9585,    1650},
+    {ChipProductType::ASCEND950DT_9586,    1650},
+    {ChipProductType::ASCEND950DT_9587,    1650},
+    {ChipProductType::ASCEND950DT_9588,    1650},
+    {ChipProductType::ASCEND950PR_9589,    1650},
+    {ChipProductType::ASCEND950PR_958B,    1650},
+    {ChipProductType::ASCEND950DT_9591,    1800},
+    {ChipProductType::ASCEND950DT_9592,    1800},
+    {ChipProductType::ASCEND950DT_9595,    1800},
+    {ChipProductType::ASCEND950DT_9596,    1800},
+    {ChipProductType::ASCEND950PR_9599,    1800},
+    {ChipProductType::ASCEND950DT_95A1,    1800},
+    {ChipProductType::ASCEND950DT_95A2,    1800},
 };
 
 inline std::string GetPc2String(uint64_t pc)

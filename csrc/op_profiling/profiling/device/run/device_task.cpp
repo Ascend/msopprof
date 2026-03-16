@@ -48,7 +48,7 @@ bool DeviceTask::Run()
 
     DBIParser dbiParser(outputPath);
     ProfStub::InjectionEvent::Instance().RegisterPacketHandler(
-        {ProfStub::ProfPacketType::DBI_DATA, [&](const std::shared_ptr<ProfStub::Packet>& pkt, size_t) -> std::string {
+        {ProfPacketType::DBI_DATA, [&](const std::shared_ptr<ProfStub::Packet>& pkt, size_t) -> std::string {
             dbiParser.ParsePacket(pkt->GetClientId(), std::move(pkt->GetAskMsg()));
             return "";
         }}
@@ -85,7 +85,7 @@ bool DeviceTask::Run()
         }
     }
     dbiParser.WaitParseTask();
-    ProfStub::InjectionEvent::Instance().UnregisterPacketHandler(ProfStub::ProfPacketType::DBI_DATA);
+    ProfStub::InjectionEvent::Instance().UnregisterPacketHandler(ProfPacketType::DBI_DATA);
     if (realTimeDataParser_ != nullptr) {
         realTimeDataParser_->Stop();
     }

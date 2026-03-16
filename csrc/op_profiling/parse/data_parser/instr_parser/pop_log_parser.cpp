@@ -29,9 +29,9 @@ bool PopLogParser::ParseDumpLog(MatchMode matchMode)
     std::vector<std::string> splitDumpFileVec = dataParserConfig_.
         GetSplitFilesVec(corePrefix + "instr_popped_log", DUMP_SUFFIX);
     reverse(splitDumpFileVec.begin(), splitDumpFileVec.end());
-    Common::ChipProductType chiptTypeProduces = dataParserConfig_.GetProductSeriesType();
-    if (chiptTypeProduces == Common::ChipProductType::ASCEND910B_SERIES ||
-        chiptTypeProduces == Common::ChipProductType::ASCEND910_93_SERIES) {
+    ChipProductType chiptTypeProduces = dataParserConfig_.GetProductSeriesType();
+    if (chiptTypeProduces == ChipProductType::ASCEND910B_SERIES ||
+        chiptTypeProduces == ChipProductType::ASCEND910_93_SERIES) {
         useLogicalCore_ = true;
     }
     if (splitDumpFileVec.empty()) {
@@ -215,7 +215,7 @@ void PopLogParser::GetLogicalCoreName(const std::string &name, const std::string
 
 void PopLogParser::ParseRealTimeDumpLog(PoppedInstrParseInfo &poppedInstrParseInfo)
 {
-    if (dataParserConfig_.GetProductSeriesType() != Common::ChipProductType::ASCEND310P_SERIES) {
+    if (dataParserConfig_.GetProductSeriesType() != ChipProductType::ASCEND310P_SERIES) {
         useLogicalCore_ = true;
     }
     if (LineFilter(poppedInstrParseInfo)) {

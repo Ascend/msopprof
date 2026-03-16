@@ -37,13 +37,13 @@ struct PluginInfo {
     std::string pluginName;                         // 本插件的类名
     std::vector<std::type_index> mandatoryDb;       // 本插件必须得数据块
     std::vector<std::type_index> optionalDb;        // 本插件可选数据块
-    std::set<Common::ChipProductType> chipSupport;         // 本插件支持的芯片类型
+    std::set<ChipProductType> chipSupport;         // 本插件支持的芯片类型
     bool isKeyPlugin = false;  // 是否为关键插件，关键插件失败后，会停止后续流程导致整体失败 true表示关键插件
 };
 
 class PluginInterface {
 public:
-    explicit PluginInterface(DataCenter& dataCenter, Common::ChipProductType chipType)
+    explicit PluginInterface(DataCenter& dataCenter, ChipProductType chipType)
         : dataCenter_(dataCenter), chipType_(chipType) {};
     virtual ~PluginInterface() = default;
 
@@ -65,7 +65,7 @@ protected:
     virtual void DependencyRegister() = 0; // 要求调用DependencyRegisterxxxx系列接口实现注册
 
     // 父类提供的公共方法
-    bool DependencyCheck(Common::ChipProductType profChipType) const;
+    bool DependencyCheck(ChipProductType profChipType) const;
     void RegisterPluginName(const std::string& pluginName)
     {
         pluginInfo_.pluginName = pluginName;
@@ -81,9 +81,9 @@ protected:
         pluginInfo_.optionalDb = requiredDb;
     }
 
-    void RegisterChip(std::initializer_list<Common::ChipProductType> supportChipType)
+    void RegisterChip(std::initializer_list<ChipProductType> supportChipType)
     {
-        pluginInfo_.chipSupport = std::set<Common::ChipProductType>(supportChipType);
+        pluginInfo_.chipSupport = std::set<ChipProductType>(supportChipType);
     }
 
     void RegisterKeyPlugin(bool isKeyPlugin)
@@ -93,10 +93,10 @@ protected:
 
     PluginInfo pluginInfo_;
     DataCenter& dataCenter_;
-    Common::ChipProductType chipType_;
+    ChipProductType chipType_;
 
 private:
-    bool IsBaseProductTypeRegistered(const Common::ChipProductType &profChipType) const;
+    bool IsBaseProductTypeRegistered(const ChipProductType &profChipType) const;
     std::atomic<bool> isEntry_ {false};
 };
 

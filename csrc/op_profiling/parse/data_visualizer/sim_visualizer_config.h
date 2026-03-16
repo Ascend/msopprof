@@ -37,17 +37,17 @@ constexpr int DIR_DEFAULT_MODE = 0740;
 class SimVisualizerConfig {
 public:
     explicit SimVisualizerConfig(const std::string &outputPath, Profiling::Pc2CodeMap& pc2code,
-        uint32_t threads, Common::ChipProductType chipType = Common::ChipProductType::ASCEND910B_SERIES)
+        uint32_t threads, ChipProductType chipType = ChipProductType::ASCEND910B_SERIES)
         : outputPath_(outputPath), pc2code_(pc2code), threads_(threads), chipType_(chipType) {}
 
-    Common::ChipProductType GetChipType() const
+    ChipProductType GetChipType() const
     {
         return chipType_;
     }
 
-    Common::ChipProductType GetChipTypeProduct() const
+    ChipProductType GetChipTypeProduct() const
     {
-        return Common::GetProductSeriesType(chipType_);
+        return GetProductSeriesType(chipType_);
     }
 
     std::string &GetOutputPath()
@@ -68,7 +68,7 @@ private:
     std::string outputPath_;
     Profiling::Pc2CodeMap& pc2code_;
     uint32_t threads_;
-    Common::ChipProductType chipType_;
+    ChipProductType chipType_;
 };
 
 }

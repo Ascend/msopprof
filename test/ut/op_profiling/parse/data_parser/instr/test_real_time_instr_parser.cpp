@@ -49,7 +49,7 @@ SimDataParserConfig GetSimConfig ()
  */
 TEST(RealTimeInstrParser, test_set_instr_pop_log_success) {
     Common::ProfMetricsAbilityConfig metricsConfig;
-    RealTimeSimParseContext realTimeSimParseContext {{}, true, Common::ChipProductType::ASCEND910B_SERIES,
+    RealTimeSimParseContext realTimeSimParseContext {{}, true, ChipProductType::ASCEND910B_SERIES,
                                                      metricsConfig};
     RealTimeInstrParser realTimeInstrParser(realTimeSimParseContext);
     realTimeInstrParser.dataCenter_.DataStreamRegister<InstrParseInfoForRealTime>();
@@ -96,7 +96,7 @@ TEST(RealTimeInstrParser, test_set_instr_pop_log_success) {
 */
 TEST(RealTimeInstrParser, test_skip_core) {
     Common::ProfMetricsAbilityConfig metricsConfig;
-    RealTimeSimParseContext realTimeSimParseContext {{1}, true, Common::ChipProductType::ASCEND910B_SERIES,
+    RealTimeSimParseContext realTimeSimParseContext {{1}, true, ChipProductType::ASCEND910B_SERIES,
                                                      metricsConfig};
     RealTimeInstrParser realTimeInstrParser(realTimeSimParseContext);
     realTimeInstrParser.Start();

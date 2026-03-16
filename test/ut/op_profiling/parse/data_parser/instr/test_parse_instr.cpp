@@ -33,13 +33,13 @@ using namespace Profiling::Parse;
 using namespace Utility;
 using namespace Profiling;
 
-SimDataParserConfig GetSimConfig (const Common::ChipProductType &type, bool showSetWait) {
+SimDataParserConfig GetSimConfig (const ChipProductType &type, bool showSetWait) {
     std::string dumpPath910B = "test/ut/resources/dump/910B";
     std::string dumpPath91095 = "test/ut/resources/dump/91095";
     CoreNameAndPreFixPair coreNamePair910B {"core0.veccore0", "core0.veccore0."};
     CoreNameAndPreFixPair coreNamePair91095 {"core0.veccore0", "core0.veccore0."};
     std::set<int> parseIds = {0};
-    if (type == Common::ChipProductType::ASCEND950PR_9599) {
+    if (type == ChipProductType::ASCEND950PR_9599) {
         SimDataParserConfig config {dumpPath91095, coreNamePair91095, parseIds, showSetWait, type };
         return config;
     }
@@ -54,7 +54,7 @@ SimDataParserConfig GetSimConfig (const Common::ChipProductType &type, bool show
  */
 TEST(InstrParser, test_910B1_InstrParser_should_return_ture_when_parse_ok) {
     DataCenter dataCenter;
-    SimDataParserConfig config = GetSimConfig(Common::ChipProductType::ASCEND910B1, true);
+    SimDataParserConfig config = GetSimConfig(ChipProductType::ASCEND910B1, true);
     InstrParser instrParse {dataCenter, config};
     ASSERT_TRUE(instrParse.Entry() == PluginErrorCode::SUCCESS);
     auto instrPtr = dataCenter.GetDbPtr<InstrDetailTable>();
@@ -73,7 +73,7 @@ TEST(InstrParser, test_910B1_InstrParser_should_return_ture_when_parse_ok) {
  */
 TEST(InstrParser, test_9109599_InstrParser_should_return_ture_when_parse_ok) {
     DataCenter dataCenter;
-    SimDataParserConfig config = GetSimConfig(Common::ChipProductType::ASCEND950PR_9599, true);
+    SimDataParserConfig config = GetSimConfig(ChipProductType::ASCEND950PR_9599, true);
     InstrParser instrParse {dataCenter, config};
     ASSERT_TRUE(instrParse.Entry() == PluginErrorCode::SUCCESS);
     auto instrPtr = dataCenter.GetDbPtr<InstrDetailTable>();
@@ -169,7 +169,7 @@ TEST(AllPraseProcess, test_parse_real_time_is_skip_set_log_expect_false) {
     DataCenter dataCenter;
     Common::ProfMetricsAbilityConfig metricsConfig;
     RealTimeSimParseContext context {
-        {},false, Common::ChipProductType::ASCEND910B1, metricsConfig
+        {},false, ChipProductType::ASCEND910B1, metricsConfig
     };
     // create parser whose popLogParsers_ is empty
     RealTimeInstrParser parser(context);
@@ -183,7 +183,7 @@ TEST(AllPraseProcess, test_parse_real_time_is_skip_set_log_expect_true) {
     DataCenter dataCenter;
     Common::ProfMetricsAbilityConfig metricsConfig;
     RealTimeSimParseContext context {
-            {1},false, Common::ChipProductType::ASCEND910B1, metricsConfig
+            {1},false, ChipProductType::ASCEND910B1, metricsConfig
     };
     RealTimeInstrParser parser(context);
     SimDataParserConfig config {"core0", {}, false};
@@ -201,7 +201,7 @@ TEST(AllPraseProcess, test_parse_real_time_set_instr_and_instr_pop_log_expect_fa
     DataCenter dataCenter;
     Common::ProfMetricsAbilityConfig metricsConfig;
     RealTimeSimParseContext context {
-            {1},false, Common::ChipProductType::ASCEND910B1, metricsConfig
+            {1},false, ChipProductType::ASCEND910B1, metricsConfig
     };
     RealTimeInstrParser parser(context);
     InstrParseInfoForRealTime parserInfo;
@@ -235,7 +235,7 @@ TEST(AllPraseProcess, test_parse_real_time_set_instr_and_instr_pop_log_expect_su
     DataCenter dataCenter;
     Common::ProfMetricsAbilityConfig metricsConfig;
     RealTimeSimParseContext context {
-            {},false, Common::ChipProductType::ASCEND910B1, metricsConfig
+            {},false, ChipProductType::ASCEND910B1, metricsConfig
     };
     RealTimeInstrParser parser(context);
     InstrParseInfoForRealTime parserInfo;

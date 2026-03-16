@@ -240,9 +240,9 @@ bool SimDataParse::ParseMergeDumpData(const std::string &dumpPath, std::string &
     parseInfoStruct.path = dumpPath;
 
     DumpParserArgs dumpParserArgs;
-    auto it = Common::SOC_STRING_TO_CHIP_PRODUCT.find(socVersion_);
-    dumpParserArgs.chipType = it == Common::SOC_STRING_TO_CHIP_PRODUCT.end() ?
-                                Common::ChipProductType::UNKNOWN_PRODUCT_TYPE : it->second;
+    auto it = SOC_STRING_TO_CHIP_PRODUCT.find(socVersion_);
+    dumpParserArgs.chipType = it == SOC_STRING_TO_CHIP_PRODUCT.end() ?
+                                ChipProductType::UNKNOWN_PRODUCT_TYPE : it->second;
     dumpParserArgs.parseCoreIds = {};
     parseInfoStruct.chipType = dumpParserArgs.chipType;
     if (!MkdirRecusively(simulatorPath)) {

@@ -28,10 +28,10 @@
 using namespace Profiling::Parse;
 
 namespace TestProcessByte {
-DataCenter CreateTempDataCenter(Common::ChipProductType chipProductType)
+DataCenter CreateTempDataCenter(ChipProductType chipProductType)
 {
     Profiling::MergeInfo mergeInfo;
-    if (chipProductType == Common::ChipProductType::ASCEND310P_SERIES) {
+    if (chipProductType == ChipProductType::ASCEND310P_SERIES) {
         mergeInfo.name = "mov_out_to_ub";
         mergeInfo.detail = "xd:2, xn:1, xm:0, xdValue:0x23000, xnValue:0x114f1000, xmValue:0x10010, srcIDValue:2, destIDValue:1, reluValue:0, padValue:0";
     } else {
@@ -57,7 +57,7 @@ using namespace TestProcessByte;
  * | 用例描述 | 测试DependencyRegister函数应该正确注册插件信息
  */
 TEST(ProcessBytesCalculatorUt, test_DependencyRegister_should_success_register_plugin_info) {
-    InstrDetailConfig instrDetailContext {Common::ChipProductType::ASCEND910B_SERIES};
+    InstrDetailConfig instrDetailContext {ChipProductType::ASCEND910B_SERIES};
     DataCenter dataCenter;
     ProcessBytesCalculator processBytesCalculator {dataCenter, instrDetailContext};
 
@@ -65,9 +65,9 @@ TEST(ProcessBytesCalculatorUt, test_DependencyRegister_should_success_register_p
     ASSERT_EQ(processBytesCalculator.pluginInfo_.pluginName, "ProcessBytesCalculator");
     std::vector<std::type_index> checkMandatoryDb = {typeid(InstrDetailTable)};
     ASSERT_EQ(processBytesCalculator.pluginInfo_.mandatoryDb, checkMandatoryDb);
-    std::set<Common::ChipProductType> checkChipSupport = {Common::ChipProductType::ASCEND310P_SERIES,
-                                                          Common::ChipProductType::ASCEND910B_SERIES,
-                                                          Common::ChipProductType::ASCEND910_93_SERIES};
+    std::set<ChipProductType> checkChipSupport = {ChipProductType::ASCEND310P_SERIES,
+                                                          ChipProductType::ASCEND910B_SERIES,
+                                                          ChipProductType::ASCEND910_93_SERIES};
     ASSERT_EQ(processBytesCalculator.pluginInfo_.chipSupport, checkChipSupport);
 }
 
@@ -78,7 +78,7 @@ TEST(ProcessBytesCalculatorUt, test_DependencyRegister_should_success_register_p
  * | 用例描述 | 测试Entry函数在A2上的计算结果是否正确
  */
 TEST(ProcessBytesCalculatorUt, test_Entry_should_success_and_save_result_into_data_center_on_A2) {
-    Common::ChipProductType testChipType = Common::ChipProductType::ASCEND910B_SERIES;
+    ChipProductType testChipType = ChipProductType::ASCEND910B_SERIES;
     InstrDetailConfig instrDetailContext {testChipType};
     DataCenter dataCenter = CreateTempDataCenter(testChipType);
     ProcessBytesCalculator processBytesCalculator {dataCenter, instrDetailContext};
@@ -102,7 +102,7 @@ TEST(ProcessBytesCalculatorUt, test_Entry_should_success_and_save_result_into_da
  * | 用例描述 | 测试Entry函数在310P上的计算结果是否正确
  */
 TEST(ProcessBytesCalculatorUt, test_Entry_should_success_and_save_result_into_data_center_on_310P) {
-    Common::ChipProductType testChipType = Common::ChipProductType::ASCEND310P_SERIES;
+    ChipProductType testChipType = ChipProductType::ASCEND310P_SERIES;
     InstrDetailConfig instrDetailContext {testChipType};
     DataCenter dataCenter = CreateTempDataCenter(testChipType);
     ProcessBytesCalculator processBytesCalculator {dataCenter, instrDetailContext};

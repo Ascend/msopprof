@@ -59,7 +59,7 @@ struct MteLogInstrInfo {
 struct MteLogCfg {
     uint32_t coreId;
     std::string dumpFile;
-    Common::ChipProductType chipType;
+    ChipProductType chipType;
 };
 
 using MteLogInstrMap = std::unordered_map<uint64_t, MteLogInstrInfo>;  // key:instr_id

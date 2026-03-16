@@ -35,9 +35,9 @@ public:
     {
         RegisterPluginName("ProcessBytesCalculator");
         RegisterMandatoryDb({typeid(InstrDetailTable)});
-        RegisterChip({Common::ChipProductType::ASCEND310P_SERIES,
-                      Common::ChipProductType::ASCEND910B_SERIES,
-                      Common::ChipProductType::ASCEND910_93_SERIES});
+        RegisterChip({ChipProductType::ASCEND310P_SERIES,
+                      ChipProductType::ASCEND910B_SERIES,
+                      ChipProductType::ASCEND910_93_SERIES});
     }
 };
 

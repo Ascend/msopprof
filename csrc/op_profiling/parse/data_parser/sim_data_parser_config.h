@@ -31,23 +31,23 @@ class SimDataParserConfig {
 public:
     explicit SimDataParserConfig(std::string dumpDir, CoreNameAndPreFixPair  coreInfo,
         const std::set<int> &parseCoreId, bool enableResourceConflictRatio,
-        Common::ChipProductType chipType = Common::ChipProductType::ASCEND910B_SERIES)
+        ChipProductType chipType = ChipProductType::ASCEND910B_SERIES)
         : parseCoreId_(parseCoreId), enableResourceConflictRatio_(enableResourceConflictRatio), chipType_(chipType),
         coreName_(coreInfo.first), dumpDir_(std::move(dumpDir)), coreInfo_(std::move(coreInfo)) {}
 
     explicit SimDataParserConfig(std::string coreName, const std::set<int> &parseCoreId,
-        bool enableResourceConflictRatio, Common::ChipProductType chipType = Common::ChipProductType::ASCEND910B_SERIES)
+        bool enableResourceConflictRatio, ChipProductType chipType = ChipProductType::ASCEND910B_SERIES)
         : parseCoreId_(parseCoreId), enableResourceConflictRatio_(enableResourceConflictRatio), chipType_(chipType),
         coreName_(std::move(coreName)) {}
 
-    Common::ChipProductType GetChipType() const
+    ChipProductType GetChipType() const
     {
         return chipType_;
     }
 
-    Common::ChipProductType GetProductSeriesType() const
+    ChipProductType GetProductSeriesType() const
     {
-        return Common::GetProductSeriesType(chipType_);
+        return ::GetProductSeriesType(chipType_);
     }
 
     void SetEnableResourceConflictRatio(bool enableResourceConflictRatio)
@@ -123,7 +123,7 @@ public:
 private:
     std::set<int> parseCoreId_;
     bool enableResourceConflictRatio_ = true;
-    Common::ChipProductType chipType_;
+    ChipProductType chipType_;
     std::string coreName_;
     // dump parser only
     std::string dumpDir_;

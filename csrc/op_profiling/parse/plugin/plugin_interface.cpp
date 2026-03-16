@@ -38,13 +38,13 @@ PluginErrorCode PluginInterface::Run()
     return Entry();
 }
 
-bool PluginInterface::IsBaseProductTypeRegistered(const Common::ChipProductType &profChipType) const
+bool PluginInterface::IsBaseProductTypeRegistered(const ChipProductType &profChipType) const
 {
-    auto profChipBaseProductType = Common::GetProductSeriesType(profChipType);
+    auto profChipBaseProductType = GetProductSeriesType(profChipType);
     return pluginInfo_.chipSupport.find(profChipBaseProductType) != pluginInfo_.chipSupport.end();
 }
 
-bool PluginInterface::DependencyCheck(Common::ChipProductType profChipType) const
+bool PluginInterface::DependencyCheck(ChipProductType profChipType) const
 {
     // mandatory dbs are checked, optional db is checked in Entry by plugin functionality
     std::vector<bool> dbRes = dataCenter_.IsRequiredDbExist(pluginInfo_.mandatoryDb);
@@ -52,7 +52,7 @@ bool PluginInterface::DependencyCheck(Common::ChipProductType profChipType) cons
         return false;
     }
     // 准备执行的profChipType是否插件支持。通过情况:全芯片支持 或 所属的芯片系列 或 具体芯片类型 被注册在pluginInfo_中
-    if (pluginInfo_.chipSupport.find(Common::ChipProductType::ALL_PRODUCT_TYPE) == pluginInfo_.chipSupport.end() &&
+    if (pluginInfo_.chipSupport.find(ChipProductType::ALL_PRODUCT_TYPE) == pluginInfo_.chipSupport.end() &&
         !IsBaseProductTypeRegistered(profChipType) &&
         pluginInfo_.chipSupport.find(profChipType) == pluginInfo_.chipSupport.end()) {
         return false;

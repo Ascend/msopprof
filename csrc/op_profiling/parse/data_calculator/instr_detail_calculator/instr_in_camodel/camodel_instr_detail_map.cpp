@@ -34,11 +34,11 @@ const RegDetailRegexMap A2A3RegDetailRegexMap = {
     {RegNameKey::CONV_TYPE,    std::regex("Conv_type:([A-Za-z0-9]+)")},
 };
 
-const std::unordered_map<Common::ChipProductType, RegDetailRegexMap> RegDetailRegexChipBase = {
+const std::unordered_map<ChipProductType, RegDetailRegexMap> RegDetailRegexChipBase = {
     // current support 310P A2 A3
-    {Common::ChipProductType::ASCEND910B_SERIES, A2A3RegDetailRegexMap},
-    {Common::ChipProductType::ASCEND910_93_SERIES, A2A3RegDetailRegexMap},
-    {Common::ChipProductType::ASCEND310P_SERIES, {
+    {ChipProductType::ASCEND910B_SERIES, A2A3RegDetailRegexMap},
+    {ChipProductType::ASCEND910_93_SERIES, A2A3RegDetailRegexMap},
+    {ChipProductType::ASCEND310P_SERIES, {
         {RegNameKey::XD_VALUE, std::regex("xdValue:(?:0x)?([0-9a-f]+)")},
         {RegNameKey::XN_VALUE, std::regex("xnValue:(?:0x)?([0-9a-f]+)")},
         {RegNameKey::XM_VALUE, std::regex("xmValue:(?:0x)?([0-9a-f]+)")},
@@ -61,7 +61,7 @@ const std::unordered_map<Common::ChipProductType, RegDetailRegexMap> RegDetailRe
     }},
 };
 
-bool GetRegDetailRegexMap(Common::ChipProductType seriesChipType, RegDetailRegexMap &resMap)
+bool GetRegDetailRegexMap(ChipProductType seriesChipType, RegDetailRegexMap &resMap)
 {
     auto it = RegDetailRegexChipBase.find(seriesChipType);
     if (it == RegDetailRegexChipBase.end()) {

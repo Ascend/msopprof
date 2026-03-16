@@ -28,7 +28,7 @@
 
 namespace Profiling {
 
-float GetMicrosecond(Common::ChipProductType chipType,  int64_t cycles, int roundParam = 3);
+float GetMicrosecond(ChipProductType chipType,  int64_t cycles, int roundParam = 3);
 
 class SimDataParse : public DataParse {
 public:
