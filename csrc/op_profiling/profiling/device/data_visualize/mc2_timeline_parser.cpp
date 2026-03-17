@@ -289,7 +289,7 @@ void MC2TimelineParser::PreProcessData(AicoreTimelineParser &timelineParser,
     GetAicpuDatas(aicpuTurns, aicpuHcclTasks);
 }
 
-void ProcessOperationStart(const MsprofAicTimeStampInfo& item, const string& operationType,
+void ProcessOperationStart(const MsprofAicTimeStampInfo& item, const string& operationType, const std::string &type,
                            unordered_map<string, OperationInfo>& operationMap)
 {
     uint32_t descId = item.descId;
@@ -304,6 +304,7 @@ void ProcessOperationStart(const MsprofAicTimeStampInfo& item, const string& ope
             operationMap[operationType].blockId = blockId;
             operationMap[operationType].startCurPc = curPc;
             operationMap[operationType].startFound = true;
+            operationMap[operationType].type = type;
         }
     }
 }
@@ -336,7 +337,7 @@ json MC2TimelineParser::BuildAicoreDot(const OperationInfo& info, const string& 
         * TIME_CONVERSION;
     resultItem["name"] = operationType;
     resultItem["ph"] = "X";
-    resultItem["pid"] = GetAicoreTimeLinePid(info.blockId);
+    resultItem["pid"] = info.type;
     resultItem["tid"] = info.blockId;
     resultItem["ts"] = static_cast<float>(SafeSub(info.startSyscyc, minSysCyc_, location, false)) / aicpuFreq_
         * TIME_CONVERSION;
@@ -362,27 +363,31 @@ void MC2TimelineParser::ProcessAicoreData(AicoreTimelineParser &timelineParser, 
     set<uint16_t> dotBlockIds;
     // add aicore dot
     unordered_map<string, OperationInfo> operationMap;
-    for (const auto& item: aicoreTimeStamps) {
+    // add aicore block duration
+    timelineParser.ProcessBlockDur(aicoreTimeStamps, type);
+    auto blockDur = timelineParser.GetBlockDurRange();
+    for (uint32_t i = 0; i < aicoreTimeStamps.size(); i++) {
+        auto &item = aicoreTimeStamps[i];
         if (AICORE_DOT_MAP.find(item.descId) == AICORE_DOT_MAP.end()) {
             continue;
         }
         dotBlockIds.insert(item.blockId);
         uint32_t descId = item.descId;
-        const string& operationType = AICORE_DOT_MAP.at(descId); // descId has been verified, must be in AICORE_DOT_MAP
-
-        ProcessOperationStart(item, operationType, operationMap);
+        string colorType = AICORE_DOT_MAP.at(descId); // descId has been verified, must be in AICORE_DOT_MAP
+        std::string operationType =  AICORE_DOT_MAP.at(descId) + type[i] + std::to_string(item.blockId);
+        ProcessOperationStart(item, operationType, type[i], operationMap);
         ProcessOperationEnd(item, operationType, operationMap);
-
-        if (operationMap[operationType].startFound && operationMap[operationType].endFound) {
-            json resultItem = BuildAicoreDot(operationMap[operationType], operationType);
-            traceEvents_.push_back(resultItem);
-
-            operationMap[operationType].startFound = false;
-            operationMap[operationType].endFound = false;
+        if (!operationMap[operationType].startFound || !operationMap[operationType].endFound) {
+           continue;
         }
+        if (blockDur[{type[i], item.blockId}].first > operationMap[operationType].startSyscyc || blockDur[{type[i], item.blockId}].second < operationMap[operationType].endSyscyc) {
+            continue;
+        }
+        json resultItem = BuildAicoreDot(operationMap[operationType], colorType);
+        traceEvents_.push_back(resultItem);
+        operationMap[operationType].startFound = false;
+        operationMap[operationType].endFound = false;
     }
-    // add aicore block duration
-    timelineParser.ProcessBlockDur(aicoreTimeStamps, type);
     timelineParser.ProcessAicoreData(aicoreTimeStamps, type);
     auto res = timelineParser.GetTraceEvent();
     for (auto &item: res) {

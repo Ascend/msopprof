@@ -82,8 +82,11 @@ void AicoreTimelineParser::GetTimeStampType(std::vector<MsprofAicTimeStampInfo> 
         }
     }
     if (isOldVersion) {
-        for (const auto &item : aicoreTimeStamps) {
+        for (auto &item : aicoreTimeStamps) {
             type.emplace_back(GetAicoreTimeLinePid(item.blockId));
+            if (item.blockId >= CUBE_BLOCK_START_INDEX) {
+                item.blockId -= CUBE_BLOCK_START_INDEX;
+            }
         }
         return;
     }
@@ -161,18 +164,6 @@ void AicoreTimelineParser::ProcessBlockDur(const std::vector<MsprofAicTimeStampI
     std::set<uint16_t> aicDotBlockIds;
     std::set<uint16_t> aivDotBlockIds;
     std::unordered_map<std::string, OperationInfo> operationMap;
-    for (uint32_t i = 0; i < aicoreTimeStamps.size(); i++) {
-        auto &item = aicoreTimeStamps[i];
-        if (type.size() <= i) {
-            break;
-        }
-        if (type[i] == AIV_BLOCK) {
-            aivDotBlockIds.insert(item.blockId);
-        } else {
-            aicDotBlockIds.insert(item.blockId);
-        }
-    }
-
     // add aicore block duration
     AddAicoreBlockDur(blockSystemTimes_, aicDotBlockIds, aivDotBlockIds);
     // sort aicore timeline
@@ -188,9 +179,9 @@ void AicoreTimelineParser::ProcessBlockDur(const std::vector<MsprofAicTimeStampI
                 json sortItem;
                 sortItem["ph"] = "M";
                 sortItem["name"] = "thread_sort_index";
-                sortItem["pid"] = type + std::to_string(dotBlockId);
+                sortItem["pid"] = type;
                 sortItem["tid"] = dotBlockId;
-                sortItem["args"]["sort_index"] = SORT_BIAS + dotBlockId;
+                sortItem["args"]["sort_index"] = dotBlockId;
                 traceEvents_.push_back(sortItem);
         }
     };
@@ -214,6 +205,7 @@ void AicoreTimelineParser::ProcessAicoreData(const std::vector<MsprofAicTimeStam
             info.startSyscyc = item.syscyc;
             info.endFound = false;
             info.startCurPc = item.curPc;
+            info.type = type[i];
             timeStampInfo_[key].emplace_back(info);
         } else {
             timeStampInfo_[key].back().endFound = true;

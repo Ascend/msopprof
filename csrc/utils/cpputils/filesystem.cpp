@@ -24,6 +24,8 @@
 #include <limits>
 #include <sys/mman.h>
 #include <array>
+#include <dirent.h>
+#include <sys/types.h>
 #include "number_operation.h"
 #include "filesystem.h"
 
@@ -765,5 +767,33 @@ bool AppendLinesToFile(const std::string& fileName, const std::vector<std::strin
     }
     outFile.close();
     return true;
+}
+
+void SearchDirRecursive(const std::string &searchPath, const std::string &targetDirName, std::vector<std::string> &targetPath, int deep)
+{
+    if (deep > 6) {
+        return;
+    }
+
+    DIR* dir = opendir(searchPath.c_str());
+    if (!dir) {
+        return;
+    }
+    struct dirent* entry;
+    while((entry = readdir(dir)) != nullptr) {
+        std::string name = entry->d_name;
+        if (name == "." || name == "..") {
+            continue;
+        }
+        std::string fullPath = searchPath + PATH_SEP + name;
+        if (!IsDir(fullPath)) {
+            continue;
+        }
+        if (name == targetDirName) {
+            targetPath.push_back(fullPath);
+        }
+        SearchDirRecursive(fullPath, targetDirName, targetPath, deep + 1);
+    }
+    closedir(dir);
 }
 }

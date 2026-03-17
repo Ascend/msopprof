@@ -43,6 +43,7 @@ struct OperationInfo {
     uint64_t endSyscyc;
     bool startFound;
     bool endFound;
+    std::string type;
 };
 
 
@@ -127,6 +128,7 @@ public:
     uint64_t GetMinSysCycle() { return minSysCyc_; }
     json GetTraceEvent() {return traceEvents_; }
     void ProcessAicoreData(const std::vector<MsprofAicTimeStampInfo> &aicoreTimeStamps, std::vector<std::string> &type);
+    std::map<std::pair<std::string, uint32_t>, std::pair<uint64_t, uint64_t>> GetBlockDurRange() { return  blockDuration_; };
 private:
     void AddAicoreBlockDur(const BlockSystemTimeType &blockSystemTimes, std::set<uint16_t> &aicDotBlockIds, std::set<uint16_t> &aivDotBlockIds);
     void GetTimeStampType(std::vector<MsprofAicTimeStampInfo> &aicoreTimeStamps, std::vector<std::string> &type);

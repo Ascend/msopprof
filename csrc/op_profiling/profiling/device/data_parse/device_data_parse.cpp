@@ -303,11 +303,30 @@ bool DeviceDataParse::ParserInit()
     return true;
 }
 
+void DeviceDataParse::CopyTimeStamp(const std::string &filePath)
+{
+    using namespace std::experimental::filesystem;
+    std::experimental::filesystem::path outputPath {filePath};
+    for (const auto &dirs : directory_iterator(outputPath)) {
+        std::string curpath = dirs.path().string();
+        std::string timeStampPath = JoinPath({curpath, "aic_timestamp.bin"});
+        if (IsExist(timeStampPath)) {
+            std::vector<std::string> results;
+            SearchDirRecursive(curpath, "dump", results, 0);
+            for (const auto &res : results) {
+                CopyFile(timeStampPath, res);
+            }
+            RemoveAll(timeStampPath);
+        }
+    }
+}
+
 bool DeviceDataParse::Execute(std::string dataPath)
 {
     if (!ParserInit()) {
         return false;
     }
+    CopyTimeStamp(dataPath);
     std::string tmpPath = JoinPath({dataPath, "tmp_dump"});
     ParseTmpDump(tmpPath);
     if (IsExist(tmpPath) && (Utility::Log::GetLog().GetLogLv() > Utility::LogLv::DEBUG)) {
@@ -492,11 +511,6 @@ void DeviceDataParse::GenerateRangeKernelBin(const vector<string> &outputVec, co
     }
     string durBinPath = JoinPath({outputPath, "duration.bin"});
     WriteBinaryFile(durBinPath, iter->second.data(), iter->second.size());
-    string timeStampPath = JoinPath({path, "aic_timestamp.bin"});
-    if (IsExist(timeStampPath)) {
-        string parserTimeStamp = JoinPath({outputPath, "aic_timestamp.bin"});
-        CopyFile(timeStampPath, parserTimeStamp);
-    }
     rangeReplayDurBinMap_.erase(streamAndTaskId);
 }
 

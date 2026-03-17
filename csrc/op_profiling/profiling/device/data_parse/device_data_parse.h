@@ -44,6 +44,7 @@ private:
         Common::MetricEventsMapType aicMetricEventsMap;
         Common::MetricEventsMapType aivMetricEventsMap;
     };
+    void CopyTimeStamp(const std::string &filePath);
     void GetCalMetricItems(const Common::ProfMetricsAbilityConfig &metrics);
     std::map<std::string, ProfBinInfo, FileNameCompare> GetProfBinInfo(const Common::ProfMetricsAbilityConfig &metrics,
                                                       const Common::PmuEventsId &pmuEventsId) const;

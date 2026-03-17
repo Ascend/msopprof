@@ -301,6 +301,7 @@ void ReadFileByMMap(const std::string &fileName, std::vector<std::string> &fileL
 bool ReadBinFileByMultiStruct(const std::string& filePath, const size_t& fileSize, const size_t& structSize,
                               std::vector<char>& binData);
 bool AppendLinesToFile(const std::string& fileName, const std::vector<std::string> &lines);
+void SearchDirRecursive(const std::string &searchPath, const std::string &targetDirName, std::vector<std::string> &targetPath, int deep);
 } // namespace Gather
 
 #endif  // __CPPUTILS_FILESYSTEM_H__
