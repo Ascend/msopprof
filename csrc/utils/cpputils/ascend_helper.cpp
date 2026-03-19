@@ -88,6 +88,12 @@ std::string GetMsopprofPath()
     }
 }
 
+const std::map<std::string, std::string> CHIP_TO_DEFAULT_SOC {
+    {"dav_2002", "Ascend310P1"},
+    {"dav_2201", "Ascend910B1"},
+    {"dav_3510", "Ascend950PR_9599"},
+};
+
 bool GetSocVersionFromEnvVar(std::string &socVersion)
 {
     std::string ascendHomePath;
@@ -104,15 +110,22 @@ bool GetSocVersionFromEnvVar(std::string &socVersion)
     Utility::Split(pathFromEnv, std::back_inserter(envs), ":");
 
     std::smatch pathMatch;
-    std::regex pattern("(Ascend\\d{3}[0-9a-zA-Z_]{0,8})/lib");
+    std::regex pattern("(Ascend\\d{3}[0-9a-zA-Z_]{0,8}|dav_\\d{4})/lib");
     RollbackPath(ascendHomePath, 1);
     for (const std::string &path: envs) {
         if (!StartsWith(path, ascendHomePath)) {
             continue;
         }
         if (std::regex_search(path, pathMatch, pattern)) {
-            socVersion = pathMatch[1];
-            return true;
+            if (StartsWith(pathMatch[1], "Ascend")) {
+                socVersion = pathMatch[1];
+                return true;
+            }
+            auto it = CHIP_TO_DEFAULT_SOC.find(pathMatch[1]);
+            if (it != CHIP_TO_DEFAULT_SOC.end()) {
+                socVersion = it->second;
+                return true;
+            }     
         }
     }
     return false;

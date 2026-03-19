@@ -442,6 +442,10 @@ bool ArgChecker::CheckSimSocVersion(const Common::ProfArgs &config, std::string 
         msg = "$ASCEND_HOME_PATH not found";
         return false;
     }
+    if (StartsWith(config.argSocVersion, "Ascend950") &&
+        SOC_STRING_TO_CHIP_PRODUCT.find(config.argSocVersion) != SOC_STRING_TO_CHIP_PRODUCT.end()) {
+        return true;
+    }
     std::vector<std::string> sims;
     if (!GetFileNames(ascendHomePath + "/tools/simulator", sims)) {
         msg = "get simulator failed, please check $ASCEND_HOME_PATH/tools/simulator";

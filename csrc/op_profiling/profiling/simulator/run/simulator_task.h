@@ -54,12 +54,16 @@ public:
         std::string ascendHomePath;
         Utility::GetAscendHomePath(ascendHomePath);
         if (isSetSocVersion) {
-            env["LD_LIBRARY_PATH"] = Utility::JoinPath({ascendHomePath, "tools/simulator",
-                profConfig->socVersion_, "lib"});
+            auto tmpSoc = profConfig->socVersion_;
+            if (Utility::StartsWith(profConfig->socVersion_, "Ascend950") &&
+                SOC_STRING_TO_CHIP_PRODUCT.find(profConfig->socVersion_) != SOC_STRING_TO_CHIP_PRODUCT.end()) {
+                tmpSoc = "dav_3510";
+            }
+            env["LD_LIBRARY_PATH"] = Utility::JoinPath({ascendHomePath, "tools/simulator", tmpSoc, "lib"});
         }
         tmpPath_ = Utility::JoinPath({profConfig->output_, "device0", TMP_DUMP});
         outputPath = profConfig->output_;
-        env["CAMODEL_SOC_VERSION"] = profConfig->socVersion_;
+        env["CAMODEL_SOC_VERSION"] = simSocVersion;
         env["CAMODEL_LOG_PATH"] = tmpPath_;
         env["IS_SIMULATOR_ENV"] = "true";
         isMstxEnable = profConfig->isMstxEnable_;

@@ -419,6 +419,20 @@ TEST(ArgChecker, args_with_sim_soc_version_check_success)
     ASSERT_TRUE(checker2.CheckSimSocVersion(args, msg));
 }
 
+TEST(ArgChecker, args_with_sim_soc_version_in_chip_product_success)
+{
+    ProfArgs args;
+    std::string msg;
+    MOCKER(&Utility::GetAscendHomePath)
+        .stubs()
+        .will(returnValue(true));
+    ArgChecker checker("simulator");
+    args.cmd = { "./app" };
+    args.runMode = { "simulator" };
+    args.argSocVersion = { "Ascend950DT_9573" };
+    ASSERT_TRUE(checker.CheckSimSocVersion(args, msg));
+}
+
 TEST(ArgChecker, args_with_sim_soc_version_get_ascend_home_path_failed)
 {
     GlobalMockObject::verify();

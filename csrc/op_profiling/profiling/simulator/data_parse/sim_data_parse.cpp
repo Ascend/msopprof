@@ -123,9 +123,6 @@ bool SimDataParse::Execute(std::string dataPath)
         LogWarn("Ascend path not found");
         return false;
     }
-    if (socVersion_.empty()) {
-        socVersion_ = Common::RuntimeHelper::Instance().GetSocVersion();
-    }
     if (!exportPath_.empty()) {
         return ParseExportDumpFile(dataPath);
     }
