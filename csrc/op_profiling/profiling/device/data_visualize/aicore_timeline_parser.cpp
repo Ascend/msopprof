@@ -66,19 +66,20 @@ void AicoreTimelineParser::GenPc2Code(std::vector<MsprofAicTimeStampInfo> &aicor
 // 旧版本中使用原逻辑获取当前记录类型，新版本使用物理核值区分记录类型
 void AicoreTimelineParser::GetTimeStampType(std::vector<MsprofAicTimeStampInfo> &aicoreTimeStamps, std::vector<std::string> &type)
 {
-    if (aicBlocKNum_ + aivBlockNum_ == 1) {
-        std::string allType = aicBlocKNum_ == 1 ? AIC_BLOCK : AIV_BLOCK;
-        for (uint32_t i = 0; i< aicoreTimeStamps.size(); i++) {
-            type.emplace_back(allType);
-        }
-        return;
-    }
     bool isOldVersion = true;
     for (const auto &item : aicoreTimeStamps) {
         uint16_t physicalId = static_cast<uint32_t>(item.blockId >> 16);
         if (physicalId != 0) {
             isOldVersion = false;
             break;
+        }
+    }
+    if (aicBlocKNum_ == 1 && aivBlockNum_ == 0) {
+        for (const auto &item : aicoreTimeStamps) {
+            if (item.blockId <= CUBE_BLOCK_START_INDEX) {
+                isOldVersion = false;
+                break;
+            }
         }
     }
     if (isOldVersion) {

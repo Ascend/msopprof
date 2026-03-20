@@ -217,7 +217,11 @@ void SimDataParse::HandleDumpLog(const std::string &tmpOutputPath) const
         if (IsDir(dir_entry.path())) {
             continue;
         }
-        CopyFile(dir_entry.path().string(), outputPath);
+        bool retCopy = CopyFile(dir_entry.path().string(), outputPath);
+        if (retCopy) {
+            std::string dstFilePath = JoinPath({outputPath, dir_entry.path().filename().string()});
+            chmod(dstFilePath.c_str(), SAVE_DATA_FILE_AUTHORITY);
+        }
     }
 }
 
