@@ -37,10 +37,10 @@ public:
     void SetPcSet(const std::set<uint64_t> &pcSet) { pcSet_ = pcSet; }
     bool GetPcSetByKernelName(const std::string &kernelName);
     bool Parse();
-    uint64_t GetStartPc();
-    Pc2CodeMap GetPc2Code() { return pc2code_; }
+    uint64_t GetStartPc() const;
+    Pc2CodeMap GetPc2Code() const { return pc2code_; }
 private:
-    uint64_t GetStartPcFromTxt();
+    uint64_t GetStartPcFromTxt() const;
     void GetAllPc(const std::string &start, const std::string &size);
     void GenPc2CodeBySymbol(const std::vector<Symbol> &symbols, uint64_t pc);
     bool GenPc2Code(const std::vector<Offset2Line>& addr2Lines, uint64_t startPc);

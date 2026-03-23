@@ -49,7 +49,7 @@ public:
     template<typename... Args>
     inline void Printf(std::string const &format, LogLv lv, Args &&... args) const;
     void SetLogLevelByEnvVar();
-    LogLv GetLogLv() { return lv_; }
+    LogLv GetLogLv() const { return lv_; }
 
 private:
     Log(void) = default;

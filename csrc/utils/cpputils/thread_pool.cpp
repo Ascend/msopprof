@@ -115,7 +115,7 @@ uint32_t ThreadPool::GetUnassignedTasksNum()
     return taskQueue_.size();
 }
 
-uint32_t ThreadPool::GetThreadsNum()
+uint32_t ThreadPool::GetThreadsNum() const
 {
     return threads_.size();
 }

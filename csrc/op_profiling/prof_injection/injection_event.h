@@ -49,7 +49,7 @@ private:
         Stop();
     }
     void DisposeAsk();
-    std::string ProcessConfigDataEvent(const std::shared_ptr<Packet>& packPtr, size_t clientId);
+    std::string ProcessConfigDataEvent(const std::shared_ptr<Packet>& packPtr, size_t clientId) const;
     void Distribute(size_t clientId, const std::string &msg);
 
     std::thread listenThread_;

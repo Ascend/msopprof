@@ -673,6 +673,9 @@ void DataHandlerOf910B::Statics(std::vector<MemRecord> &memoryRecords,
     std::map<uint64_t, std::map<std::string, uint64_t>> &dataSize)
 {
     auto getReq = [](uint64_t x, uint64_t align) -> uint64_t {
+        if (align == 0) {
+            return 0;
+        }
         return (x + align - 1) / align;
     };
     // blockId->{GM_TO_L0A, GM_TO_L0B,GM_TO_L1}

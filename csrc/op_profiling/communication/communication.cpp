@@ -67,7 +67,7 @@ void Communication::MsgSend()
     }
 }
 
-int Communication::Write(size_t clientId, const std::string &msg)
+int Communication::Write(size_t clientId, const std::string &msg) const
 {
     return server_.Notify(clientId, msg);
 }

@@ -125,8 +125,8 @@ public:
     void GenPc2Code(std::vector<MsprofAicTimeStampInfo> &aicoreTimeStamps);
     void ProcessBlockDur(const std::vector<MsprofAicTimeStampInfo> &aicoreTimeStamps, std::vector<std::string> &type);
     void SetOutputPath(const std::string &outputPath) { outputPath_ = outputPath; };
-    uint64_t GetMinSysCycle() { return minSysCyc_; }
-    json GetTraceEvent() {return traceEvents_; }
+    uint64_t GetMinSysCycle() const { return minSysCyc_; }
+    json GetTraceEvent() const {return traceEvents_; }
     void ProcessAicoreData(const std::vector<MsprofAicTimeStampInfo> &aicoreTimeStamps, std::vector<std::string> &type);
     std::map<std::pair<std::string, uint32_t>, std::pair<uint64_t, uint64_t>> GetBlockDurRange() { return  blockDuration_; };
 private:

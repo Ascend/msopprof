@@ -231,7 +231,7 @@ private:
     template<typename T>
     uint16_t GetSplitColumn(const T &record, uint16_t nColumn) const;
     template <uint32_t alignSize, typename T>
-    T AlignUp(T value);
+    T AlignUp(T value) const;
     void ParseMemoryChart(std::size_t key, const std::string &msg, const DBIDataHeader &dbiDataHeader);
     void TryDumpMemoryChartMetrics(std::size_t clientId);
     void PacketHandler(std::size_t clientId, const std::string &msg);

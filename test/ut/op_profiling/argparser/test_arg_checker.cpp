@@ -16,9 +16,9 @@
 
 
 #include <cstdlib>
+#include <unistd.h>
 #include <gtest/gtest.h>
 #include "mockcpp/mockcpp.hpp"
-#include <unistd.h>
 
 #include "filesystem.h"
 #include "ascend_helper.h"

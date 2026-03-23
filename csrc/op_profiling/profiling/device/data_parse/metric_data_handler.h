@@ -123,25 +123,25 @@ public:
     // 最后一次重放采集的BlockId与对应物理CoreId，因为每次重放的物理coreId不相同，BlockId相同，所以只记录最后一次重放的coreId数据
     std::vector<std::pair<uint16_t, uint16_t>> blockIdCoreIdPairVec_;
 
-    std::map<uint16_t, std::vector<float>> GetBlockDetailMap() { return blockDetailMap_; }
-    std::vector<Visualize::ComputeLoadBlockDetail> GetComputeLoadBlockDetailVec() {return computeLoadBlockDetailVec_; }
-    std::vector<Visualize::MemMapDetail> GetMemMapDetail() {return memMapDetail_; }
+    std::map<uint16_t, std::vector<float>> GetBlockDetailMap() const { return blockDetailMap_; }
+    std::vector<Visualize::ComputeLoadBlockDetail> GetComputeLoadBlockDetailVec() const { return computeLoadBlockDetailVec_; }
+    std::vector<Visualize::MemMapDetail> GetMemMapDetail() const { return memMapDetail_; }
     std::vector<std::pair<uint16_t, uint16_t>> GetBlockIdCoreIdPairVec() const { return blockIdCoreIdPairVec_; }
-    Visualize::AcsqTimeMapType GetAcsqTimeMap() { return acsqTimeMap_; }
+    Visualize::AcsqTimeMapType GetAcsqTimeMap() const { return acsqTimeMap_; }
     inline uint64_t GetMinMc2TimeCyc() const { return minMc2TimeCyc_; }
     inline uint64_t GetMinLcclTimeCyc() const { return minLcclTimeCyc_; }
     inline uint64_t GetMinTimeCyc() const { return minTimeCyc_; }
-    BlockPmuMapType GetTotalPmuData() { return totalPmuData_; }
-    const std::shared_ptr<L2Cache> &GetL2CacheObj() { return l2Cache_; }
+    BlockPmuMapType GetTotalPmuData() const { return totalPmuData_; }
+    const std::shared_ptr<L2Cache> &GetL2CacheObj() const { return l2Cache_; }
 
     inline std::string GetOpName() const { return opName_; }
     inline std::string GetSoc() const { return soc_; }
     inline std::string GetBlockDim() const { return basicBlockDim_; }
     inline std::string GetMixBlockDim() const { return mixBlockDim_; }
-    inline std::string GetDeviceId() { return deviceId_; }
-    inline std::string GetPid() { return pid_; }
-    inline std::string GetCurFreq() { return basicCurFreq_; }
-    inline std::string GetRatedFreq() { return ratedFreq_; }
+    inline std::string GetDeviceId() const { return deviceId_; }
+    inline std::string GetPid() const { return pid_; }
+    inline std::string GetCurFreq() const { return basicCurFreq_; }
+    inline std::string GetRatedFreq() const { return ratedFreq_; }
     inline bool GetMC2Flag() const { return isMC2_; }
     inline bool GetLcclFlag() const { return isLccl_; }
     inline float GetDuration() const { return duration_; }

@@ -14,7 +14,8 @@
  * See the Mulan PSL v2 for more details.
  * ------------------------------------------------------------------------- */
 
-
+#include <unistd.h>
+#include <sys/stat.h>
 #include <gtest/gtest.h>
 #include <experimental/filesystem>
 #include "mockcpp/mockcpp.hpp"
@@ -25,8 +26,6 @@
 #include "filesystem.h"
 #include "json_parser.h"
 #include "cmd_execute.h"
-#include <unistd.h>
-#include <sys/stat.h>
 #define private public
 #define protected public
 #include "profiling/simulator/data_parse/sim_data_parse.h"

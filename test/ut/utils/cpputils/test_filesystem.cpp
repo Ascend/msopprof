@@ -14,14 +14,13 @@
  * See the Mulan PSL v2 for more details.
  * ------------------------------------------------------------------------- */
 
-#include <gtest/gtest.h>
-#include "mockcpp/mockcpp.hpp"
 #include <string>
 #include <vector>
+#include <gtest/gtest.h>
 #include <experimental/filesystem>
+#include "mockcpp/mockcpp.hpp"
 
 #include "filesystem.h"
-#include "mockcpp/mockcpp.hpp"
 
 using namespace Utility;
 

@@ -303,7 +303,7 @@ bool DeviceDataParse::ParserInit()
     return true;
 }
 
-void DeviceDataParse::CopyTimeStamp(const std::string &filePath)
+void DeviceDataParse::CopyTimeStamp(const std::string &filePath) const
 {
     using namespace std::experimental::filesystem;
     std::experimental::filesystem::path outputPath {filePath};

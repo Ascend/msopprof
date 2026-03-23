@@ -44,7 +44,7 @@ public:
         CollectLogStart collectLogStart;
     };
     PacketParseRet ProcessMsg(const std::string &msg, size_t &idx);
-    inline const Payload& GetPayload() { return payload_; }
+    inline const Payload& GetPayload() const { return payload_; }
     std::string &GetAskMsg() { return askMsg_; } // only used for DBI task
     inline std::size_t GetClientId() const { return clientId_; }
     inline ProfPacketType GetType() const { return head_.type; }

@@ -51,7 +51,7 @@ void InjectionEvent::Stop()
     communication_.reset();
 }
 
-std::string InjectionEvent::ProcessConfigDataEvent(const std::shared_ptr<Packet>& packPtr, size_t clientId)
+std::string InjectionEvent::ProcessConfigDataEvent (const std::shared_ptr<Packet>& packPtr, size_t clientId) const
 {
     (void)packPtr;
     (void)clientId;

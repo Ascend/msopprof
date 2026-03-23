@@ -282,11 +282,11 @@ private:
     InstrEncoding(){};
     ~InstrEncoding() = default;
     InstrEncoding(const InstrEncoding &instrEncoding) = default;
-    void UpdateEncoding32(uint32_t encoding, std::string &pipe, std::string &name);
-    void UpdateEncoding64(uint64_t encoding, std::string &pipe, std::string &name);
-    void UpdateEncoding128(Common::Enc128 encoding, std::string &pipe, std::string &name);
-    void InstrUpdate(std::string &pipe, uint32_t encoding);
-    std::string GetSpecialInstrPipeByEncoding(uint32_t encoding);
+    void UpdateEncoding32(uint32_t encoding, std::string &pipe, std::string &name) const;
+    void UpdateEncoding64(uint64_t encoding, std::string &pipe, std::string &name) const;
+    void UpdateEncoding128(Common::Enc128 encoding, std::string &pipe, std::string &name) const;
+    void InstrUpdate(std::string &pipe, uint32_t encoding) const;
+    std::string GetSpecialInstrPipeByEncoding(uint32_t encoding) const;
     bool GetTextEncodingLines(const std::string &kernelPath, const std::string &pcDump,
                               std::vector<EncodingInfo> &encInfo);
     bool GetEncodingPc(const std::string &kernelPath, std::string &pcDump);

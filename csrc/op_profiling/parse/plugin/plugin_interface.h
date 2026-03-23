@@ -54,7 +54,7 @@ public:
         isEntry_.store(comeIn);
     }
 
-    bool GetEntry()
+    bool GetEntry() const
     {
         return isEntry_.load();
     }

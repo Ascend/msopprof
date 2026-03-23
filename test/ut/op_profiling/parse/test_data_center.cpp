@@ -36,10 +36,8 @@ class TestDbTem {};
 
 DataCenter CreateTempDataCenter()
 {
-    std::shared_ptr<TestDb1> testDb1;
-    testDb1 = MakeShared<TestDb1>();
-    std::shared_ptr<TestDb2> testDb2;
-    testDb2 = MakeShared<TestDb2>();
+    std::shared_ptr<TestDb1> testDb1 = MakeShared<TestDb1>();
+    std::shared_ptr<TestDb2> testDb2 = MakeShared<TestDb2>();
 
     DataCenter dataCenter;
     dataCenter.DataTableRegister(testDb1);

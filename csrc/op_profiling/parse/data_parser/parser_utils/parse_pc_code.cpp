@@ -122,7 +122,7 @@ std::vector<std::string> ParsePcCode::Int2Hex(const std::set<uint64_t> &inSet) c
     return res;
 }
 
-uint64_t ParsePcCode::GetStartPcFromTxt()
+uint64_t ParsePcCode::GetStartPcFromTxt() const
 {
     uint64_t startPc = UINT64_MAX;
     std::string pcStartDumpFile = Utility::JoinPath({dumpPath_, Common::PC_START_PATH});
@@ -145,7 +145,7 @@ uint64_t ParsePcCode::GetStartPcFromTxt()
     return startPc;
 }
 
-uint64_t ParsePcCode::GetStartPc()
+uint64_t ParsePcCode::GetStartPc() const
 {
     uint64_t startPc = GetStartPcFromTxt();
     if (startPc != UINT64_MAX) {

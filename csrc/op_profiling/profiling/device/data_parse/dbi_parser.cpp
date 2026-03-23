@@ -55,7 +55,7 @@ static uint64_t GetBurstLenAligned(uint64_t len)
 }
 
 template <uint32_t alignSize, typename T>
-T DBIParser::AlignUp(T value)
+T DBIParser::AlignUp(T value) const
 {
     static_assert(std::is_integral<T>::value, "AlignUp requires an integral type");
     static_assert(alignSize != 0, "AlignSize must be a non-zero positive integer!");

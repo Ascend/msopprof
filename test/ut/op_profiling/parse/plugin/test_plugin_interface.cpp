@@ -36,13 +36,11 @@ DataCenter CreateTempDataCenter(bool db1 = true, bool db2 = true)
 {
     DataCenter dataCenter;
     if (db1) {
-        std::shared_ptr<TestDb1> testDb1;
-        testDb1 = MakeShared<TestDb1>();
+        std::shared_ptr<TestDb1> testDb1 = MakeShared<TestDb1>();
         dataCenter.DataTableRegister(testDb1);
     }
     if (db2) {
-        std::shared_ptr<TestDb2> testDb2;
-        testDb2 = MakeShared<TestDb2>();
+        std::shared_ptr<TestDb2> testDb2 = MakeShared<TestDb2>();
         dataCenter.DataTableRegister(testDb2);
     }
     return dataCenter;

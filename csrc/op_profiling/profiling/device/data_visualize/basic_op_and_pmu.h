@@ -45,7 +45,7 @@ public:
     std::vector<std::pair<uint16_t, uint16_t>> GetBlockIdCoreIdPairVec() const { return blockIdCoreIdPairVec_; }
 
     // roofline类的接口
-    inline int64_t GetL2cacheEvict() { return l2CacheEvict_; };
+    inline int64_t GetL2cacheEvict() const { return l2CacheEvict_; };
     Profiling::BlockPmuMapType GetTotalPmuData() const { return totalPmuData_; }
 
     // 计算负载类的常规数据,被计算负载类的方法调用
@@ -107,10 +107,10 @@ public:
     inline std::string GetOpType() const { return opType_; }
     inline std::string GetBlockDim() const { return blockDim_; }
     inline std::string GetMixBlockDim() const { return mixBlockDim_; }
-    inline std::string GetDeviceId() { return deviceId_; }
-    inline std::string GetPid() { return pid_; }
-    inline std::string GetCurFreq() { return curFreq_; }
-    inline std::string GetRatedFreq() { return ratedFreq_; }
+    inline std::string GetDeviceId() const { return deviceId_; }
+    inline std::string GetPid() const { return pid_; }
+    inline std::string GetCurFreq() const { return curFreq_; }
+    inline std::string GetRatedFreq() const { return ratedFreq_; }
     inline float GetDuration() const { return duration_; }
     inline std::map<uint16_t, std::vector<float>> GetBlockDetail() const { return blockDetailMap_; }
     inline std::vector<std::string> GetAdvice() const { return advice_; }

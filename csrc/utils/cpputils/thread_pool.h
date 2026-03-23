@@ -47,7 +47,7 @@ public:
 
     void AddTask(const Task &task);
     uint32_t GetUnassignedTasksNum();
-    uint32_t GetThreadsNum();
+    uint32_t GetThreadsNum() const;
 
 private:
     // default loop for each thread

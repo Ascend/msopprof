@@ -41,7 +41,7 @@ public:
     }
 private:
     void MsgSend(); // set message in the queue
-    int Write(size_t clientId, const std::string &msg);
+    int Write(size_t clientId, const std::string &msg) const;
     void MsgHandle(size_t &clientId, std::string &msg);
 
     RemoteProcess server_;

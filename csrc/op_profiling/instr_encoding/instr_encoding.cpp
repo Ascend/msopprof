@@ -191,7 +191,7 @@ bool InstrEncoding::ExtractPc(std::string str, uint64_t &pc)
     return Utility::StoullConverter(pcStr, pc, Utility::RADIX_16);
 }
 
-void InstrEncoding::UpdateEncoding32(uint32_t encoding, std::string &pipe, std::string &name)
+void InstrEncoding::UpdateEncoding32(uint32_t encoding, std::string &pipe, std::string &name) const
 {
     for (const auto &mask2group : mask2Groups_) {
         uint32_t encodingKey = encoding & mask2group.first;
@@ -207,7 +207,7 @@ void InstrEncoding::UpdateEncoding32(uint32_t encoding, std::string &pipe, std::
     Utility::LogDebug("Encoding32 0x[%x] can not find instruction", encoding);
 }
 
-void InstrEncoding::UpdateEncoding64(uint64_t encoding, std::string &pipe, std::string &name)
+void InstrEncoding::UpdateEncoding64(uint64_t encoding, std::string &pipe, std::string &name) const
 {
     for (const auto &mask2group : mask2Groups64Bit_) {
         uint64_t encodingKey = encoding & mask2group.first;
@@ -222,7 +222,7 @@ void InstrEncoding::UpdateEncoding64(uint64_t encoding, std::string &pipe, std::
     Utility::LogDebug("Encoding64 0x[%lx] can not find instruction", encoding);
 }
 
-void InstrEncoding::UpdateEncoding128(Enc128 encoding, std::string &pipe, std::string &name)
+void InstrEncoding::UpdateEncoding128(Enc128 encoding, std::string &pipe, std::string &name) const
 {
     for (const auto &mask2group : mask2Groups128Bit_) {
         Enc128 encodingKey = encoding & mask2group.first;
@@ -237,7 +237,7 @@ void InstrEncoding::UpdateEncoding128(Enc128 encoding, std::string &pipe, std::s
     Utility::LogDebug("Encoding128 0x[%lx][%lx] can not find instruction", encoding.high64, encoding.low64);
 }
 
-void InstrEncoding::InstrUpdate(std::string &pipe, uint32_t encoding)
+void InstrEncoding::InstrUpdate(std::string &pipe, uint32_t encoding) const
 {
     // PIPE为FLOWCTRL的非特殊指令展示为SCALAR, SIMD指令展示为VECTOR
     if (pipe == Common::FC_PIPE) {
@@ -253,7 +253,7 @@ void InstrEncoding::InstrUpdate(std::string &pipe, uint32_t encoding)
     }
 }
 
-std::string InstrEncoding::GetSpecialInstrPipeByEncoding(uint32_t encoding)
+std::string InstrEncoding::GetSpecialInstrPipeByEncoding(uint32_t encoding) const
 {
     for (const auto &mask2table : mask2InstrWithPipeTable_) {
         auto &table = mask2table.second;

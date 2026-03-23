@@ -16,16 +16,16 @@
 
 #include "storage_access.h"
 
-#include "common/defs.h"
-#include "data_visualize_const.h"
-
 #include <cmath>
 #include <limits>
 #include <algorithm>
+
 #include "json.hpp"
 #include "log.h"
 #include "smart_pointer.h"
 #include "common/visualize.h"
+#include "common/defs.h"
+#include "data_visualize_const.h"
 #include "number_operation.h"
 
 using namespace Common;

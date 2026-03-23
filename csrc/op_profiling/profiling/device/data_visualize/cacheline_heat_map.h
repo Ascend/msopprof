@@ -17,6 +17,11 @@
 
 #ifndef MSOPT_CACHELINE_HEAT_MAP_H
 #define MSOPT_CACHELINE_HEAT_MAP_H
+
+#include <string>
+#include <cstdint>
+#include <memory>
+#include <vector>
 #include "profiling/device/data_parse/l2cache/l2cache.h"
 #include "json.hpp"
 namespace Visualize {

@@ -125,30 +125,30 @@ struct LaneEvent {
     std::map<std::string, uint32_t> args;
 };
 
-const std::map <std::string, std::string> cNamesMap{
-        {"MTE1",               "thread_state_running"},
-        {"MTE2",               "thread_state_iowait"},
-        {"MTE3",               "rail_response"},
-        {"SCALAR",             "startup"},
-        {"SCALARLDST",         "startup"},
-        {"VECTOR",             "cq_build_failed"},
-        {"CUBE",               "background_memory_dump"},
-        {"FIXP",               "thread_state_unknown"},
-        {"FLOWCTRL",           "cq_build_passed"},
-        {"CACHEMISS",          "thread_state_runnable"},
-        {"ALL",                "good"},
-        {Profiling::USER_MARK, "rail_load"},
-        {"EVENT",              "rail_animation"},
-        {"SET_FLAG",           "black"},
-        {"WAIT_FLAG",          "yellow"},
-        {"set_event",          "black"},
-        {"wait_event",         "yellow"},
-        {"RVECEX",             "thread_state_running"},
-        {"RVECLP",             "thread_state_iowait"},
-        {"RVECST",             "thread_state_runnable"},
-        {"RVECLD",             "startup"},
-        {"PUSHQ",              "thread_state_unknown"},
-        {"RVECSU",             "yellow"}
+const std::map <std::string, std::string> cNamesMap {
+    {"MTE1",               "thread_state_running"},
+    {"MTE2",               "thread_state_iowait"},
+    {"MTE3",               "rail_response"},
+    {"SCALAR",             "startup"},
+    {"SCALARLDST",         "startup"},
+    {"VECTOR",             "cq_build_failed"},
+    {"CUBE",               "background_memory_dump"},
+    {"FIXP",               "thread_state_unknown"},
+    {"FLOWCTRL",           "cq_build_passed"},
+    {"CACHEMISS",          "thread_state_runnable"},
+    {"ALL",                "good"},
+    {Profiling::USER_MARK, "rail_load"},
+    {"EVENT",              "rail_animation"},
+    {"SET_FLAG",           "black"},
+    {"WAIT_FLAG",          "yellow"},
+    {"set_event",          "black"},
+    {"wait_event",         "yellow"},
+    {"RVECEX",             "thread_state_running"},
+    {"RVECLP",             "thread_state_iowait"},
+    {"RVECST",             "thread_state_runnable"},
+    {"RVECLD",             "startup"},
+    {"PUSHQ",              "thread_state_unknown"},
+    {"RVECSU",             "yellow"}
 };
 }
 }

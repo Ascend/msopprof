@@ -176,6 +176,9 @@ string Calculate::CalVecFp32Ratio(const uint64_t &pmu1, const uint64_t &pmu2, co
                                   const uint64_t &pmu4) const
 {
     std::string location = "fp32 ratio";
+    if (IsZero(pmu2)) {
+        return "0";
+    }
     return Calculate::CalRatio(SafeMul(SafeSub(pmu3, pmu4, location), pmu1, location) / pmu2);
 }
 
@@ -436,6 +439,7 @@ std::string Calculate::CalAicMte3ActivateBw(const uint64_t &pipSize, const uint6
     const uint64_t &pmu3, const uint64_t &pmu4) const
 {
     uint64_t calFactor = 4;
+
     float mte2AicTime = freq_ <= 0 ? 0 : static_cast<float>(pmu4) / freq_;
     if (calFactor * pmu1 + pmu2 < pmu3 || SafeEqual(mte2AicTime, 0.0f)) {
         return "NA";

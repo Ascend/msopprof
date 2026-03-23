@@ -18,6 +18,9 @@
 #ifndef MSOPT_SIM_VISUALIZER_CONFIG_H
 #define MSOPT_SIM_VISUALIZER_CONFIG_H
 
+#include <string>
+#include <cstdint>
+#include <memory>
 #include "profiling/simulator/data_parse/sim_defs.h"
 #include "parse/data_table/instr_detail_table.h"
 #include "parse/data_table/cache_detail_table.h"
