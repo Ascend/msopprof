@@ -39,31 +39,6 @@
 #define MSOPPROF_REPORT MSOPPROF_REPORT_AICORE
 
 
-// mix算子运行时，blockDim = 1对应1个cube + 2个vec
-/// 因某些硬件的特殊架构，一个 AICore 中包含若干个 AIVEC 核和 AICUBE 核（c220架构 为 1 个 AICUBE 核和 2 个 AIVEC 核）
-/// 当算子以 MIX 模式运行时，blockDim 代表参与运算的 AICore 逻辑核数，因此实际参与运算的 subBlockDim 分别为
-/// blockDim * VEC_SUB_BLOCKDIM 和 blockDim * CUBE_SUB_BLOCKDIM。
-// 最终申请的GM内存为：cache_size * blockDim * (VEC_SUB_BLOCKDIM + CUBE_SUB_BLOCKDIM)
-// 排布顺序为：vec/vec/cube/vec/vec/cube ......
-constexpr uint8_t VEC_SUB_BLOCKDIM = 2;
-constexpr uint8_t CUBE_SUB_BLOCKDIM = 1;
-// A2、A3、A5在Mix模式下1个aicore均包含3个小核
-constexpr uint8_t MIX_SUB_BLOCKDIM = VEC_SUB_BLOCKDIM + CUBE_SUB_BLOCKDIM;
-
-/// c220芯片架构，
-/// A2芯片： vec核对应的物理核编号范围：[25, 74]，cube核编号范围：[0, 24]
-/// A3芯片： 偶数卡：和A2芯片一致;奇数卡: vec核对应的物理核编号范围:[32793,32842],cube核编号范围:[32768,32792]
-constexpr int64_t C220_A2_OR_A3_EVEN_DEVICE_VEC_PHYS_CORE_START_IDS = 25;
-constexpr int64_t C220_A2_OR_A3_EVEN_DEVICE_VEC_PHYS_CORE_END_IDS = 74;
-constexpr int64_t C220_A3_ODD_DEVICE_VEC_PHYS_CORE_START_IDS = 32793;
-
-/// c310架构A5芯片：vec核对应的物理核编号范围:[18, 51]和>= 72
-constexpr int64_t C310_A5_DEVICE_VEC_PHYS_SMALL_BOUND_CORE_START_IDS = 18;
-constexpr int64_t C310_A5_DEVICE_VEC_PHYS_SMALL_BOUND_CORE_END_IDS = 51;
-constexpr int64_t C310_A5_DEVICE_VEC_PHYS_GREAT_BOUND_CORE_START_IDS = 72;
-
-constexpr uint16_t FRACTAL_SIZE16 = 16;
-
 // transform config[leftBit, rightBit] into an unsigned integer
 template<uint8_t leftBit, uint8_t rightBit, typename confT>
 __aicore__ inline uint64_t GetUintFromConf(confT config)
