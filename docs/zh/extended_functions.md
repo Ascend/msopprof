@@ -73,7 +73,7 @@
 |device_id|运行时使用AI处理器的ID，默认值：0。|int|否|
 |tiling_key|当前动态算子的tiling key。|uint64|否|
 |magic|算子类型。<br> - Cube算子：RT_DEV_BINARY_MAGIC_ELF_AICUBE <br> - Vector算子：RT_DEV_BINARY_MAGIC_ELF_AIVEC <br> - Mix融合算子：RT_DEV_BINARY_MAGIC_ELF（仅<term>Atlas A3 训练系列产品/Atlas A3 推理系列产品</term>和<term>Atlas A2 训练系列产品/Atlas A2 推理系列产品</term>支持配置）|string|是|
-|test_cases|测试数据，支持列表，每个元素包含一个用例。详细说明可参考[**表 2**  test_case参数字段说明](#test_case参数字段说明)。|map|是|
+|test_cases|测试数据，支持列表，每个元素包含一个用例。详细说明可参考[**表 2**  test_case参数字段说明](#test_case参数字段说明)。|list|是|
 
 > [!NOTE] 说明
 > 
