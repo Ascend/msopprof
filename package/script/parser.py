@@ -287,6 +287,22 @@ class Xmlparser(object):
         return item_attr
 
 
+def chmod_recursive(path, mode):
+    '''
+    功能描述: 递归设置文件和目录权限（替代 chmod -R）
+    参数:  path - 目标路径, mode - 权限值（八进制整数）
+    '''
+    if os.path.isfile(path) or os.path.islink(path):
+        os.chmod(path, mode)
+        return
+    os.chmod(path, mode)
+    for root, dirs, files in os.walk(path):
+        for d in dirs:
+            os.chmod(os.path.join(root, d), mode)
+        for f in files:
+            os.chmod(os.path.join(root, f), mode)
+
+
 def do_copy(target_conf={}, delivery_dir='', release_dir=''):
     '''
     功能描述: 根据拷贝类型来执行文件或目录拷贝
@@ -309,26 +325,30 @@ def do_copy(target_conf={}, delivery_dir='', release_dir=''):
     dst_path = os.path.join(release_dir, target_conf.get('dst_path', ''))
     pkg_mod = target_conf.get('pkg_mod', '')
     rename = target_conf.get('rename')
-    cmd = ''
-    if not os.path.exists(dst_path):
-        cmd += ' '.join(['mkdir', '-p', dst_path, '&&'])
-    if rename:
-        dst_path = os.path.join(dst_path, rename)
-    cmd += ' '.join(['cp -rf', src_target, dst_path])
-    status, output = subprocess.getstatusoutput(cmd)
-    if status != SUCC:
-        log_msg(LOG_E, "do_copy(%s) failed!", cmd)
-        log_msg(LOG_I, "%s", output)
+    try:
+        os.makedirs(dst_path, exist_ok=True)
+        if rename:
+            dst_path = os.path.join(dst_path, rename)
+        if os.path.isdir(src_target):
+            # 目录拷贝：如果目标已存在则先删除（等效于 cp -rf 覆盖行为）
+            final_dst = os.path.join(dst_path, target_name) if not rename else dst_path
+            if os.path.exists(final_dst):
+                shutil.rmtree(final_dst)
+            shutil.copytree(src_target, final_dst, symlinks=True)
+        else:
+            # 文件拷贝
+            shutil.copy2(src_target, dst_path)
+    except Exception as e:
+        log_msg(LOG_E, "do_copy failed! src=%s dst=%s error=%s", src_target, dst_path, str(e))
         return FAIL
 
-    cmd = " chmod %s -R %s" % (pkg_mod,
-                os.path.join(dst_path, target_name))
     if pkg_mod:
-        status, output = subprocess.getstatusoutput(cmd)
-    if status != SUCC:
-        log_msg(LOG_E, "%s failed!.", cmd)
-        log_msg(LOG_I, "%s", output)
-        return FAIL
+        try:
+            mode = int(pkg_mod, 8)
+            chmod_recursive(os.path.join(dst_path, target_name), mode)
+        except Exception as e:
+            log_msg(LOG_E, "chmod %s failed: %s", pkg_mod, str(e))
+            return FAIL
     pkg_softlink = target_conf.get('pkg_softlink')
     if pkg_softlink:
         source = os.path.join(dst_path, target_conf.get('value'))
