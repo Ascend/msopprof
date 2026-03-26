@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.13) # to support add_link_options
 
-project(msopprof_superbuild VERSION 1.0.0)
+project(msopprof_superbuild VERSION 26.0.0)
 set(CMAKE_SKIP_RPATH TRUE)
 
 # 检查是否可用 ccache
