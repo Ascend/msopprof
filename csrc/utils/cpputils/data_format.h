@@ -22,7 +22,6 @@
 #include <vector>
 #include <string>
 #include <map>
-#include "runtime/inject_helpers/ProfConfig.h"
 
 namespace Utility {
 constexpr uint64_t MAX_MEM_BYTE_SIZE = 32212254720; // 30G for file and memory malloc

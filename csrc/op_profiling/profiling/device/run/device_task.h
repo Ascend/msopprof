@@ -30,6 +30,7 @@
 #include "filesystem.h"
 #include "common/hal_helper.h"
 #include "common/runtime_helper.h"
+#include "common/dbi_defs.h"
 
 namespace Profiling {
 class DeviceTask : public Task {
