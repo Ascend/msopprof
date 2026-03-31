@@ -1574,8 +1574,12 @@ StorageVecTableData StorageAccessA5::LoadVecData(const map<uint64_t, uint64_t> &
     uint64_t pmuL0cToUb = subCoreId == 0 ? fixpToUbVec0_ : fixpToUbVec1_;
     uint64_t gmToDcache = SafeAdd(pmu[1407], pmu[1408], location);
     uint64_t pmuGmToUb = SafeSub(pmu[1058], gmToDcache, location, false);
-    uint64_t dcacheToVec = SafeAdd(pmu[1395], pmu[1396], location);
-    uint64_t vecToDcache = SafeAdd(pmu[1397], pmu[1398], location);
+    uint64_t dcacheToVec = SafeAddAll<uint64_t>({pmu[1395], pmu[1396], pmu[1404]}, location);
+    uint64_t vecToDcache = SafeAddAll<uint64_t>({pmu[1397], pmu[1398], pmu[1400], pmu[1404]}, location);
+    // 算子存在VEC SIMT架构时，暂不显示UB<->VEC通路数据
+    bool hasSimt = opBasicInfoObj_->GetHasSimt();
+    uint64_t ubToVec = hasSimt ? EMPTY_PMU_VALUE : pmu[1393];
+ 	uint64_t vecToUb = hasSimt ? EMPTY_PMU_VALUE : pmu[1394];
     auto pmuGmToL2 = SafeAddAll<uint64_t>({pmu[1061], pmu[1062], pmu[1064], pmu[1065]}, location);
     auto pmuL2ToGm = SafeAddAll<uint64_t>({pmu[1062], pmu[1065], pmu[1068], pmu[1071]}, location);
 
@@ -1590,12 +1594,12 @@ StorageVecTableData StorageAccessA5::LoadVecData(const map<uint64_t, uint64_t> &
         {CalAiCore(time, pmu[518],    TransportType::MTE_TO_UB),
          CalAiCore(time, pmu[516],    TransportType::UB_TO_MTE),
          CalAiCore(time, pmuGmToUb,   TransportType::GM_TO_UB, true),
-         CalAiCore(time, pmu[1394],   TransportType::VEC_TO_UB),
-         CalAiCore(time, pmu[1393],   TransportType::UB_TO_VEC),
+         CalAiCore(time, vecToUb,     TransportType::VEC_TO_UB),
+         CalAiCore(time, ubToVec,     TransportType::UB_TO_VEC),
          CalAiCore(time, pmuL0cToUb,  TransportType::L0C_TO_UB)},
         // vec
-        {CalAiCore(time, pmu[1394],   TransportType::VEC_TO_UB),
-         CalAiCore(time, pmu[1393],   TransportType::UB_TO_VEC)},
+        {CalAiCore(time, vecToUb,     TransportType::VEC_TO_UB),
+         CalAiCore(time, ubToVec,     TransportType::UB_TO_VEC)},
         // dcache
         {CalAiCore(time, gmToDcache,  TransportType::GM_TO_DCACHE),
          CalAiCore(time, vecToDcache, TransportType::VEC_TO_DCACHE),

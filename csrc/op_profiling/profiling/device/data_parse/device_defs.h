@@ -130,8 +130,8 @@ const std::map<TransportType, uint16_t> REQ_DATA_OF_A5 = {
     {TransportType::MTE_TO_L1,               256},
     {TransportType::VEC_TO_UB,               256},
     {TransportType::VEC_TO_GM,               128},
-    {TransportType::VEC_TO_DCACHE,           4},
-    {TransportType::DCACHE_TO_VEC,           4},
+    {TransportType::VEC_TO_DCACHE,           128}, // 估算值，假设WARP写满
+    {TransportType::DCACHE_TO_VEC,           128},
 };
 
 const std::map<TransportType, uint16_t> REQ_DATA_OF_310P = {
