@@ -201,6 +201,10 @@ bool DataHandler::ParseBasicInfoFile(const string &filePath)
             isLccl_ = true;
             continue;
         }
+        if (lineOpInfoList[0] == "Has Simt" && lineOpInfoList[1] == "1") {
+            hasSimt_ = true;
+            continue;
+        }
         opInfoMap_[lineOpInfoList[0]] = lineOpInfoList[1];
         if (lineOpInfoList[0] == "Run Soc Version") {
             socVersion_ = lineOpInfoList[1];

@@ -100,6 +100,7 @@ public:
         SetRatedFreq();
         SetDuration();
         SetBlockDetail();
+        SetHasSimt();
     }
 
     inline std::string GetOpName() const { return opName_; }
@@ -112,6 +113,7 @@ public:
     inline std::string GetCurFreq() const { return curFreq_; }
     inline std::string GetRatedFreq() const { return ratedFreq_; }
     inline float GetDuration() const { return duration_; }
+    inline bool GetHasSimt() const { return hasSimt_; }
     inline std::map<uint16_t, std::vector<float>> GetBlockDetail() const { return blockDetailMap_; }
     inline std::vector<std::string> GetAdvice() const { return advice_; }
 
@@ -125,6 +127,7 @@ public:
     inline void SetCurFreq() { curFreq_ = handler_->GetCurFreq(); }
     inline void SetRatedFreq() { ratedFreq_ = handler_->GetRatedFreq(); }
     inline void SetDuration() { duration_ = handler_->GetDuration(); }
+    inline void SetHasSimt() { hasSimt_ = handler_->GetHasSimt(); }
 
     inline void SetBlockDetail()
     {
@@ -153,6 +156,7 @@ private:
     float duration_;
     std::map<uint16_t, std::vector<float>> blockDetailMap_;
     std::vector<std::string> advice_;
+    bool hasSimt_ = false;
 };
 }
 #endif // __OP_AND_PMU_H__

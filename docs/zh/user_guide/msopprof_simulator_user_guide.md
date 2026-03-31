@@ -331,6 +331,8 @@ msOpProf工具协助用户定位算子内存、算子代码以及算子指令的
         core_ostd_num           = 2             # 2 early end  1 normal mode
     ```
 
+- <term>昇腾950代际产品</term>使用msProf工具进行算子仿真调优时，需将config.json文件中的flush_level参数修改为info级，也就是将文件中的"flush_level": 3修改为"flush_level" : 2。config.json文件的路径为${INSTALL_DIR}/tools/simulator/Ascendxxxyy/lib/config.json。
+
 **启动工具**
 
 请先完成msopprof simulator配置，然后根据以下操作步骤使能msOpProf工具的仿真调优功能。算子调优工具支持仿真环境下的性能数据采集和自动解析。

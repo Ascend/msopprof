@@ -155,8 +155,9 @@ public:
     inline void SetCurFreq(const std::string& curFreq) { basicCurFreq_ = curFreq; }
     inline void SetRatedFreq(const std::string& ratedFreq) { ratedFreq_ = ratedFreq; }
     inline void SetDuration(float duration) { duration_ = duration; }
-    inline  std::map<uint64_t, std::map<std::string, uint64_t>> GetDbiMap() { return dbiMap_; }
+    inline std::map<uint64_t, std::map<std::string, uint64_t>> GetDbiMap() { return dbiMap_; }
     inline int64_t GetL2CacheEvict() const { return l2CacheEvict_; }
+    inline bool GetHasSimt() const { return hasSimt_; }
 
     int64_t aicoreFreq_;
     int64_t taskSchedulerFreq_;
@@ -223,6 +224,7 @@ private:
     int64_t curFreq_;
     float duration_ = 0.0f;
     std::string opType_;
+    bool hasSimt_ = false;
     std::map<uint64_t, std::map<std::string, uint64_t>> dbiMap_;
     std::vector<Visualize::TypeOperandRecord> operandRecords_;
 };
