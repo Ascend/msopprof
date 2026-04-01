@@ -32,10 +32,10 @@ class DependencyManager:
     依赖下载管理：根据 dependencies.json 拉取源码仓(Git submodule)与二进制包(artifacts)。
 
     用法:
-        python download_dependencies.py                  下载生产依赖：源码仓(Git submodule) + 二进制包(artifacts)
-        python download_dependencies.py test             下载测试依赖：源码仓(Git submodule) + 二进制包(artifacts)
-        python download_dependencies.py local            跳过所有下载：直接返回不处理        
-        python download_dependencies.py -r <revision>    指定内部源码仓的 Git 分支/标签/commit
+        python3 download_dependencies.py                  下载生产依赖：源码仓(Git submodule) + 二进制包(artifacts)
+        python3 download_dependencies.py test             下载测试依赖：源码仓(Git submodule) + 二进制包(artifacts)
+        python3 download_dependencies.py local            跳过所有下载：直接返回不处理
+        python3 download_dependencies.py -r <revision>    指定内部源码仓的 Git 分支/标签/commit
 
     参数说明:
         - 参数: command : 执行模式: 为空时下载生产依赖, test 为下载测试依赖, local 为跳过下载。
@@ -51,6 +51,7 @@ class DependencyManager:
     def _exec_shell_cmd(self, cmd, cwd=None, msg=None):
         if msg: logging.info(msg)
         try:
+            logging.info(f"Run CMD: {' '.join(cmd)}")
             subprocess.run(cmd, cwd=cwd, check=True)
         except Exception as e:
             logging.error(f"Error executing command: {' '.join(cmd)}")
@@ -63,6 +64,7 @@ class DependencyManager:
 
         logging.info(f"Download submodule: {path}")
         if self.args.revision:
+            self._exec_shell_cmd(["git", "config", "remote.origin.fetch", "+refs/heads/*:refs/remotes/origin/*"], cwd=mod_dir)
             self._exec_shell_cmd(["git", "fetch", "--tags", "--all"], cwd=mod_dir)
             self._exec_shell_cmd(["git", "checkout", self.args.revision], cwd=mod_dir)
 
@@ -70,14 +72,18 @@ class DependencyManager:
             ["-r", self.args.revision] if self.args.revision else []) + self.args.command
         self._exec_shell_cmd(cmd, cwd=mod_dir)
 
-    def proc_submodule(self, submodules):
+    def proc_submodule(self, submodules, force_latest_submodules):
         logging.info("=== Download git submodules start ===")
-        third = [m for m in submodules if "third" in m]
+        third = [m for m in submodules if m.startswith("third") and "party" in m]
         builtin = [m for m in submodules if m not in third]
         base = ["git", "submodule", "update", "--init", "--progress", "--depth=1", "--jobs=4"]
 
-        if third:
-            self._exec_shell_cmd(base + ["--recursive"] + third, msg="Fetching third-party submodules...")
+        traditional_third = [x for x in third if x not in force_latest_submodules]
+        if traditional_third:
+            self._exec_shell_cmd(base + ["--recursive"] + traditional_third, msg="Fetching third-party submodules...")
+        if force_latest_submodules:
+            self._exec_shell_cmd(base + ["--recursive", "--remote"] + force_latest_submodules, msg="Fetching third-party submodules...")
+
         if builtin:
             self._exec_shell_cmd(base + ["--remote"] + builtin, msg="Fetching built-in submodules...")
             for m in builtin:
@@ -125,6 +131,8 @@ class DependencyManager:
             return
 
         submodules = self.config["dependency_sets"][self.mode].get("submodules", [])
+        # 特殊功能：通常情况下，第三方仓库仅会检出父仓库所记录的固定 commit；若在特殊场景下需拉取其最新代码，则可将三方仓库配置到此数组。
+        force_latest_submodules = self.config["dependency_sets"][self.mode].get("force_latest_submodules", [])
         artifacts = self.config["dependency_sets"][self.mode].get("artifacts", [])
         spec = self.config.get("artifact_spec", {})
 
@@ -132,7 +140,7 @@ class DependencyManager:
             self.proc_artifact(artifacts, spec)
 
         if submodules:
-            self.proc_submodule(submodules)
+            self.proc_submodule(submodules, force_latest_submodules)
 
 def main():
     logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
