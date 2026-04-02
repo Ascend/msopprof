@@ -72,7 +72,7 @@ private:
         uint64_t longlongNums2[12];
     } fftsConstruct_{};
 
-    // format: 4short 1longlong 4short 2short 1int 12longlong, total 128B，详细见表格-上板数据列表A5/stars
+    // format: 4short 1longlong 4short 2short 1int 12longlong, total 128B，详细见表格-上板数据列表david/stars
     struct FftsConstructA5 {
         uint16_t shortNums1[4];
         uint64_t longlongNums1[1];

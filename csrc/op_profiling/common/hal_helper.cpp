@@ -23,6 +23,9 @@
 using namespace Utility;
 
 namespace Common {
+using halGetDeviceInfoFunc = drvError_t(*)(uint32_t, int32_t, int32_t, int64_t*);
+halGetDeviceInfoFunc g_halGetDeviceInfo;
+
 HalHelper &HalHelper::Instance(void)
 {
     static HalHelper instance;
@@ -40,7 +43,7 @@ HalHelper::HalHelper()
     if (handleHal_ == nullptr) {
         return;
     }
-    halGetDeviceInfo_ = (halGetDeviceInfoFunc) dlsym(handleHal_, "halGetDeviceInfo");
+    g_halGetDeviceInfo = (halGetDeviceInfoFunc) dlsym(handleHal_, "halGetDeviceInfo");
 }
 
 HalHelper::~HalHelper()
@@ -61,12 +64,12 @@ ChipType HalHelper::GetPlatformType(void) const
     if (chipType != ChipType::END_TYPE) {
         return chipType;
     }
-    if (halGetDeviceInfo_ == nullptr) {
+    if (g_halGetDeviceInfo == nullptr) {
         LogError("Fail to get soc platform because of null ptr");
         return ChipType::END_TYPE;
     }
     int64_t versionInfo = 0;
-    int ret = halGetDeviceInfo_(0, MODULE_TYPE_SYSTEM, INFO_TYPE_VERSION, &versionInfo);
+    int ret = g_halGetDeviceInfo(0, MODULE_TYPE_SYSTEM, INFO_TYPE_VERSION, &versionInfo);
     if (ret != DRV_ERROR_NONE) {
         LogError("Fail to get soc platform because of error code:%d.", ret);
         return ChipType::END_TYPE;
@@ -85,11 +88,11 @@ ChipType HalHelper::GetPlatformType(void) const
 
 bool HalHelper::GetAicoreFreq(int64_t &freq) const
 {
-    if (halGetDeviceInfo_ == nullptr) {
+    if (g_halGetDeviceInfo == nullptr) {
         return false;
     }
     freq = 0;
-    int ret = halGetDeviceInfo_(0, MODULE_TYPE_AICORE, INFO_TYPE_FREQUE, &freq);
+    int ret = g_halGetDeviceInfo(0, MODULE_TYPE_AICORE, INFO_TYPE_FREQUE, &freq);
     if (ret != DRV_ERROR_NONE || freq == 0) {
         return false;
     }
@@ -98,11 +101,11 @@ bool HalHelper::GetAicoreFreq(int64_t &freq) const
 
 bool HalHelper::GetTaskSchedulerFreq(int64_t &freq) const
 {
-    if (halGetDeviceInfo_ == nullptr) {
+    if (g_halGetDeviceInfo == nullptr) {
         return false;
     }
     freq = 0;
-    int ret = halGetDeviceInfo_(0, MODULE_TYPE_SYSTEM, INFO_TYPE_DEV_OSC_FREQUE, &freq);
+    int ret = g_halGetDeviceInfo(0, MODULE_TYPE_SYSTEM, INFO_TYPE_DEV_OSC_FREQUE, &freq);
     if (ret != DRV_ERROR_NONE || freq == 0) {
         return false;
     }
@@ -111,11 +114,11 @@ bool HalHelper::GetTaskSchedulerFreq(int64_t &freq) const
 
 bool HalHelper::GetAiCoreNum(int64_t &aiCoreNum) const
 {
-    if (halGetDeviceInfo_ == nullptr) {
+    if (g_halGetDeviceInfo == nullptr) {
         return false;
     }
     aiCoreNum = 0;
-    int ret = halGetDeviceInfo_(0, MODULE_TYPE_AICORE, INFO_TYPE_CORE_NUM, &aiCoreNum);
+    int ret = g_halGetDeviceInfo(0, MODULE_TYPE_AICORE, INFO_TYPE_CORE_NUM, &aiCoreNum);
     if (ret != DRV_ERROR_NONE || aiCoreNum == 0) {
         return false;
     }

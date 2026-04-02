@@ -17,13 +17,18 @@
 #include <gtest/gtest.h>
 #include <dlfcn.h>
 #include "mockcpp/mockcpp.hpp"
-#define private public
-#include "common/hal_helper.h"
-#undef private
 #include "ascend_helper.h"
 #include "filesystem.h"
+#define private public
 #include "ascend_hal/ascend_hal.h"
+#include "common/hal_helper.h"
+#undef private
 using namespace Common;
+
+namespace Common {
+using halGetDeviceInfoFunc = drvError_t(*)(uint32_t devId, int32_t moduleType, int32_t infoType, int64_t *value);
+extern halGetDeviceInfoFunc g_halGetDeviceInfo;
+}
 
 int DcmiInitFuncMock1() {
     return -1;
@@ -53,155 +58,141 @@ int CommonMock() {
 
 class HalHelperTest : public testing::Test {
 protected:
-    int64_t freq;
-    int64_t aiCoreNum;
+   HalHelper halHelper;
+   int64_t freq;
+   int64_t aiCoreNum;
 
-    void SetUp() override {
-        HalHelper::Instance().halGetDeviceInfo_ = nullptr;
-    }
+   void SetUp() override {
+       g_halGetDeviceInfo = nullptr;
+   }
 
-    void TearDown() override {
-        HalHelper::Instance().halGetDeviceInfo_ = nullptr;
-        GlobalMockObject::verify();
-    }
+   void TearDown() override {
+       g_halGetDeviceInfo = nullptr;
+   }
 };
 
 TEST_F(HalHelperTest, GetPlatformType_NullGetDeviceInfo_ReturnFalse)
 {
-    MOCKER(&dlopen)
-            .stubs()
-            .will(returnValue((void*)nullptr));
-    HalHelper halHelper_;
-    EXPECT_TRUE(halHelper_.GetPlatformType() == Common::ChipType::END_TYPE);
+   g_halGetDeviceInfo = nullptr;
+   EXPECT_TRUE(halHelper.GetPlatformType() == Common::ChipType::END_TYPE);
 }
 
 TEST_F(HalHelperTest, GetPlatformType_ErrorGetDeviceInfo_ReturnFalse)
 {
-    MOCKER(&dlopen)
-           .stubs()
-           .will(returnValue((void*)nullptr));
-    HalHelper halHelper_;
-    halHelper_.halGetDeviceInfo_ = [](uint32_t devId, int32_t moduleType, int32_t infoType, int64_t *value) {
-        return (drvError_t)1;
-    };
-    EXPECT_TRUE(halHelper_.GetPlatformType() == Common::ChipType::END_TYPE);
+   g_halGetDeviceInfo = [](uint32_t devId, int32_t moduleType, int32_t infoType, int64_t *value) {
+       return (drvError_t)1;
+   };
+   EXPECT_TRUE(halHelper.GetPlatformType() == Common::ChipType::END_TYPE);
 }
 
 TEST_F(HalHelperTest, GetPlatformType_ChipTypeOutOfRange_ReturnFalse)
 {
-    MOCKER(&dlopen)
-           .stubs()
-           .will(returnValue((void*)nullptr));
-    HalHelper halHelper_;
-    halHelper_.halGetDeviceInfo_ = [](uint32_t devId, int32_t moduleType, int32_t infoType, int64_t *value) {
-        *value = 0x1111111111111111;
-        return DRV_ERROR_NONE;
-    };
-    EXPECT_TRUE(halHelper_.GetPlatformType() == Common::ChipType::END_TYPE);
+   g_halGetDeviceInfo = [](uint32_t devId, int32_t moduleType, int32_t infoType, int64_t *value) {
+       *value = 0x1111111111111111;
+       return DRV_ERROR_NONE;
+   };
+   EXPECT_TRUE(halHelper.GetPlatformType() == Common::ChipType::END_TYPE);
 }
 
 TEST_F(HalHelperTest, GetPlatformType_Success_ReturnTrue)
 {
-    MOCKER(&dlopen)
-           .stubs()
-           .will(returnValue((void*)nullptr));
-    HalHelper halHelper_;
-    halHelper_.halGetDeviceInfo_ = [](uint32_t devId, int32_t moduleType, int32_t infoType, int64_t *value) {
-        *value = 0x100;
-        return DRV_ERROR_NONE;
-    };
-    EXPECT_EQ(halHelper_.GetPlatformType(), static_cast<ChipType>(0x1));
+   g_halGetDeviceInfo = [](uint32_t devId, int32_t moduleType, int32_t infoType, int64_t *value) {
+       *value = 0x100;
+       return DRV_ERROR_NONE;
+   };
+   EXPECT_EQ(halHelper.GetPlatformType(), static_cast<ChipType>(0x1));
 }
 
 TEST_F(HalHelperTest, GetAicoreFreq_NullFunc_ReturnFalse)
 {
-    HalHelper::Instance().halGetDeviceInfo_ = nullptr;
-    bool result = HalHelper::Instance().GetAicoreFreq(freq);
-    EXPECT_FALSE(result);
+   g_halGetDeviceInfo = nullptr;
+   bool result = halHelper.GetAicoreFreq(freq);
+
+   EXPECT_FALSE(result);
 }
 
 TEST_F(HalHelperTest, GetAicoreFreq_InvalidFreq_ReturnFalse)
 {
-    HalHelper::Instance().halGetDeviceInfo_ = [](uint32_t devId, int32_t moduleType, int32_t infoType, int64_t *value) {
-        return DRV_ERROR_NONE;
-    };
+   g_halGetDeviceInfo = [](uint32_t devId, int32_t moduleType, int32_t infoType, int64_t *value) {
+       return DRV_ERROR_NONE;
+   };
 
-    bool result = HalHelper::Instance().GetAicoreFreq(freq);
+   bool result = halHelper.GetAicoreFreq(freq);
 
-    EXPECT_FALSE(result);
+   EXPECT_FALSE(result);
 }
 
 TEST_F(HalHelperTest, GetAicoreFreq_ValidFreq_ReturnTrue)
 {
-    HalHelper::Instance().halGetDeviceInfo_ = [](uint32_t devId, int32_t moduleType, int32_t infoType, int64_t *value) {
-        *value = 123456789;
-        return DRV_ERROR_NONE;
-    };
+   g_halGetDeviceInfo = [](uint32_t devId, int32_t moduleType, int32_t infoType, int64_t *value) {
+       *value = 123456789;
+       return DRV_ERROR_NONE;
+   };
 
-    bool result = HalHelper::Instance().GetAicoreFreq(freq);
-    EXPECT_TRUE(result);
-    EXPECT_EQ(freq, 123456789);
+   bool result = halHelper.GetAicoreFreq(freq);
+   EXPECT_TRUE(result);
+   EXPECT_EQ(freq, 123456789);
 }
 
 TEST_F(HalHelperTest, GetTaskSchedulerFreq_InvalidFreq_ReturnFalse)
 {
-    HalHelper::Instance().halGetDeviceInfo_ = [](uint32_t devId, int32_t moduleType, int32_t infoType, int64_t *value) {
+    g_halGetDeviceInfo = [](uint32_t devId, int32_t moduleType, int32_t infoType, int64_t *value) {
         return DRV_ERROR_NONE;
     };
-    bool result = HalHelper::Instance().GetTaskSchedulerFreq(freq);
+    bool result = halHelper.GetTaskSchedulerFreq(freq);
     EXPECT_FALSE(result);
 }
 
 TEST_F(HalHelperTest, GetTaskSchedulerFreq_ValidFreq_ReturnTrue)
 {
-    HalHelper::Instance().halGetDeviceInfo_ = [](uint32_t devId, int32_t moduleType, int32_t infoType, int64_t *value) {
+    g_halGetDeviceInfo = [](uint32_t devId, int32_t moduleType, int32_t infoType, int64_t *value) {
         *value = 123456789;
         return DRV_ERROR_NONE;
     };
-    bool result = HalHelper::Instance().GetTaskSchedulerFreq(freq);
+    bool result = halHelper.GetTaskSchedulerFreq(freq);
     EXPECT_TRUE(result);
     EXPECT_EQ(freq, 123456789);
 }
 
 TEST_F(HalHelperTest, GetAiCoreNum_InvalidAiCoreNum_ReturnFalse)
 {
-    HalHelper::Instance().halGetDeviceInfo_ = [](uint32_t devId, int32_t moduleType, int32_t infoType, int64_t *value) {
+    g_halGetDeviceInfo = [](uint32_t devId, int32_t moduleType, int32_t infoType, int64_t *value) {
         return DRV_ERROR_NONE;
     };
-    bool result = HalHelper::Instance().GetAiCoreNum(aiCoreNum);
+    bool result = halHelper.GetAiCoreNum(aiCoreNum);
     EXPECT_FALSE(result);
 }
 
 TEST_F(HalHelperTest, GetAiCoreNum_ValidAiCoreNum_ReturnTrue)
 {
-    HalHelper::Instance().halGetDeviceInfo_ = [](uint32_t devId, int32_t moduleType, int32_t infoType, int64_t *value) {
+    g_halGetDeviceInfo = [](uint32_t devId, int32_t moduleType, int32_t infoType, int64_t *value) {
         *value = 8;
         return DRV_ERROR_NONE;
     };
-    bool result = HalHelper::Instance().GetAiCoreNum(aiCoreNum);
+    bool result = halHelper.GetAiCoreNum(aiCoreNum);
     EXPECT_TRUE(result);
     EXPECT_EQ(aiCoreNum, 8);
 }
 
 TEST_F(HalHelperTest, SetCurrentDeviceId_Return_True)
 {
-    HalHelper::Instance().SetCurrentDeviceId(10);
-    EXPECT_EQ(HalHelper::Instance().deviceId_, 10);
+    halHelper.SetCurrentDeviceId(10);
+    EXPECT_EQ(halHelper.deviceId_, 10);
 }
 
 TEST_F(HalHelperTest, GetCurrentDeviceId_Return_True)
 {
-    HalHelper::Instance().deviceId_ = 1;
-    EXPECT_EQ(HalHelper::Instance().GetCurrentDeviceId(), 1);
+    halHelper.deviceId_ = 1;
+    EXPECT_EQ(halHelper.GetCurrentDeviceId(), 1);
 }
 
 TEST_F(HalHelperTest, GetGmType_Return_True)
 {
-    HalHelper::Instance().gmType_ = GmType::DEFAULT;
-    EXPECT_EQ(HalHelper::Instance().GetGmType(), GmType::DEFAULT);
+    halHelper.gmType_ = GmType::DEFAULT;
+    EXPECT_EQ(halHelper.GetGmType(), GmType::DEFAULT);
 }
 
-TEST_F(HalHelperTest, DcmiInit_Return_False)
+TEST(HalHelper, DcmiInit_Return_False)
 {
     std::string str = "aaa";
     HalHelper::Instance().handleDcmi_ = nullptr;
@@ -218,7 +209,7 @@ TEST_F(HalHelperTest, DcmiInit_Return_False)
     EXPECT_FALSE(result);
 }
 
-TEST_F(HalHelperTest, DcmiInit_Return_True)
+TEST(HalHelper, DcmiInit_Return_True)
 {
     bool result = false;
     HalHelper::Instance().handleDcmi_ = &result;
@@ -232,7 +223,7 @@ TEST_F(HalHelperTest, DcmiInit_Return_True)
     EXPECT_TRUE(result);
 }
 
-TEST_F(HalHelperTest, GetCardIdDeviceIdFromLogicId_Return_False)
+TEST(HalHelper, GetCardIdDeviceIdFromLogicId_Return_False)
 {
     std::string str = "aaa";
     int carId = 1;
@@ -260,7 +251,7 @@ TEST_F(HalHelperTest, GetCardIdDeviceIdFromLogicId_Return_False)
     EXPECT_FALSE(result);
 }
 
-TEST_F(HalHelperTest, GetCardIdDeviceIdFromLogicId_Return_True)
+TEST(HalHelper, GetCardIdDeviceIdFromLogicId_Return_True)
 {
     int carId = 0;
     int chipId = 0;
@@ -276,7 +267,7 @@ TEST_F(HalHelperTest, GetCardIdDeviceIdFromLogicId_Return_True)
     EXPECT_TRUE(result);
 }
 
-TEST_F(HalHelperTest, SetGmType_Return_False)
+TEST(HalHelper, SetGmType_Return_False)
 {
     int a = 1;
     int b = 1;
@@ -304,7 +295,7 @@ TEST_F(HalHelperTest, SetGmType_Return_False)
     EXPECT_FALSE(result);
 }
 
-TEST_F(HalHelperTest, SetGmType_Return_True)
+TEST(HalHelper, SetGmType_Return_True)
 {
     int a = 0;
     int b = 0;
@@ -320,7 +311,7 @@ TEST_F(HalHelperTest, SetGmType_Return_True)
     EXPECT_TRUE(result);
 }
 
-TEST_F(HalHelperTest, CheckGmType_Return_GmType_DEFAULT)
+TEST(HalHelper, CheckGmType_Return_GmType_DEFAULT)
 {
     GlobalMockObject::verify();
     MOCKER(&HalHelper::DcmiInit)
@@ -355,14 +346,15 @@ TEST_F(HalHelperTest, CheckGmType_Return_GmType_DEFAULT)
     GlobalMockObject::verify();
 }
 
-TEST_F(HalHelperTest, IsSupportPlatform_Return_False)
+TEST(HalHelper, IsSupportPlatform_Return_False)
 {
     bool result = HalHelper::Instance().IsSupportPlatform(ChipType::END_TYPE);
     EXPECT_FALSE(result);
 }
 
-TEST_F(HalHelperTest, Constructor_HalHelper)
+TEST(HalHelper, Constructor_HalHelper)
 {
+    GlobalMockObject::verify();
     void *handle = reinterpret_cast<void *>(CommonMock);
     std::string so("so");
     MOCKER(&Utility::GetSoFromEnvVar)
@@ -382,6 +374,7 @@ TEST_F(HalHelperTest, Constructor_HalHelper)
         .will(returnValue(0));
     {
         HalHelper halHelper;
-        EXPECT_NE(halHelper.halGetDeviceInfo_, nullptr);
+        EXPECT_NE(g_halGetDeviceInfo, nullptr);
     }
+    GlobalMockObject::verify();
 }

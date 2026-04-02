@@ -84,9 +84,7 @@
 ###### 1. 劫持接口
 
 基础组件在这些接口里会做相应的逻辑以达到相应的目的。
-
 其中劫持ascendcl_impl、runtime目的是为了采集算子的性能数据；（当前版本兼容runtime和aclrt两种启动方式，当rt接口下线后则可以删除对runtime接口的劫持和调用）
-
 劫持adump为了能够拿到并记录算子的上下文信息；
 劫持msprof为了能够拿到MC2算子的打点信息。
 
@@ -687,7 +685,7 @@ struct MsprofAicpuHcclTaskInfo {
 | --dump                     | 控制仿真器dump文件是否生成                                           | 取值范围为on、off                                                                                                                  | 上板、仿真 |
 | --export                   | 指定包含单算子仿真结果文件夹，直接对该仿真结果进行解析               | 该指定文件夹只允许存放多核数据及算子核函数文件aicore_binary.o，所以需要将--config中配置的二进制文件名称（*.o）手动修改为aicore_binary.o                                                                                                         | 仿真       |
 | --core-id                  | 可使用--core-id参数指定部分逻辑核的id                                | 取值范围为[0,49]                                                                                                                   | 上板、仿真 |
-| --timeout                  | 设置--timeout参数缩短算子运行时长并获取必要流水信息                  | 参数取值范围为1~2880之间的整数，单位分钟                                                                                                        | 仿真       
+| --timeout                  | 设置--timeout参数缩短算子运行时长并获取必要流水信息                  | 参数取值范围为1~2880之间的整数，单位分钟                                                                                                         | 仿真       |
 | --soc-version              | 指定仿真器版本                                                       | 选取范围可参考${INSTALL_DIR}/tools/simulator路径下的仿真器类型                                                                   | 仿真       |
 
 **--aic-metrics参数解释说明**

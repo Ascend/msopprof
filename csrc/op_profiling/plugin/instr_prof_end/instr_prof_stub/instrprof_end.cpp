@@ -53,21 +53,9 @@ MSOPPROF_REPORT(before_kernel_end)
     asm volatile("nop");
     asm volatile("nop");
     asm volatile("nop");
-    asm("DFX_REGION.S %0" :: "l" (0x888));
-    asm volatile("nop");
-    asm("DFX_REGION.S %0" :: "l" (0x999));
-    asm volatile("nop");
-    asm("DFX_REGION.S %0" :: "l" (0xaaa));
-    asm volatile("nop");
-    asm("DFX_REGION.S %0" :: "l" (0xbbb));
-    asm volatile("nop");
-    asm("DFX_REGION.S %0" :: "l" (0xccc));
-    asm volatile("nop");
     asm("DFX_REGION.S %0" :: "l" (0xddd));
-    asm volatile("nop");
-    asm("DFX_REGION.S %0" :: "l" (0xeee));
-    asm volatile("nop");
+    asm("DFX_REGION.S %0" :: "l" (0x555));
+    asm("DFX_REGION.S %0" :: "l" (0xaaa));
     asm("DFX_REGION.S %0" :: "l" (0xfff));
-    asm volatile("nop");
     return;
 }

@@ -21,7 +21,7 @@
 #include <cstdint>
 #include <map>
 #include <string>
-#include "include/opprof/DbiDefs.h"
+#include "runtime/inject_helpers/ProfConfig.h"
 
 namespace Common {
 // memory chart桩使用
@@ -129,7 +129,7 @@ struct MemRecord {
     MemType dst{MemType::INVALID};
 };
 
-// OperandType需要与msopcom仓include/opprof/DbiDefs.h的OperandType保持一致 
+// 与msopcom仓/runtime/inject_helpers/ProfConfig.h OperandType保持一致 
 const std::map<OperandType, std::string> OperandTypeStrMap = {
     {OperandType::DATA_F16,          "F16"},
     {OperandType::DATA_F16X2,        "F16X2"},

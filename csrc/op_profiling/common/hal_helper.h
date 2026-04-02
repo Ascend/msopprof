@@ -21,7 +21,7 @@
 #include "defs.h"
 #include "ascend_hal/ascend_hal.h"
 namespace Common {
-using halGetDeviceInfoFunc = drvError_t(*)(uint32_t, int32_t, int32_t, int64_t*);
+
 class HalHelper {
 public:
     static HalHelper &Instance(void);
@@ -48,7 +48,6 @@ private:
     unsigned int deviceId_ = 0;
     void *handleHal_ = nullptr;
     void *handleDcmi_ = nullptr;
-    halGetDeviceInfoFunc halGetDeviceInfo_ = nullptr;
     HalHelper();
     ~HalHelper();
     HalHelper(HalHelper const &) = delete;

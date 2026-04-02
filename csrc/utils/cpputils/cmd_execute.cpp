@@ -19,7 +19,6 @@
 #include "cmd_execute.h"
 
 #include <set>
-#include <spawn.h>
 #include <sys/wait.h>
 
 using namespace std;
@@ -80,30 +79,27 @@ void JoinWithSystemEnv(std::map<std::string, std::string> envs,
 bool CmdExecuteWithOutput(const std::vector<std::string> &executeCmd, std::string &outputName)
 {
     std::vector<char *> cmd;
-    for (const auto &arg : executeCmd) {
+    for (const auto &arg:executeCmd) {
         cmd.emplace_back(const_cast<char *>(arg.data()));
     }
     cmd.emplace_back(const_cast<char *>(outputName.data()));
     cmd.emplace_back(nullptr);
-
-    pid_t pid;
-    int ret = posix_spawnp(&pid, executeCmd[0].c_str(), nullptr, nullptr, cmd.data(), environ);
-    if (ret != 0) {
-        char errBuf[256];
-        strerror_r(ret, errBuf, sizeof(errBuf));
-        Utility::LogError("posix_spawnp failed: %s", errBuf);
+    pid_t pid = vfork();
+    if (pid < 0) {
         return false;
-    }
-
-    int status;
-    waitpid(pid, &status, 0);
-    if (status != 0) {
-        if (WIFSIGNALED(status)) {
-            Utility::LogError("Child process killed by signal %d", WTERMSIG(status));
-        } else if (WIFEXITED(status)) {
-            Utility::LogError("Child process exited with return value %d", WEXITSTATUS(status));
+    } else if (pid == 0) {
+        if (execvp(executeCmd[0].c_str(), cmd.data()) < 0) {
+            perror("execvp");
         }
-        return false;
+        exit(-1);
+    } else {
+        int status;
+        waitpid(pid, &status, 0);
+        if (status != 0) {
+            Utility::LogError("Child process exited with status %d, return value is %d", WIFEXITED(status),
+                              WEXITSTATUS(status));
+            return false;
+        }
     }
     return true;
 }
@@ -116,13 +112,13 @@ bool CmdExecute(const std::vector<std::string> &executeCmd,
     if (pipe(fds) == -1 || executeCmd.empty()) {
         return false;
     }
-    pid_t pid = fork();
+    pid_t pid = vfork();
     if (pid < 0) {
         close(fds[0]);
         close(fds[1]);
         return false;
     } else if (pid == 0) {
-        // subprocess to run gather task, redirect stdout to pipe
+        /// subprocess to run gather task, redirect stdout to pipe
         dup2(fds[1], STDOUT_FILENO);
         close(fds[0]);
         close(fds[1]);
@@ -133,17 +129,17 @@ bool CmdExecute(const std::vector<std::string> &executeCmd,
             if (execvp(executeCmd[0].c_str(), cmd.data()) < 0) {
                 perror("execvp");
             }
-            _exit(EXIT_FAILURE);
+            exit(-1);
         } else {
             vector<string> envp;
             JoinWithSystemEnv(envs, envp, true);
             if (execvpe(executeCmd[0].c_str(), cmd.data(), ToRawCArgv(envp).data()) < 0) {
                 perror("execvpe");
             }
-            _exit(EXIT_FAILURE);
+            exit(-1);
         }
     } else {
-        // parent process wait gather task finish
+        /// parent process wait gather task finish
         close(fds[1]);
         char buf[256] = {'\0'};
         int nbytes = 0;
@@ -155,11 +151,7 @@ bool CmdExecute(const std::vector<std::string> &executeCmd,
         int status;
         waitpid(pid, &status, 0);
         if (status != 0) {
-            if (WIFSIGNALED(status)) {
-                LogError("Child process killed by signal %d", WTERMSIG(status));
-            } else if (WIFEXITED(status)) {
-                LogError("Child process exited with return value %d", WEXITSTATUS(status));
-            }
+            LogError("Child process exited with status %d, return value is %d", WIFEXITED(status), WEXITSTATUS(status));
             return false;
         }
     }

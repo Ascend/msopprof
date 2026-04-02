@@ -16,7 +16,6 @@
 
 
 #include <cstdlib>
-#include <random>
 #include <cstring>
 #include <vector>
 #include <chrono>
@@ -38,16 +37,22 @@ std::string RandomizeDir(std::string const &path)
 
     /// generate time stamp
     std::string buf;
-    GenerateTimeStamp(buf);
+    std::time_t time = GenerateTimeStamp(buf);
+    pid_t pid = getpid();
 
-    /// generate random alpha sequence using std::random_device (backed by /dev/urandom on Linux)
+    std::string location = "generate time stamp";
+    uint64_t seed = SafeAdd(static_cast<uint64_t>(time), static_cast<uint64_t>(pid), location);
+    if (seed > std::numeric_limits<unsigned int>::max()) {
+        LogError("Error: Seed value exceeds unsigned int range");
+        return "";
+    }
+    /// generate random alpha sequence
     constexpr std::size_t seqLen = 16;
-    constexpr std::size_t nAlpha = 26;
-    std::random_device rd;
-    std::uniform_int_distribution<int> dist(0, nAlpha - 1);
+    constexpr std::size_t nAplha = 26;
+    std::srand(static_cast<unsigned int>(seed));
     std::string randomSeq;
     for (std::size_t i = 0; i < seqLen; ++i) {
-        randomSeq.push_back(static_cast<char>('A' + dist(rd)));
+        randomSeq.push_back(static_cast<char>(static_cast<long>('A') + rand() % nAplha));
     }
  
     /// randomize dir constructed with <path>_<time-stamp>_<random-seq>

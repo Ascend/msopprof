@@ -23,7 +23,7 @@
 #include "data_format.h"
 #include "log.h"
 #include "common/defs.h"
-#include "include/opprof/Protocol.h"
+#include "runtime/inject_helpers/ProfConfig.h"
 
 namespace ProfStub {
 enum class PacketParseRet : uint8_t {

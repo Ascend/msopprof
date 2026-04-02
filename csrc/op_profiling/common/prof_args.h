@@ -29,7 +29,6 @@
 #include "log.h"
 #include "op_runner.h"
 #include "data_format.h"
-#include "include/opprof/BasicDefs.h" 
 
 namespace Common {
 const std::map<std::string, ReplayMode> ReplayModeMap {
