@@ -398,7 +398,7 @@ void GPRLiveRegisterCalculator::GetDstAndSrcRegisterA5(std::vector<std::string> 
     std::vector<std::string> &srcRegisters, const MergeInfo &mergeInfo)
 {
     const std::string &detail = mergeInfo.detail;
-    // david detail : Px:0|P], [Rm:7|R], [Rn:8|R], [Rn1:9|R], [Rd:b|R],  [Rd1:c|R],  [Rd2:d|R]
+    // detail : Px:0|P], [Rm:7|R], [Rn:8|R], [Rn1:9|R], [Rd:b|R],  [Rd1:c|R],  [Rd2:d|R]
     std::sregex_iterator it(detail.begin(), detail.end(), pattern_);
     std::sregex_iterator end;
 

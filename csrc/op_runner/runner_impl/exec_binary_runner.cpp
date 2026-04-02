@@ -17,6 +17,7 @@
 
 #include "exec_binary_runner.h"
 
+#include <spawn.h>
 #include <sys/wait.h>
 #include <unistd.h>
 #include <functional>
@@ -38,42 +39,49 @@ bool ExecBinaryRunner::Run(const std::vector<std::string>& executeCmd, const std
     if (executeCmd.empty()) {
         return false;
     }
-    pid_ = fork();
-    if (pid_ < 0) {
+
+    auto cmd = ToRawCArgv(executeCmd);
+
+    // 构建环境变量：为空时继承父进程的 environ，否则合并自定义环境变量
+    std::vector<std::string> envpStorage;
+    std::vector<char *> rawEnvp;
+    char **envp = environ;
+    if (!envs.empty()) {
+        JoinWithSystemEnv(envs, envpStorage, true);
+        rawEnvp = ToRawCArgv(envpStorage);
+        envp = rawEnvp.data();
+    }
+
+    int ret = posix_spawnp(&pid_, executeCmd[0].c_str(), nullptr, nullptr, cmd.data(), envp);
+    if (ret != 0) {
+        char errBuf[256];
+        strerror_r(ret, errBuf, sizeof(errBuf));
+        LogError("posix_spawnp failed: %s", errBuf);
         return false;
-    } else if (pid_ == 0) {
-        auto cmd = ToRawCArgv(executeCmd);
+    }
 
-        if (envs.empty()) {
-            execvp(executeCmd[0].c_str(), cmd.data());
-            exit(-1);
-        } else {
-            vector<string> envp;
-            JoinWithSystemEnv(envs, envp, true);
-            execvpe(executeCmd[0].c_str(), cmd.data(), ToRawCArgv(envp).data());
-            exit(-1);
-        }
-    } else {
-        Timer timer;
-        if (timeout > 0) {
-            timer.Start(static_cast<uint32_t>(timeout), [this] { KillBinaryProcess(); });
-        }
+    Timer timer;
+    if (timeout > 0) {
+        timer.Start(static_cast<uint32_t>(timeout), [this] { KillBinaryProcess(); });
+    }
 
-        int status;
-        waitpid(pid_, &status, 0);
-        if (timeout > 0) {
-            timer.Stop();
+    int status;
+    waitpid(pid_, &status, 0);
+    if (timeout > 0) {
+        timer.Stop();
+    }
+    if (status != 0) {
+        if (Profiling::Task::inExitMode || Profiling::Task::killAdvance) {
+            LogWarn("Child process exited with status %d, The process is manually stopped."
+                    " The existing data has been saved for subsequent analysis", status);
+            return true;
         }
-        if (status != 0) {
-            if (Profiling::Task::inExitMode || Profiling::Task::killAdvance) {
-                LogWarn("Child process exited with status %d, The process is manually stopped."
-                        " The existing optimization data has been saved for subsequent analysis", status);
-                return true;
-            } else {
-                LogWarn("Child process exited with status %d", status);
-            }
-            return false;
+        if (WIFSIGNALED(status)) {
+            LogWarn("Child process killed by signal %d", WTERMSIG(status));
+        } else if (WIFEXITED(status)) {
+            LogWarn("Child process exited with return value %d", WEXITSTATUS(status));
         }
+        return false;
     }
     return true;
 }

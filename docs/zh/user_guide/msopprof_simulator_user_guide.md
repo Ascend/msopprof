@@ -136,7 +136,7 @@ msprof op simulator --soc-version=Ascendxxxyy --output=/home/projects/output /ho
 <p id="zh-cn_topic_0000002016036877_p1611218349332">进行算子调优之前，可通过以下两种方式获取算子二进制<strong id="zh-cn_topic_0000002016036877_b1845814318519"><span>*.</span>o</strong>文件。</p>
 <ul id="zh-cn_topic_0000002016036877_ul81131345339"><li>参考<span id="zh-cn_topic_0000002016036877_ph20112143419334">《Ascend C算子开发指南》</span>中的“Kernel直调算子开发 &gt; <a href="https://www.hiascend.com/document/detail/zh/canncommercial/83RC1/opdevg/Ascendcopdevg/atlas_ascendc_10_0056.html" target="_blank" rel="noopener noreferrer">Kernel直调</a> ”章节中的“修改并执行一键式编译运行脚本”，获取NPU侧可执行文件，并需要用户自行从可执行文件中提取<span>*</span>.o文件。</li><li>参考<a href="https://www.hiascend.com/document/detail/zh/mindstudio/82RC1/ODtools/Operatordevelopmenttools/atlasopdev_16_0024.html" target="_blank" rel="noopener noreferrer">算子编译部署</a>，算子编译时会自动生成<strong id="zh-cn_topic_0000002016036877_b17819952105016">*.o</strong>文件。</li></ul>
 <p id="p811246204">需确保群组和其他组的用户不具备--config指定的json文件及上一级目录的写入权限。同时，需要确保json文件的上一级目录属主为当前用户。</p>
-<div class="p" id="p20157517201">需要使用LD_LIBRARY_PATH环境变量设置仿真器类型。<pre class="screen" id="screen011316904">exportLD_LIBRARY_PATH=${INSTALL_DIR}/tools/simulator/Ascendxxxyy/lib:$LD_LIBRARY_PATH // xxxyy为用户实际使用的具体芯片类型</pre>
+<div class="p" id="p20157517201">需要使用LD_LIBRARY_PATH环境变量设置仿真器类型。<pre class="screen" id="screen011316904">export LD_LIBRARY_PATH=${INSTALL_DIR}/tools/simulator/Ascendxxxyy/lib:$LD_LIBRARY_PATH // xxxyy为用户实际使用的具体芯片类型</pre>
 </div>
 </td>
 </tr>

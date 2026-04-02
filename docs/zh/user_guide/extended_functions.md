@@ -319,15 +319,20 @@ mstx接口是MindStudio提供的一个性能分析接口，它允许用户在应
 import mstx
 import torch
 import torch_npu
+ 
 x = torch.Tensor([1,2,3,4]).npu()
 y = torch.Tensor([1,2,3,4]).npu()
+
 a = x + y
 range1_id = mstx.range_start("range1", None)
 b = a - x
 c = a * x
 mstx.range_end(range1_id)
-f = x + e
 range2_id = mstx.range_start("range2", None)
+d = x / y
+range3_id = mstx.range_start("range3", None)
 e = torch.abs(y)
+mstx.range_end(range3_id)
+f = x + e
 mstx.range_end(range2_id)
 ```

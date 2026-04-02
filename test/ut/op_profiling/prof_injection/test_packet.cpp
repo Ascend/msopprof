@@ -23,7 +23,7 @@
 #include "prof_injection/packet.h"
 #undef private
 #undef protected
-
+#include "common/dbi_defs.h"
 using namespace ProfStub;
 using namespace std;
 
