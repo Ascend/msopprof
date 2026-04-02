@@ -196,7 +196,7 @@ bool SimDataParse::GetObjectOutPathAndCopyAicoreFile(const std::string &path, st
         std::string aicoreBinFileDest = JoinPath({outPath});
         if (IsExist(aicoreBinFileSrc) && IsExist(aicoreBinFileDest)) {
             if (!CopyFile(aicoreBinFileSrc, aicoreBinFileDest)) {
-                LogWarn("CopyFile aicoreBinFileSrc to aicoreBinFileDest failure");
+                LogWarn("CopyFile failed: [%s] -> [%s]", aicoreBinFileSrc.c_str(), aicoreBinFileDest.c_str());
                 return false;
             }
             LogDebug("Data parse in ExitMode successfully copy aicore.bin");
@@ -314,7 +314,7 @@ SimDataParse::SimDataParse(std::string socVersion, std::string exportPath, std::
     if (socVersion_.empty() && !GetSocVersionFromEnvVar(socVersion_)) {
         socVersion_ = Common::RuntimeHelper::Instance().GetSocVersion();
         if (socVersion_.empty()) {
-            LogWarn("Cant get socVersion from LD_LIBRARY_PATH and runtime, set to the default socVersion Ascend910B1");
+            LogWarn("Cannot get socVersion from LD_LIBRARY_PATH or runtime, using default: Ascend910B1");
             socVersion_ = "Ascend910B1";
         }
     }

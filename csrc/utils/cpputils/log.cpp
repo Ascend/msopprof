@@ -17,7 +17,10 @@
 #include <chrono>
 #include <ctime>
 #include <type_traits>
+#include <functional>
 #include <map>
+#include <unordered_map>
+#include <thread>
 
 #include "log.h"
 
@@ -32,7 +35,7 @@ inline std::string ToString(LogLv lv)
         "[WARN] ",
         "[ERROR]"
     };
-    return lv < LogLv::COUNT ? lvString[static_cast<underlying>(lv)] : "N";
+    return lv < LogLv::COUNT ? lvString[static_cast<underlying>(lv)] : "[N/A] ";
 }
 
 Log &Log::GetLog(void)
@@ -41,17 +44,35 @@ Log &Log::GetLog(void)
     return instance;
 }
 
-std::string Log::AddPrefixInfo(std::string const &format, LogLv lv) const
+std::string Log::AddPrefixInfo(const char* file, int line, std::string const &format, LogLv lv) const
 {
-    char buf[32] = "0";
-    auto now = std::chrono::system_clock::now();
-    std::time_t time = std::chrono::system_clock::to_time_t(now);
-    struct tm temp;
-    std::tm *tm = localtime_r(&time, &temp);
-    if (tm != nullptr) {
-        std::strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", tm);
+    std::string prefix = ToString(lv) + " ";
+
+    if (lv_ <= LogLv::DEBUG) {
+        char buf[32] = {0};
+        auto now = std::chrono::system_clock::now();
+        std::time_t time = std::chrono::system_clock::to_time_t(now);
+        struct tm temp;
+        std::tm *tm = localtime_r(&time, &temp);
+        if (tm != nullptr) {
+            std::strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", tm);
+        }
+
+        auto threadId = std::hash<std::thread::id>{}(std::this_thread::get_id());
+        
+        std::string fileName = file ? file : "unknown";
+        auto pos = fileName.find_last_of("/\\");
+        if (pos != std::string::npos && pos > 0) {
+            auto parent_pos = fileName.find_last_of("/\\", pos - 1);
+            if (parent_pos != std::string::npos) {
+                // 保留最后两级目录层级，例如 "cpputils/log.cpp"
+                fileName = fileName.substr(parent_pos + 1);
+            }
+        }
+
+        prefix += "[" + std::string(buf) + "] [Thread-" + std::to_string(threadId) + "] [" + fileName + ":" + std::to_string(line) + "] ";
     }
-    return std::string(buf) + " " + ToString(lv) + " " + format;
+    return prefix + format;
 }
 
 void Log::SetLogLevelByEnvVar()
@@ -60,7 +81,7 @@ void Log::SetLogLevelByEnvVar()
     if (logLevel == nullptr) {
         return;
     }
-    std::map<std::string, LogLv> logLevelMap = {
+    static const std::map<std::string, LogLv> logLevelMap = {
         {"0", LogLv::DEBUG},
         {"1", LogLv::INFO},
         {"2", LogLv::WARN},
@@ -71,7 +92,7 @@ void Log::SetLogLevelByEnvVar()
             "use default 1 level.");
         return;
     }
-    lv_ = logLevelMap[logLevel];
+    lv_ = logLevelMap.at(logLevel);
 }
 
 const std::unordered_map<std::string, std::string>& GetInvalidChar(void)

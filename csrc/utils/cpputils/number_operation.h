@@ -76,19 +76,16 @@ T SafeAdd(T num1, T num2, const std::string &location, bool returnValue = true)
     T minValue = std::numeric_limits<T>::lowest();
     if (std::is_signed<T>::value) {
         if (num1 > 0 && num2 > 0 && num1 > maxValue - num2) {
-            LogDebug("The signed number addition has an overflow when calculate %s.", location.c_str());
-            LogDebug("The num1 is %s, The num2 is %s", std::to_string(num1).c_str(), std::to_string(num2).c_str());
+            LogDebug("Signed addition overflow at %s, num1=%ld, num2=%ld", location.c_str(), (long)num1, (long)num2);
             return OverFlowReturnValue(maxValue, returnValue);
         }
         if (num1 < 0 && num2 < 0 && num1 < minValue - num2) {
-            LogDebug("The signed number addition has an overflow when calculate %s.", location.c_str());
-            LogDebug("The num1 is %s, The num2 is %s", std::to_string(num1).c_str(), std::to_string(num2).c_str());
+            LogDebug("Signed addition underflow at %s, num1=%ld, num2=%ld", location.c_str(), (long)num1, (long)num2);
             return OverFlowReturnValue(minValue, returnValue);
         }
     } else {
         if (num1 > maxValue - num2) {
-            LogDebug("The unsigned number addition has an overflow when calculate %s.", location.c_str());
-            LogDebug("The num1 is %s, The num2 is %s", std::to_string(num1).c_str(), std::to_string(num2).c_str());
+            LogDebug("Unsigned addition overflow at %s, num1=%lu, num2=%lu", location.c_str(), (unsigned long)num1, (unsigned long)num2);
             return OverFlowReturnValue(maxValue, returnValue);
         }
     }
@@ -102,19 +99,16 @@ T SafeSub(T num1, T num2, const std::string &location, bool returnValue = true)
     T maxValue = std::numeric_limits<T>::max();
     if (std::is_signed<T>::value) {
         if (num1 >= 0 && num2 < 0 && num1 > maxValue + num2) {
-            LogDebug("The signed number subtraction has an overflow when calculate %s.", location.c_str());
-            LogDebug("The num1 is %s, The num2 is %s", std::to_string(num1).c_str(), std::to_string(num2).c_str());
+            LogDebug("Signed subtraction overflow at %s, num1=%ld, num2=%ld", location.c_str(), (long)num1, (long)num2);
             return OverFlowReturnValue(maxValue, returnValue);
         }
         if (num1 < 0 && num2 > 0 && num1 < minValue + num2) {
-            LogDebug("The signed number subtraction has an overflow when calculate %s.", location.c_str());
-            LogDebug("The num1 is %s, The num2 is %s", std::to_string(num1).c_str(), std::to_string(num2).c_str());
+            LogDebug("Signed subtraction underflow at %s, num1=%ld, num2=%ld", location.c_str(), (long)num1, (long)num2);
             return OverFlowReturnValue(minValue, returnValue);
         }
     } else {
         if (num1 < num2) {
-            LogDebug("The unsigned number subtraction has an overflow when calculate %s.", location.c_str());
-            LogDebug("The num1 is %s, The num2 is %s", std::to_string(num1).c_str(), std::to_string(num2).c_str());
+            LogDebug("Unsigned subtraction overflow at %s, num1=%lu, num2=%lu", location.c_str(), (unsigned long)num1, (unsigned long)num2);
             return OverFlowReturnValue(maxValue, returnValue);
         }
     }
@@ -153,16 +147,14 @@ T SafeMul(T num1, T num2, const std::string &location, bool returnValue = true)
     T res = num1 * num2;
     if (std::is_same<T, float>::value) {
         if (!SafeEqual(res / num1, num2)) {
-            LogDebug("The multiplication function has an overflow when calculate float %s.", location.c_str());
-            LogDebug("The num1 is %s, The num2 is %s", std::to_string(num1).c_str(), std::to_string(num2).c_str());
+            LogDebug("Float multiplication overflow at %s, num1=%f, num2=%f", location.c_str(), (double)num1, (double)num2);
             if (HaveSameSign(num1, num2)) {
                 return OverFlowReturnValue(maxValue, returnValue);
             }
             return OverFlowReturnValue(minValue, returnValue);
         }
     } else if (!SafeEqual(res / num1, num2)) {
-        LogDebug("The multiplication function has an overflow when calculate %s.", location.c_str());
-        LogDebug("The num1 is %s, The num2 is %s", std::to_string(num1).c_str(), std::to_string(num2).c_str());
+        LogDebug("Integer multiplication overflow at %s, num1=%ld, num2=%ld", location.c_str(), (long)num1, (long)num2);
         if (HaveSameSign(num1, num2)) {
                 return OverFlowReturnValue(maxValue, returnValue);
             }

@@ -57,12 +57,25 @@ TEST(FileSystem, log_error_expect_output_erro_log)
 TEST(FileSystem, addPrefixInfo_with_success)
 {
     std::string format = "test";
-    std::string time = Log::GetLog().AddPrefixInfo(format, LogLv::WARN);
-    auto loc = time.find(" ");
-    ASSERT_NE(loc, std::string::npos);
-    time = time.substr(0, loc);
+    
+    // Temporarily trigger verbose mode by setting internal global log level to DEBUG
+    Utility::LogLv oldLv = Log::GetLog().lv_;
+    Log::GetLog().lv_ = LogLv::DEBUG;
+    
+    std::string time = Log::GetLog().AddPrefixInfo(__FILE__, __LINE__, format, LogLv::DEBUG);
+    
+    // Restore
+    Log::GetLog().lv_ = oldLv;
+    
+    auto loc1 = time.find(" [");            // e.g. "[DEBUG] [2026-..."
+    auto loc2 = time.find("] ", loc1 + 1);
+    
+    ASSERT_NE(loc1, std::string::npos);
+    ASSERT_NE(loc2, std::string::npos);
+    std::string dateStr = time.substr(loc1 + 2, loc2 - loc1 - 2);
     struct tm t;
-    std::istringstream ss(time);
+    
+    std::istringstream ss(dateStr);
     ss >> std::get_time(&t, "%Y-%m-%d %H:%M:%S");
     ASSERT_FALSE(ss.fail());
 }

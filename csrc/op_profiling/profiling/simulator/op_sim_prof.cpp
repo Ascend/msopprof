@@ -61,7 +61,7 @@ std::unique_ptr<DataParse> OpSimProf::GetDataParser()
 bool OpSimProf::Run()
 {
     if (exportPath_.empty() && !RunTask()) {
-        LogWarn("Running task failed, data parsing start");
+        LogError("Running task failed, proceeding to data parsing");
     }
 
     if (!RunDataParse()) {

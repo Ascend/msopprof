@@ -171,7 +171,7 @@ bool GetJsonData(const std::string &jsonPath, nlohmann::json &jsonData)
     // 读取JSON文件
     std::ifstream file(jsonPath);
     if (!file) {
-        LogError("Fail to open json file");
+        LogError("Fail to open json file [%s]", jsonPath.c_str());
         return false;
     }
     // 解析JSON数据
@@ -182,7 +182,7 @@ bool GetJsonData(const std::string &jsonPath, nlohmann::json &jsonData)
         return false;
     }
     file.close();
-    LogInfo("Json parse success");
+    LogDebug("Json parse success");
     return true;
 }
 
@@ -322,7 +322,7 @@ bool RequiredParamCheck(const std::vector<CaseConfig> &configs,
                         const std::string &runMode)
 {
     if (configs.empty()) {
-        LogError("no test case to run");
+        LogWarn("No test case to run, please check json config");
         return false;
     }
     for (const CaseConfig &singleConfig : configs) {
