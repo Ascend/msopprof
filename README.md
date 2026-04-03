@@ -20,6 +20,12 @@
 
 MindStudio Ops Profiler（算子调优工具，msOpProf）用于采集与分析运行在昇腾AI处理器上的算子关键性能指标，用户可基于输出的性能数据快速定位算子在软件或硬件层面的性能瓶颈，显著提升性能分析效率。当前支持多种运行模式（真机部署或仿真）及多种输入形式（可执行文件或算子二进制 .o 文件）下的性能数据采集与自动解析。
 
+<div align="center">
+  <h4>▶️ 核心能力快速演示</h4>
+  <img src="./docs/zh/figures/demo-msopprof.gif" alt="快速演示" width="600">
+  <p><sup>图示：算子上板、仿真调优性能采集过程演示</sup></p>
+</div>
+
 ## ⚙️ 功能介绍
 
 包含msOpProf和msOpProf simulator两种使用模式：
