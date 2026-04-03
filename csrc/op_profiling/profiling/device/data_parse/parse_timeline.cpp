@@ -16,6 +16,7 @@
 
 #include "parse_timeline.h"
 #include <algorithm>
+#include <array>
 #include "log.h"
 #include "filesystem.h"
 #include "common/hal_helper.h"
@@ -43,18 +44,14 @@ bool ParseTimeline::GenerateBiuTimeStamps(const std::string &outputPath)
             ret |= GenerateBiuTimeStampsOneBin(filePath, totalCyclesMap);
         }
     }
-    // 把各个通道的EndMark合并为一个数组，并按照索引（pari.first）从大到小排列
-    std::vector<std::pair<uint64_t, uint64_t>> endMarksVec;
+    // 解析完所有timeline.bin后，一次性截断各channel中endMark起点之后的所有点
     for (const auto &it : endMarks_) {
-        endMarksVec.emplace_back(it.second);
-    }
-    std::sort(endMarksVec.begin(), endMarksVec.end(),
-              [&](const std::pair<uint64_t, uint64_t> &a, const std::pair<uint64_t, uint64_t> &b) {
-                  return a.first > b.first;
-              });
-    // 删除多余mark
-    for (const auto &mark : endMarksVec) {
-        timelineVec_.erase(timelineVec_.begin() + mark.first, timelineVec_.begin() + mark.first + mark.second);
+        uint32_t channelId = it.first;
+        size_t eraseStart = it.second;
+        if (eraseStart < timelineVec_[channelId].size()) {
+            timelineVec_[channelId].erase(timelineVec_[channelId].begin() + eraseStart,
+                                           timelineVec_[channelId].end());
+        }
     }
     return ret;
 }
@@ -106,37 +103,43 @@ void ParseTimeline::GenMark(const std::string &pipe, const BiuPerfInfo &originIn
 {
     uint16_t markId = originInfo.biuInfo & 0xfff;
     uint32_t channelId = instrProfHeadInfo.coreId * 3 + instrProfHeadInfo.coreType;  // 3 表示2vec + 1cube
+    if (channelId >= INSTR_PROF_CHANNEL_NUM) {
+        Utility::LogDebug("InstrProf channelId %u exceeds limit %d", channelId, INSTR_PROF_CHANNEL_NUM);
+        return;
+    }
     UpdateEndMarks(markId, channelId);
     totalCyclesMap[channelId] += originInfo.cycles;
     std::string coreName = "core" + std::to_string(instrProfHeadInfo.coreId)
         + "." + subCore_[instrProfHeadInfo.coreType];
     std::string markName = "MarkStamp" + std::to_string(markId);
-    timelineVec_.emplace_back(TimelineInfo(pipe, coreName, markName, totalCyclesMap[channelId], 1));
+    timelineVec_[channelId].emplace_back(TimelineInfo(pipe, coreName, markName, totalCyclesMap[channelId], 1));
     return;
 }
 
 // 刷新endMark表
+// instrprof_end中插入了连续的8个标签，需要按顺序过滤这些多余的end标记
 void ParseTimeline::UpdateEndMarks(uint16_t markId, uint32_t channelId)
 {
-    // 出现多个0xddd，只记录最后一次0xddd，first表示在timelineVec_中的索引，second表示需要删除的长度（多余的mark是连续的）
-    if (markId == 0xddd) {
-        endMarks_[channelId] = std::make_pair(timelineVec_.size(), 1);
-        return;
-    // 在当前channel中已存在0xddd之后，再连续出现一个0x555，也被认为是多余标记，len变为2
-    } else if (markId == 0x555 && endMarks_.find(channelId) != endMarks_.end() && endMarks_[channelId].second == 1) {
-        endMarks_[channelId].second++;
-        return;
-    // 在当前channel中连续出现0xddd、0x555，再连续出现0xaaa，也被认为是多余标记，len变为3
-    } else if (markId == 0xaaa && endMarks_.find(channelId) != endMarks_.end() && endMarks_[channelId].second == 2) {
-        endMarks_[channelId].second++;
-        return;
-    // 在当前channel中连续出现0xddd、0x555、0xaaa，再连续出现0xfff，也被认为是多余标记，len变为4
-    } else if (markId == 0xfff && endMarks_.find(channelId) != endMarks_.end() && endMarks_[channelId].second == 3) {
-        endMarks_[channelId].second++;
+    static const std::array<uint16_t, 8> endMarkSequence = {
+        0x888, 0x999, 0xaaa, 0xbbb, 0xccc, 0xddd, 0xeee, 0xfff
+    };
+
+    auto it = std::find(endMarkSequence.begin(), endMarkSequence.end(), markId);
+    if (it == endMarkSequence.end()) {
+        // markId不在end标记序列中，说明是用户的mark，删除这条通道上EndMark
+        endMarks_.erase(channelId);
         return;
     }
-    // 如果都不符合，说明在当前channel出现了用户的mark，删除这条通道上EndMark
-    endMarks_.erase(channelId);
+
+    uint64_t expectedIdx = std::distance(endMarkSequence.begin(), it);
+    if (expectedIdx == 0) {
+        // 序列起始标记，记录起始位置（该channel在timelineVec_中的索引）
+        endMarks_[channelId] = timelineVec_[channelId].size();
+    } else if (endMarks_.find(channelId) == endMarks_.end()) {
+        // 顺序不连续，删除这条通道上EndMark
+        endMarks_.erase(channelId);
+    }
+    // 后续标记（expectedIdx > 0）且已存在起点，无需额外操作
 }
 
 void ParseTimeline::ParseOriginInfo(const BiuPerfInfo &originInfo, const InstrProfHeadInfo &instrProfHeadInfo,
@@ -149,6 +152,10 @@ void ParseTimeline::ParseOriginInfo(const BiuPerfInfo &originInfo, const InstrPr
     uint16_t pipeInfo = originInfo.biuInfo & 0xfff;
     size_t pipeId = 0;
     uint32_t channelId = instrProfHeadInfo.coreId * 3 + instrProfHeadInfo.coreType;  // 3 表示2vec + 1cube
+    if (channelId >= INSTR_PROF_CHANNEL_NUM) {
+        Utility::LogDebug("InstrProf channelId %u exceeds limit %d", channelId, INSTR_PROF_CHANNEL_NUM);
+        return;
+    }
     totalCyclesMap[channelId] += originInfo.cycles;
     while (channelId < INSTR_PROF_CHANNEL_NUM && pipeId < TIMELINE_PIPE_NUM && pipeId < pipe_.size()) {
         // pipeInfo & 0x1 获取当前pipe状态，0 表示 idle，1 表示 busy
@@ -157,7 +164,7 @@ void ParseTimeline::ParseOriginInfo(const BiuPerfInfo &originInfo, const InstrPr
             if (timelineStatesVec_[channelId][pipeId].start != 0) {
                 timelineStatesVec_[channelId][pipeId].duration =
                     totalCyclesMap[channelId] - timelineStatesVec_[channelId][pipeId].start;
-                timelineVec_.emplace_back(timelineStatesVec_[channelId][pipeId]);
+                timelineVec_[channelId].emplace_back(timelineStatesVec_[channelId][pipeId]);
                 timelineStatesVec_[channelId][pipeId] = TimelineInfo();
             }
             pipeId++;
