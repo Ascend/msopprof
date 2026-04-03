@@ -22,7 +22,7 @@
 namespace ProfStub {
 using namespace Utility;
 bool InjectionEvent::StartDisposeClientAsk(const MessageOfProfConfig &profMessage,
-                                           const Utility::ProfConfig &profConfig)
+                                           const Common::ProfConfig &profConfig)
 {
     isRunning_ = true;
     profMessage_ = profMessage;

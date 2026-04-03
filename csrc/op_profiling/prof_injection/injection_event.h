@@ -21,7 +21,6 @@
 #include <future>
 #include "communication/communication.h"
 #include "device_process_manager.h"
-#include "data_format.h"
 #include "packet.h"
 #include "singleton.h"
 namespace ProfStub {
@@ -37,7 +36,7 @@ friend class Singleton<InjectionEvent>;
 public:
     // Start 1 thread to receive message
     bool StartDisposeClientAsk(const MessageOfProfConfig &profMessage,
-                               const Utility::ProfConfig &profConfig);
+                               const Common::ProfConfig &profConfig);
     void Stop();
     void RegisterPacketHandler(const PacketHandler &handler);
     void UnregisterPacketHandler(ProfPacketType packetType);

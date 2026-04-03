@@ -189,7 +189,7 @@ bool DataHandler::ParseBasicInfoFile(const string &filePath)
     while (getline(file, line)) {
         vector<string> lineOpInfoList;
         size_t keyValuePairSize = 2;
-        Utility::Split(line, back_inserter(lineOpInfoList), "=");
+        SplitString(line, '=', lineOpInfoList);
         if (lineOpInfoList.size() != keyValuePairSize) {
             continue;
         }
@@ -456,10 +456,7 @@ void DataHandler::AddMemMapDetailToVisualize(const BlockIDPairType& blockIdPairT
     memMap.totalCycles = blockProfBinData.totalCycles;
     memMap.aiCoreNum = aiCoreNum_;
     memMap.blockDim = blockDim_;
-    vector<uint64_t> visualizeEvents = GetVisualizeEvents(false, memMap.blockType);
-    for (auto &i : visualizeEvents) {
-        memMap.eventMap[i] = GetPmuValue(blockProfBinData.pmuEventValueMap, i);
-    }
+    memMap.eventMap = GetVisualizeEventMap(memMap.blockType, blockProfBinData.pmuEventValueMap);
     if (memMap.opType != Common::OpType::MIX) {
         memMapDetail.emplace_back(memMap);
         return;
@@ -487,10 +484,7 @@ void DataHandler::AddComputeBlockDetailToVisualize(const BlockIDPairType& blockI
     computeLoadBlockDetail.blockType = blockIdPairType.second;
     computeLoadBlockDetail.freq = (curFreq_ != -1) ? curFreq_ : aicoreFreq_;
     computeLoadBlockDetail.totalCycles = blockProfBinData.totalCycles;
-    vector<uint64_t> visualizeEvents = GetVisualizeEvents(true, computeLoadBlockDetail.blockType);
-    for (auto &i : visualizeEvents) {
-        computeLoadBlockDetail.eventMap[i] = GetPmuValue(blockProfBinData.pmuEventValueMap, i);
-    }
+    computeLoadBlockDetail.eventMap = GetVisualizeEventMap(computeLoadBlockDetail.blockType, blockProfBinData.pmuEventValueMap);
     computeLoadBlockDetail.operandRecordMap = recordMap;
     blockDetailMap.emplace_back(computeLoadBlockDetail);
 }
@@ -622,35 +616,6 @@ string DataHandlerOf910B::GetOpType()
         return Common::OpType::CUBE;
     }
     return Common::OpType::VECTOR;
-}
-// 直接拆成GetComputeLoadVisualizeEvents和GetStorageAccessVisualizeEvents
-std::vector<uint64_t> DataHandlerOf910B::GetVisualizeEvents(bool isComputeLoad, const std::string &blockType)
-{
-    // 函数中定义的vector存储数字为对应的event id,分别为计算负载、内存图计算所需的所有event id合集,对于各个event id的解释可见详设文档
-    std::vector<uint64_t> visualizeAic = {27, 28, 33, 34, 40, 42, 49, 50, 518, 524, 107, 110};
-    std::vector<uint64_t> visualizeAiv = {55, 56, 61, 62, 67, 68, 106, 111};
-    std::vector<uint64_t> visualizeCommon = {4, 5, 6, 8, 9, 10, 12, 13, 18, 19, 73, 74, 84, 85, 87, 90, 91, 92, 526,
-                                             770, 771, 1280, 1282, 1283, 1284, 1286, 1288, 1287, 1290, 1291, 1292, 1293, 1294,
-                                             1792, 1793, 1794, 1795, 1796, 1797, 1798, 1799,
-                                             1780, 1781, 1782, 1783, 1784, 1785, 1786, 1787,
-                                             108,  109,  112,  113,  114
-                                            };
-    std::vector<uint64_t> visualizeEvents;
-    if (isComputeLoad) {
-        if (blockType.find("cube") != std::string::npos) {
-            visualizeEvents = {3, 10, 73, 74, 88, 1032, 1033};
-        } else {
-            visualizeEvents = {1, 8, 75, 76, 77, 78, 79, 89, 100, 101, 102, 103, 174, 184, 185, 186};
-        }
-    } else {
-        visualizeEvents = visualizeCommon;
-        if (blockType.find("cube") != std::string::npos) {
-            visualizeEvents.insert(visualizeEvents.end(), visualizeAic.begin(), visualizeAic.end());
-        } else {
-            visualizeEvents.insert(visualizeEvents.end(), visualizeAiv.begin(), visualizeAiv.end());
-        }
-    }
-    return visualizeEvents;
 }
 
 vector<MemRecord> DataHandler::ParseMemoryChartBin(const string &memoryChartBin) const
@@ -787,18 +752,6 @@ string DataHandlerOf310P::GetOpType()
     return Common::OpType::AI_CORE;
 }
 
-std::vector<uint64_t> DataHandlerOf310P::GetVisualizeEvents(bool isComputeLoad, const std::string &blockType)
-{
-    // 函数中定义的vector存储数字为对应的event id,分别为计算负载、内存图计算所需的所有event id合集,对于各个event id的解释可见详设文档
-    std::vector<uint64_t> visualizeEvents;
-    if (isComputeLoad) {
-        visualizeEvents = {1, 3, 8, 10, 73, 74, 75, 76, 77, 78, 79, 88, 89, 100, 101, 102, 103, 174, 184, 185, 186};
-    } else {
-        visualizeEvents = {4, 5, 6, 8, 9, 10, 11, 12, 13, 18, 19, 27, 28, 33, 34, 39, 41, 42, 49, 50, 55, 56, 61, 62,
-                           67, 68, 73, 74, 84, 85, 87, 90, 91, 92, 106, 120, 121};
-    }
-    return visualizeEvents;
-}
 void DataHandlerOf91095::ParseMemoryChartData(const std::string &outputPath,
     const Common::ProfMetricsAbilityConfig &metrics, std::vector<Common::MemRecord> &memoryRecords,
     const std::string &kernelName)
@@ -982,18 +935,13 @@ string DataHandlerOf91095::GetOpType()
     return Common::OpType::VECTOR;
 }
 
-std::vector<uint64_t> DataHandlerOf91095::GetVisualizeEvents(bool isComputeLoad, const std::string &blockType)
+map<uint64_t, uint64_t> DataHandler::GetVisualizeEventMap(const string &blockType, const PmuEventValueMapType &originEventMap)
 {
-    std::vector<uint64_t> visualizeEvents;
-    if (blockType.find("cube") != std::string::npos) {
-        for (const auto &i: REPLAY_AIC_EVENTS_FOR_A5) {
-            visualizeEvents.emplace_back(static_cast<uint64_t>(i));
-        }
-    } else {
-        for (const auto &i: REPLAY_AIV_EVENTS_FOR_A5) {
-            visualizeEvents.emplace_back(static_cast<uint64_t>(i));
-        }
+    auto totalEvents = GetEventsByType(chipType_, blockType);
+    map<uint64_t, uint64_t> eventMap;
+    for (const auto &i: totalEvents) {
+        eventMap[static_cast<uint64_t>(i)] = GetPmuValue(originEventMap, i);
     }
-    return visualizeEvents;
+    return eventMap;
 }
 }

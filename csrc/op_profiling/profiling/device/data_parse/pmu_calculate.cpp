@@ -416,8 +416,8 @@ std::string Calculate::CalAicMte1ActivateBw(const Mte1BwPmusWithSize &mte1) cons
     uint64_t l0aByte = mte1.l0aPmu * mte1.l0aSize < mte1.gmToL0a ? 0 : mte1.l0aPmu * mte1.l0aSize - mte1.gmToL0a;
     uint64_t l0bByte = mte1.l0bPmu * mte1.l0bSize < mte1.gmToL0b ? 0 : mte1.l0bPmu * mte1.l0bSize - mte1.gmToL0b;
     float dataBit = static_cast<float>(l0aByte) * mte1.l0aPipe + l0bByte * mte1.l0bPipe;
-    float mte1Time = freq_ <= 0 ? 0 : static_cast<float>(mte1.mte1CyclePmu) / freq_;
-    if (SafeEqual(mte1Time, 0.0f)) {
+    float mte1Time = freq_ <= 0 ? 0.0f : static_cast<float>(mte1.mte1CyclePmu) / freq_;
+    if (IsZero(mte1Time)) {
         return "NA";
     }
     return std::to_string(static_cast<float>(dataBit) / mte1Time / BANDWIDTH_NUM * TIME_CONVERSION * TIME_CONVERSION);
@@ -426,12 +426,12 @@ std::string Calculate::CalAicMte1ActivateBw(const Mte1BwPmusWithSize &mte1) cons
 std::string Calculate::CalAicMte2ActivateBw(const uint64_t &gmToL1, const uint64_t &gmToL0a,
     const uint64_t &gmToL0b, const uint64_t &pmu) const
 {
-    float mte2AicTime = freq_ <= 0 ? 0 : static_cast<float>(pmu) / freq_;
-    if (SafeEqual(mte2AicTime, 0.0f)) {
+    float mte2Time = freq_ <= 0 ? 0.0f : static_cast<float>(pmu) / freq_;
+    if (IsZero(mte2Time)) {
         return "NA";
     }
     float dataSize = static_cast<float>(gmToL1) + gmToL0a + gmToL0b;
-    return std::to_string(dataSize / mte2AicTime / BIT_CONVERSION / BIT_CONVERSION / BIT_CONVERSION
+    return std::to_string(dataSize / mte2Time / BIT_CONVERSION / BIT_CONVERSION / BIT_CONVERSION
         * TIME_CONVERSION * TIME_CONVERSION);
 }
 
@@ -440,19 +440,19 @@ std::string Calculate::CalAicMte3ActivateBw(const uint64_t &pipSize, const uint6
 {
     uint64_t calFactor = 4;
 
-    float mte2AicTime = freq_ <= 0 ? 0 : static_cast<float>(pmu4) / freq_;
-    if (calFactor * pmu1 + pmu2 < pmu3 || SafeEqual(mte2AicTime, 0.0f)) {
+    float mte3Time = freq_ <= 0 ? 0.0f : static_cast<float>(pmu4) / freq_;
+    if (calFactor * pmu1 + pmu2 < pmu3 || IsZero(mte3Time)) {
         return "NA";
     }
     float dataSize = static_cast<float>((calFactor * pmu1 + pmu2 - pmu3) * pipSize);
-    return std::to_string(dataSize / mte2AicTime / BIT_CONVERSION / BIT_CONVERSION / BIT_CONVERSION
+    return std::to_string(dataSize / mte3Time / BIT_CONVERSION / BIT_CONVERSION / BIT_CONVERSION
         * TIME_CONVERSION * TIME_CONVERSION);
 }
 
 std::string Calculate::CalAivMteActivateBw(const uint64_t &pipSize, const uint64_t &pmu1, const uint64_t &pmu2) const
 {
-    float aivMte2Time = freq_ <= 0 ? 0 : static_cast<float>(pmu2) / freq_;
-    if (freq_ <= 0 || SafeEqual(aivMte2Time, 0.0f)) {
+    float aivMte2Time = freq_ <= 0 ? 0.0f : static_cast<float>(pmu2) / freq_;
+    if (freq_ <= 0 || IsZero(aivMte2Time)) {
         return "NA";
     }
     float dataSize = static_cast<float>(pmu1 * pipSize);

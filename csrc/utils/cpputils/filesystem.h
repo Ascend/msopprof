@@ -37,11 +37,12 @@
 #include "log.h"
 #include "ustring.h"
 #include "securec.h"
-#include "data_format.h"
 
 namespace Utility {
-
-constexpr mode_t DIR_DEFAULT_MOD = 0750;
+constexpr uint64_t MAX_MEM_BYTE_SIZE = 32212254720; // 30G for file and memory malloc
+constexpr mode_t DIR_DEFAULT_MODE = 0750;
+const mode_t SAVE_DATA_FILE_AUTHORITY = 0640;
+const mode_t READ_ONLY_FILE_AUTHORITY = 0400;
 constexpr char const *PATH_SEP = "/";
 constexpr const char USER_HOME = '~';
 constexpr int FILE_NAME_LENGTH_LIMIT = 255;
@@ -272,7 +273,7 @@ void WriteBinaryFile(const std::string &filePath, const char *buffer, size_t siz
 bool ReadBinaryFile(const std::string &filePath, std::vector<char> &buffer);
 std::string GetAbsolutePath(std::string const &path);
 bool IsSoftLink(const std::string &path);
-bool MkdirRecusively(std::string const &path, mode_t mode = DIR_DEFAULT_MOD);
+bool MkdirRecusively(std::string const &path, mode_t mode = DIR_DEFAULT_MODE);
 bool CheckInputFileValid(const std::string &path, const std::string &fileType,
                          size_t threshold = INPUT_BINARY_FILE_MAX_SIZE, std::string paramName = "",
                          LogLv logLv = LogLv::ERROR);
@@ -286,7 +287,7 @@ void CopyFolder(const std::string &fromPath, const std::string &toPath, const st
     const std::function<void(const std::string&, const std::string&)>& func = nullptr, int depth = MAX_DEPTH);
 bool CopyFile(const std::string &srcPath, const std::string &destPath);
 bool GetFileSuffix(const std::string &file, std::string &suffix);
-bool Mkdir(std::string const &path, mode_t mode = DIR_DEFAULT_MOD, bool ignoreExist = true);
+bool Mkdir(std::string const &path, mode_t mode = DIR_DEFAULT_MODE, bool ignoreExist = true);
 bool CheckFolder(const std::string &path, std::string &errorMsg, bool ignoreEmpty = false,
     const std::function<bool(const std::string&, std::vector<std::string>&, std::string&)>& fileChecker = nullptr);
 bool IsSoftLinkRecursively(const std::string &path);

@@ -159,7 +159,7 @@ bool MkdirRecusively(std::string const &path, mode_t mode)
 {
     // not thread safe. Mkdir same path concurrently may cause problem
     std::vector<std::string> dirs;
-    Split(GetAbsolutePath(path), std::back_inserter(dirs), PATH_SEP);
+    SplitString(GetAbsolutePath(path), '/', dirs);
     if (dirs.empty()) {
         LogError("Mkdir [%s] failed because path is empty.", path.c_str());
         return false;
@@ -482,7 +482,7 @@ bool IsSoftLinkRecursively(const std::string &path)
         nonConstPath.pop_back();
     }
     std::vector<std::string> dirs;
-    Split(nonConstPath, std::back_inserter(dirs), PATH_SEP);
+    SplitString(nonConstPath, '/', dirs);
     if (dirs.empty()) {
         return false;
     }
@@ -588,7 +588,7 @@ std::string FindExecutableCommand(const std::string &command)
 
     const char *env = getenv("PATH");
     if (env && !std::string(env).empty()) {
-        Split(std::string(env), std::back_inserter(paths), ":");
+        SplitString(std::string(env), ':', paths);
     }
 
     for (auto &dir : paths) {
@@ -610,7 +610,7 @@ bool PathLenCheckValid(const std::string &checkPath)
         return false;
     }
     std::vector<std::string> dirs;
-    Split(checkPath, std::back_inserter(dirs), PATH_SEP);
+    SplitString(checkPath, '/', dirs);
     for (const auto &it : dirs) {
         if (it.length() > FILE_NAME_LENGTH_LIMIT) {
             return false;

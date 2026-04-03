@@ -17,10 +17,11 @@
 #ifndef MSOPT_EXEC_BINARY_RUNNER_H
 #define MSOPT_EXEC_BINARY_RUNNER_H
 
+#include <cstdint>
 #include <map>
+#include <string>
 #include <vector>
-
-#include "data_format.h"
+#include <utility>
 
 namespace OpRunner {
 

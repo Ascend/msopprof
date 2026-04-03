@@ -119,9 +119,8 @@ std::map <std::string, std::vector<MergeInfo>> SimCodeToPc::MergeInstr(const std
 
 bool SimCodeToPc::UpdateCodeStat(const struct UpdateCode &updateCode, const std::string &coreName)
 {
-    const constexpr char *sep = ":";
     std::vector<std::string> fileLines;
-    Split(updateCode.code, back_inserter(fileLines), sep);
+    SplitString(updateCode.code, ':', fileLines);
     std::string codeFile = fileLines.front();
     std::string line = fileLines.back();
     {

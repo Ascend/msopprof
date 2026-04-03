@@ -23,7 +23,6 @@
 
 #include "log.h"
 #include "filesystem.h"
-#include "data_format.h"
 #include "thread_pool.h"
 #include "common/defs.h"
 #include "profiling/op_prof_data_parse.h"

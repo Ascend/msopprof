@@ -209,7 +209,7 @@ bool ParsePcCode::GetPcSetByKernelName(const std::string &kernelName)
         return false;
     }
     std::vector<std::string> lines;
-    Split(output, std::back_inserter(lines), "\n");
+    SplitString(output, '\n', lines);
     for (std::string &line: lines) {
         std::istringstream iss(line);
         auto lineVec = std::vector<std::string>(std::istream_iterator<std::string>{iss},

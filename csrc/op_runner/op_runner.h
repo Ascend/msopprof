@@ -17,7 +17,10 @@
 #ifndef MSOPT_OP_RUNNER_H
 #define MSOPT_OP_RUNNER_H
 
-#include "data_format.h"
+#include <cstdint>
+#include <map>
+#include <string>
+#include <vector>
 
 namespace OpRunner {
 enum class RunType {

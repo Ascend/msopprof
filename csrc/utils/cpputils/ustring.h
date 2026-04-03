@@ -44,24 +44,6 @@ inline std::string Join(Iterator beg, Iterator end, std::string const &sep = " "
     return ret;
 }
 
-template<typename Iterator>
-void Split(std::string const &str, Iterator it, std::string const &seps)
-{
-    std::string::size_type fast = 0;
-    if (!seps.empty() && str.rfind(seps, 0) == 0) {
-        *it = "";
-        ++it;
-    }
-    std::string::size_type slow = str.find_first_not_of(seps);
-    for (; fast < str.length(); slow = str.find_first_not_of(seps, fast)) {
-        fast = str.find_first_of(seps, slow);
-        if (fast != slow) {
-            *it = str.substr(slow, fast - slow);
-            ++it;
-        }
-    }
-}
-
 bool IsDigit(std::string const &digit);
 
 template <class Type>

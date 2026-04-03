@@ -30,6 +30,7 @@ inline typename std::enable_if<std::is_floating_point<T>::value, bool>::type IsZ
 {
     return std::abs(num) < std::numeric_limits<T>::epsilon();
 }
+
 template<typename T>
 inline typename std::enable_if<std::is_integral<T>::value, bool>::type IsZero(T num)
 {

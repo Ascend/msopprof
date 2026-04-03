@@ -69,7 +69,7 @@ public:
         isMstxEnable = profConfig->isMstxEnable_;
         mstxEnabledMessageString = profConfig->mstxInclude_;
         timeout_ = profConfig->timeout_;
-        Utility::ProfConfig profCf(outputPath, profConfig->kernelName_, profConfig->launchCount_,
+        Common::ProfConfig profCf(outputPath, profConfig->kernelName_, profConfig->launchCount_,
             profConfig->launchSkipBeforeMatch_);
         profConfig_ = profCf;
         pmSamplingEnable_ = profConfig->aicMetrics_.pmSamplingEnable;

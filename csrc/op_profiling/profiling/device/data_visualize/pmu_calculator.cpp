@@ -109,14 +109,14 @@ std::map<std::string, float> PmuCalculator910B::GetPipeBwByWeight(const string &
         0.0f : static_cast<float>(l0aDatas) / (l0aDatas + l0bDatas);
     float l0bRatio = (l0bDatas == 0 || (l0aDatas + l0bDatas) == 0) ?
         0.0f : static_cast<float>(l0bDatas) / (l0aDatas + l0bDatas);
-    if ((!Utility::SafeEqual(l0aRatio, 0.0f)) || (!Utility::SafeEqual(l0bRatio, 0.0f))) {
+    if ((!IsZero(l0aRatio)) || (!IsZero(l0bRatio))) {
         resBw["MTE1"] = maxBw.at(TransportType::MTE_TO_L0A) * l0aRatio + maxBw.at(TransportType::MTE_TO_L0B) * l0bRatio;
     }
     float l0c2GmRatio = (l0cToGmDatas == 0 || (l0cToGmDatas + l0cToL1Datas) == 0) ?
         0.0f : static_cast<float>(l0cToGmDatas) / (l0cToGmDatas + l0cToL1Datas);
     float l0c2L1Ratio = (l0cToL1Datas == 0 || (l0cToGmDatas + l0cToL1Datas) == 0) ?
         0.0f :  static_cast<float>(l0cToL1Datas) / (l0cToGmDatas + l0cToL1Datas);
-    if ((!Utility::SafeEqual(l0c2GmRatio, 0.0f)) || (!Utility::SafeEqual(l0c2L1Ratio, 0.0f))) {
+    if ((!IsZero(l0c2GmRatio)) || (!IsZero(l0c2L1Ratio))) {
         resBw["FIXP"] = maxBw.at(TransportType::L0C_TO_GM) * l0c2GmRatio + maxBw.at(TransportType::L0C_TO_L1) * l0c2L1Ratio;
     }
     return resBw;
@@ -339,7 +339,7 @@ std::map<std::string, uint64_t> PmuCalculator910B::GetDataVector910BMix(MemMapDe
 float PmuCalculator910B::GetDurCalBandWidth(std::unique_ptr<OpBasicInfo> &opBasicInfoObj) const
 {
     auto dur = opBasicInfoObj->GetDuration();
-    if (std::fabs(dur) <= std::numeric_limits<float>::epsilon()) {
+    if (IsZero(dur)) {
         Utility::LogError("Get op basic info [Task Duration] = %f failed.", dur);
         return 1.0f;
     }

@@ -19,7 +19,6 @@
 #include <map>
 #include <vector>
 
-#include "data_format.h"
 #include "common/prof_args.h"
 #include "profiling/device/data_visualize/data_visualize_const.h"
 #include "data_bean.h"
@@ -111,10 +110,7 @@ public:
         std::string str;
         return str;
     }
-    virtual std::vector<uint64_t> GetVisualizeEvents(bool isComputeLoad, const std::string &blockType)
-    {
-        return {};
-    }
+    std::map<uint64_t, uint64_t> GetVisualizeEventMap(const std::string &blockType, const PmuEventValueMapType &originEventMap);
 
     std::map<std::string, std::vector<std::string>> metricHeader = {};
     std::map<std::string, std::function<std::string(const CalculateParams &params)>> formulaOfA5_;
@@ -245,7 +241,6 @@ public:
     void ParseDurationBin(const std::string &outputPath, const std::vector<char> &binData, const size_t &fileSize,
                           uint64_t &startTime, uint64_t &endTime) override;
     std::string GetOpType() override;
-    std::vector<uint64_t> GetVisualizeEvents(bool isComputeLoad, const std::string &blockType) override;
     void AddIndexToCsv(const Common::ProfMetricsAbilityConfig &metrics, ParserConfig &config) override;
     void ReadAndParseL2CacheBin(const std::string &outputPath, const Common::ProfMetricsAbilityConfig &metrics) override;
 private:
@@ -278,7 +273,6 @@ public:
                           uint64_t &startTime, uint64_t &endTime) override;
     void ReadAndParseL2CacheBin(const std::string &outputPath, const Common::ProfMetricsAbilityConfig &metrics) override;
     std::string GetOpType() override;
-    std::vector<uint64_t> GetVisualizeEvents(bool isComputeLoad, const std::string &blockType) override;
 private:
     static constexpr int64_t DEFAULT_AICORE_FREQ = 1060;
     static constexpr int64_t DEFAULT_TSCPU_FREQ = 38400;
@@ -301,7 +295,6 @@ public:
     void ParseDurationBin(const std::string &outputPath, const std::vector<char> &binData, const size_t &fileSize,
                           uint64_t &startTime, uint64_t &endTime) override;
     std::string GetOpType() override;
-    std::vector<uint64_t> GetVisualizeEvents(bool isComputeLoad, const std::string &blockType) override;
 private:
     void ParseMemoryChartData(const std::string &outputPath, const Common::ProfMetricsAbilityConfig &metrics,
                               std::vector<Common::MemRecord> &memoryRecords,

@@ -113,7 +113,7 @@ TEST(FileSystem, file_handle_utils)
     std::string outputPath = "test/ut/resources/op_test/add_custom/test_output.bin";
     EXPECT_NO_THROW(WriteBinaryFile(outputPath, buffer, size));
 
-    EXPECT_TRUE(MkdirRecusively("test/ut/resources/op_test/add_custom/aaa/bbb", DIR_DEFAULT_MOD));
+    EXPECT_TRUE(MkdirRecusively("test/ut/resources/op_test/add_custom/aaa/bbb", DIR_DEFAULT_MODE));
 
     std::string caseContent = "core_name,running_time(us),duration_time(us)";
     EXPECT_TRUE(WriteFileByStream(casefile, caseContent));

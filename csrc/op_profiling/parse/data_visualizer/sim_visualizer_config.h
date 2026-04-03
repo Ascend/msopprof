@@ -35,7 +35,6 @@ struct SimData {
 };
 
 constexpr int DEFAULT_MHZ = 1850;
-constexpr int DIR_DEFAULT_MODE = 0740;
 
 class SimVisualizerConfig {
 public:

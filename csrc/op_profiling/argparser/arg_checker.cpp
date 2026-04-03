@@ -232,7 +232,7 @@ bool ArgChecker::CheckOutputPathValid(const ProfArgs &config, std::string &msg) 
 
     // Search for the created path in the absolute path of the output path and saved in checkPath
     std::vector<std::string> dirs;
-    Utility::Split(config.argOutput, std::back_inserter(dirs), Utility::PATH_SEP);
+    SplitString(config.argOutput, '/', dirs);
     std::string checkPath;
     for (const auto &dir : dirs) {
         if (dir.empty()) { continue; }

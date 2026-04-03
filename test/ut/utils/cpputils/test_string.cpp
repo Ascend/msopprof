@@ -48,41 +48,66 @@ TEST(String, join_list_of_string_expect_correct_result)
     ASSERT_EQ(result, "abc:def:ghi");
 }
 
-TEST(String, split_empty_string_expect_empty_list_of_string)
+/**
+ * |  用例集  | UstringUt
+ * | 测试函数 | SplitString
+ * |  用例名  | test_SplitString_split_empty_string_expect_empty_list_of_string
+ * | 用例描述 | 测试空字符串分割，返回值为空
+ */
+TEST(UstringUt, test_SplitString_split_empty_string_expect_empty_list_of_string)
 {
     std::string str;
     std::vector<std::string> strs;
-    Split(str, std::back_inserter(strs), " ");
+    SplitString(str, '/', strs);
     ASSERT_TRUE(strs.empty());
 }
 
-TEST(String, split_string_with_empty_seps_expect_return_whole_string)
+/**
+ * |  用例集  | UstringUt
+ * | 测试函数 | SplitString
+ * |  用例名  | test_SplitString_split_string_without_specific_sep_expect_return_whole_string
+ * | 用例描述 | 测试无匹配分隔符，返回值为传入str本身
+ */
+TEST(String, test_SplitString_split_string_without_specific_sep_expect_return_whole_string)
 {
     std::string str = "abc";
     std::vector<std::string> strs;
-    Split(str, std::back_inserter(strs), "");
+    SplitString(str, ':', strs);
     ASSERT_EQ(strs.size(), 1);
     ASSERT_EQ(strs[0], str);
 }
 
-TEST(String, split_string_without_specific_seps_expect_return_whole_string)
+/**
+ * |  用例集  | UstringUt
+ * | 测试函数 | SplitString
+ * |  用例名  | test_SplitString_split_with_sep_expect_return_correct_vector
+ * | 用例描述 | 测试通过匹配分隔符切割字符串，返回值为vector
+ */
+TEST(String, test_SplitString_split_with_sep_expect_return_correct_vector)
 {
-    std::string str = "abc";
+    std::string str = "abc/def/abc";
     std::vector<std::string> strs;
-    Split(str, std::back_inserter(strs), ":");
-    ASSERT_EQ(strs.size(), 1);
-    ASSERT_EQ(strs[0], str);
-}
-
-TEST(String, split_string_with_spaces_expect_return_correct_strs)
-{
-    std::string str = "abc def   ghi";
-    std::vector<std::string> strs;
-    Split(str, std::back_inserter(strs), " ");
+    SplitString(str, '/', strs);
     ASSERT_EQ(strs.size(), 3);
     ASSERT_EQ(strs[0], "abc");
     ASSERT_EQ(strs[1], "def");
-    ASSERT_EQ(strs[2], "ghi");
+    ASSERT_EQ(strs[2], "abc");
+}
+
+/**
+ * |  用例集  | UstringUt
+ * | 测试函数 | SplitString
+ * |  用例名  | test_SplitString_split_with_sep_expect_return_correct_set
+ * | 用例描述 | 测试通过匹配分隔符切割字符串，返回值为set
+ */
+TEST(String, test_SplitString_split_with_sep_expect_return_correct_set)
+{
+    std::string str = "abc/def/abc";
+    std::set<std::string> strs;
+    SplitString(str, '/', strs);
+    ASSERT_EQ(strs.size(), 2);
+    ASSERT_EQ(*strs.begin(), "abc");
+    ASSERT_EQ(*next(strs.begin()), "def");
 }
 
 TEST(String, string_to_num_error)

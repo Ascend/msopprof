@@ -176,7 +176,7 @@ bool ApiData::VisualizeApiData(const std::string &outputPath, CodeInstrData &cod
 string ApiData::CanonicalizeInstrSource(const string &source)
 {
     vector<string> sourceVec;
-    Split(source, back_inserter(sourceVec), ",");
+    SplitString(source, ',', sourceVec);
     vector<string> removes = {"=0x", ":0x"};
     string::size_type idx;
     for (string &str : sourceVec) {

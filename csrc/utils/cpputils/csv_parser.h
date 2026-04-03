@@ -19,10 +19,20 @@
 #define __MSOPPROF_UTILITY_CSV_PARSER_H__
 
 #include <vector>
-
-#include "data_format.h"
+#include <string>
+#include <map>
 
 namespace Utility {
+using CsvRow = std::vector<std::string>;
+using CsvData = std::vector<CsvRow>;
+
+struct CsvFileStruct {
+    std::string fileName;
+    std::vector<std::string> headers;
+    CsvData data;
+    std::map<std::string, int> headerIndex;
+    bool valid = false;
+};
 
 // CsvParser is designed for decoding Csv file
 class CsvParser {

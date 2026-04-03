@@ -80,7 +80,7 @@ public:
     bool isCaLogTransStartSuc_{false};
     std::string simSocVersion;
     MessageOfProfConfig profMessage_{};
-    Utility::ProfConfig profConfig_;
+    Common::ProfConfig profConfig_;
     int32_t timeout_ {-1};
     std::string tmpPath_;
     static std::atomic<bool> needRegisterEvent_;

@@ -138,7 +138,7 @@ std::string RoofLine::RoofLineAnalysis(float bandwidth, float theoryTfops, float
     //        |/
     //    ----+------------------------->(OPs/Mem(Ops/Bytes))
     // P1(OPS/BW, theoryTfops)  P2(horizontalPoint, verticalPoint)
-    if (verticalPoint > theoryTfops || SafeEqual(bandwidth, 0.0f) || SafeEqual(verticalPoint, theoryTfops)) {
+    if (verticalPoint > theoryTfops || IsZero(bandwidth) || SafeEqual(verticalPoint, theoryTfops)) {
         return "NA";
     }
     if ((horizontalPoint < (theoryTfops / bandwidth)) && (horizontalPoint * bandwidth < verticalPoint)) {
@@ -150,7 +150,7 @@ std::string RoofLine::RoofLineAnalysis(float bandwidth, float theoryTfops, float
         highPullThroughPoint = theoryTfops;
         boundType = BoundType::COMPUTE_BOUND;
     }
-    if (SafeEqual(highPullThroughPoint, 0.0f)) {
+    if (IsZero(highPullThroughPoint)) {
         return "NA";
     }
     std::string location = "analysis roofline";
@@ -206,7 +206,7 @@ void RoofLine::AddJson(const string &title, const vector<SubCoreProperty> &prope
     for (const auto& property: propertyVec) {
         // Vertical coordinate = (FP ops + INT ops) / duration, uint is Tops/s.
         float verticalPoint = 0.0f;
-        if (!SafeEqual(duration, 0.0f)) {
+        if (!IsZero(duration)) {
             verticalPoint = static_cast<float>(property.fops) / duration / TIME_CONVERSION / TIME_CONVERSION;
         }
         for (const auto& singleLineData: roofLineDatas) {

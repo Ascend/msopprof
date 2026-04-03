@@ -28,7 +28,6 @@
 #include "ustring.h"
 #include "log.h"
 #include "op_runner.h"
-#include "data_format.h"
 #include "include/opprof/BasicDefs.h" 
 
 namespace Common {
@@ -37,6 +36,8 @@ const std::map<std::string, ReplayMode> ReplayModeMap {
     {"application",  ReplayMode::APPLICATION},
     {"range",        ReplayMode::RANGE},
 };
+
+const std::vector<uint16_t> GetEventsByType(const ChipType &chipType, const std::string &blockType);
 
 /// map from device metrics to msprof metrics option
 struct Mapping {

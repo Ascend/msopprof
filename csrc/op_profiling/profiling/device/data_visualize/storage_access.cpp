@@ -80,7 +80,7 @@ std::vector<nlohmann::json> StorageAccess::GenPipeAdvice(string opType)
     };
     // Generate optimization suggestions
     for (auto &pipe : peakMap_) {
-        if (std::fabs(activeRate_[pipe.first]) <= std::numeric_limits<float>::epsilon()) {
+        if (IsZero(activeRate_[pipe.first])) {
             continue;
         }
         if (pipe.second / activeRate_[pipe.first] < idealRatio) {
@@ -276,7 +276,7 @@ void StorageAccess910B::AddBasicPmu910B(const std::string &opType, MemMapDetail 
 float StorageAccess::GetDurCalBandWidth()
 {
     auto dur = opBasicInfoObj_->GetDuration();
-    if (std::fabs(dur) <= std::numeric_limits<float>::epsilon()) {
+    if (IsZero(dur)) {
         LogError("Get op basic info [Task Duration] = %f failed.", dur);
         return 1.0f;
     }

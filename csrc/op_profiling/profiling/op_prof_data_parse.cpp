@@ -235,7 +235,7 @@ bool SymbolizerParser::SymbolizerPartAddr(const std::vector<std::string> &partCm
     }
     std::string jsonContext = partOutput;
     std::vector<std::string> linesVec;
-    Utility::Split(partOutput, std::back_inserter(linesVec), "\n");
+    SplitString(partOutput, '\n', linesVec);
     uint32_t endPoslength = 2;
     for (std::string &line:linesVec) {
         if ((line.rfind("[{", 0) == 0) && (line.rfind("}]") == (line.length() - endPoslength))) {

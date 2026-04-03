@@ -49,11 +49,11 @@ public:
     DeviceProcessManager() = default;
     std::string ProcessKernelEvent(const std::shared_ptr<Packet>& packPtr, size_t clientId);
     std::string ProcessCtrl(const std::shared_ptr<Packet>& packPtr, size_t clientId);
-    void SetProfConfig(const Utility::ProfConfig &profConfig);
+    void SetProfConfig(const Common::ProfConfig &profConfig);
 private:
     // map<deviceid_, Process>
     std::map<int32_t, std::shared_ptr<DeviceProcess>> processMap_;
-    Utility::ProfConfig profConfig_;
+    Common::ProfConfig profConfig_;
     // map<(deviceid, clientid), skiped kernels numbers>
     std::map<std::string, uint16_t> skipedKernels_;
     // map<(deviceid, clientid), profed kernels numbers>

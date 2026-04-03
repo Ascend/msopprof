@@ -21,7 +21,6 @@
 #include <vector>
 #include <map>
 #include "json.hpp"
-#include "data_format.h"
 #include "sim_defs.h"
 #include "common/defs.h"
 
@@ -73,8 +72,6 @@ struct Event {
     std::string tid;
     std::map<std::string, std::string> args;
 };
-
-constexpr int DIR_DEFAULT_MODE = 0740;
 
 }
 #endif // MSOPT_COMMON_STATISTIC_H

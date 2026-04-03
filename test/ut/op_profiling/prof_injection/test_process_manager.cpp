@@ -34,7 +34,7 @@ TEST(DeviceProcessManager, test_ProcessKernelEvent_not_reach_skip_times_expect_e
     GlobalMockObject::verify();
     DeviceProcessManager manager;
     // profSkipTimes_ = 1
-    Utility::ProfConfig profConfig{"", "", 1, 1};
+    Common::ProfConfig profConfig{"", "", 1, 1};
     manager.SetProfConfig(profConfig);
     Packet::Payload payload{.profDataPathConfig={"kernelName", 0}};
     MOCKER(&Packet::GetPayload)
@@ -49,7 +49,7 @@ TEST(DeviceProcessManager, test_ProcessKernelEvent_has_reach_max_times_expect_em
     GlobalMockObject::verify();
     DeviceProcessManager manager;
     // profMaxTimes_ = 1
-    Utility::ProfConfig profConfig{"", "", 1, 0};
+    Common::ProfConfig profConfig{"", "", 1, 0};
     manager.SetProfConfig(profConfig);
     Packet::Payload payload{.profDataPathConfig={"kernelName", 0}};
     MOCKER(&Packet::GetPayload)
@@ -65,7 +65,7 @@ TEST(DeviceProcessManager, test_ProcessKernelEvent_kernel_name_check_failed_expe
     GlobalMockObject::verify();
     DeviceProcessManager manager;
     // kernelName_ = "add"
-    Utility::ProfConfig profConfig{"", "add", 1, 0};
+    Common::ProfConfig profConfig{"", "add", 1, 0};
     manager.SetProfConfig(profConfig);
     Packet::Payload payload{.profDataPathConfig={"kernelName", 0}};
     MOCKER(&Packet::GetPayload)
@@ -79,7 +79,7 @@ TEST(DeviceProcessManager, test_ProcessKernelEvent_need_prof_expect_path)
 {
     GlobalMockObject::verify();
     DeviceProcessManager manager;
-    Utility::ProfConfig profConfig{"", "add", 1, 0};
+    Common::ProfConfig profConfig{"", "add", 1, 0};
     manager.SetProfConfig(profConfig);
     Packet::Payload payload{.profDataPathConfig={"add", 0}};
     MOCKER(&Packet::GetPayload)
@@ -94,7 +94,7 @@ TEST(DeviceProcessManager, test_ProcessCtrl_has_reach_max_times_need_kill_expect
     GlobalMockObject::verify();
     DeviceProcessManager manager;
     // profMaxTimes_ = 0
-    Utility::ProfConfig profConfig{"", "", 0, 0};
+    Common::ProfConfig profConfig{"", "", 0, 0};
     manager.SetProfConfig(profConfig);
     Packet::Payload payload{.processCtrlReq={1, 0}};
     MOCKER(&Packet::GetPayload)

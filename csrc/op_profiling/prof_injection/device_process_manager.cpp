@@ -84,7 +84,7 @@ bool DeviceProcessManager::CheckKernel(const std::string &kernelName)
     return false;
 }
 
-void DeviceProcessManager::SetProfConfig(const Utility::ProfConfig &profConfig)
+void DeviceProcessManager::SetProfConfig(const Common::ProfConfig &profConfig)
 {
     processMap_.clear();
     profConfig_ = profConfig;

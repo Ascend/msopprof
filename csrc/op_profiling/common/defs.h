@@ -429,6 +429,17 @@ const std::map<unsigned short, GmType> GM_PRODUCT {
     {0, GmType::DEFAULT},
 };
 
+struct ProfConfig {
+    ProfConfig(std::string outputPath, std::string kernelName, uint16_t profMaxTimes, uint16_t profSkipTimes)
+        :   outputPath_(std::move(outputPath)), kernelName_(std::move(kernelName)),
+        profMaxTimes_(profMaxTimes), profSkipTimes_(profSkipTimes) {}
+    ProfConfig() = default;
+    std::string outputPath_;
+    std::string kernelName_;
+    uint16_t profMaxTimes_ {1};
+    uint16_t profSkipTimes_ {0};
+};
+
 template<class TKey, class TValue>
 using PairVector = std::vector<std::pair<TKey, TValue>>;
 

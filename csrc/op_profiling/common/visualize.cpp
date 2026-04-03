@@ -18,7 +18,6 @@
 #include "visualize.h"
 #include <mutex>
 #include "filesystem.h"
-#include "data_format.h"
 #include "communication/serializer.h"
 
 using namespace std;

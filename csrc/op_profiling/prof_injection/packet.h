@@ -20,7 +20,6 @@
 #include <cstdint>
 #include <functional>
 #include "communication/serializer.h"
-#include "data_format.h"
 #include "log.h"
 #include "common/defs.h"
 #include "include/opprof/Protocol.h"

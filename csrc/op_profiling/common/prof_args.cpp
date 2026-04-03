@@ -18,10 +18,23 @@
 #include "prof_args.h"
 #include <cmath>
 #include "log.h"
-#include "data_format.h"
 
 using namespace Utility;
 namespace Common {
+const std::vector<uint16_t> GetEventsByType(const ChipType &chipType, const std::string &blockType)
+{
+    if (chipType == ChipType::ASCEND310P) {
+        return REPLAY_AIC_EVENTS_FOR_310P;
+    }
+    if (chipType == ChipType::ASCEND910B) {
+        return blockType.find("cube") != std::string::npos ? REPLAY_AIC_EVENTS_FOR_910B : REPLAY_AIV_EVENTS_FOR_910B;
+    }
+    if (chipType == ChipType::ASCEND950) {
+        return blockType.find("cube") != std::string::npos ? REPLAY_AIC_EVENTS_FOR_A5 : REPLAY_AIV_EVENTS_FOR_A5;
+    }
+    return {};
+}
+
 uint32_t GetUpNumCanDivisibleByX(uint16_t number, uint16_t x)
 {
     if (x == 0) {
@@ -30,6 +43,7 @@ uint32_t GetUpNumCanDivisibleByX(uint16_t number, uint16_t x)
     }
     return static_cast<uint32_t>(std::ceil(static_cast<double>(number) / static_cast<double>(x))) * x;
 }
+
 std::map<ProfMetrics, std::string> Mapping::onBoardMetricsToMsprof = {
     {ProfMetrics::PIPE_UTILIZATION,        std::string(MsprofMetrics::PIPE_UTILIZATION)},
     {ProfMetrics::ARITHMETIC_UTILIZATION,  std::string(MsprofMetrics::ARITHMETIC_UTILIZATION)},
@@ -120,12 +134,13 @@ bool ParseValue(std::string const &str, ProfMetricsAbilityConfig &value)
     }
     value = ProfMetricsAbilityConfig(false);
     std::vector<std::string> argMetrics;
-    Split(str, std::back_inserter(argMetrics), ",");
-    for_each(argMetrics.begin(), argMetrics.end(), [](std::string& s) {
-        for (auto& c : s) {
+    SplitString(str, ',', argMetrics);
+    for (auto it = argMetrics.begin(); it != argMetrics.end(); ) {
+        for (auto& c : *it) {
             c = tolower(static_cast<unsigned char>(c));
         }
-    });
+        it = it->empty() ? argMetrics.erase(it) : ++it;
+    }
     value.metricVec = argMetrics;
     for (std::string const &metric : argMetrics) {
         if (metric == MsprofMetrics::DEFAULT) {
@@ -255,19 +270,18 @@ void PmuEventsId::LoadPmuVec(const ProfMetricsAbilityConfig &metrics, ChipType c
         return;
     }
     if (chipType == ChipType::ASCEND310P) {
-        aicPmu = REPLAY_AIC_EVENTS_FOR_310P;
+        aicPmu = GetEventsByType(chipType, "");
         return;
     }
+    
+    std::vector<uint16_t> aicTotalEvents = GetEventsByType(chipType, "cube");
+    std::vector<uint16_t> aivTotalEvents = GetEventsByType(chipType, "vector");
     // default ASCEND910B
     MetricEventsMapType aicMetricEventsMap = AIC_EVENTS_FOR_910B;
     MetricEventsMapType aivMetricEventsMap = AIV_EVENTS_FOR_910B;
-    std::vector<uint16_t> aicTotalEvents = REPLAY_AIC_EVENTS_FOR_910B;
-    std::vector<uint16_t> aivTotalEvents = REPLAY_AIV_EVENTS_FOR_910B;
     if (chipType == ChipType::ASCEND950) {
         aicMetricEventsMap = AIC_EVENTS_FOR_A5;
         aivMetricEventsMap = AIV_EVENTS_FOR_A5;
-        aicTotalEvents = REPLAY_AIC_EVENTS_FOR_A5;
-        aivTotalEvents = REPLAY_AIV_EVENTS_FOR_A5;
     }
     if (replayMode == "kernel" || replayMode == "range" || metrics.HasEnabledAllPmu()) {
         aicPmu = aicTotalEvents;

@@ -442,8 +442,7 @@ void MC2TimelineParser::ProcessHcclTaskData(const vector<MsprofAicpuHcclTaskInfo
         string taskTypeStr = FindMap(HCCL_TASK_TYPE_MAP, info.itemId);
         float dur = static_cast<float>(SafeSub(iter->second.endTime, iter->second.startTime, location, false)) /
                     aicpuFreq_; // unit is ms
-        float bandwidth = fabs(dur) < numeric_limits<float>::epsilon() ? 0.0f :
-                          static_cast<float>(info.dataSize) / dur / B_TO_GB * TIME_CONVERSION; // unit is GB/s
+        float bandwidth = IsZero(dur) ? 0.0f : static_cast<float>(info.dataSize) / dur / B_TO_GB * TIME_CONVERSION; // unit is GB/s
         MC2Event event = {
             taskTypeStr, HCCL_TASK_CNAME_MAP.at(taskTypeStr), "X", HCCL_TASK_PID,
             HCCL_TASK_TID + to_string(info.planeID),

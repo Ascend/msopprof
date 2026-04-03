@@ -751,7 +751,7 @@ bool HotSpotFunctionGenerator::GenCodeFiles(const std::string &outputPath,
     std::map<std::string, std::map<std::string, CodeLine>> file2CodeLines;
     for (const auto &line2Encoding : line2Encodings) {
         std::vector<std::string> fileLines;
-        Utility::Split(line2Encoding.first, back_inserter(fileLines), ":");
+        SplitString(line2Encoding.first, ':', fileLines);
         std::string fileName = fileLines.front();
         const std::string &line = fileLines.back();
 

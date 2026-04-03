@@ -22,7 +22,6 @@
 #include <vector>
 
 #include "profiling/op_prof_task.h"
-#include "data_format.h"
 #include "common/prof_args.h"
 #include "profiling/device/op_device_prof.h"
 #include "ascend_helper.h"

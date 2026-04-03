@@ -206,7 +206,7 @@ bool Occupancy::NormalizeOccupy(PairVector<std::string, double> &Ocpy, Occupancy
         variance += (it->second - average) * (it->second - average);
     }
     variance *= numInverse;
-    if (SafeEqual(variance, 0.0)) {
+    if (IsZero(variance)) {
         return false;
     }
     double stdDeviationInverse = 1.0 / std::sqrt(variance);

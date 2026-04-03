@@ -107,7 +107,7 @@ bool GetSocVersionFromEnvVar(std::string &socVersion)
     }
     std::string pathFromEnv = ldEnv;
     std::vector<std::string> envs;
-    Utility::Split(pathFromEnv, std::back_inserter(envs), ":");
+    SplitString(pathFromEnv, ':', envs);
 
     std::smatch pathMatch;
     std::regex pattern("(Ascend\\d{3}[0-9a-zA-Z_]{0,8}|dav_\\d{4})/lib");
@@ -140,7 +140,7 @@ std::string GetSoFromEnvVar(const std::string &soName)
     }
     std::string pathFromEnv = ldEnv;
     std::vector<std::string> envs;
-    Utility::Split(pathFromEnv, std::back_inserter(envs), ":");
+    SplitString(pathFromEnv, ':', envs);
     for (const std::string &path : envs) {
         std::string soPath = JoinPath({path.c_str(), soName});
         std::string realSoPath = Realpath(soPath);
