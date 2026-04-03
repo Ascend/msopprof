@@ -44,18 +44,14 @@ bool ParseTimeline::GenerateBiuTimeStamps(const std::string &outputPath)
             ret |= GenerateBiuTimeStampsOneBin(filePath, totalCyclesMap);
         }
     }
-    // 把各个通道的EndMark合并为一个数组，并按照索引（pari.first）从大到小排列
-    std::vector<std::pair<uint64_t, uint64_t>> endMarksVec;
+    // 解析完所有timeline.bin后，一次性截断各channel中endMark起点之后的所有点
     for (const auto &it : endMarks_) {
-        endMarksVec.emplace_back(it.second);
-    }
-    std::sort(endMarksVec.begin(), endMarksVec.end(),
-              [&](const std::pair<uint64_t, uint64_t> &a, const std::pair<uint64_t, uint64_t> &b) {
-                  return a.first > b.first;
-              });
-    // 删除多余mark
-    for (const auto &mark : endMarksVec) {
-        timelineVec_.erase(timelineVec_.begin() + mark.first, timelineVec_.begin() + mark.first + mark.second);
+        uint32_t channelId = it.first;
+        size_t eraseStart = it.second;
+        if (eraseStart < timelineVec_[channelId].size()) {
+            timelineVec_[channelId].erase(timelineVec_[channelId].begin() + eraseStart,
+                                           timelineVec_[channelId].end());
+        }
     }
     return ret;
 }
@@ -107,12 +103,16 @@ void ParseTimeline::GenMark(const std::string &pipe, const BiuPerfInfo &originIn
 {
     uint16_t markId = originInfo.biuInfo & 0xfff;
     uint32_t channelId = instrProfHeadInfo.coreId * 3 + instrProfHeadInfo.coreType;  // 3 表示2vec + 1cube
+    if (channelId >= INSTR_PROF_CHANNEL_NUM) {
+        Utility::LogDebug("InstrProf channelId %u exceeds limit %d", channelId, INSTR_PROF_CHANNEL_NUM);
+        return;
+    }
     UpdateEndMarks(markId, channelId);
     totalCyclesMap[channelId] += originInfo.cycles;
     std::string coreName = "core" + std::to_string(instrProfHeadInfo.coreId)
         + "." + subCore_[instrProfHeadInfo.coreType];
     std::string markName = "MarkStamp" + std::to_string(markId);
-    timelineVec_.emplace_back(TimelineInfo(pipe, coreName, markName, totalCyclesMap[channelId], 1));
+    timelineVec_[channelId].emplace_back(TimelineInfo(pipe, coreName, markName, totalCyclesMap[channelId], 1));
     return;
 }
 
@@ -133,15 +133,13 @@ void ParseTimeline::UpdateEndMarks(uint16_t markId, uint32_t channelId)
 
     uint64_t expectedIdx = std::distance(endMarkSequence.begin(), it);
     if (expectedIdx == 0) {
-        // 序列起始标记，记录起始位置（在timelineVec_中的索引）和长度1
-        endMarks_[channelId] = std::make_pair(timelineVec_.size(), 1);
-    } else if (endMarks_.find(channelId) != endMarks_.end() && endMarks_[channelId].second == expectedIdx) {
-        // 当前channel中已按顺序出现前expectedIdx个标记，追加长度
-        endMarks_[channelId].second++;
-    } else {
-        // 顺序不连续，说明出现了用户的mark，删除这条通道上EndMark
+        // 序列起始标记，记录起始位置（该channel在timelineVec_中的索引）
+        endMarks_[channelId] = timelineVec_[channelId].size();
+    } else if (endMarks_.find(channelId) == endMarks_.end()) {
+        // 顺序不连续，删除这条通道上EndMark
         endMarks_.erase(channelId);
     }
+    // 后续标记（expectedIdx > 0）且已存在起点，无需额外操作
 }
 
 void ParseTimeline::ParseOriginInfo(const BiuPerfInfo &originInfo, const InstrProfHeadInfo &instrProfHeadInfo,
@@ -154,6 +152,10 @@ void ParseTimeline::ParseOriginInfo(const BiuPerfInfo &originInfo, const InstrPr
     uint16_t pipeInfo = originInfo.biuInfo & 0xfff;
     size_t pipeId = 0;
     uint32_t channelId = instrProfHeadInfo.coreId * 3 + instrProfHeadInfo.coreType;  // 3 表示2vec + 1cube
+    if (channelId >= INSTR_PROF_CHANNEL_NUM) {
+        Utility::LogDebug("InstrProf channelId %u exceeds limit %d", channelId, INSTR_PROF_CHANNEL_NUM);
+        return;
+    }
     totalCyclesMap[channelId] += originInfo.cycles;
     while (channelId < INSTR_PROF_CHANNEL_NUM && pipeId < TIMELINE_PIPE_NUM && pipeId < pipe_.size()) {
         // pipeInfo & 0x1 获取当前pipe状态，0 表示 idle，1 表示 busy
@@ -162,7 +164,7 @@ void ParseTimeline::ParseOriginInfo(const BiuPerfInfo &originInfo, const InstrPr
             if (timelineStatesVec_[channelId][pipeId].start != 0) {
                 timelineStatesVec_[channelId][pipeId].duration =
                     totalCyclesMap[channelId] - timelineStatesVec_[channelId][pipeId].start;
-                timelineVec_.emplace_back(timelineStatesVec_[channelId][pipeId]);
+                timelineVec_[channelId].emplace_back(timelineStatesVec_[channelId][pipeId]);
                 timelineStatesVec_[channelId][pipeId] = TimelineInfo();
             }
             pipeId++;
