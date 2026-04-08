@@ -659,15 +659,15 @@ MindStudio Insight具体操作和详细字段解释请参考《MindStudio Insigh
 
 ### 使用说明
 
-生成的visualize\_data.bin文件可导入MindStudio Insight进行可视化呈现，展示算子在各个AI CORE各单元的活跃情况，界面如下。
-
-Pipe流水图特性是基于采样实现的，和用户开启的核数没有直接关系。若用户开启全部的核，最终也只会展示6个核的数据。
+- 生成的visualize\_data.bin文件可导入MindStudio Insight进行可视化呈现，展示算子在各个AI CORE各单元的活跃情况，界面如下。
+- Pipe流水图特性是基于采样实现的，和用户开启的核数没有直接关系。若用户开启全部的核，最终也只会展示6个核的数据。
+- 若使用MarkStamp打点时出现打点数据丢失情况，建议降低打点数目和密集程度。
 
 **图 1**  Pipe流水图  
 
 ![](../figures/1-2.png)
 
-支持用户通过AscendC::MarkStampImpl接口在算子kernel侧任意代码处进行流水图打点，用以标识流水范围。使用接口在vector打上一个id为13的点，会在图上的scalar单元和vector单元展示MarkStamp13，具体请参见[**图 2**  自定义打点图](#自定义打点图)。
+支持用户通过[AscendC::MarkStamp接口](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/900beta2/API/ascendcopapi/atlasascendc_api_07_00264.html)在算子kernel侧任意代码处进行流水图打点，用以标识流水范围。使用接口在vector打上一个id为13的点，会在图上的scalar单元和vector单元展示MarkStamp13，具体请参见[**图 2**  自定义打点图](#自定义打点图)。
 
 **图 2**  自定义打点图<a id="自定义打点图"></a>  
 ![](../figures/自定义打点图.png "自定义打点图")

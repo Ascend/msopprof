@@ -503,6 +503,12 @@ trace.json文件可分别通过Chrome浏览器和MindStudio Insight展示，visu
     |CACHEMISS|未命中ICache。|
     |USEMASK|自定义打点范围。若同一个USEMASK内存在范围嵌套或只有TRACE_START无TRACE_STOP时，不能正常绘制指令流水图。|
     |ALL|表示在这个通道的指令在所有通道都执行。|
+    |PUSHQ|VF/SMIT_VF类指令。|
+    |RVECLP|vector寄存器LOOP指令。|
+    |RVECSU|vector寄存器ASU指令，包含跳转和标量数据处理。|
+    |RVECLD|vector寄存器LOAD指令。|
+    |RVECEX|vector寄存器EXECUTE指令。|
+    |RVECST|vector寄存器SET指令。|
 
 - MindStudio Insight
 
