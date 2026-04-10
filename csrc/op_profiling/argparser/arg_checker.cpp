@@ -67,7 +67,7 @@ const AicMetricsSupportMap DEVICE_AIC_METRICS_SUPPORT_MAP{
                                                                    ChipProductType::ASCEND950_SERIES}},
     {std::string(Common::MsprofMetrics::MEMORYDETAIL),            {ChipProductType::ASCEND910B_SERIES,
                                                                    ChipProductType::ASCEND910_93_SERIES}},
-    {std::string(Common::MsprofMetrics::TIMELINE),                {ChipProductType::ASCEND950_SERIES}},
+    {std::string(Common::MsprofMetrics::PIPETIMELINE),                {ChipProductType::ASCEND950_SERIES}},
     {std::string(Common::MsprofMetrics::PCSAMPLING),              {ChipProductType::ASCEND950_SERIES}},
 };
 // 仿真模式下支持的AIC指标，key是指标名称，value是支持的产品类型列表

@@ -175,7 +175,7 @@ struct MsprofMetrics {
     static constexpr char const *OCCUPANCY = "occupancy";
     static constexpr char const *TIMELINE_DETAIL = "timelinedetail";
     static constexpr char const *ROOFLINE = "roofline";
-    static constexpr char const *TIMELINE = "timeline";
+    static constexpr char const *PIPETIMELINE = "pipetimeline";
     static constexpr char const *PCSAMPLING = "pcsampling";
     static constexpr char const *BASIC_INFO = "basicinfo";
     static constexpr char const *SOURCE = "source";
