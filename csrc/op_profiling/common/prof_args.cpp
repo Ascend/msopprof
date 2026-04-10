@@ -100,7 +100,7 @@ bool ParseMetricBool(std::string const &metric, ProfMetricsAbilityConfig &value)
         {std::string(MsprofMetrics::PMSAMPLING), std::ref(value.pmSamplingEnable)},
         {std::string(MsprofMetrics::MEMORYDETAIL), std::ref(value.isMemoryDetail)},
         {std::string(MsprofMetrics::PCSAMPLING), std::ref(value.pcSamplingEnable)},
-        {std::string(MsprofMetrics::TIMELINE), std::ref(value.timelineEnable)},
+        {std::string(MsprofMetrics::PIPETIMELINE), std::ref(value.timelineEnable)},
     };
     if (metricMap.count(metric) == 0) {
         return false;
