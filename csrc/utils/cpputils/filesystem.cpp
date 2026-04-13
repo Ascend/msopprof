@@ -548,9 +548,8 @@ bool CheckPermission(const std::string& filePath)
     mode_t permissions = fileStat.st_mode & (S_IWGRP | S_IWOTH);
     // 检查除了当前用户外其他人是否有写入权限
     if (permissions != 0) {
-        LogError("The current file %s should not be allowed to have write permissions to any other users",
+        LogWarn("The current file %s is not recommended to be writable by group or other users",
             filePath.c_str());
-        return false;
     }
     return true;
 }
@@ -630,14 +629,13 @@ bool CheckOwnerPermission(std::string &path, std::string &msg)
         return true;
     }
     if ((fileStat.st_mode & (S_IWOTH | S_IWGRP)) != 0) {
-        msg = path + " is writable by any other users or group users.";
-        return false;
+        LogWarn("%s is not recommended to be writable by group or other users", path.c_str());
     }
     if (fileStat.st_uid == 0 || fileStat.st_uid == static_cast<uint32_t>(getuid())) {
         return true;
     }
-    msg = path + " and the current owner have inconsistent permission.";
-    return false;
+    LogWarn("%s is not owned by the current user, which may cause security problems", path.c_str());
+    return true;
 }
 
 bool RollbackPath(std::string &path, uint32_t rollNum)

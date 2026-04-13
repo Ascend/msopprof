@@ -44,28 +44,22 @@ const std::string caseFileLargeShape = "test/ut/resources/config_json/test_shape
             .then(returnValue(true));
     MOCKER(&Utility::CheckOwnerPermission)
             .stubs()
-            .will(returnValue(false))
-            .then(returnValue(true));
+            .will(returnValue(true));
     MOCKER(&Utility::CheckPermission)
             .stubs()
-            .will(returnValue(false))
-            .then(returnValue(true))
-            .then(returnValue(false));
+            .will(returnValue(false));
     // Check Input File failed
     std::vector<CaseConfig> checkInputFileFailedRes = ParseRunConfigJson(caseFileWrongDType);
     EXPECT_EQ(checkInputFileFailedRes.size(), 0);
 
-    // Check ParentPath Owner Permission failed
-    std::vector<CaseConfig> checkOwnerPermissionFailedRes = ParseRunConfigJson(caseFileWrongDType);
-    EXPECT_EQ(checkOwnerPermissionFailedRes.size(), 0);
-
+    // Check ParentPath Owner Permission passed (downgraded to warning)
     // Check ParentPath Permission failed
     std::vector<CaseConfig> checkParentPathPermissionFailedRes = ParseRunConfigJson(caseFileWrongDType);
-    EXPECT_EQ(checkInputFileFailedRes.size(), 0);
+    EXPECT_EQ(checkParentPathPermissionFailedRes.size(), 0);
 
     // Check json file Permission failed
     std::vector<CaseConfig> checkJsonFilePermissionFailedRes = ParseRunConfigJson(caseFileWrongDType);
-    EXPECT_EQ(checkInputFileFailedRes.size(), 0);
+    EXPECT_EQ(checkJsonFilePermissionFailedRes.size(), 0);
     
     GlobalMockObject::verify();
 }

@@ -24,6 +24,7 @@
 #include "filesystem.h"
 #include "common/hal_helper.h"
 #include "common/defs.h"
+#include "log.h"
 
 using namespace Common;
 using namespace Utility;
@@ -243,18 +244,13 @@ bool ArgChecker::CheckOutputPathValid(const ProfArgs &config, std::string &msg) 
         }
     }
     if (IsSoftLinkRecursively(checkPath)) {
-        msg = "soft link is not supported for output dir: " + checkPath;
-        return false;
+        LogWarn("Output path contains soft link, may cause security problems");
     }
     if (!IsWritable(checkPath)) {
-        msg = "output dir is not writable: " + checkPath;
+        msg = "Output dir is not writable: " + checkPath;
         return false;
     }
     if (!CheckOwnerPermission(checkPath, msg)) {
-        return false;
-    }
-    if (!CheckPermission(checkPath)) {
-        msg = "output parent dir permission wrong";
         return false;
     }
     return true;

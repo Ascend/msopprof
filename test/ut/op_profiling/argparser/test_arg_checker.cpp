@@ -171,7 +171,7 @@ TEST(ArgChecker, args_with_not_writable_outputpath_expect_no_permission_error)
     ArgChecker checker("device");
     args.argOutput = "/tmp/dump1";
     ASSERT_FALSE(checker.CheckOutputPathValid(args, msg));
-    ASSERT_NE(msg.find("output dir is not writable"), std::string::npos);
+    ASSERT_NE(msg.find("Output dir is not writable"), std::string::npos);
     rmdir("/tmp/dump1");
 }
 

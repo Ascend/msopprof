@@ -233,7 +233,7 @@ TEST(FileSystem, copy_folder)
     ASSERT_TRUE(CheckPermission(path));
     if (!IsRootUser()) {
         chmod(path.c_str(), 0660);
-        ASSERT_FALSE(CheckPermission(path));
+        ASSERT_TRUE(CheckPermission(path));
     }
 }
 
