@@ -8,7 +8,7 @@
 [submodule "thirdparty/makeself"]
 	path = thirdparty/makeself
 	url = https://gitcode.com/cann-src-third-party/makeself.git
-	branch = master
+	branch = v2.5.0.x
 [submodule "thirdparty/mockcpp"]
 	path = thirdparty/mockcpp
 	url = https://gitcode.com/Ascend/mockcpp.git
