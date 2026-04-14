@@ -24,8 +24,8 @@
 #include "profiling/device/data_visualize/data_visualize.h"
 #include "profiling/device/data_visualize/occupancy.h"
 #include "profiling/device/data_visualize/pmu_calculator.h"
-#include "profiling/device/data_visualize/mc2_timeline_parser.h"
-#include "profiling/device/data_visualize/lccl_timeline_parser.h"
+#include "profiling/device/data_visualize/timeline_parser/mc2_timeline_parser.h"
+#include "profiling/device/data_visualize/timeline_parser/lccl_timeline_parser.h"
 #include "common/hal_helper.h"
 #undef private
 #undef protected
@@ -556,7 +556,7 @@ TEST(MC2TimelineParser, ProcessHcclDataSuccess)
     unique_ptr<DataHandler> handler = Utility::MakeUnique<DataHandlerOf910B>();
     shared_ptr<Visualize::OpBasicInfo> opBasicInfoPtr = Utility::MakeShared<Visualize::OpBasicInfo>(handler);
     shared_ptr<Visualize::BasicPmu> basicPmuPtr = Utility::MakeShared<Visualize::BasicPmu>(handler);
-    MC2TimelineParser parser{true, acsqTimeMap, minAcsqTimeCyc, opBasicInfoPtr, basicPmuPtr};
+    MC2TimelineParser parser{acsqTimeMap, minAcsqTimeCyc, opBasicInfoPtr, basicPmuPtr};
     parser.aicpuFreq_ = 50000;
     nlohmann::json aicore;
     nlohmann::json aicpu;
@@ -569,8 +569,8 @@ TEST(MC2TimelineParser, ProcessHcclDataSuccess)
     nlohmann::json threadName;
     nlohmann::json threadSortIndex;
     parser.ProcessHcclData();
-    EXPECT_EQ(parser.traceEvents_.size(), 14);
-    for (const auto &i: parser.traceEvents_) {
+    EXPECT_EQ(parser.timelineJson_.size(), 14);
+    for (const auto &i: parser.timelineJson_) {
         if (i.at("tid") == "AI_CORE" && i.at("name") == "AI_CORE") { aicore = i; }
         if (i.at("tid") == "AI_CPU" && i.at("name") == "AI_CPU") { aicpu = i; }
         if (i.at("tid") == "STREAM53" && i.at("name") == "NOTIFY_WAIT_SQE" && int(i.at("ts")) == 26) { waitSqe1 = i; }
@@ -599,7 +599,7 @@ TEST(MC2TimelineParser, ProcessHcclTaskDataSuccess)
     unique_ptr<DataHandler> handler = Utility::MakeUnique<DataHandlerOf910B>();
     shared_ptr<Visualize::OpBasicInfo> opBasicInfoPtr = Utility::MakeShared<Visualize::OpBasicInfo>(handler);
     shared_ptr<Visualize::BasicPmu> basicPmuPtr = Utility::MakeShared<Visualize::BasicPmu>(handler);
-    MC2TimelineParser parser{true, acsqTimeMap, minAcsqTimeCyc, opBasicInfoPtr, basicPmuPtr};
+    MC2TimelineParser parser{acsqTimeMap, minAcsqTimeCyc, opBasicInfoPtr, basicPmuPtr};
     parser.aicpuFreq_ = 50000;
     nlohmann::json hcclInfo;
     nlohmann::json notifyRecord;
@@ -620,8 +620,8 @@ TEST(MC2TimelineParser, ProcessHcclTaskDataSuccess)
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 0, 56, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0, 0, 0, 0, 0, 0}
     };
     parser.ProcessHcclTaskData({info1, info2, info3, info4});
-    EXPECT_EQ(parser.traceEvents_.size(), 9);
-    for (const auto &i: parser.traceEvents_) {
+    EXPECT_EQ(parser.timelineJson_.size(), 9);
+    for (const auto &i: parser.timelineJson_) {
         if (i.at("tid") == "PLANE0" && i.at("name") == "hccl_info") { hcclInfo = i; }
         if (i.at("tid") == "PLANE1" && i.at("name") == "Notify_Record") { notifyRecord = i; }
         if (i.at("tid") == "PLANE2" && i.at("name") == "Notify_Wait") { notifyWait = i; }
@@ -656,7 +656,7 @@ TEST(MC2TimelineParser, ProcessAicpuTurnDataSuccess)
     unique_ptr<DataHandler> handler = Utility::MakeUnique<DataHandlerOf910B>();
     shared_ptr<Visualize::OpBasicInfo> opBasicInfoPtr = Utility::MakeShared<Visualize::OpBasicInfo>(handler);
     shared_ptr<Visualize::BasicPmu> basicPmuPtr = Utility::MakeShared<Visualize::BasicPmu>(handler);
-    MC2TimelineParser parser{true, acsqTimeMap, minAcsqTimeCyc, opBasicInfoPtr, basicPmuPtr};
+    MC2TimelineParser parser{acsqTimeMap, minAcsqTimeCyc, opBasicInfoPtr, basicPmuPtr};
     parser.aicpuFreq_ = 50000;
     AicpuKfcProfCommTurn commTurn1 = {
         536000001000, 536000002000, 536000004000, 536000007000, 536000010000, 536000014000, 536000019000,
@@ -671,8 +671,8 @@ TEST(MC2TimelineParser, ProcessAicpuTurnDataSuccess)
     nlohmann::json threadName;
     nlohmann::json threadSortIndex;
     parser.ProcessAicpuTurnData({commTurn1, commTurn2});
-    EXPECT_EQ(parser.traceEvents_.size(), 16);
-    for (const auto &i: parser.traceEvents_) {
+    EXPECT_EQ(parser.timelineJson_.size(), 16);
+    for (const auto &i: parser.timelineJson_) {
         if (i.at("tid") == "TURN0" && i.at("name") == "StartServer") { turn0 = i; }
         if (i.at("tid") == "TURN1" && i.at("name") == "Finalize") { turn1 = i; }
         if (i.at("tid") == "TURN0" && i.at("name") == "thread_name") { threadName = i; }
@@ -756,17 +756,17 @@ TEST(LcclTimelineParser, test_lccl_process_data_correct)
     shared_ptr<Visualize::OpBasicInfo> opBasicInfoPtr = Utility::MakeShared<Visualize::OpBasicInfo>(handler);
     shared_ptr<Visualize::BasicPmu> basicPmuPtr = Utility::MakeShared<Visualize::BasicPmu>(handler);
 
-    LcclTimelineParser parser{true, 0, opBasicInfoPtr, basicPmuPtr};
+    LcclTimelineParser parser{0, opBasicInfoPtr, basicPmuPtr};
 
-    BlockSystemTimeType blockSystemTimes = {{0, {{48117105577516, 48117105578916}, {48117105577516, 48117105581350},
+    parser.blockSystemTimes_  = {{0, {{48117105577516, 48117105578916}, {48117105577516, 48117105581350},
                                                  {48117105577516, 48117105581921}}}};
     LcclDumpLogInfo info1 = {1, 0, 48117105578953};
     LcclDumpLogInfo info2 = {1, 0, 48117105578999};
     LcclDumpLogInfo info3 = {2, 0, 48117105579953};
     LcclDumpLogInfo info4 = {2, 0, 48117105579999};
     vector<LcclDumpLogInfo> aicoreTimeStamps = {info1, info2, info3, info4};
-    parser.ProcessJsonData(blockSystemTimes, aicoreTimeStamps);
-    EXPECT_EQ(parser.traceEvents_.size(), 8);
+    parser.ProcessAicoreData(aicoreTimeStamps);
+    EXPECT_EQ(parser.timelineJson_.size(), 8);
 }
 
 /**
@@ -777,6 +777,7 @@ TEST(LcclTimelineParser, test_lccl_process_data_correct)
 */
 TEST(LcclTimelineParser, test_generate_lccl_timeline_correct)
 {
+    GlobalMockObject::verify();
     std::string testDir = "test/ut/resources/op_profiling/OPPO";
     auto outputPath = JoinPath({testDir, "device0/add/0"});
     MkdirRecusively(outputPath);
@@ -784,9 +785,11 @@ TEST(LcclTimelineParser, test_generate_lccl_timeline_correct)
     shared_ptr<Visualize::OpBasicInfo> opBasicInfoPtr = Utility::MakeShared<Visualize::OpBasicInfo>(handler);
     shared_ptr<Visualize::BasicPmu> basicPmuPtr = Utility::MakeShared<Visualize::BasicPmu>(handler);
     opBasicInfoPtr->soc_ = "Ascend910B1";
-    LcclTimelineParser parser{true, 0, opBasicInfoPtr, basicPmuPtr};
+    LcclTimelineParser parser{0, opBasicInfoPtr, basicPmuPtr};
+    MOCKER(&LcclTimelineParser::GetTimeStamp<LcclDumpLogInfo>).stubs().will(returnValue(true));
     ASSERT_TRUE(parser.TimelineToJson(outputPath));
     string tracePath = JoinPath({outputPath, "trace.json"});
     ASSERT_TRUE(IsExist(tracePath));
     std::experimental::filesystem::remove_all(testDir);
+    GlobalMockObject::verify();
 }

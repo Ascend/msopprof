@@ -22,7 +22,7 @@
 #include <sys/stat.h>
 #define private public
 #define protected public
-#include "profiling/device/data_visualize/aicore_timeline_parser.h"
+#include "profiling/device/data_visualize/timeline_parser/aicore_timeline_parser.h"
 #include "profiling/device/data_parse/metric_csv_header.h"
 #include "profiling/device/data_parse/metric_data_handler.h"
 #include "common/hal_helper.h"
@@ -93,17 +93,6 @@ std::vector<MsprofAicTimeStampInfo> &GetAicoreTimeStamps(const std::string &opTy
     return aicoreTimeStamps;
 }
 
-std::vector<std::string> &GetAicoreType(const std::string &opType)
-{
-    static std::vector<string> aicoreTimeStampsType = {"AIV BLOCK", "AIV BLOCK", "AIV BLOCK", "AIV BLOCK"};
-    if (opType == "mix") {
-        aicoreTimeStampsType = {"AIC BLOCK", "AIC BLOCK", "AIV BLOCK", "AIV BLOCK", "AIV BLOCK", "AIV BLOCK"};
-    } else if (opType == "cube") {
-       aicoreTimeStampsType = {"AIC BLOCK", "AIC BLOCK"};
-    }
-    return aicoreTimeStampsType;
-}
-
 /**
  * |  用例集  | AicoreTimelineParser
  * | 测试函数 | ProcessBlockDur
@@ -113,7 +102,7 @@ TEST(AicoreTimelineParser, test_ProcessBlockDur_should_return_true)
 {
     GlobalMockObject::verify();
     AicoreTimelineParser aicoreTimeStamps(0, GetOpBasicInfoObj(), GetbasicPmuObj("mix"));
-    aicoreTimeStamps.ProcessBlockDur(GetAicoreTimeStamps("mix"), GetAicoreType("mix"));
+    aicoreTimeStamps.ProcessAicoreBlockDur();
     auto aicoreDuration = aicoreTimeStamps.blockSystemTimes_;
     for (const auto & temp : aicoreDuration) {
         for (const auto & timeRecord : temp.second) {
@@ -132,7 +121,7 @@ TEST(AicoreTimelineParser, test_GetMinSysCycle_should_return_true)
 {
     GlobalMockObject::verify();
     AicoreTimelineParser aicoreTimeStamps(0, GetOpBasicInfoObj(), GetbasicPmuObj("mix"));
-    aicoreTimeStamps.ProcessBlockDur(GetAicoreTimeStamps("mix"), GetAicoreType("mix"));
+    aicoreTimeStamps.ProcessAicoreBlockDur();
     ASSERT_TRUE(aicoreTimeStamps.minSysCyc_ == 0);
 }
 
@@ -146,12 +135,13 @@ TEST(AicoreTimelineParser, test_GetTimeStampType_should_return_true)
 {
     GlobalMockObject::verify();
     AicoreTimelineParser aicoreTimeStamps(0, GetOpBasicInfoObj(), GetbasicPmuObj("mix"));
-    std::vector<std::string> type;
-    aicoreTimeStamps.GetTimeStampType(GetAicoreTimeStamps("mix"), type);
-    ASSERT_STREQ(type[0].c_str(), "AIC BLOCK");
-    ASSERT_STREQ(type[1].c_str(), "AIC BLOCK");
-    ASSERT_STREQ(type[2].c_str(), "AIV BLOCK");
-    ASSERT_STREQ(type[3].c_str(), "AIV BLOCK");
-    ASSERT_STREQ(type[4].c_str(), "AIV BLOCK");
-    ASSERT_STREQ(type[4].c_str(), "AIV BLOCK");
+    auto infos = GetAicoreTimeStamps("mix");
+    std::vector<MsprofAicTimeStampInfoUpdate> timeStamps;
+    aicoreTimeStamps.GetTimeStampType(infos, timeStamps);
+    ASSERT_STREQ(timeStamps[0].type.c_str(), "AIC BLOCK");
+    ASSERT_STREQ(timeStamps[1].type.c_str(), "AIC BLOCK");
+    ASSERT_STREQ(timeStamps[2].type.c_str(), "AIV BLOCK");
+    ASSERT_STREQ(timeStamps[3].type.c_str(), "AIV BLOCK");
+    ASSERT_STREQ(timeStamps[4].type.c_str(), "AIV BLOCK");
+    ASSERT_STREQ(timeStamps[5].type.c_str(), "AIV BLOCK");
 }

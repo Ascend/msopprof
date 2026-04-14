@@ -27,8 +27,8 @@
 #include "storage_access.h"
 #include "roofline.h"
 #include "occupancy.h"
-#include "mc2_timeline_parser.h"
-#include "lccl_timeline_parser.h"
+#include "timeline_parser/mc2_timeline_parser.h"
+#include "timeline_parser/lccl_timeline_parser.h"
 #include "cacheline_heat_map.h"
 #include "parse/data_calculator/compute_load_calculator.h"
 
@@ -38,10 +38,8 @@ struct DataVisualizePtr {
     std::unique_ptr<StorageAccess> &storageAccess;
     std::unique_ptr<Occupancy> &occupancy;
     std::unique_ptr<RoofLine> &roofLine;
-    std::unique_ptr<MC2TimelineParser> &mc2TimelineParser;
-    std::unique_ptr<LcclTimelineParser> &lcclTimelineParser;
+    std::unique_ptr<TimelineParser> &timelineParser;
     std::unique_ptr<CachelineHeatMap> &cachelineHeatMapParser;
-    std::unique_ptr<AicoreTimelineParser> &aicoreTimelineParser;
 };
 
 class DataVisualize {
@@ -51,10 +49,8 @@ public:
           storageAccess_(ptr.storageAccess),
           occupancy_(ptr.occupancy),
           roofLine_(ptr.roofLine),
-          mc2TimelineParser_(ptr.mc2TimelineParser),
-          lcclTimelineParser_(ptr.lcclTimelineParser),
-          cachelineHeatMapParser_(ptr.cachelineHeatMapParser),
-          aicoreTimelineParser_(ptr.aicoreTimelineParser)
+          timelineParser_(ptr.timelineParser),
+          cachelineHeatMapParser_(ptr.cachelineHeatMapParser)
     {}
 
     void GenerateVisualizeData(Profiling::Parse::DataCenter &dataCenter, const std::string &outputPath,
@@ -68,10 +64,8 @@ private:
     std::unique_ptr<StorageAccess> &storageAccess_;
     std::unique_ptr<Occupancy> &occupancy_;
     std::unique_ptr<RoofLine> &roofLine_;
-    std::unique_ptr<MC2TimelineParser> &mc2TimelineParser_;
-    std::unique_ptr<LcclTimelineParser> &lcclTimelineParser_;
+    std::unique_ptr<TimelineParser> &timelineParser_;
     std::unique_ptr<CachelineHeatMap> &cachelineHeatMapParser_;
-    std::unique_ptr<AicoreTimelineParser> &aicoreTimelineParser_;
 };
 } // namespace Visualize
 

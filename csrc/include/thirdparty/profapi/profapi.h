@@ -64,6 +64,22 @@ struct MsprofAicTimeStampInfo {
     uint64_t curPc;   // currrent pc for source line
 };
 
+struct MsprofAicTimeStampInfoUpdate {
+    MsprofAicTimeStampInfoUpdate() {};
+    MsprofAicTimeStampInfoUpdate(const MsprofAicTimeStampInfo &info, const std::string &type) {
+        this->syscyc = info.syscyc;
+        this->blockId = info.blockId;
+        this->descId = info.descId;
+        this->curPc = info.curPc;
+        this->type = type;
+    }
+    uint64_t syscyc;
+    uint32_t blockId; // logic core id
+    uint32_t descId;
+    uint64_t curPc;
+    std::string type;
+};
+
 struct AicpuKfcProfCommTurn {
     uint64_t waitNotifyStartTime;  // 开始等待通信参数
     uint64_t kfcAlgExeStartTime;   // 开始通信算法执行

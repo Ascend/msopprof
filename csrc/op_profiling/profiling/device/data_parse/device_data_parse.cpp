@@ -142,47 +142,25 @@ unique_ptr<RoofLine> &GetRoofLineObj(unique_ptr<DataHandler> &handler, shared_pt
     return roofLinePtr;
 }
 
-unique_ptr<Visualize::MC2TimelineParser> GetMC2TimelineObj(unique_ptr<DataHandler> &handler,
+unique_ptr<Visualize::TimelineParser> &GetTimelineObj(unique_ptr<DataHandler> &handler,
                                                            shared_ptr<OpBasicInfo> &opBasicInfoObj,
                                                            shared_ptr<BasicPmu> &basicPmuObj)
 {
-    unique_ptr<Visualize::MC2TimelineParser> parserPtr;
-    if (handler == nullptr) {
+    static unique_ptr<Visualize::TimelineParser> parserPtr;
+    if (handler == nullptr || opBasicInfoObj == nullptr || basicPmuObj == nullptr) {
         LogWarn("Get MC2 timeline failed because of nullptr");
         return parserPtr;
     }
-    parserPtr = Utility::MakeUnique<Visualize::MC2TimelineParser>(handler->GetMC2Flag(), handler->GetAcsqTimeMap(),
+    if (handler->GetMC2Flag()) {
+        parserPtr = Utility::MakeUnique<Visualize::MC2TimelineParser>(handler->GetAcsqTimeMap(),
         handler->GetMinMc2TimeCyc(), opBasicInfoObj, basicPmuObj);
-    return parserPtr;
-}
-
-unique_ptr<Visualize::AicoreTimelineParser> GetAicoreTimelineObj(unique_ptr<DataHandler> &handler,
-                                                           shared_ptr<OpBasicInfo> &opBasicInfoObj,
-                                                           shared_ptr<BasicPmu> &basicPmuObj)
-{
-    unique_ptr<Visualize::AicoreTimelineParser> parserPtr;
-    if (handler == nullptr) {
-        LogWarn("Get aicore timeline failed because of nullptr");
-        return parserPtr;
+    } else if (handler->GetLcclFlag()) {
+        parserPtr = Utility::MakeUnique<Visualize::LcclTimelineParser>(
+        handler->GetMinLcclTimeCyc(), opBasicInfoObj, basicPmuObj);
+    } else {
+        parserPtr = Utility::MakeUnique<Visualize::AicoreTimelineParser>(
+        handler->GetMinTimeCyc(), opBasicInfoObj, basicPmuObj);
     }
-    parserPtr = Utility::MakeUnique<Visualize::AicoreTimelineParser>(handler->GetMinTimeCyc(), opBasicInfoObj, basicPmuObj);
-    if (handler->GetMC2Flag() || handler->GetLcclFlag()) {
-        return nullptr;
-    }
-    return parserPtr;
-}
-
-unique_ptr<Visualize::LcclTimelineParser> GetLcclTimelineObj(unique_ptr<DataHandler> &handler,
-                                                             shared_ptr<OpBasicInfo> &opBasicInfoObj,
-                                                             shared_ptr<BasicPmu> &basicPmuObj)
-{
-    unique_ptr<Visualize::LcclTimelineParser> parserPtr;
-    if (handler == nullptr) {
-        LogWarn("Get lccl timeline failed because of nullptr");
-        return parserPtr;
-    }
-    parserPtr = Utility::MakeUnique<Visualize::LcclTimelineParser>(handler->GetLcclFlag(), handler->GetMinLcclTimeCyc(),
-                                                                   opBasicInfoObj, basicPmuObj);
     return parserPtr;
 }
 
@@ -221,12 +199,9 @@ bool DeviceDataParse::ParseExactKernelData(const string &path, const string &ker
     auto &storageAccessObj = GetStorageAccessObj(chipType_, opBasicInfoObj, basicPmuObj, pmuCalculatorObj);
     auto &occupancyObj = GetOccupancyObj(chipType_, opBasicInfoObj, basicPmuObj);
     auto &roofLineObj = GetRoofLineObj(handler, opBasicInfoObj, basicPmuObj, pmuCalculatorObj);
-    auto mc2TimelineObj = GetMC2TimelineObj(handler, opBasicInfoObj, basicPmuObj);
-    auto aicoreTimelineObj = GetAicoreTimelineObj(handler, opBasicInfoObj, basicPmuObj);
-    auto lcclTimelineObj = GetLcclTimelineObj(handler, opBasicInfoObj, basicPmuObj);
+    auto &timelineObj = GetTimelineObj(handler, opBasicInfoObj, basicPmuObj);
     auto cachelineHeatMapObj = GetCachelineHeatMapObj(handler);
-    if (!storageAccessObj || !occupancyObj || !roofLineObj || !mc2TimelineObj ||
-        !lcclTimelineObj || !cachelineHeatMapObj) {
+    if (!storageAccessObj || !occupancyObj || !roofLineObj || !timelineObj || !cachelineHeatMapObj) {
         LogError("Get visualize data failed because of nullptr");
         return false;
     }
@@ -236,8 +211,7 @@ bool DeviceDataParse::ParseExactKernelData(const string &path, const string &ker
     calculatorPluginManager.AddPlugin<Parse::ComputeLoadCalculator>(dataCenter, chipProductType_);
     calculatorPluginManager.RunAllPlugins(results);
 
-    DataVisualizePtr ptr = { opBasicInfoObj, storageAccessObj, occupancyObj, roofLineObj, mc2TimelineObj,
-                             lcclTimelineObj, cachelineHeatMapObj, aicoreTimelineObj};
+    DataVisualizePtr ptr = { opBasicInfoObj, storageAccessObj, occupancyObj, roofLineObj, timelineObj, cachelineHeatMapObj};
     auto dataVisualize = Utility::MakeShared<DataVisualize>(ptr);
     if (!dataVisualize || !storageAccessObj) {
         LogError("Get visualize data failed because of nullptr");
@@ -309,10 +283,13 @@ void DeviceDataParse::CopyTimeStamp(const std::string &filePath) const
     std::experimental::filesystem::path outputPath {filePath};
     for (const auto &dirs : directory_iterator(outputPath)) {
         std::string curpath = dirs.path().string();
+        std::string deviceId = dirs.path().filename();
         std::string timeStampPath = JoinPath({curpath, "aic_timestamp.bin"});
         if (IsExist(timeStampPath)) {
+            RollbackPath(curpath, 2);
+            std::string searchPath = JoinPath({curpath, deviceId});
             std::vector<std::string> results;
-            SearchDirRecursive(curpath, "dump", results, 0);
+            SearchDirRecursive(searchPath, "dump", results, 0);
             for (const auto &res : results) {
                 CopyFile(timeStampPath, res);
             }
@@ -326,7 +303,6 @@ bool DeviceDataParse::Execute(std::string dataPath)
     if (!ParserInit()) {
         return false;
     }
-    CopyTimeStamp(dataPath);
     std::string tmpPath = JoinPath({dataPath, "tmp_dump"});
     ParseTmpDump(tmpPath);
     if (IsExist(tmpPath) && (Utility::Log::GetLog().GetLogLv() > Utility::LogLv::DEBUG)) {
@@ -609,6 +585,7 @@ void DeviceDataParse::ParseTmpDump(const string &tmpPath)
     if (!IsDir(tmpPath)) {
         return;
     }
+    CopyTimeStamp(tmpPath);
     vector<string> deviceIds;
     if (!GetFileNames(tmpPath, deviceIds)) {
         LogDebug("No file in tmp_dump.");

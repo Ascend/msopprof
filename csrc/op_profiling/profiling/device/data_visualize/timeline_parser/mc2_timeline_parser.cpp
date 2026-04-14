@@ -180,29 +180,6 @@ const map<uint16_t, string> ACSQ_TASK_TYPE_MAP = {
     {20, "C_CORE_SQE"},
 };
 
-struct MC2Event {
-    inline void ToJson(nlohmann::json &jsonData) const
-    {
-        jsonData["name"] = this->name;
-        jsonData["cname"] = this->cName;
-        jsonData["ph"] = this->ph;
-        jsonData["pid"] = this->pid;
-        jsonData["tid"] = this->tid;
-        jsonData["ts"] = this->ts;
-        jsonData["dur"] = this->dur;
-        jsonData["args"] = this->args;
-    }
-
-    string name;
-    string cName;
-    string ph;
-    string pid;
-    string tid;
-    float ts;
-    float dur;
-    map<string, string> args;
-};
-
 void GetStreamIdAndTaskId(uint32_t &taskId, uint16_t &streamId)
 {
     // when the 13th bit of the stream id is set, the task id need to be exchanged.
@@ -275,21 +252,18 @@ void MC2TimelineParser::GetAicpuDatas(vector<AicpuKfcProfCommTurn> &aicpuTurns,
     }
 }
 
-void MC2TimelineParser::PreProcessData(AicoreTimelineParser &timelineParser,
-                                       vector<MsprofAicTimeStampInfo> &aicoreTimeStamps,
-                                       vector<AicpuKfcProfCommTurn> &aicpuTurns,
+void MC2TimelineParser::PreProcessData(vector<AicpuKfcProfCommTurn> &aicpuTurns,
                                        vector<MsprofAicpuHcclTaskInfo> &aicpuHcclTasks,
-                                       vector<std::string> &type)
+                                       vector<MsprofAicTimeStampInfoUpdate> &aicoreTimeStamps)
 {
-    // get aicore dot timestamp from aic_timestamp.bin
-    timelineParser.GetAicoreTimeStamps(aicoreTimeStamps, type);
-    minSysCyc_ = timelineParser.GetMinSysCycle();
-
     // get aicpu datas from aicpu.bin
     GetAicpuDatas(aicpuTurns, aicpuHcclTasks);
+    if (!GetAicoreTimeStamps(aicoreTimeStamps)) {
+        LogDebug("Can not parse aic_timestamp.bin, no need to generate timeline.");
+    }
 }
 
-void ProcessOperationStart(const MsprofAicTimeStampInfo& item, const string& operationType, const std::string &type,
+void ProcessOperationStart(const MsprofAicTimeStampInfoUpdate& item, const string& operationType, const std::string &type,
                            unordered_map<string, OperationInfo>& operationMap)
 {
     uint32_t descId = item.descId;
@@ -309,7 +283,7 @@ void ProcessOperationStart(const MsprofAicTimeStampInfo& item, const string& ope
     }
 }
 
-void ProcessOperationEnd(const MsprofAicTimeStampInfo& item, const string& operationType,
+void ProcessOperationEnd(const MsprofAicTimeStampInfoUpdate& item, const string& operationType,
                          unordered_map<string, OperationInfo>& operationMap)
 {
     uint32_t descId = item.descId;
@@ -358,14 +332,13 @@ json MC2TimelineParser::BuildAicoreDot(const OperationInfo& info, const string& 
     return resultItem;
 }
 
-void MC2TimelineParser::ProcessAicoreData(AicoreTimelineParser &timelineParser, const vector<MsprofAicTimeStampInfo> &aicoreTimeStamps, std::vector<std::string> &type)
+void MC2TimelineParser::ProcessMC2AicoreData(const vector<MsprofAicTimeStampInfoUpdate> &aicoreTimeStamps)
 {
     set<uint16_t> dotBlockIds;
     // add aicore dot
     unordered_map<string, OperationInfo> operationMap;
     // add aicore block duration
-    timelineParser.ProcessBlockDur(aicoreTimeStamps, type);
-    auto blockDur = timelineParser.GetBlockDurRange();
+    ProcessAicoreBlockDur();
     for (uint32_t i = 0; i < aicoreTimeStamps.size(); i++) {
         auto &item = aicoreTimeStamps[i];
         if (AICORE_DOT_MAP.find(item.descId) == AICORE_DOT_MAP.end()) {
@@ -374,25 +347,21 @@ void MC2TimelineParser::ProcessAicoreData(AicoreTimelineParser &timelineParser, 
         dotBlockIds.insert(item.blockId);
         uint32_t descId = item.descId;
         string colorType = AICORE_DOT_MAP.at(descId); // descId has been verified, must be in AICORE_DOT_MAP
-        std::string operationType =  AICORE_DOT_MAP.at(descId) + type[i] + std::to_string(item.blockId);
-        ProcessOperationStart(item, operationType, type[i], operationMap);
+        std::string operationType =  AICORE_DOT_MAP.at(descId) + item.type + std::to_string(item.blockId);
+        ProcessOperationStart(item, operationType, item.type, operationMap);
         ProcessOperationEnd(item, operationType, operationMap);
         if (!operationMap[operationType].startFound || !operationMap[operationType].endFound) {
            continue;
         }
-        if (blockDur[{type[i], item.blockId}].first > operationMap[operationType].startSyscyc || blockDur[{type[i], item.blockId}].second < operationMap[operationType].endSyscyc) {
+        if (blockDuration_[{item.type, item.blockId}].first > operationMap[operationType].startSyscyc || blockDuration_[{item.type, item.blockId}].second < operationMap[operationType].endSyscyc) {
             continue;
         }
         json resultItem = BuildAicoreDot(operationMap[operationType], colorType);
-        traceEvents_.push_back(resultItem);
+        timelineJson_.push_back(resultItem);
         operationMap[operationType].startFound = false;
         operationMap[operationType].endFound = false;
     }
-    timelineParser.ProcessAicoreData(aicoreTimeStamps, type);
-    auto res = timelineParser.GetTraceEvent();
-    for (auto &item: res) {
-        traceEvents_.push_back(item);
-    }
+    ProcessAicoreData(aicoreTimeStamps);
 }
 
 void MC2TimelineParser::SortTimelineByIds(const set<uint16_t> &sortIds, const string &pidName, const string &tidName)
@@ -406,14 +375,14 @@ void MC2TimelineParser::SortTimelineByIds(const set<uint16_t> &sortIds, const st
         nameItem["pid"] = pidName;
         nameItem["tid"] = displayName;
         nameItem["args"]["name"] = displayName;
-        traceEvents_.push_back(nameItem);
+        timelineJson_.push_back(nameItem);
         json sortItem;
         sortItem["ph"] = "M";
         sortItem["name"] = "thread_sort_index";
         sortItem["pid"] = pidName;
         sortItem["tid"] = displayName;
         sortItem["args"]["sort_index"] = SORT_BIAS + id;
-        traceEvents_.push_back(sortItem);
+        timelineJson_.push_back(sortItem);
     }
 }
 
@@ -442,8 +411,9 @@ void MC2TimelineParser::ProcessHcclTaskData(const vector<MsprofAicpuHcclTaskInfo
         string taskTypeStr = FindMap(HCCL_TASK_TYPE_MAP, info.itemId);
         float dur = static_cast<float>(SafeSub(iter->second.endTime, iter->second.startTime, location, false)) /
                     aicpuFreq_; // unit is ms
-        float bandwidth = IsZero(dur) ? 0.0f : static_cast<float>(info.dataSize) / dur / B_TO_GB * TIME_CONVERSION; // unit is GB/s
-        MC2Event event = {
+        float bandwidth = fabs(dur) < numeric_limits<float>::epsilon() ? 0.0f :
+                          static_cast<float>(info.dataSize) / dur / B_TO_GB * TIME_CONVERSION; // unit is GB/s
+        JsonEvent event = {
             taskTypeStr, HCCL_TASK_CNAME_MAP.at(taskTypeStr), "X", HCCL_TASK_PID,
             HCCL_TASK_TID + to_string(info.planeID),
             static_cast<float>(SafeSub(iter->second.startTime, minSysCyc_, location, false)) / aicpuFreq_ *
@@ -467,7 +437,7 @@ void MC2TimelineParser::ProcessHcclTaskData(const vector<MsprofAicpuHcclTaskInfo
         };
         json jsonData;
         event.ToJson(jsonData);
-        traceEvents_.emplace_back(jsonData);
+        timelineJson_.emplace_back(jsonData);
     }
     SortTimelineByIds(planeIds, HCCL_TASK_PID, HCCL_TASK_TID);
 }
@@ -481,7 +451,7 @@ void MC2TimelineParser::AddAicpuTurnJson(const AicpuKfcProfCommTurn &turn, const
     if (aicpuFreq_ == 0) {
         return;
     }
-    MC2Event event = {
+    JsonEvent event = {
         turnName,
         AICPU_TURN_CNAME_MAP.at(turnName),
         "X",
@@ -496,7 +466,7 @@ void MC2TimelineParser::AddAicpuTurnJson(const AicpuKfcProfCommTurn &turn, const
     };
     json jsonData;
     event.ToJson(jsonData);
-    traceEvents_.emplace_back(jsonData);
+    timelineJson_.emplace_back(jsonData);
 }
 
 void MC2TimelineParser::ProcessAicpuTurnData(const vector<AicpuKfcProfCommTurn> &aicpuTurns)
@@ -542,7 +512,7 @@ void MC2TimelineParser::ProcessHcclData()
         if (aicpuFreq_ == 0) {
             return;
         }
-        MC2Event event = {
+        JsonEvent event = {
             taskTypeStr,
             HCCL_CNAME_MAP[taskType % COLORNUM],
             "X",
@@ -563,69 +533,46 @@ void MC2TimelineParser::ProcessHcclData()
         }
         json jsonData;
         event.ToJson(jsonData);
-        traceEvents_.emplace_back(jsonData);
+        timelineJson_.emplace_back(jsonData);
     }
     SortTimelineByIds(streamIds, HCCL_PID, HCCL_TID);
 }
 
-void MC2TimelineParser::ProcessJsonData(AicoreTimelineParser &timelineParser,
-                                        const vector<MsprofAicTimeStampInfo> &aicoreTimeStamps,
-                                        const vector<AicpuKfcProfCommTurn> &aicpuTurns,
+void MC2TimelineParser::ProcessJsonData(const vector<AicpuKfcProfCommTurn> &aicpuTurns,
                                         const vector<MsprofAicpuHcclTaskInfo> &aicpuHcclTasks,
-                                        std::vector<std::string> &type)
+                                        vector<MsprofAicTimeStampInfoUpdate> &aicoreTimeStamps)
 {
-    if (!Common::HalHelper::Instance().GetTaskSchedulerFreq(aicpuFreq_)) {
-        LogWarn("Get task scheduler frequency failed. Use default value instead.");
-        aicpuFreq_ = FREQ;
-    }
     ProcessAicpuTurnData(aicpuTurns);
     ProcessHcclTaskData(aicpuHcclTasks);
     ProcessHcclData();
-    if (!aicoreTimeStamps.empty()) {
-        // get pc2code by kernel file
-        std::set<uint64_t> pcSet = {};
-        for (const auto &item : aicoreTimeStamps) {
-            pcSet.emplace(item.curPc);
-        }
-        std::string dumpPath = JoinPath({outputPath_, "dump"});
-        Profiling::ParsePcCode pc2Code(dumpPath, pcSet);
-        pc2Code.Parse();
-        pc2code_ = pc2Code.GetPc2Code();
-        ProcessAicoreData(timelineParser, aicoreTimeStamps, type);
-    } else {
-        LogDebug("Can not parse aic_timestamp.bin, no need to generate AICore timeline.");
-    }
+    ProcessMC2AicoreData(aicoreTimeStamps);
 }
 
-bool MC2TimelineParser::MC2TimelineToJson(const string &outputPath)
+bool MC2TimelineParser::TimelineToJson(const string &outputPath)
 {
-    if (!isMC2_) {
-        LogDebug("This is not a MC2 operator, no need to generate MC2 timeline.");
+    ChipProductType chipType = GetChipTypeSeries();
+    if (chipType != ChipProductType::ASCEND910B_SERIES && chipType != ChipProductType::ASCEND910_93_SERIES) {
         return false;
+    }
+    if (!Common::HalHelper::Instance().GetTaskSchedulerFreq(aicpuFreq_)) {
+        LogWarn("Get task scheduler frequency failed. Use default value instead");
+        aicpuFreq_ = FREQ;
     }
     outputPath_ = outputPath;
-    auto socVersion = opBasicInfoObj_->GetSoc();
-    if (Common::SOC_910B.count(socVersion) == 0 && Common::SOC_910_93.count(socVersion) == 0) {
-        LogDebug("Only A2 and A3 need to generate MC2 timeline.");
-        return false;
-    }
-
     BlockSystemTimeType blockSystemTimes;
-    vector<MsprofAicTimeStampInfo> aicoreTimeStamps;
     vector<AicpuKfcProfCommTurn> aicpuTurns;
     vector<MsprofAicpuHcclTaskInfo> aicpuHcclTasks;
-    AicoreTimelineParser timelineParser = AicoreTimelineParser(minSysCyc_, opBasicInfoObj_, basicPmuObj_);
-    timelineParser.SetOutputPath(outputPath_);
-    std::vector<std::string> type;
-    PreProcessData(timelineParser, aicoreTimeStamps, aicpuTurns, aicpuHcclTasks, type);
-    ProcessJsonData(timelineParser, aicoreTimeStamps, aicpuTurns, aicpuHcclTasks, type);
-    mc2TimelineJson_["profilingType"] = "op";
-    mc2TimelineJson_["displayTimeUnit"] = "ns";
-    mc2TimelineJson_["schemaVersion"] = 1;
-    mc2TimelineJson_["traceEvents"] = traceEvents_;
-
+    vector<MsprofAicTimeStampInfoUpdate> aicoreTimeStamps;
+    PreProcessData(aicpuTurns, aicpuHcclTasks, aicoreTimeStamps);
+    ProcessJsonData(aicpuTurns, aicpuHcclTasks, aicoreTimeStamps);
+    json result;
+    result["profilingType"] = "op";
+    result["displayTimeUnit"] = "ns";
+    result["schemaVersion"] = 1;
+    result["traceEvents"] = timelineJson_;
+    timelineJson_ = result;
     string tracePath = JoinPath({outputPath_, "trace.json"});
-    if (!WriteFileByStream(tracePath, mc2TimelineJson_)) {
+    if (!WriteFileByStream(tracePath, timelineJson_)) {
         LogWarn("Generate %s failed.", tracePath.c_str());
     }
     return true;

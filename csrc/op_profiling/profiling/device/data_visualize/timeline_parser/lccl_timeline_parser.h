@@ -20,9 +20,10 @@
 #include <vector>
 #include "json.hpp"
 
-#include "basic_op_and_pmu.h"
-#include "data_visualize_const.h"
+#include "profiling/device/data_visualize/basic_op_and_pmu.h"
+#include "profiling/device/data_visualize/data_visualize_const.h"
 #include "profapi/profapi.h"
+#include "timeline_parser.h"
 
 namespace Visualize {
 struct LcclInfo {
@@ -38,36 +39,21 @@ struct LcclInfo {
 uint16_t GetAicoreDotBlockId(const std::string &opType, uint16_t blockIndex, uint16_t subBlockIndex,
                              uint16_t subBlockNum);
 
-class LcclTimelineParser {
+class LcclTimelineParser : public TimelineParser{
 public:
-    LcclTimelineParser(bool isLccl, uint64_t minLcclTimeCyc, std::shared_ptr<OpBasicInfo> &opBasicInfoObj,
+    LcclTimelineParser(uint64_t minLcclTimeCyc, std::shared_ptr<OpBasicInfo> &opBasicInfoObj,
                        std::shared_ptr<BasicPmu> &basicPmuObj)
-        : isLccl_(isLccl), minSysCyc_(minLcclTimeCyc), aicoreStartCyc_(minLcclTimeCyc),
-        opBasicInfoObj_(opBasicInfoObj), basicPmuObj_(basicPmuObj) {}
+        : TimelineParser(minLcclTimeCyc, opBasicInfoObj, basicPmuObj), aicoreStartCyc_(minLcclTimeCyc)
+        {}
     bool TimelineToJson(const std::string &outputPath);
-    nlohmann::json GetTimelineJson() { return timelineJson_; }
 
 private:
-    void PreProcessData(BlockSystemTimeType &blockSystemTimes, std::vector<LcclDumpLogInfo> &aicoreTimeStamps);
-    void ProcessJsonData(const BlockSystemTimeType &blockSystemTimes,
-                         const std::vector<LcclDumpLogInfo> &aicoreTimeStamps);
-    void GetAicoreTimeStamps(std::vector<LcclDumpLogInfo> &aicoreTimeStamps);
+    void PreProcessData(std::vector<LcclDumpLogInfo> &aicoreTimeStamps);
+    void ProcessJsonData(const std::vector<LcclDumpLogInfo> &aicoreTimeStamps);
     // ProcessAicore
-    void ProcessAicoreData(const BlockSystemTimeType &blockSystemTimes,
-                           const std::vector<LcclDumpLogInfo> &aicoreTimeStamps);
-    void AddAicoreBlockDur(const BlockSystemTimeType &blockSystemTimes, std::set<uint16_t> &dotBlockIds);
+    void ProcessAicoreData(const std::vector<LcclDumpLogInfo> &aicoreTimeStamps);
     nlohmann::json AddAicoreApiDot(const LcclInfo& info) const;
-
-    nlohmann::json timelineJson_;
-    nlohmann::json traceEvents_;
-
-    std::string outputPath_;
-    bool isLccl_ = false;
-    uint64_t minSysCyc_ = UINT64_MAX;
     uint64_t aicoreStartCyc_ = 0;
-    std::shared_ptr<OpBasicInfo> &opBasicInfoObj_;
-    std::shared_ptr<BasicPmu> &basicPmuObj_;
-    int64_t aicpuFreq_ = 0;
 };
 }
 #endif // MSOPT_LCCL_TIMELINE_PARSER_H
