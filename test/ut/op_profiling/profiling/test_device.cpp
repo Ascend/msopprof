@@ -1180,7 +1180,7 @@ TEST(EquationsUtils, BandWidthUsage_expect_success)
     auto res2 = BandWidthUsage(10, 1, TransportType::UNKNOWN, ChipProductType::ASCEND950PR_9599);
     ASSERT_STREQ(res2.c_str(), "NA");
     auto res3 = BandWidthUsage(0.0001, 1, TransportType::GM_TO_L1, ChipProductType::ASCEND950PR_9599);
-    ASSERT_STREQ(res3.c_str(), "1.564328");
+    ASSERT_STREQ(res3.c_str(), "56.315811");
 }
 
 TEST(EquationsUtils, GetMaxBwBySocCal_expect_success)

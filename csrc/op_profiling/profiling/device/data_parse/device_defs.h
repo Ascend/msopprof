@@ -146,6 +146,7 @@ const std::map<TransportType, uint16_t> REQ_DATA_OF_310P = {
     {TransportType::VEC_TO_UB,               16},
 };
 
+// 以下均为单核带宽，单位GB/s
 const std::map<TransportType, float> maxBwRateOf910B1 = {
     {TransportType::GM_TO_L1,     264},
     {TransportType::L1_TO_GM,     199.43},
@@ -219,60 +220,34 @@ const std::map<TransportType, float> maxBwRateOf910B4GmCJ = {
 };
 
 const std::map<TransportType, float> maxBwRateOf950_959X = {
-    {TransportType::GM_TO_L1,                6392.52},
-    {TransportType::L1_TO_GM,                5176.44},
-    {TransportType::L0C_TO_L1,               14837.4},
-    {TransportType::L0C_TO_GM,               5113.8},
-    {TransportType::L0C_TO_UB,               7423.2},
-    {TransportType::L1_TO_L0A,               14835.6},
-    {TransportType::L1_TO_L0B,               14835.96},
-    {TransportType::L1_TO_UB,                7422.48},
-    {TransportType::UB_TO_L1,                7422.48},
-    {TransportType::GM_TO_UB,                6406.56},
-    {TransportType::UB_TO_GM,                5174.64},
+    {TransportType::GM_TO_L1,     177.57},
+    {TransportType::L1_TO_GM,     143.79},
+    {TransportType::L0C_TO_L1,    412.15},
+    {TransportType::L0C_TO_GM,    142.05},
+    {TransportType::L0C_TO_UB,    206.20},
+    {TransportType::L1_TO_L0A,    412.10},
+    {TransportType::L1_TO_L0B,    412.11},
+    {TransportType::L1_TO_UB,     206.18},
+    {TransportType::UB_TO_L1,     206.18},
+    {TransportType::GM_TO_UB,     177.96},
+    {TransportType::UB_TO_GM,     143.74},
 };
 
 const std::map<TransportType, float> maxBwRateOf950_958X = {
-    {TransportType::GM_TO_L1,                5208.72},
-    {TransportType::L1_TO_GM,                4217.84},
-    {TransportType::L0C_TO_L1,               12089.73},
-    {TransportType::L0C_TO_GM,               4166.8},
-    {TransportType::L0C_TO_UB,               6048.53},
-    {TransportType::L1_TO_L0A,               12088.27},
-    {TransportType::L1_TO_L0B,               12088.56},
-    {TransportType::L1_TO_UB,                6047.95},
-    {TransportType::UB_TO_L1,                6047.95},
-    {TransportType::GM_TO_UB,                5220.16},
-    {TransportType::UB_TO_GM,                4216.37},
+    {TransportType::GM_TO_L1,     162.77},
+    {TransportType::L1_TO_GM,     131.81},
+    {TransportType::L0C_TO_L1,    377.80},
+    {TransportType::L0C_TO_GM,    130.21},
+    {TransportType::L0C_TO_UB,    189.02},
+    {TransportType::L1_TO_L0A,    377.76},
+    {TransportType::L1_TO_L0B,    377.77},
+    {TransportType::L1_TO_UB,     188.99},
+    {TransportType::UB_TO_L1,     188.99},
+    {TransportType::GM_TO_UB,     163.13},
+    {TransportType::UB_TO_GM,     131.76},
 };
-
-const std::map<TransportType, float> maxBwRateOf950_957X = {
-    {TransportType::GM_TO_L1,                4557.63},
-    {TransportType::L1_TO_GM,                3690.61},
-    {TransportType::L0C_TO_L1,               10578.52},
-    {TransportType::L0C_TO_GM,               3645.95},
-    {TransportType::L0C_TO_UB,               5292.47},
-    {TransportType::L1_TO_L0A,               10577.23},
-    {TransportType::L1_TO_L0B,               10577.49},
-    {TransportType::L1_TO_UB,                5291.95},
-    {TransportType::UB_TO_L1,                5291.95},
-    {TransportType::GM_TO_UB,                4567.64},
-    {TransportType::UB_TO_GM,                3689.33},
-};
-
-const std::map<TransportType, float> maxBwRateOf950_950X = {
-    {TransportType::GM_TO_L1,                1302.18},
-    {TransportType::L1_TO_GM,                1054.46},
-    {TransportType::L0C_TO_L1,               3022.43},
-    {TransportType::L0C_TO_GM,               1041.7},
-    {TransportType::L0C_TO_UB,               1512.13},
-    {TransportType::L1_TO_L0A,               3022.07},
-    {TransportType::L1_TO_L0B,               3022.14},
-    {TransportType::L1_TO_UB,                1511.99},
-    {TransportType::UB_TO_L1,                1511.99},
-    {TransportType::GM_TO_UB,                1305.04},
-    {TransportType::UB_TO_GM,                1054.09},
-};
+const std::map<TransportType, float> maxBwRateOf950_957X = maxBwRateOf950_958X;
+const std::map<TransportType, float> maxBwRateOf950_950X = maxBwRateOf950_958X;
 
 const std::map<std::pair<ChipProductType, Common::GmType>, std::map<TransportType, float>> MAX_BW_RATE_ALL = {
     {{ChipProductType::ASCEND910B1,       Common::GmType::DEFAULT},        maxBwRateOf910B1},

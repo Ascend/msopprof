@@ -62,8 +62,6 @@ public:
         aiCoreNum_ = aiCoreNum;
     };
     void Init();
-    virtual void CalCubeBaseData(int64_t cubeNum);
-    virtual void CalVecBaseData(int64_t vectorNum);
     void AddJson(const std::string &title, const std::vector<SubCoreProperty> &propertyVec,
                  const std::vector<RoofLineData> &roofLineDatas);
     std::string RoofLineAnalysis(float bandwidth, float theoryTfops, float horizontalPoint, float verticalPoint) const;
@@ -90,10 +88,15 @@ public:
     std::map<std::string, float> maxBwRates_{};
     nlohmann::json visualRoofLineJson_;
 protected:
+    virtual void CalCubeBaseData(int64_t cubeNum);
+    virtual void CalVecBaseData(int64_t vectorNum);
+    void InsertPipeMaxBw(const std::map<std::string, float> pipeBwMap);
     std::shared_ptr<OpBasicInfo> &opBasicInfoObj_;
     std::shared_ptr<BasicPmu> &basicPmuObj_;
     std::unique_ptr<Visualize::PmuCalculator> &pmuCalculatorObj_;
     Profiling::Calculate cal_;
+    int64_t cubeNum_ = 0;
+    int64_t vecNum_ = 0;
 private:
     static AnalysisPoint analysisPoint_;
     std::map<std::string, float> pipeLineRatio_;
@@ -109,18 +112,19 @@ public:
         cubeCoreEvents_ = cubeEvents_;
         vecCoreEvents_ = vecEvents_;
         l2CacheEvict_ = basicPmuObj->GetL2cacheEvict();
+        cubeNum_ = aiCoreNum_;
+        vecNum_ = aiCoreNum_ * 2; // aivNum=2
     }
     std::vector<nlohmann::json> GenerateRoofLines() override;
 private:
     void CubeMemoryUnit();
     void VecMemoryUnit();
+    void InsertMaxBw();
     void CubePipeLine();
     void VectorPipeLine();
     void CubeMemoryPipe();
     void VectorMemoryPipe();
     void GmAndL2cache();
-    void InsertPipeLineMaxBw(int64_t coreNum);
-    void InsertMemPipeMaxBw(int64_t coreNum);
     void GetTheoryBwByGmType(std::map<std::string, float> &gmBw) const;
     void GetTheoryL2CacheByGmType(std::map<std::string, float> &l2CacheBw) const;
 
@@ -193,8 +197,6 @@ private:
     };
     // for pipeline and compute pipe theory bandwidth
     std::map<std::string, uint64_t> basicPmu_ = {};
-    int64_t cubeNum_ = 0;
-    int64_t vecNum_ = 0;
     int64_t l2CacheEvict_ = -1;
 };
 
@@ -207,15 +209,17 @@ public:
         chipType_ = Common::ChipType::ASCEND950;
         cubeCoreEvents_ = cubeEvents_;
         vecCoreEvents_ = vecEvents_;
+        cubeNum_ = aiCoreNum_;
+        vecNum_ = aiCoreNum_ * 2; // aivNum=2
     }
     std::vector<nlohmann::json> GenerateRoofLines() override;
 private:
     void CalCubeBaseData(int64_t cubeNum) override;
     void CalVecBaseData(int64_t vectorNum) override;
+    void InsertMaxBw();
     void CubeMemoryUnit();
     void CubePipeLine();
     void CubeMemoryPipe();
-    void InsertMaxBw();
     void VecMemoryUnit();
     void GmAndL2cache();
 
@@ -276,8 +280,6 @@ private:
     };
     // for pipeline and compute pipe theory bandwidth
     std::map<std::string, uint64_t> basicPmu_ = {};
-    int64_t cubeNum_ = 0;
-    int64_t vecNum_ = 0;
     std::vector<SubCoreProperty> cubeProperties_ {};
     std::vector<SubCoreProperty> vecSimtProperties_ {};
 };
