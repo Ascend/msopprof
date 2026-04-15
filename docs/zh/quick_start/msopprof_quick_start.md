@@ -76,10 +76,9 @@ msprof op --output=./msprof_output_npu ./execute_add_op
 ##### 2.3.2.2 仿真器性能采集   
 
 参考<a href="https://gitcode.com/Ascend/msot/blob/master/docs/zh/quick_start/get_chip_soc_type.md" target="_blank">《芯片SoC类型获取方法》</a>获取芯片类型，作为如下参数 `--soc-version` 的值。   
-执行如下命令（注意替换参数 `--soc-version` 的值xxx为实际查询值，例如：Ascend910B4）：
 
 ```shell
-msprof op simulator --soc-version=xxx --output=./msprof_output_sim ./execute_add_op
+msprof op simulator --soc-version=Ascendxxxyy --output=./msprof_output_sim ./execute_add_op
 ```
 
 #### 2.3.3 查看性能数据结果
