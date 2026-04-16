@@ -52,7 +52,13 @@ class BuildManager:
                                      help='Build action: omit for full build, "local" to skip dependency download, "test" to run unit tests')
         argument_parser.add_argument('-r', '--revision',
                                      help='Specify Git revision for internal dependent repo (e.g., msopcom).')
+        argument_parser.add_argument('--build-version', type=str, default=None, help='Build version for run/exe/dmg packages')
+        argument_parser.add_argument('--whl-version', type=str, default=None, help='WHL version for Python wheel packages')
         self.parsed_arguments = argument_parser.parse_args()
+
+        if self.parsed_arguments.build_version != None:
+            logging.info("--build-version: %s", self.parsed_arguments.build_version)
+            self._execute_command(["sed", "-i", f"s/^Version=.*/Version={self.parsed_arguments.build_version}/", "./package/conf/version.info"])
 
     def _execute_command(self, command_sequence, timeout_seconds=36000, cwd=None):
         logging.info("Running: %s", " ".join(command_sequence))
