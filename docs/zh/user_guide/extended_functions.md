@@ -4,7 +4,7 @@
 
 编写算子的定义json文件，配置参数的具体说明请参考[**表 1**  json文件配置参数说明](#json文件配置参数说明)和[**表 2**  test_case参数字段说明](#test_case参数字段说明)。
 
-例如，json配置文件的命名为add\_test.json，开发者可基于该模板修改测试数据及其他配置参数。
+例如，json配置文件的命名为add_test.json，开发者可基于该模板修改测试数据及其他配置参数。
 
 ```json
 {
@@ -77,11 +77,11 @@
 
 > [!NOTE] 说明
 > 
-> - tiling\_key参数仅适用于动态算子。
-> - 在使用magic参数时，<term>Atlas 推理系列产品</term>需配置为RT\_DEV\_BINARY\_MAGIC\_ELF。
-> - 在使用test\_cases参数时，算子上板或仿真调优时仅支持配置单个用例。
+> - tiling_key参数仅适用于动态算子。
+> - 在使用magic参数时，<term>Atlas 推理系列产品</term>需配置为RT_DEV_BINARY_MAGIC_ELF。
+> - 在使用test_cases参数时，算子上板或仿真调优时仅支持配置单个用例。
 
-**表 2**  test\_case参数字段说明<a id="test_case参数字段说明"></a>
+**表 2**  test_case参数字段说明<a id="test_case参数字段说明"></a>
 
 <table><thead align="left"><tr id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_row1958882429"><th class="cellrowborder" colspan="3" valign="top" id="mcps1.2.7.1.1"><p id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_p1859148144216">参数</p>
 </th>
@@ -253,9 +253,9 @@
 > 
 > - “output”中参数取值的个数都要与“input”一致，否则测试用例生成会失败。
 >    例如：“input”的type支持的类型个数为2，则“output”的type支持的类型个数也需要为2。
->    同理，所有input和output中的type、shape和value\_range的取值个数也需要保持一致。
+>    同理，所有input和output中的type、shape和value_range的取值个数也需要保持一致。
 > - 一个算子所有“input”中参数取值的个数都要一致，否则测试用例生成会失败。
->    所有“input”中的type、shape和value\_range的取值个数也需要保持一致。
+>    所有“input”中的type、shape和value_range的取值个数也需要保持一致。
 
 ## mstx扩展功能
 
@@ -286,7 +286,7 @@ mstx接口是MindStudio提供的一个性能分析接口，它允许用户在应
     > [!NOTE] 说明
     > 
     > - 此样例工程不支持<term>Atlas A3 训练系列产品</term>。
-    > - $\{INSTALL\_DIR\}请替换为CANN软件安装后文件存储路径。以root用户安装为例，安装后文件默认存储路径为：/usr/local/Ascend/cann。
+    > - ${INSTALL_DIR}请替换为CANN软件安装后文件存储路径。以root用户安装为例，安装后文件默认存储路径为：/usr/local/Ascend/cann。
 
     - 在\$\{git\_clone\_path\}/samples/operator/ascendc/0\_introduction/1\_add\_frameworklaunch/AclNNInvocation/src/CMakeLists.txt路径下新增库文件libms\_tools\_ext.so，地址为：$\{INSTALL\_DIR\}/lib64/libms\_tools\_ext.so。
 

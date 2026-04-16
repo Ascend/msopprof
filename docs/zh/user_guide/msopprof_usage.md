@@ -62,6 +62,7 @@ Kernel直调场景，详细信息可参考《Ascend C算子开发指南》中“
     ```
 
 5. 出现如下打屏回显，表示算子性能数据采集成功。
+
     ```shell
     [INFO] Profiling running finished. All task success.
     ```
@@ -175,6 +176,7 @@ PyTorch框架算子调用场景下，进行性能数据采集的操作步骤与[
     ```shell
     msprof op simulator --soc-version=Ascendxxxyy python3 test_add.py
     ```
+
     > [!NOTE] 说明
     > 
     > 该样例算子已经去除了其它非triton算子的冗余计算，仅保留一个需要采集仿真性能的triton算子add_kernel，可极大节约仿真运行的整体耗时。即使指定了--kernel-name的情况下，仿真器仍会按照算子顺序依次运行，因此建议仿真运行前减少非必要的算子。
@@ -197,7 +199,7 @@ PyTorch框架算子调用场景下，进行性能数据采集的操作步骤与[
 
 **操作步骤**
 
-1. 按照[catlass快速入门](https://gitcode.com/cann/catlass/blob/master/docs/1_Practice/01_quick_start.md)的示例，准备环境并编译算子上板可执行文件，以basic_matmul样例为例。
+1. 按照[catlass快速入门](https://gitcode.com/cann/catlass/blob/master/docs/zh/1_Practice/01_quick_start.md)的示例，准备环境并编译算子上板可执行文件，以basic_matmul样例为例。
 
     ```shell
     bash scripts/build.sh 00_basic_matmul

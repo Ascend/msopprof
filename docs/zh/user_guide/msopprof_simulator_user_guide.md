@@ -143,9 +143,9 @@ msprof op simulator --soc-version=Ascendxxxyy --output=/home/projects/output /ho
 <tr id="zh-cn_topic_0000002016036877_row1776724510349"><td class="cellrowborder" valign="top" width="25.232523252325233%" headers="mcps1.2.4.1.1 "><p id="zh-cn_topic_0000002016036877_p18767164517348">--timeout</p>
 </td>
 <td class="cellrowborder" valign="top" width="63.02630263026302%" headers="mcps1.2.4.1.2 "><p id="zh-cn_topic_0000002016036877_p146394291703">该参数适用于数据量大且计算重复的算子，完整运行该类算子将会耗时很长，部分流水图即可获取必要信息。可通过设置--timeout参数缩短算子运行时长并获取必要流水信息<span>。具体实现如下：</span></p>
-<ul id="zh-cn_topic_0000002016036877_ul12129256185219"><li>当仿真运行时间达到--timeout值时，<span>msOpProf</span>工具将会终止仿真进程并进入解析过程，只对已仿真的部分数据进行分析。同时，<span>msOpProf</span>工具将会展示以下打屏信息：<pre class="code_wrap" codetype="ColdFusion" id="zh-cn_topic_0000002016036877_screen104875352479">[INFO]  The timeout has reached and the application will be forcibly killed.</pre>
+<ul id="zh-cn_topic_0000002016036877_ul12129256185219"><li>当仿真运行时间达到--timeout值时，<span>msOpProf</span>工具将会终止仿真进程并进入解析过程，只对已仿真的部分数据进行分析。同时，<span>msOpProf</span>工具将会展示以下打印信息：<pre class="code_wrap" codetype="ColdFusion" id="zh-cn_topic_0000002016036877_screen104875352479">[INFO]  The timeout has reached and the application will be forcibly killed.</pre>
 </li><li>若进程正常结束时未达到timeout值时，正常结束仿真程序并进入解析过程。</li></ul>
-<p id="zh-cn_topic_0000002016036877_p05905923811">参数取值范围为1~2880之间的整数，单位分钟。具体示例如下：</p>
+<p id="zh-cn_topic_0000002016036877_p05905923811">参数取值范围为1~2880之间的整数，单位为分钟。具体示例如下：</p>
 <pre class="code_wrap" id="zh-cn_topic_0000002016036877_screen697132914484">msprof op simulator<strong id="zh-cn_topic_0000002016036877_b17229142131210"> </strong><span>--soc-version=Ascendxxxyy</span> --timeout=1 ./add_custom <span>/</span><span>/</span><strong id="zh-cn_topic_0000002016036877_b77321496128"><em id="zh-cn_topic_0000002016036877_i0732549181213"> </em></strong>xxxyy为用户实际使用的具体芯片类型</pre>
 </td>
 <td class="cellrowborder" valign="top" width="11.741174117411742%" headers="mcps1.2.4.1.3 "><p id="zh-cn_topic_0000002016036877_p177687454344">否</p>
@@ -227,6 +227,7 @@ msOpProf工具协助用户定位算子内存、算子代码以及算子指令的
 **msopprof simulator配置**<a id="simulator配置"></a>
 
 > [!NOTE] 说明   
+> 
 > - msOpProf工具的仿真功能仅支持单卡场景，无法仿真多卡环境。
 > - 参考<a href="https://gitcode.com/Ascend/msot/blob/master/docs/zh/quick_start/get_chip_soc_type.md" target="_blank">《芯片SoC类型获取方法》</a>获取芯片类型，作为如下参数 `--soc-version` 的值。
 
@@ -287,7 +288,7 @@ msOpProf工具协助用户定位算子内存、算子代码以及算子指令的
         core_ostd_num           = 2             # 2 early end  1 normal mode
     ```
 
-- <term>昇腾950代际产品</term>使用msProf工具进行算子仿真调优时，需将config.json文件中的flush_level参数修改为info级，也就是将文件中的"flush_level": 3修改为"flush_level" : 2。config.json文件的路径为${INSTALL_DIR}/tools/simulator/Ascendxxxyy/lib/config.json。
+- <term>Atlas 350 加速卡</term>使用msProf工具进行算子仿真调优时，需将config.json文件中的flush_level参数修改为info级，也就是将文件中的"flush_level": 3修改为"flush_level" : 2。config.json文件的路径为${INSTALL_DIR}/tools/simulator/Ascendxxxyy/lib/config.json。
 
 **启动工具**
 
@@ -513,8 +514,8 @@ trace.json文件可分别通过Chrome浏览器和MindStudio Insight展示，visu
 
     **表 1**  msopprof simulator热点图的功能介绍<a id="simulator热点图的功能介绍"></a>
 
-    |列名|<term>Atlas A2 训练系列产品/Atlas A2 推理系列产品</term>|<term>Atlas A3 训练系列产品/Atlas A3 推理系列产品</term>|<term>Atlas 推理系列产品</term>|<term>昇腾950代际产品</term>|说明|
-    |---|---|---|---|---|---|
+    |列名|<term>Atlas A2 训练系列产品/Atlas A2 推理系列产品</term>|<term>Atlas A3 训练系列产品/Atlas A3 推理系列产品</term>|<term>Atlas 推理系列产品</term>|<term>Atlas 350 加速卡</term>|说明|
+    |------|-------|-------|-------|--------|--------|
     |源码|支持|支持|支持|支持|-|
     |指令PC地址|支持|支持|支持|支持|-|
     |PIPE|支持|支持|支持|支持|-|

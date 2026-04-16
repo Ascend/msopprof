@@ -169,12 +169,12 @@
 ![image](./architecture_figures/8a89fbabc5733e1a7aac5a054dcb2020_951x890.png)
 
 1. DeviceDataParse：性能数据解析类，作为解析的入口，每个算子的解析都会调用一次ParseExactKernelData方法，在其中创建DataHandler、OpBasicInfo等对象，保证每个算子数据独立解析。
-2. DataHandler：数据加载类，用于读取驱动上报的原始pmu数据、stars数据等，并将指标数据经过处理、计算后以csv表格的形式落盘，作为交付件的一部分。同时从原始数据中提取、拼接有用信息，以Get方法的形式对外暴露部分基础指标数据。
-3. *Bean：驱动数据类，用于解析原始pmu数据、stars数据。
+2. DataHandler：数据加载类，用于读取驱动上报的原始PMU数据、stars数据等，并将指标数据经过处理、计算后以csv表格的形式落盘，作为交付件的一部分。同时从原始数据中提取、拼接有用信息，以Get方法的形式对外暴露部分基础指标数据。
+3. *Bean：驱动数据类，用于解析原始PMU数据、stars数据。
 4. HotSpotFunctionGenerator：热点函数类，该部分为上板解析和仿真解析的基础解析类，用于llvm反汇编解析代码行映射信息。
 5. OpBasicInfo：包含算子的基础信息数据：算子名称、算子类型等。
-6. BasicPmu：包含各block的pmu数据、内存信息等。
-7. PmuCalculator：包含大量pmu指标计算公式。
+6. BasicPmu：包含各block的PMU数据、内存信息等。
+7. PmuCalculator：包含大量PMU指标计算公式。
 8. CachelineHeatMap/MC2TimelineParser/StorageAccess层：各类指标维度类，根据需要呈现的具体指标
 9. Cache热力图、MC2通算流水图、计算内存热力图等，从公共基础数据中获取、计算并组装呈现结果。
 10. DataVisualize：根据与可视化模块约定的数据结构，将各类指标维度的性能数据进行填充及展示，最后形成结果产物visualize_data.bin，并可用MindStudio-Insight工具展示。
@@ -712,7 +712,7 @@ struct MsprofAicpuHcclTaskInfo {
 
 #### 4.4.1.2 设计约束
 
-当前使用仿真器instr_log，所有当前按照pc指令排布，而不是时间序排布。
+当前使用仿真器instr_log，所有指令当前按照pc指令排布，而不是时间序排布。
 
 #### 4.4.1.3 技术选型
 
@@ -723,7 +723,7 @@ struct MsprofAicpuHcclTaskInfo {
 #### 4.4.1.4.1 寄存器统计算法
 
 每个指令需要区分DST和SRC使用的寄存器，其中DST指的是指令结果保存的寄存器，SRC指的是使用/数据依赖的寄存器。当指令寄存器使用数量公式为：
-`占用寄存器数量 = 去重（上一个指令占用寄存器 + DST寄存器 + SRC寄存）`
+`占用寄存器数量 = 去重（上一个指令占用寄存器 + DST寄存器 + SRC寄存器）`
 举例：若当前指令x用到的Xa寄存器仅在当前指令的DST中使用且在历史占用寄存器中存在Xa，历史使用的Xa寄存器的指令y，则从指令y+1到x-1的指令使用的Xa寄存器均视为被释放。
 
 算法流程参考如下图，复杂度为O(N * M)，N为指令数量，M为平均指令向上搜索数量
@@ -732,7 +732,7 @@ struct MsprofAicpuHcclTaskInfo {
 
 **限制**
 
-1. 310P, 910B中寄存器上限为32
+1. Atlas 推理系列产品, Atlas A2 训练系列产品/Atlas A2 推理系列产品中寄存器上限为32
 2. 基于只有Scalar流水中的指令中会包含DST，其他指令认为只包含SRC
 
 可视化计算部分
@@ -886,7 +886,7 @@ FUZZ：当前对所有对外接口都进行FUZZ测试
 3. 运行环境
 
     由于当前仓中mockcpp版本限制，因此UT需要在x86机器上进行
-    由于当前支持的机器类型有A2、A3、310P，所有ST需要在这三类机器上运行。
+    由于当前支持的机器类型有Atlas A2 训练系列产品/Atlas A2 推理系列产品、Atlas A3 训练系列产品/Atlas A3 推理系列产品、Atlas 推理系列产品，所有ST需要在这三类机器上运行。
 
 ## 5. 运行视图
 
@@ -911,7 +911,7 @@ FUZZ：当前对所有对外接口都进行FUZZ测试
 
 ![image](./architecture_figures/1a12bc5385fc2d2751bf3684dc8ef711_606x314.png)
 
-注：对于310P需要在开启硬件接口前打开runtime通道，当前设计为与msprof保持一致，直接dlopen libprof.so，传入开启的command，由prof调用开关打开通道。
+注：对于Atlas 推理系列产品需要在开启硬件接口前打开runtime通道，当前设计为与msprof保持一致，直接dlopen libprof.so，传入开启的command，由prof调用开关打开通道。
 **处理流程**
 当前调优工具只依赖一个so，即libmsopprof_injection.so，当前工具侧需要启动算子进程前告知子进程当前需要启动仿真采集或者上板采集的操作。（仿真为例）
 
