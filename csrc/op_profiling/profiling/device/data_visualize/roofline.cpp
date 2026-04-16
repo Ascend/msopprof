@@ -274,11 +274,26 @@ void RoofLine::ClearRoofLineJson()
     visualRoofLineJson_.clear();
 }
 
+void RoofLine::InsertPipeMaxBw(const std::map<std::string, float> pipeBwMap)
+{
+    const map<string, int64_t> pipeTransferMap = {
+        {"MTE1", cubeNum_},
+        {"MTE2", cubeNum_},
+        {"MTE3", cubeNum_},
+        {"FIXP", cubeNum_},
+        {"MTE2 vector", vecNum_},
+        {"MTE3 vector", vecNum_}
+    };
+    for (const auto &iter : pipeTransferMap) {
+        maxBwRates_[iter.first] = pipeBwMap.at(iter.first) * iter.second / BIT_CONVERSION;
+    }
+}
+
 vector<nlohmann::json> RoofLineOf910B::GenerateRoofLines()
 {
     Init();
+    InsertMaxBw();
     if (opType_ == OpType::CUBE || opType_ == OpType::MIX) {
-        cubeNum_ = aiCoreNum_;
         CalMemoryUnitBw(cubeNum_, memoryUnitBitsPerSecondCube_);
         CalCubeBaseData(cubeNum_);
         // only use cube core theory tfops, actual fops
@@ -287,8 +302,6 @@ vector<nlohmann::json> RoofLineOf910B::GenerateRoofLines()
         CubeMemoryPipe();
     }
     if (opType_ == OpType::VECTOR || opType_ == OpType::MIX) {
-        uint16_t aivNumOfAiCore = 2;
-        vecNum_ = aiCoreNum_ * aivNumOfAiCore;
         CalMemoryUnitBw(vecNum_, memoryUnitBitsPerSecondVec_);
         CalVecBaseData(vecNum_);
         // only use vector core theory tfops, actual fops
@@ -327,37 +340,26 @@ void RoofLineOf910B::CubeMemoryUnit()
     AddJson(MEMORY_UNIT_CUBE, {cubeProperty_}, roofLineDatas);
 }
 
-void RoofLineOf910B::InsertPipeLineMaxBw(int64_t coreNum)
+void RoofLineOf910B::InsertMaxBw()
 {
+    // 部分带宽直接获取，直接获取分为pipe带宽和通路带宽；部分通过CalMemoryUnitBw计算
     std::string socVersion = opBasicInfoObj_->GetSoc();
     std::string socName = (FREQ_MAP.count(socVersion) == 0) ? "Ascend910B1" : socVersion;
     auto pipeBwMap = pmuCalculatorObj_->GetPipeBwByWeight(socName, basicPmu_["mteToL0aData"],
         basicPmu_["mteToL0bData"], basicPmu_["l0cWriteGm"], basicPmu_["fixpToL1Data"]);
-    for (auto &bw : pipeBwMap) {
-        bw.second /= BIT_CONVERSION;
-        bw.second *= coreNum;
-    }
-    maxBwRates_.insert(pipeBwMap.begin(), pipeBwMap.end());
-}
-
-void RoofLineOf910B::InsertMemPipeMaxBw(int64_t coreNum)
-{
-    std::string socVersion = opBasicInfoObj_->GetSoc();
-    std::string socName = (FREQ_MAP.count(socVersion) == 0) ? "Ascend910B1" : socVersion;
-    map<TransportType, float> bw = GetMaxBwBySoc(socName, ChipProductType::ASCEND910B1);
-    const map<TransportType, string> transferMap = {
-        {TransportType::L1_TO_GM,   string(MemoryPipe::L1_TO_GM)},
-        {TransportType::L0C_TO_GM,  string(MemoryPipe::L0C_TO_GM)},
-        {TransportType::L0C_TO_L1,  string(MemoryPipe::L0C_TO_L1)},
-        {TransportType::MTE_TO_L0A, string(MemoryPipe::GM_L1_TO_L0A)},
-        {TransportType::MTE_TO_L0B, string(MemoryPipe::GM_L1_TO_L0B)},
-        {TransportType::UB_TO_GM,   string(MemoryPipe::UB_TO_GM)},
-        {TransportType::GM_TO_UB,   string(MemoryPipe::GM_TO_UB)},
+    InsertPipeMaxBw(pipeBwMap);
+    map<TransportType, float> bwMap = GetMaxBwBySoc(socName, ChipProductType::ASCEND910B1);
+    const map<string, pair<TransportType, int64_t>> transferMap = {
+        {string(MemoryPipe::L1_TO_GM),     {TransportType::L1_TO_GM, cubeNum_}},
+        {string(MemoryPipe::L0C_TO_GM),    {TransportType::L0C_TO_GM, cubeNum_}},
+        {string(MemoryPipe::L0C_TO_L1),    {TransportType::L0C_TO_L1, cubeNum_}},
+        {string(MemoryPipe::GM_L1_TO_L0A), {TransportType::MTE_TO_L0A, cubeNum_}},
+        {string(MemoryPipe::GM_L1_TO_L0B), {TransportType::MTE_TO_L0B, cubeNum_}},
+        {string(MemoryPipe::UB_TO_GM),     {TransportType::UB_TO_GM, vecNum_}},
+        {string(MemoryPipe::GM_TO_UB),     {TransportType::GM_TO_UB, vecNum_}},
     };
     for (const auto &iter : transferMap) {
-        bw[iter.first] /= BIT_CONVERSION;
-        bw[iter.first] *= coreNum;
-        maxBwRates_[iter.second] = bw[iter.first];
+        maxBwRates_[iter.first] = bwMap.at(iter.second.first) * iter.second.second / BIT_CONVERSION;
     }
 }
 
@@ -392,7 +394,6 @@ void RoofLineOf910B::CubePipeLine()
         {"MTE3", mte3Data},
         {"FIXP", basicPmu_["l0cToFixpData"]},
     };
-    InsertPipeLineMaxBw(cubeNum_);
     auto roofLineDatas = GetRoofLineData(computilityDataMap);
     AddJson(PIPE_LINE_CUBE, {cubeProperty_}, roofLineDatas);
 }
@@ -406,7 +407,6 @@ void RoofLineOf910B::CubeMemoryPipe()
         {string(MemoryPipe::GM_L1_TO_L0A), basicPmu_["mteToL0aData"]},
         {string(MemoryPipe::GM_L1_TO_L0B), basicPmu_["mteToL0bData"]},
     };
-    InsertMemPipeMaxBw(cubeNum_);
     auto roofLineDatas = GetRoofLineData(computilityDataMap);
     AddJson(MEMORY_PIPE_CUBE, {cubeProperty_}, roofLineDatas);
 }
@@ -437,7 +437,6 @@ void RoofLineOf910B::VecMemoryUnit()
 
 void RoofLineOf910B::VectorPipeLine()
 {
-    InsertPipeLineMaxBw(vecNum_);
     vector<RoofLineData> roofLineDatas = {
         {"MTE2", basicPmu_["ubReadMte"], maxBwRates_["MTE2 vector"]},
         {"MTE3", basicPmu_["ubWriteMte"], maxBwRates_["MTE3 vector"]}
@@ -451,7 +450,6 @@ void RoofLineOf910B::VectorMemoryPipe()
         {string(MemoryPipe::UB_TO_GM), basicPmu_["ubWriteMte"]},
         {string(MemoryPipe::GM_TO_UB), basicPmu_["ubReadMte"]},
     };
-    InsertMemPipeMaxBw(vecNum_);
     auto roofLineDatas = GetRoofLineData(computilityDataMap);
     AddJson(MEMORY_PIPE_VEC, {vecProperty_}, roofLineDatas);
 }
@@ -516,7 +514,6 @@ vector<nlohmann::json> RoofLineOfA5::GenerateRoofLines()
     Init();
     InsertMaxBw();
     if (opType_ == OpType::CUBE || opType_ == OpType::MIX) {
-        cubeNum_ = aiCoreNum_;
         CalMemoryUnitBw(cubeNum_, memoryUnitBitsPerSecondCube_);
         CalCubeBaseData(cubeNum_);
         // only use cube core theory tfops, actual fops
@@ -525,8 +522,6 @@ vector<nlohmann::json> RoofLineOfA5::GenerateRoofLines()
         CubeMemoryPipe();
     }
     if (opType_ == OpType::VECTOR || opType_ == OpType::MIX) {
-        uint16_t aivNumOfAiCore = 2;
-        vecNum_ = aiCoreNum_ * aivNumOfAiCore;
         CalMemoryUnitBw(vecNum_, memoryUnitBitsPerSecondVec_);
         CalVecBaseData(vecNum_);
         // only use vector core theory tfops, actual fops
@@ -632,20 +627,22 @@ void RoofLineOfA5::CalVecBaseData(int64_t vectorNum)
 
 void RoofLineOfA5::InsertMaxBw()
 {
-    // 部分带宽直接获取，部分通过CalMemoryUnitBw计算
-    std::string socVersion = opBasicInfoObj_->GetSoc();
+    // 部分带宽直接获取，直接获取分为pipe带宽和通路带宽；部分通过CalMemoryUnitBw计算
+    string socVersion = opBasicInfoObj_->GetSoc();
     auto pipeBwMap = pmuCalculatorObj_->GetPipeBwMap(socVersion);
-    for (auto &bw : pipeBwMap) {
-        bw.second /= BIT_CONVERSION;
+    InsertPipeMaxBw(pipeBwMap);
+    map<TransportType, float> bwMap = GetMaxBwBySoc(socVersion, ChipProductType::ASCEND950PR_9599);
+    const map<string, pair<TransportType, int64_t>> transferMap = {
+        {string(MemoryUnit::WRITE_TO_L0A), {TransportType::L1_TO_L0A, cubeNum_}},
+        {string(MemoryUnit::WRITE_TO_L0B), {TransportType::L1_TO_L0B, cubeNum_}},
+        {string(MemoryPipe::L0C_TO_GM),    {TransportType::L0C_TO_GM, cubeNum_}},
+        {string(MemoryPipe::L0C_TO_L1),    {TransportType::L0C_TO_L1, cubeNum_}},
+        {string(MemoryPipe::GM_L1_TO_L0A), {TransportType::L1_TO_L0A, cubeNum_}},
+        {string(MemoryPipe::GM_L1_TO_L0B), {TransportType::L1_TO_L0B, cubeNum_}},
+    };
+    for (const auto &iter : transferMap) {
+        maxBwRates_[iter.first] = bwMap.at(iter.second.first) * iter.second.second / BIT_CONVERSION;
     }
-    maxBwRates_.insert(pipeBwMap.begin(), pipeBwMap.end());
-    map<TransportType, float> bw = GetMaxBwBySoc(socVersion, ChipProductType::ASCEND950PR_9599);
-    maxBwRates_[string(MemoryUnit::WRITE_TO_L0A)] = bw.at(TransportType::L1_TO_L0A) / BIT_CONVERSION;
-    maxBwRates_[string(MemoryUnit::WRITE_TO_L0B)] = bw.at(TransportType::L1_TO_L0B) / BIT_CONVERSION;
-    maxBwRates_[string(MemoryPipe::L0C_TO_GM)] = bw.at(TransportType::L0C_TO_GM) / BIT_CONVERSION;
-    maxBwRates_[string(MemoryPipe::L0C_TO_L1)] = bw.at(TransportType::L0C_TO_L1) / BIT_CONVERSION;
-    maxBwRates_[string(MemoryPipe::GM_L1_TO_L0A)] = maxBwRates_[string(MemoryUnit::WRITE_TO_L0A)];
-    maxBwRates_[string(MemoryPipe::GM_L1_TO_L0B)] = maxBwRates_[string(MemoryUnit::WRITE_TO_L0B)];
 }
 
 void RoofLineOfA5::CubeMemoryUnit()

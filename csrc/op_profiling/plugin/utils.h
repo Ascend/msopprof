@@ -62,7 +62,7 @@ __aicore__ inline uint64_t GetUintFromConf(confT config)
 template<uint8_t leftBit, uint8_t rightBit, typename confT, typename uintT>
 __aicore__ inline void SetConfByUint(confT &config, uintT val)
 {
-    constexpr uint8_t bitsPerByte= 8U;
+    constexpr uint8_t bitsPerByte = 8U;
     constexpr uint8_t maxBit = sizeof(config) * bitsPerByte - 1;
     static_assert(leftBit >= rightBit);
     static_assert(leftBit <= maxBit);

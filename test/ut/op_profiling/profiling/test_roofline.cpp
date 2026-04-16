@@ -18,6 +18,7 @@
 #include <string>
 #include "smart_pointer.h"
 #define private public
+#define protected public
 #include "profiling/device/data_visualize/roofline.h"
 #include "profiling/device/data_visualize/data_visualize.h"
 #include "profiling/device/data_parse/device_data_parse.h"
@@ -26,6 +27,7 @@
 #include "common/prof_args.h"
 #include "common/hal_helper.h"
 #undef private
+#undef protected
 
 using namespace Visualize;
 using namespace Profiling;
@@ -251,11 +253,12 @@ TEST(RoofLine, InsertMemPipeMaxBw_return_expect_value)
     auto &pmuCalculatorObj = GetPmuCalculatorObjTest(chipType, opBasicInfoObj, basicPmuObj);
     RoofLineOf910B roofLine(freqRoofline, aiCoreNumRoofline, opBasicInfoObj, basicPmuObj, pmuCalculatorObj);
     
+    roofLine.cubeNum_ = 1;
     HalHelper::Instance().gmType_ = GmType::CJ;
-    roofLine.InsertMemPipeMaxBw(1);
+    roofLine.InsertMaxBw();
     EXPECT_FLOAT_EQ(roofLine.maxBwRates_["L1 to GM"], 187.72 / BIT_CONVERSION);
     HalHelper::Instance().gmType_ = GmType::DEFAULT;
-    roofLine.InsertMemPipeMaxBw(1);
+    roofLine.InsertMaxBw();
     EXPECT_FLOAT_EQ(roofLine.maxBwRates_["L1 to GM"], 199.43 / BIT_CONVERSION);
 }
 
