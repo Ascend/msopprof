@@ -10,7 +10,7 @@
   - 建议限制对可执行文件或用户程序（*application*）的操作权限，避免提权风险。
   - 不建议进行高危操作（删除文件、删除目录、修改密码及提权命令等），避免安全风险。
 
-- 如果要使用MindStudio Insight工具查看msOpProf工具输出的文件时，需要单独安装MindStudio Insight软件包，安装步骤可参见[MindStudio Insight安装指南](https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/user_guide/mindstudio_insight_install_guide.md)。
+- 如果要使用MindStudio Insight工具查看msOpProf工具输出的文件时，需要单独安装MindStudio Insight软件包，安装步骤可参见[MindStudio Insight安装指南](https://gitcode.com/Ascend/msinsight/blob/26.0.0/docs/zh/user_guide/mindstudio_insight_install_guide.md)。
 
 - 性能数据采集时间建议在5min以内，同时推荐用户设置的内存大小在20G以上（例如容器配置：docker run --memory=20g 容器名）。
 

@@ -31,7 +31,7 @@ Kernel直调场景，详细信息可参考《Ascend C算子开发指南》中“
     > 
     > 本示例中可执行文件的名称（add）仅为示例，具体以当前工程中用户实际编译的脚本为准。
 
-2. 使用如下命令完成msopprof上板性能数据和精细化调优数据的采集，也可参考[msopprof模式命令](https://gitcode.com/Ascend/msopprof/blob/master/docs/zh/user_guide/msopprof_user_guide.md#命令参考)指定其他命令参数。
+2. 使用如下命令完成msopprof上板性能数据和精细化调优数据的采集，也可参考[msopprof模式命令](https://gitcode.com/Ascend/msopprof/blob/26.0.0/docs/zh/user_guide/msopprof_user_guide.md#命令参考)指定其他命令参数。
 
     ```shell
     msprof op add
@@ -54,19 +54,20 @@ Kernel直调场景，详细信息可参考《Ascend C算子开发指南》中“
     )
     ```
 
-4. 使用如下命令完成msopprof simulator性能数据、流水图和热点图数据的采集，也可参考[msopprof simulator模式命令](https://gitcode.com/Ascend/msopprof/blob/master/docs/zh/user_guide/msopprof_simulator_user_guide.md#命令参考)指定其他命令参数。
-    参考<a href="https://gitcode.com/Ascend/msot/blob/master/docs/zh/quick_start/get_chip_soc_type.md" target="_blank">《芯片SoC类型获取方法》</a>获取芯片类型，作为如下参数 `--soc-version` 的值。
+4. 使用如下命令完成msopprof simulator性能数据、流水图和热点图数据的采集，也可参考[msopprof simulator模式命令](https://gitcode.com/Ascend/msopprof/blob/26.0.0/docs/zh/user_guide/msopprof_simulator_user_guide.md#命令参考)指定其他命令参数。
+    参考<a href="https://gitcode.com/Ascend/msot/blob/26.0.0/docs/zh/quick_start/get_chip_soc_type.md" target="_blank">《芯片SoC类型获取方法》</a>获取芯片类型，作为如下参数 `--soc-version` 的值。
 
     ```shell
     msprof op simulator --soc-version=Ascendxxxyy add_sim
     ```
 
 5. 出现如下打屏回显，表示算子性能数据采集成功。
+
     ```shell
     [INFO] Profiling running finished. All task success.
     ```
 
-6. 分别查看算子上板和仿真的性能数据，可将采集得到的visualize\_data.bin文件导入MindStudio Insight，具体导入操作请参考《MindStudio Insight用户指南》的“[导入性能数据](https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/user_guide/basic_operations.md#导入数据)”章节。<a id="导入数据"></a>
+6. 分别查看算子上板和仿真的性能数据，可将采集得到的visualize\_data.bin文件导入MindStudio Insight，具体导入操作请参考《MindStudio Insight用户指南》的“[导入性能数据](https://gitcode.com/Ascend/msinsight/blob/26.0.0/docs/zh/user_guide/basic_operations.md#导入数据)”章节。<a id="导入数据"></a>
 
     > [!NOTE] 说明
     > 
@@ -109,7 +110,7 @@ Kernel直调场景，详细信息可参考《Ascend C算子开发指南》中“
     msprof op execute_add_op
     ```
     
-4. 使用如下命令完成msopprof simulator性能数据、流水图和热点图数据的采集。参考<a href="https://gitcode.com/Ascend/msot/blob/master/docs/zh/quick_start/get_chip_soc_type.md" target="_blank">《芯片SoC类型获取方法》</a>获取芯片类型，作为如下参数 `--soc-version` 的值。
+4. 使用如下命令完成msopprof simulator性能数据、流水图和热点图数据的采集。参考<a href="https://gitcode.com/Ascend/msot/blob/26.0.0/docs/zh/quick_start/get_chip_soc_type.md" target="_blank">《芯片SoC类型获取方法》</a>获取芯片类型，作为如下参数 `--soc-version` 的值。
 
     ```shell
     msprof op simulator --soc-version=Ascendxxxyy execute_add_op
@@ -121,7 +122,7 @@ Kernel直调场景，详细信息可参考《Ascend C算子开发指南》中“
 
 通过PyTorch框架进行单算子调用的场景，详细信息可参考《Ascend Extension for PyTorch 套件与三方库支持清单》中“[昇腾自研插件](https://www.hiascend.com/document/detail/zh/Pytorch/720/modthirdparty/modparts/thirdpart_0009.html)”章节中OpPlugin插件。
 
-PyTorch框架算子调用场景下，进行性能数据采集的操作步骤与[采集triton算子场景](https://gitcode.com/Ascend/msopprof/blob/master/docs/zh/user_guide/msopprof_usage.md#采集triton算子的性能数据)基本一致。
+PyTorch框架算子调用场景下，进行性能数据采集的操作步骤与[采集triton算子场景](https://gitcode.com/Ascend/msopprof/blob/26.0.0/docs/zh/user_guide/msopprof_usage.md#采集triton算子的性能数据)基本一致。
 
 ## 采集triton算子的性能数据
 
@@ -170,11 +171,12 @@ PyTorch框架算子调用场景下，进行性能数据采集的操作步骤与[
     msprof op python3 test_add.py
     ```
 
-3. 使用如下命令完成msopprof simulator性能数据、流水图和热点图数据的采集。参考<a href="https://gitcode.com/Ascend/msot/blob/master/docs/zh/quick_start/get_chip_soc_type.md" target="_blank">《芯片SoC类型获取方法》</a>获取芯片类型，作为如下参数 `--soc-version` 的值。
+3. 使用如下命令完成msopprof simulator性能数据、流水图和热点图数据的采集。参考<a href="https://gitcode.com/Ascend/msot/blob/26.0.0/docs/zh/quick_start/get_chip_soc_type.md" target="_blank">《芯片SoC类型获取方法》</a>获取芯片类型，作为如下参数 `--soc-version` 的值。
 
     ```shell
     msprof op simulator --soc-version=Ascendxxxyy python3 test_add.py
     ```
+
     > [!NOTE] 说明
     > 
     > 该样例算子已经去除了其它非triton算子的冗余计算，仅保留一个需要采集仿真性能的triton算子add_kernel，可极大节约仿真运行的整体耗时。即使指定了--kernel-name的情况下，仿真器仍会按照算子顺序依次运行，因此建议仿真运行前减少非必要的算子。
@@ -197,7 +199,7 @@ PyTorch框架算子调用场景下，进行性能数据采集的操作步骤与[
 
 **操作步骤**
 
-1. 按照[catlass快速入门](https://gitcode.com/cann/catlass/blob/master/docs/1_Practice/01_quick_start.md)的示例，准备环境并编译算子上板可执行文件，以basic_matmul样例为例。
+1. 按照[catlass快速入门](https://gitcode.com/cann/catlass/blob/master/docs/zh/1_Practice/01_quick_start.md)的示例，准备环境并编译算子上板可执行文件，以basic_matmul样例为例。
 
     ```shell
     bash scripts/build.sh 00_basic_matmul
@@ -221,7 +223,7 @@ PyTorch框架算子调用场景下，进行性能数据采集的操作步骤与[
     export LD_PRELOAD=/usr/local/Ascend/ascend-toolkit/latest/tools/simulator/Ascendxxxyy/lib/libruntime_camodel.so:/usr/local/Ascend/ascend-toolkit/latest/tools/simulator/Ascendxxxyy/lib/libnpu_drv_camodel.so
     ```
 
-4. 使用如下命令完成msopprof simulator性能数据、流水图和热点图数据的采集。参考<a href="https://gitcode.com/Ascend/msot/blob/master/docs/zh/quick_start/get_chip_soc_type.md" target="_blank">《芯片SoC类型获取方法》</a>获取芯片类型，作为如下参数 `--soc-version` 的值。
+4. 使用如下命令完成msopprof simulator性能数据、流水图和热点图数据的采集。参考<a href="https://gitcode.com/Ascend/msot/blob/26.0.0/docs/zh/quick_start/get_chip_soc_type.md" target="_blank">《芯片SoC类型获取方法》</a>获取芯片类型，作为如下参数 `--soc-version` 的值。
 
     ```shell
     # 切换至编译产物目录
