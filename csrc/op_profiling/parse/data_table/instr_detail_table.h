@@ -33,17 +33,16 @@ public:
     // Column Index Start
     static constexpr uint32_t START_TICK = 0;
     static constexpr uint32_t END_TICK = 1;
-    static constexpr uint32_t THEO_STALL_CYC = 2;
-    static constexpr uint32_t REAL_STALL_CYC = 3;
-    static constexpr uint32_t END_OF_STRING_TYPE = 4; // string type end
-    static constexpr uint32_t GPR_COUNT = 5;
-    static constexpr uint32_t PROCESS_BYTES = 6;
-    static constexpr uint32_t UB_READ_CONFLICT = 7;
-    static constexpr uint32_t UB_WRITE_CONFLICT = 8;
-    static constexpr uint32_t END_OF_INT_TYPE = 9; // int type end
-    static constexpr uint32_t VEC_UTILIZATION = 10;
-    static constexpr uint32_t END_OF_FLOAT_TYPE = 11; // float type end
-    static constexpr uint32_t MERGE_INFO = 12;       // row
+    static constexpr uint32_t REAL_STALL_CYC = 2;
+    static constexpr uint32_t END_OF_STRING_TYPE = 3; // string type end
+    static constexpr uint32_t GPR_COUNT = 4;
+    static constexpr uint32_t PROCESS_BYTES = 5;
+    static constexpr uint32_t UB_READ_CONFLICT = 6;
+    static constexpr uint32_t UB_WRITE_CONFLICT = 7;
+    static constexpr uint32_t END_OF_INT_TYPE = 8; // int type end
+    static constexpr uint32_t VEC_UTILIZATION = 9;
+    static constexpr uint32_t END_OF_FLOAT_TYPE = 10; // float type end
+    static constexpr uint32_t MERGE_INFO = 11;       // row
     // Column Index End
     explicit InstrDetailTable(std::vector<MergeInfo>& data);
     ~InstrDetailTable() = default;

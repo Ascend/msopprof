@@ -63,7 +63,6 @@ enum class JsonType : uint16_t {
     PIPE,
     PC,
     DETAIL,
-    THEO_STALL_CYC,
     REAL_STALL_CYC,
     WARP_ID,
     SCH_ID,
@@ -101,7 +100,6 @@ const std::map<JsonType, std::string> JSON_KEY = {
     {JsonType::PIPE,                  "pipe"},
     {JsonType::PC,                    "pc"},
     {JsonType::DETAIL,                "detail"},
-    {JsonType::THEO_STALL_CYC,        "theoStallCyc"},
     {JsonType::REAL_STALL_CYC,        "realStallCyc"},
     {JsonType::WARP_ID,               "warpId"},
     {JsonType::SCH_ID,                "schId"}

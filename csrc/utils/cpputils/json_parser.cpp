@@ -116,7 +116,6 @@ const std::map<std::string, CfgDataType> ConfigKeyDataTypeMap = {
     {JSON_KEY.at(JsonType::PIPE),                              CfgDataType::STRING},
     {JSON_KEY.at(JsonType::PC),                                CfgDataType::STRING},
     {JSON_KEY.at(JsonType::DETAIL),                            CfgDataType::STRING},
-    {JSON_KEY.at(JsonType::THEO_STALL_CYC),                    CfgDataType::STRING},
     {JSON_KEY.at(JsonType::REAL_STALL_CYC),                    CfgDataType::INT},
     {JSON_KEY.at(JsonType::WARP_ID),                           CfgDataType::INT},
     {JSON_KEY.at(JsonType::SCH_ID),                            CfgDataType::INT}

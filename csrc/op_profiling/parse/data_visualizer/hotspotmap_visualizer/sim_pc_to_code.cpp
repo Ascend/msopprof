@@ -65,7 +65,6 @@ void SimPcToCode::InitNewInstrInfo(InstrInfo &instrInfo)
     instrInfo.ubWriteConflict.resize(cores_.size(), -1);
     instrInfo.cycles.resize(cores_.size(), 0);
     instrInfo.callCount.resize(cores_.size(), 0);
-    instrInfo.theoStallCyc.resize(cores_.size(), 0);
     instrInfo.realStallCyc.resize(cores_.size(), 0);
 }
 
@@ -95,7 +94,6 @@ void SimPcToCode::UpdatePCStat(const MergeInfo &selectedInstr, const std::string
         instrInfo.ubReadConflict[coreIndex] = selectedInstr.ubReadConflict;
         instrInfo.ubWriteConflict[coreIndex] = selectedInstr.ubWriteConflict;
         instrInfo.cycles[coreIndex] = cycleInfo.cycles;
-        instrInfo.theoStallCyc[coreIndex] = cycleInfo.theoStallCyc;
         instrInfo.realStallCyc[coreIndex] = cycleInfo.realStallCyc;
         instrInfo.callCount[coreIndex] = callCount;
         res = instrInfoMap_.Insert(std::make_pair(selectedInstr.pc, instrInfo));
@@ -110,7 +108,6 @@ void SimPcToCode::UpdatePCStat(const MergeInfo &selectedInstr, const std::string
         instrInfoMap_[selectedInstr.pc].ubReadConflict[coreIndex] = selectedInstr.ubReadConflict;
         instrInfoMap_[selectedInstr.pc].ubWriteConflict[coreIndex] = selectedInstr.ubWriteConflict;
         instrInfoMap_[selectedInstr.pc].cycles[coreIndex] = cycleInfo.cycles;
-        instrInfoMap_[selectedInstr.pc].theoStallCyc[coreIndex] = cycleInfo.theoStallCyc;
         instrInfoMap_[selectedInstr.pc].realStallCyc[coreIndex] = cycleInfo.realStallCyc;
         instrInfoMap_[selectedInstr.pc].callCount[coreIndex] = callCount;
     }
@@ -140,7 +137,6 @@ void SimPcToCode::CalCycles(const std::vector<MergeInfo> &instrList, Serializati
     for (auto &instr: instrList) {
         int temp = static_cast<int>(SafeSub(instr.endTick, instr.startTick, location, false));
         cycleInfo.cycles = SafeAdd(cycleInfo.cycles, temp, location);
-        cycleInfo.theoStallCyc = SafeAdd(cycleInfo.theoStallCyc, static_cast<int>(instr.theoStallCyc), location);
         cycleInfo.realStallCyc = SafeAdd(cycleInfo.realStallCyc, static_cast<int>(instr.realStallCyc), location);
     }
 }
@@ -168,9 +164,9 @@ void SimPcToCode::Statistic(const std::string &coreName, SimData &data)
         MergeInfo selectedInstr = instrList.second[0]; // get 1st instr in instrlist(contains all instrs of pc)
         UpdateInstrDetail(instrList.second, selectedInstr);
         int callCount = static_cast<int>(instrList.second.size());
-        CycleInfo cycleInfo = {0, 0, 0};
+        CycleInfo cycleInfo = {0, 0};
         CalCycles(instrList.second, cycleInfo);
-        if (cycleInfo.theoStallCyc > 0) {
+        if (cycleInfo.realStallCyc > 0) {
             hasStallCyc_ = true;
         }
         float runningTime = CalculateRunningTime(instrList.second, simConfig_.GetChipType());
