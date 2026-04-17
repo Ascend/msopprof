@@ -90,7 +90,6 @@ void PopLogParser::ParseA5Detail(PoppedInstrParseInfo &poppedInstr)
     }
     // 此通道已经存在则计算stall cyc
     size_t chnIdInt = poppedInstrListInfo_.simtChnIdMap[chnId];
-    poppedInstr.theoStallCyc = poppedInstrListInfo_.simtChnInfoGrp[chnIdInt].stallCyc;
     uint32_t curCyc = 0;
     uint32_t lastCyc = 0;
     if (poppedInstr.tick < poppedInstrListInfo_.simtChnInfoGrp[chnIdInt].tick) {
@@ -168,7 +167,6 @@ void PopLogParser::ParseLine(const std::string &line, MatchMode matchMode)
     poppedInstrParseInfo.detail = lineMatch[instrPoppedRuleNamePos_["detail"]].str();
     poppedInstrParseInfo.spStatus = {};
     poppedInstrParseInfo.gprCount = 0;
-    poppedInstrParseInfo.theoStallCyc = 0;
     poppedInstrParseInfo.realStallCyc = 0;
     poppedInstrParseInfo.warpId = DEFAULT_INT_VALUE;
     poppedInstrParseInfo.schId = DEFAULT_INT_VALUE;

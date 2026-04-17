@@ -103,12 +103,12 @@ string GOLDEN_REG_LOG_310P = "[info] tick: 0, write spr reg: SPR_PC, 8, value: 1
                              "[info] tick: 339, write spr reg: SPR_PC, 8, value: 10cfa004";
 
 std::vector<Serialization::Instr> INSTR_VEC_310P = {
-        // starts, end, pc, pipe, name, detail
-        {782,  788,  1, 20, 1, 1, 1., 0, 0, -1, -1, "0x10cfa000", "SCALAR", "scalar_mov_xd_imme16", "x[0]=0x0,imme16:0x1"},
-        {779,  1112, 1, 20, 1, 1, 1., 0, 0, -1, -1, "0x10cfa008", "SCALAR", "wait_event",           "pipe_type: L2,tigger_pipe: SCALAR,event_id: 0"},
-        {787,  1112, 1, 20, 1, 1, 1., 0, 0, -1, -1, "0x10cfa012", "MTE2",   "set_event",            "pipe_type: L2,tigger_pipe: SCALAR,event_id: 0"},
-        {1822, 1822, 1, 20, 1, 1, 1., 0, 0, -1, -1, "0x10cfa850", "VECTOR", "set_event",            "pipe_type: VECTOR, tigger_pipe: L3, event_id: 0"},
-        {1840, 1840, 1, 20, 1, 1, 1., 0, 0, -1, -1, "0x10cfa394", "MTE3",   "wait_event",           "pipe_type: VECTOR, tigger_pipe: L3, event_id: 0"},
+        // starts, end, gprCount, realStallCyc, processBytes, vecUtilization, ubReadConflict, ubWriteConflict, warpId, schId, pc, pipe, name, detail
+        {782,  788,  1, 20, 1, 1., 0, 0, -1, -1, "0x10cfa000", "SCALAR", "scalar_mov_xd_imme16", "x[0]=0x0,imme16:0x1"},
+        {779,  1112, 1, 20, 1, 1., 0, 0, -1, -1, "0x10cfa008", "SCALAR", "wait_event",           "pipe_type: L2,tigger_pipe: SCALAR,event_id: 0"},
+        {787,  1112, 1, 20, 1, 1., 0, 0, -1, -1, "0x10cfa012", "MTE2",   "set_event",            "pipe_type: L2,tigger_pipe: SCALAR,event_id: 0"},
+        {1822, 1822, 1, 20, 1, 1., 0, 0, -1, -1, "0x10cfa850", "VECTOR", "set_event",            "pipe_type: VECTOR, tigger_pipe: L3, event_id: 0"},
+        {1840, 1840, 1, 20, 1, 1., 0, 0, -1, -1, "0x10cfa394", "MTE3",   "wait_event",           "pipe_type: VECTOR, tigger_pipe: L3, event_id: 0"},
 };
 
 string GOLDEN_INSTR_LOG_310B =

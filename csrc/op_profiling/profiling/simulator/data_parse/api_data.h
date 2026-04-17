@@ -85,7 +85,6 @@ struct InstrInfo {
     std::vector<int> ubWriteConflict;
     std::vector<int> callCount;
     std::vector<int> cycles;
-    std::vector<int> theoStallCyc;
     std::vector<int> realStallCyc;
     void ToJson(nlohmann::json &instrDetails, bool hasStallCyc) const;
 };
@@ -118,7 +117,6 @@ struct InstructionsDtype {
     int vecUtilization = static_cast<int>(Utility::VisualizeBinDType::PERCENTAGE);
     int ubReadConflict = static_cast<int>(Utility::VisualizeBinDType::INT);
     int ubWriteConflict = static_cast<int>(Utility::VisualizeBinDType::INT);
-    int theoStallCyc = static_cast<int>(Utility::VisualizeBinDType::INT);
     int realStallCyc = static_cast<int>(Utility::VisualizeBinDType::INT);
 };
 

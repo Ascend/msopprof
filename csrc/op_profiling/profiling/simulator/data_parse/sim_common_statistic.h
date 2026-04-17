@@ -28,7 +28,6 @@ namespace Serialization {
 
 struct CycleInfo {
     int cycles;
-    int theoStallCyc;
     int realStallCyc;
 };
 
@@ -36,7 +35,6 @@ struct Instr {
     int starts;
     int end;
     int gprCount;
-    int theoStallCyc;
     int realStallCyc;
     int processBytes;
     float vecUtilization;

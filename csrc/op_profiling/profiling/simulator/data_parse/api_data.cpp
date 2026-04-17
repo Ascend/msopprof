@@ -110,7 +110,6 @@ void ApiData::InstrDtypeStats(nlohmann::json &apiJson, bool hasStallCyc)
     instrJson["UB Read Conflict"] = instructionsDtype.ubReadConflict;
     instrJson["UB Write Conflict"] = instructionsDtype.ubWriteConflict;
     if (hasStallCyc) {
-        instrJson["TheoreticalStallCycles"] = instructionsDtype.theoStallCyc;
         instrJson["RealStallCycles"] = instructionsDtype.realStallCyc;
     }
     nlohmann::json instrDTypeJson;
@@ -127,7 +126,6 @@ void InstrInfo::ToJson(nlohmann::json &instrDetails, bool hasStallCyc) const
     instrDetails["Instructions Executed"] = this->callCount;
     instrDetails["Cycles"] = this->cycles;
     if (hasStallCyc) {
-        instrDetails["TheoreticalStallCycles"] = this->theoStallCyc;
         instrDetails["RealStallCycles"] = this->realStallCyc;
     }
     instrDetails["GPR Count"] = this->gprCount;

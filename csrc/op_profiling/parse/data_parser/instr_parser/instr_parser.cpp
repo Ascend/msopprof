@@ -183,7 +183,6 @@ void InstrParser::InitMergeItem(const PoppedInstrParseInfo& instrPopped, const I
     mergeItem.detail = instrPopped.detail;
     mergeItem.spStatus = {}; // pre-design attribute, assign empty
     mergeItem.gprCount = instrPopped.gprCount;
-    mergeItem.theoStallCyc = instrPopped.theoStallCyc;
     mergeItem.realStallCyc = instrPopped.realStallCyc;
     mergeItem.warpId = instrPopped.warpId;
     mergeItem.schId = instrPopped.schId;

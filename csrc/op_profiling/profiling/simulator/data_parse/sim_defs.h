@@ -104,7 +104,6 @@ struct MergeInfo : InstrParseInfo {
     uint64_t startTick;
     uint64_t endTick;
     // simt struction
-    uint64_t theoStallCyc;
     uint64_t realStallCyc;
     int gprCount;
     int processBytes;
@@ -115,7 +114,6 @@ struct MergeInfo : InstrParseInfo {
 
 struct PoppedInstrParseInfo : InstrParseInfo {
     int gprCount = 0;
-    uint64_t theoStallCyc  = 0;
     uint64_t realStallCyc = 0;
     explicit PoppedInstrParseInfo(const InstrParseInfo &instrParseInfo) : InstrParseInfo(instrParseInfo), gprCount(0) {}
 
@@ -203,7 +201,6 @@ const std::string PROCESS_BYTES = "processBytes";
 const std::string VEC_UTILIZATION = "vecUtilization";
 const std::string UB_READ_CONFLICT = "ubReadConflict";
 const std::string UB_WRITE_CONFLICT = "ubWriteConflict";
-const std::string THEO_STALL_CYC = "theoStallCyc";
 const std::string REAL_STALL_CYC = "realStallCyc";
 const std::string WARP_ID = "warpId";
 const std::string SCH_ID = "schId";
