@@ -1,4 +1,4 @@
-# **MindStudio Ops Profiler 工具限制与注意事项**
+# MindStudio Ops Profiler 工具限制与注意事项
 
 - msOpProf工具的使用依赖CANN包中的msopprof可执行文件，该文件中的接口使用和msopprof一致，该文件为CANN包自带，无需单独安装。
 

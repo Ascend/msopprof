@@ -1,4 +1,4 @@
-# **msopprof使用场景**
+# msOpProf使用场景
 
 ## 采集Kernel直调方式Ascend C算子的性能数据
 

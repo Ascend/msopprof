@@ -1,4 +1,4 @@
-# **msopprof模式性能数据**
+# msopprof模式性能数据
 
 ## ArithmeticUtilization（Cube及Vector类型指令耗时和占比）
 
