@@ -1,4 +1,4 @@
-# **msopprof simulator模式用户指南**
+# msopprof simulator模式用户指南
 
 ## 简介
 
@@ -144,7 +144,7 @@ msprof op simulator --soc-version=Ascendxxxyy --output=/home/projects/output /ho
 </td>
 <td class="cellrowborder" valign="top" width="63.02630263026302%" headers="mcps1.2.4.1.2 "><p id="zh-cn_topic_0000002016036877_p146394291703">该参数适用于数据量大且计算重复的算子，完整运行该类算子将会耗时很长，部分流水图即可获取必要信息。可通过设置--timeout参数缩短算子运行时长并获取必要流水信息<span>。具体实现如下：</span></p>
 <ul id="zh-cn_topic_0000002016036877_ul12129256185219"><li>当仿真运行时间达到--timeout值时，<span>msOpProf</span>工具将会终止仿真进程并进入解析过程，只对已仿真的部分数据进行分析。同时，<span>msOpProf</span>工具将会展示以下打印信息：<pre class="code_wrap" codetype="ColdFusion" id="zh-cn_topic_0000002016036877_screen104875352479">[INFO]  The timeout has reached and the application will be forcibly killed.</pre>
-</li><li>若进程正常结束时未达到timeout值时，正常结束仿真程序并进入解析过程。</li></ul>
+</li><li>若进程正常结束时未达到timeout值，正常结束仿真程序并进入解析过程。</li></ul>
 <p id="zh-cn_topic_0000002016036877_p05905923811">参数取值范围为1~2880之间的整数，单位为分钟。具体示例如下：</p>
 <pre class="code_wrap" id="zh-cn_topic_0000002016036877_screen697132914484">msprof op simulator<strong id="zh-cn_topic_0000002016036877_b17229142131210"> </strong><span>--soc-version=Ascendxxxyy</span> --timeout=1 ./add_custom <span>/</span><span>/</span><strong id="zh-cn_topic_0000002016036877_b77321496128"><em id="zh-cn_topic_0000002016036877_i0732549181213"> </em></strong>xxxyy为用户实际使用的具体芯片类型</pre>
 </td>

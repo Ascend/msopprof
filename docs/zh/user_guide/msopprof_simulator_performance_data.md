@@ -1,4 +1,4 @@
-# **msopprof simulator模式性能数据**
+# msopprof simulator模式性能数据
 
 ## 代码行耗时数据文件
 
