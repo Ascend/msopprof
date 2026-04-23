@@ -29,6 +29,10 @@ int main(int argc, char *argv[], char *env[])
         return -1;
     }
     Common::RuntimeHelper::Init(args.runMode == "simulator"); // 初始化RuntimeHelper
+    if (args.printVersion) {
+        Interface::PrintVersion();
+        return 0;
+    }
     if (args.printHelp) {
         if (args.runMode == "device") {
             Interface::PrintDeviceHelp(Common::HalHelper::Instance().GetPlatformType());

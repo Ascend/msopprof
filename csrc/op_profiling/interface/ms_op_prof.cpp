@@ -21,6 +21,8 @@
 #include <csignal>
 #include <atomic>
 #include <memory>
+#include <iostream>
+#include <dlfcn.h>
 #include "common/defs.h"
 #include "common/prof_args.h"
 #include "common/hal_helper.h"
@@ -61,6 +63,7 @@ ArgParser BuildDeviceArgParser(ProfArgs &args)
 {
     ArgParser argParser("msopprof", "operator profiling tool");
     argParser.Add(Switch('h', "help", args.printHelp));
+    argParser.Add(Switch('v', "version", args.printVersion));
     argParser.Add(Option<std::string>('\0', "config", "ConfigPath", args.argConfig));
     argParser.Add(Option<std::string>('\0', "application", "CMD", args.argApplication));
     argParser.Add(Option<std::string>('\0', "output", "STRING", args.argOutput));
@@ -82,6 +85,7 @@ ArgParser BuildSimulatorArgParser(ProfArgs &args)
 {
     ArgParser argParser("msopprof", "operator profiling tool");
     argParser.Add(Switch('h', "help", args.printHelp));
+    argParser.Add(Switch('v', "version", args.printVersion));
     argParser.Add(Option<std::string>('\0', "config", "ConfigPath", args.argConfig));
     argParser.Add(Option<std::string>('\0', "application", "CMD", args.argApplication));
     argParser.Add(Option<std::string>('\0', "export", "STRING", args.argExport));
@@ -98,12 +102,55 @@ ArgParser BuildSimulatorArgParser(ProfArgs &args)
     return argParser;
 }
 
+std::string GetFuncInjectionRevision()
+{
+    std::string revision = "<unknown>";
+
+    char buf[PATH_MAX];
+    ssize_t len = readlink("/proc/self/exe", buf, sizeof(buf) - 1);
+    if (len <= 0) {
+        return revision;
+    }
+    buf[len] = 0;
+    std::string soPath = std::string(buf);
+    if (!Utility::RollbackPath(soPath, 2)) {
+        return revision;
+    }
+    soPath = Utility::JoinPath({soPath, "lib64/libmsopprof_injection.so"});
+    if (!CheckInputFileValid(soPath, "so")) {
+        return revision;
+    }
+    void *handle = dlopen(soPath.c_str(), RTLD_NOW | RTLD_GLOBAL);
+    if (handle == nullptr) {
+        return revision;
+    }
+    using FuncType = char const *(*)();
+    FuncType func = reinterpret_cast<FuncType>(dlsym(handle, "GetFuncInjectionRevision"));
+    if (func != nullptr) {
+        auto ret = func();
+        if (ret != nullptr) {
+            revision = ret;
+        }
+    }
+    dlclose(handle);
+    return revision;
+}
+
+void PrintVersion()
+{
+    std::cout
+        << "msopprof is part of MindStudio Operator-dev Tools." << std::endl
+        << "msopprof vesion is " <<  __PACKAGE_VERSION__ << "-" << __MSOPPROF_COMMIT_REVISION__ << std::endl
+        << "msopscommon version is " << GetFuncInjectionRevision() << std::endl;
+}
+
 void PrintDeviceHelp(ChipType chipType)
 {
     std::cout
         << "msopprof (MindStudio Profiler For Operator) is part of MindStudio Operator-dev Tools." << std::endl
         << "Used for Ascend C operator profiling by running on the board." << "\n" << std::endl
         << "Options:" << std::endl
+        << "   --version / -v                       <Optional> Version message." << std::endl
         << "   --help / -h                          <Optional> Help message." << std::endl
         << "   --config                             <Optional> Json file for op config path" << std::endl
         << "   --application                        <Optional> Executable file path" << std::endl
@@ -156,6 +203,7 @@ void PrintSimulatorHelp(void)
         << "msopprof (MindStudio Profiler For Operator) is part of MindStudio Operator-dev Tools." << std::endl
         << "Used for Ascend C operator profiling by running on the simulator." << "\n" << std::endl
         << "Options:" << std::endl
+        << "   --version / -v                     <Optional> Version message." << std::endl
         << "   --help / -h                        <Optional> Help message." << std::endl
         << "   --config                           <Optional> Json file for op config path" << std::endl
         << "   --application                      <Optional> Executable file path" << std::endl
@@ -262,7 +310,7 @@ bool ProfArgsInit(Common::ProfArgs &args, int argc, char *argv[], char *env[])
         return false;
     }
 
-    if (args.printHelp) {
+    if (args.printHelp || args.printVersion) {
         return true;
     }
 

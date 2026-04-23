@@ -117,6 +117,7 @@ private:
 
 struct ProfArgs {
     bool printHelp { false };
+    bool printVersion { false };
     std::string runMode { "device" };
     std::string argOutput {"./" };
     std::string argExport;

@@ -26,6 +26,8 @@ bool ProfArgsInit(Common::ProfArgs &args, int argc, char *argv[], char *env[]);
 
 void PrintDeviceHelp(Common::ChipType chipType);
 
+void PrintVersion();
+
 void PrintSimulatorHelp(void);
 
 bool ProfilingRun(const Common::ProfArgs &args);

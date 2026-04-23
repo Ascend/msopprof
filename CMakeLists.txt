@@ -31,6 +31,24 @@ get_filename_component(MSOPSCOMMON_DIR ${ROOT_DIR}/msopscommon/csrc ABSOLUTE)
 get_filename_component(MSOPT_THIRDPARTY_INCLUDE ${MSOPT_SRC_DIR}/include/thirdparty ABSOLUTE)
 get_filename_component(LLVM_SRC_DIR ${THIRD_PARTY_DIR}/llvm-project/llvm ABSOLUTE)
 
+# 设置工具提交 ID
+find_package(Git REQUIRED)
+execute_process(COMMAND "${GIT_EXECUTABLE}" rev-parse HEAD
+  OUTPUT_VARIABLE MSOPPROF_COMMIT_REVISION OUTPUT_STRIP_TRAILING_WHITESPACE)
+add_definitions(-D__MSOPPROF_COMMIT_REVISION__="${MSOPPROF_COMMIT_REVISION}")
+
+# 从version.info获取版本信息
+file(READ "${ROOT_DIR}/package/conf/version.info" FILE_CONTENT)
+if(FILE_CONTENT MATCHES "\\[PACKAGE\\]([^\\[]+)")
+    set(TMP_SECTION "${CMAKE_MATCH_1}")
+    if(TMP_SECTION MATCHES "Version=([^\\n]+)")
+        string(STRIP "${CMAKE_MATCH_1}" PACKAGE_VERSION)
+        message(STATUS "Version: ${PACKAGE_VERSION}")
+    endif()
+endif()
+
+add_definitions(-D__PACKAGE_VERSION__="${PACKAGE_VERSION}")
+
 # 检查是否可用 ccache
 find_program(CCACHE_PROGRAM ccache)
 if(CCACHE_PROGRAM)
