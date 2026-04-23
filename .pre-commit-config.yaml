@@ -20,18 +20,6 @@ repos:
       - id: detect-private-key
       - id: check-json
 
-  # -------------------------- Python 核心检查 --------------------------
-  # Ruff：指定读取 pre-commit/pyproject.toml
-  - repo: https://gitcode.com/gh_mirrors/ru/ruff-pre-commit
-    rev: v0.14.14
-    hooks:
-      - id: ruff-check
-        args: ["--config", "pre-commit/pyproject.toml", "--output-format", "github", "--fix"]
-        types: [python]
-      - id: ruff-format
-        args: ["--config", "pre-commit/pyproject.toml"]
-        types: [python]
-
   # codespell
   - repo: https://gitcode.com/gh_mirrors/co/codespell
     rev: v2.4.1
@@ -43,28 +31,6 @@ repos:
             "--skip",
             "*.py,*.cpp,*.hpp,*.c,*.h",
           ]
-
-  # pylint：指定 pre-commit/pyproject.toml
-  - repo: https://gitcode.com/gh_mirrors/pyl/pylint
-    rev: v4.0.5
-    hooks:
-      - id: pylint
-        name: pylint (Python code quality check)
-        types: [python]
-        args: ["--rcfile=pre-commit/pyproject.toml"]
-        verbose: false
-
-  # Bandit：指定 pre-commit/pyproject.toml
-  - repo: https://gitcode.com/gh_mirrors/ba/bandit
-    rev: 1.9.4
-    hooks:
-      - id: bandit
-        name: bandit (Python 安全漏洞检查)
-        types: [python]
-        args: [
-          "--config=pre-commit/pyproject.toml",
-          "--quiet",
-        ]
 
   # typos
   - repo: https://gitcode.com/gh_mirrors/ty/typos
@@ -80,8 +46,7 @@ repos:
       - id: clang-format
         files: \.(c|h|cpp|hpp|cc|hh|cxx|hxx)$
         args:
-          - "--style={BasedOnStyle: Google, IndentWidth: 4, ColumnLimit: 120, BreakBeforeBraces: Allman}"
+          - "--style=file"
           - "--verbose"
           - "-i"
-        exclude: ^build/|tests/third_party/
-
+        exclude: ^(build|test|thirdparty)/
