@@ -70,7 +70,7 @@ MY_OP_PKG=$(find ./build_out -maxdepth 1 -name "custom_opp_*.run" | head -1) && 
 
 ```shell
 cd ~/ot_demo/workspace/src/caller/build
-msprof op --output=./msprof_output_npu ./execute_add_op
+msopprof --output=./msopprof_output_npu ./execute_add_op
 ```
 
 ##### 2.3.2.2 仿真器性能采集   
@@ -78,8 +78,11 @@ msprof op --output=./msprof_output_npu ./execute_add_op
 参考<a href="https://gitcode.com/Ascend/msot/blob/master/docs/zh/quick_start/get_chip_soc_type.md" target="_blank">《芯片SoC类型获取方法》</a>获取芯片类型，作为如下参数 `--soc-version` 的值。   
 
 ```shell
-msprof op simulator --soc-version=Ascendxxxyy --output=./msprof_output_sim ./execute_add_op
+msopprof simulator --soc-version=Ascendxxxyy --output=./msopprof_output_sim ./execute_add_op
 ```
+
+>[!NOTE]说明   
+> 如果执行时报`msopprof: command not found`，说明环境版本较旧，尝试将命令`msopprof`替换为`msprof op`，例如：`msprof op --output=./msprof_output_npu ./execute_add_op`
 
 #### 2.3.3 查看性能数据结果
 
