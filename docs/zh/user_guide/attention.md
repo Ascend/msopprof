@@ -19,3 +19,5 @@
 - 不支持在同一个Device侧同时拉起多个性能采集任务。
 
 - 使用msopprof和msopprof simulator之前，用户需保证app功能正常。
+
+- 工具运行过程中涉及从LD_LIBRARY_PATH加载so，用户在使用前需要需要确保LD_LIBRARY_PATH环境变量内容安全可信，指向路径不涉及软链接，且权限及属主符合安全预期，无法被第三方篡改，否则有任意代码注入风险。
