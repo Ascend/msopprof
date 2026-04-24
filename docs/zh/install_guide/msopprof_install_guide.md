@@ -2,6 +2,11 @@
 
 <br>
 
+msOpProf工具的安装方式包括：
+
+- 二进制安装：msOpProf工具完整功能已集成在CANN包中发布，可直接安装CANN包，具体请参见[二进制安装](#1-二进制安装)。
+- 源码安装：如需使用最新代码的功能，或对源码进行修改以增强功能，可下载本仓库代码，自行编译、打包工具并完成安装，具体请参见[源码安装](#2-源码安装)。
+
 ## 1. 二进制安装
 
 MindStudio工具链是集成到CANN包中发布的，可通过以下方式完成安装：
@@ -32,7 +37,7 @@ MindStudio工具链是集成到CANN包中发布的，可通过以下方式完成
 python build.py
 ```
 
-### 2.3 安装与卸载
+### 2.3 安装
 
 #### 2.3.1 准备 run 包
 
@@ -58,13 +63,14 @@ mindstudio-opprof package install success!
 ```
 
 若系统中已安装该工具的旧版本，安装过程中会提示是否替换；输入 "y" 可执行覆盖安装。
->[!NOTE]安装路径说明   
+> [!NOTE]
+> 安装路径说明   
 > 若环境中已配置 `ASCEND_HOME_PATH` 环境变量，工具将安装至 `$ASCEND_HOME_PATH` 目录；
 > 否则，默认安装至 `$HOME/Ascend` 目录；  
 > 如需指定自定义安装路径，请使用 `--install-path` 选项，例如：
 > `./mindstudio-opprof_<version>_<arch>.run --install-path=./xxx --run`，即可将该运行包安装至 `xxx` 目录。
 
-### 2.3.3 安装后配置
+#### 2.3.3 安装后配置
  
 软件包安装成功后，需设置环境变量，确保算子功能可以正常运行。
  
@@ -74,7 +80,7 @@ export PATH=$ASCEND_HOME_PATH/bin:$PATH
 export LD_LIBRARY_PATH=$ASCEND_HOME_PATH/lib64:$LD_LIBRARY_PATH
 ```
 
-#### 2.3.4 卸载
+### 2.4 卸载
 
 可通过如下命令卸载：
 
@@ -88,7 +94,8 @@ export LD_LIBRARY_PATH=$ASCEND_HOME_PATH/lib64:$LD_LIBRARY_PATH
 mindstudio-opprof uninstall success!
 ```
 
->[!NOTE]卸载路径说明   
+> [!NOTE]
+> 卸载路径说明   
 > 默认将在 `$HOME/Ascend` 目录下卸载；若先前安装时通过 `--install-path` 指定了自定义路径，
 > 则卸载时也需显式添加 `--install-path` 选项，例如：
 > `./mindstudio-opprof_<version>_<arch>.run --install-path=./xxx --uninstall`。
@@ -99,14 +106,12 @@ mindstudio-opprof uninstall success!
 bash $HOME/Ascend/share/info/mindstudio-opprof/script/uninstall.sh  # 或bash ./xxx/share/info/mindstudio-opprof/script/uninstall.sh（指定路径安装场景）
 ```
 
-#### 2.3.4 升级
+### 2.5 升级
 
 升级操作本质上是卸载旧版本并安装新版本，与[2.3.2 安装](#232-安装)中所述的覆盖安装方式一致，请参见相关操作说明。
 
-> [!NOTE]  说明  
+> [!NOTE]    
 > 默认会升级到 `$HOME/Ascend` 目录下的mindstudio-opprof，如果老版本是通过指定路径安装，则需添加 `--install-path`，例如```./mindstudio-opprof_<version>_<arch>.run  --install-path=./xxx --run```，其中xxx是老版本的安装路径。
-
-## 升级
  
 如需使用构建产物run包替换运行环境原有已安装的mindstudio-opprof包，执行如下安装操作：
  
