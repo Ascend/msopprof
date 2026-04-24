@@ -226,7 +226,7 @@ msOpProf工具协助用户定位算子内存、算子代码以及算子指令的
 
 **msopprof simulator配置**<a id="simulator配置"></a>
 
-> [!NOTE] 说明   
+> [!NOTE]    
 > 
 > - msOpProf工具的仿真功能仅支持单卡场景，无法仿真多卡环境。
 > - 参考<a href="https://gitcode.com/Ascend/msot/blob/master/docs/zh/quick_start/get_chip_soc_type.md" target="_blank">《芯片SoC类型获取方法》</a>获取芯片类型，作为如下参数 `--soc-version` 的值。
@@ -241,7 +241,7 @@ msOpProf工具协助用户定位算子内存、算子代码以及算子指令的
 
 - 编译选项需添加-g，使能算子代码热点图和代码调用栈功能。
 
-    > [!NOTE] 说明
+    > [!NOTE]   
     > 
     > - 添加-g编译选项会在生成的二进制文件中附带调试信息，建议限制带有调试信息的用户程序的访问权限，确保只有授权人员可以访问该二进制文件。
     > - 若不使用llvm-symbolizer组件提供的相关功能，输入msOpProf的程序编译时不包含-g即可，msOpProf工具则不会调用llvm-symbolizer组件的相关功能。
@@ -254,7 +254,7 @@ msOpProf工具协助用户定位算子内存、算子代码以及算子指令的
 
     - 若参考完整样例，以[链接](https://gitee.com/ascend/samples/tree/master/operator/ascendc/0_introduction/3_add_kernellaunch/AddKernelInvocationNeo)为例，需在样例工程目录下的“cmake/npu\_lib.cmake”文件中新增以下代码。
 
-        >[!NOTE] 说明
+        >[!NOTE] 
         > 
         > - 此样例工程不支持<term>Atlas A3 训练系列产品</term>。
         > - 下载代码样例时，需执行以下命令指定分支版本。
@@ -288,13 +288,13 @@ msOpProf工具协助用户定位算子内存、算子代码以及算子指令的
         core_ostd_num           = 2             # 2 early end  1 normal mode
     ```
 
-- <term>Atlas 350 加速卡</term>使用msProf工具进行算子仿真调优时，需将config.json文件中的flush_level参数修改为info级，也就是将文件中的"flush_level": 3修改为"flush_level" : 2。config.json文件的路径为${INSTALL_DIR}/tools/simulator/Ascendxxxyy/lib/config.json。
+- Atlas 350 加速卡使用msProf工具进行算子仿真调优时，需将config.json文件中的flush_level参数修改为info级，也就是将文件中的"flush_level": 3修改为"flush_level" : 2。config.json文件的路径为${INSTALL_DIR}/tools/simulator/Ascendxxxyy/lib/config.json。
 
 **启动工具**
 
 请先完成msopprof simulator配置，然后根据以下操作步骤使能msOpProf工具的仿真调优功能。算子调优工具支持仿真环境下的性能数据采集和自动解析。
 
-> [!NOTE] 说明
+> [!NOTE] 
 > 
 > - 当前msOpProf不支持-O0编译选项。
 > - 仿真环境不支持采集MC2和HCCL类型的算子。
@@ -314,7 +314,7 @@ msOpProf工具协助用户定位算子内存、算子代码以及算子指令的
 1. 登录运行环境，需要使用msopprof simulator开启算子仿真调优，并配合使用仿真可选参数和用户待调优程序（app \[arguments\]）进行调优，仿真可选参数请参考[命令参考](#命令参考)。算子仿真调优可以通过以下两种方式执行：
     - 基于可执行文件
         - 单算子场景，以*test*为例
-            > [!NOTE] 说明   
+            > [!NOTE]    
             > 示例中的可执行文件名称`test`仅作为示例展示，实际名称请以当前工程中编译生成的可执行文件为准。
 
             ```shell
@@ -331,7 +331,7 @@ msOpProf工具协助用户定位算子内存、算子代码以及算子指令的
 
     - 基于输入算子二进制文件*.o的配置文件.json
 
-        > [!NOTE] 说明   
+        > [!NOTE]    
         > --config场景下，仅支持使用LD\_LIBRARY\_PATH导入环境变量，不支持使用--soc-version参数。
 
         ```shell
@@ -504,7 +504,7 @@ trace.json文件可分别通过Chrome浏览器和MindStudio Insight展示，visu
 - 在左侧界面，提供算子核函数各行代码对应的耗时、寄存器使用情况、Vector计算类指令在UB Bank上读和写的冲突情况、Vector计算单元利用率、与GM有关的数据搬运量及对应的指令数，帮助开发者快速定位瓶颈代码行。
 - 在右侧界面，提供具体的指令耗时、寄存器使用情况、与GM有关的数据搬运量、Vector计算类指令在UB Bank上读和写的冲突情况、Vector计算单元利用率、执行次数及与代码相关联，帮助开发者进一步分析代码耗时长的原因。
 
-> [!NOTE] 说明
+> [!NOTE] 
 > 
 > - 通用寄存器的最大数量为32，当寄存器的使用数量达到32时，仿真过程需等到使用中的寄存器释放后才能运行。
 > - 不支持使用TRACE\_START和TRACE\_STOP接口查看部分算子的寄存器使用情况。
@@ -514,7 +514,7 @@ trace.json文件可分别通过Chrome浏览器和MindStudio Insight展示，visu
 
     **表 1**  msopprof simulator热点图的功能介绍<a id="simulator热点图的功能介绍"></a>
 
-    |列名|<term>Atlas A2 训练系列产品/Atlas A2 推理系列产品</term>|<term>Atlas A3 训练系列产品/Atlas A3 推理系列产品</term>|<term>Atlas 推理系列产品</term>|<term>Atlas 350 加速卡</term>|说明|
+    |列名|<term>Atlas A2 训练系列产品/Atlas A2 推理系列产品</term>|<term>Atlas A3 训练系列产品/Atlas A3 推理系列产品</term>|<term>Atlas 推理系列产品</term>|Atlas 350 加速卡|说明|
     |------|-------|-------|-------|--------|--------|
     |源码|支持|支持|支持|支持|-|
     |指令PC地址|支持|支持|支持|支持|-|
@@ -550,6 +550,6 @@ trace.json文件可分别通过Chrome浏览器和MindStudio Insight展示，visu
 - 展示各种类型内存通路（当前仅展示GM\_TO\_L1、GM\_TO\_TOTAL、GM\_TO\_UB、L1\_TO\_GM、TOTAL\_TO\_GM、UB\_TO\_GM六个通路）的数据吞吐率（单位为MB/s）。例如，GM\_TO\_UB表示从GM搬运到UB的吞吐率，GM\_TO\_TOTAL表示从GM搬运到各内存单元的吞吐率。
 - 结合MTE相关指令，观察执行相关命令时的吞吐率，协助用户识别算子性能问题。
 
-    > [!NOTE] 说明 
+    > [!NOTE]    
     > - 吞吐率计算所采用的数据是某一个指令多次请求结束时的数据。
     > - 吞吐率波形图可能出现在某指令的起始时间和结束时间范围内（包含起始时间和结束时间）。例如，持续时间为1\~3微秒的指令，吞吐率数据可能分散在1\~2微秒、2\~3微秒及3\~4微秒三个柱状图内。
