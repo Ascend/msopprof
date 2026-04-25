@@ -56,6 +56,8 @@ private:
                         std::vector<MergeInfo> &mergeList);
     void InitMergeItem(const PoppedInstrParseInfo& instrPopped, const InstrParseInfo& instr,
                        MergeInfo& mergeItem) const;
+    void ParseThreadId(const std::string &instrDetail, std::string &mergeDetail) const;
+    std::regex maskPattern_ = std::regex(R"(\[prdctMask:([0-9a-zA-Z]{0,8})\],\[execMask:([0-9a-zA-Z]{0,8})\])");
 };
 }
 }

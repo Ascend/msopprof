@@ -15,8 +15,9 @@
  * ------------------------------------------------------------------------- */
 
 
-#include "instr_parser.h"
+#include <bitset>
 #include "parse/data_table/instr_detail_table.h"
+#include "instr_parser.h"
 using namespace Utility;
 
 namespace Profiling {
@@ -173,6 +174,27 @@ void InstrParser::MergeInstrById(const std::unordered_map<uint64_t, std::vector<
     });
 }
 
+void InstrParser::ParseThreadId(const std::string &instrDetail, std::string &mergeDetail) const
+{
+    ChipProductType chiptTypeProduces = dataParserConfig_.GetProductSeriesType();
+    if (chiptTypeProduces != ChipProductType::ASCEND950_SERIES) {
+       return;
+    }
+    std::smatch lineMatch;
+    bool res = regex_search(instrDetail, lineMatch, maskPattern_);
+    if (!res) {
+        return;
+    }
+    uint32_t prdctMask;
+    uint32_t execMask;
+    std::istringstream iss1(lineMatch[1].str());
+    std::istringstream iss2(lineMatch[2].str());
+    if ((iss1 >> std::hex >> prdctMask) && (iss2 >> std::hex >> execMask)) {
+        uint32_t threadId = std::bitset<32>(prdctMask & execMask).count();
+        mergeDetail += ", [threadNum:" + std::to_string(threadId) + "]";
+    }
+}
+
 void InstrParser::InitMergeItem(const PoppedInstrParseInfo& instrPopped, const InstrParseInfo& instr,
                                 MergeInfo& mergeItem) const
 {
@@ -190,6 +212,7 @@ void InstrParser::InitMergeItem(const PoppedInstrParseInfo& instrPopped, const I
     mergeItem.vecUtilization = -1;
     mergeItem.ubReadConflict = -1;
     mergeItem.ubWriteConflict = -1;
+    ParseThreadId(instr.detail, mergeItem.detail);
 }
 
 size_t InstrParser::GetPruneSize(std::vector<PoppedInstrParseInfo> &instrPoppedVec,

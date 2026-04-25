@@ -102,6 +102,22 @@ TEST(AllPraseProcess, test_AllPraseProcess_should_return_ture_when_parse_ok) {
     GlobalMockObject::verify();
 }
 
+/**
+ * |  用例集 | InstrParser
+ * | 测试函数 | ParseThreadId
+ * |  用例名  | test_ParseThreadId_should_parse_ok
+ * | 用例描述 | 检查解析ParseThreadId值的功能是否正确
+ */
+TEST(InstrParser, test_ParseThreadId_should_parse_ok) {
+    DataCenter dataCenter;
+    SimDataParserConfig config = GetSimConfig(ChipProductType::ASCEND950DT_950Y, true);
+    InstrParser instrParse {dataCenter, config};
+    MergeInfo s {};
+    std::string detail = "[PEX:7|P],[Rn:5|R],[Rd:5|R],[#imm32:1],[waitBitMask:0],[stallCyc:4],[yeild:0],[inv:0],[warpId:59],[bundleId:14],[schId:3],[prdctMask:ffffffff],[execMask:ffffffff],[exec_time:8]";
+    instrParse.ParseThreadId(detail, s.detail);
+    ASSERT_TRUE(s.detail.find("[threadNum:32") != std::string::npos);
+}
+
 
 /**
  * |  用例集 | AllPraseProcess
