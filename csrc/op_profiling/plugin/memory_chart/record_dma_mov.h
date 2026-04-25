@@ -25,7 +25,7 @@
 namespace Common {
 
 template<MemType srcMemType, MemType dstMemType>
-__aicore__ inline void RecordDmaMovEvent(RecordFixParams &&fixParams,
+AICORE_FUNC_HEAD void RecordDmaMovEvent(RecordFixParams &&fixParams,
                                          uint64_t config, PadMode padMode, ByteMode byteMode)
 {
     uint64_t block;
@@ -50,7 +50,7 @@ __aicore__ inline void RecordDmaMovEvent(RecordFixParams &&fixParams,
 }
 
 template<MemType srcMemType, MemType dstMemType, DataType dataType>
-__aicore__ inline void RecordDmaMovNd2nzEvent(RecordFixParams &&fixParams, uint64_t xm, uint64_t xt)
+AICORE_FUNC_HEAD void RecordDmaMovNd2nzEvent(RecordFixParams &&fixParams, uint64_t xm, uint64_t xt)
 {
     uint64_t block;
     if (!RecordPreCheck<DmaMovNd2nzRecord>(fixParams.memInfo, block)) {
@@ -76,7 +76,7 @@ __aicore__ inline void RecordDmaMovNd2nzEvent(RecordFixParams &&fixParams, uint6
     DumpRecord<DmaMovNd2nzRecord, RecordType::DMA_MOV_ND2NZ>(fixParams.memInfo, record);
 }
 
-__aicore__ inline void SetMte2NzPara(EXTRA_PARAMS_DEC, uint64_t config)
+AICORE_FUNC_HEAD void SetMte2NzPara(EXTRA_PARAMS_DEC, uint64_t config)
 {
     uint64_t block;
     if (!RecordPreCheck<DmaMovNd2nzDavRecord>(memInfo, block)) {
@@ -89,7 +89,7 @@ __aicore__ inline void SetMte2NzPara(EXTRA_PARAMS_DEC, uint64_t config)
     Flush(memInfo);
 }
 
-__aicore__ inline uint64_t GetMte2NzPara(__gm__ const uint8_t *memInfo, uint64_t block)
+AICORE_FUNC_HEAD uint64_t GetMte2NzPara(__gm__ const uint8_t *memInfo, uint64_t block)
 {
     uint64_t offset = BLOCK_MEM_SIZE * static_cast<uint64_t>(block);
     auto header = reinterpret_cast<__gm__ const BlockHeader*>(memInfo + offset);
@@ -97,7 +97,7 @@ __aicore__ inline uint64_t GetMte2NzPara(__gm__ const uint8_t *memInfo, uint64_t
 }
 
 template<MemType srcMemType, MemType dstMemType, DataType dataType, uint8_t recordId>
-__aicore__ inline void RecordDmaMovNdOrDn2nzDavEvent(RecordFixParams &&fixParams, uint64_t xm, uint64_t xt)
+AICORE_FUNC_HEAD void RecordDmaMovNdOrDn2nzDavEvent(RecordFixParams &&fixParams, uint64_t xm, uint64_t xt)
 {
     uint64_t block;
     if (!RecordPreCheck<DmaMovNd2nzDavRecord>(fixParams.memInfo, block)) {
@@ -128,7 +128,7 @@ __aicore__ inline void RecordDmaMovNdOrDn2nzDavEvent(RecordFixParams &&fixParams
 }
 
 template<MemType srcMemType, MemType dstMemType, DataType dataType>
-__aicore__ inline void RecordMovEvent(RecordFixParams &&fixParams, uint64_t config)
+AICORE_FUNC_HEAD void RecordMovEvent(RecordFixParams &&fixParams, uint64_t config)
 {
     uint64_t block;
     if (!RecordPreCheck<MovRecord>(fixParams.memInfo, block)) {
@@ -153,7 +153,7 @@ __aicore__ inline void RecordMovEvent(RecordFixParams &&fixParams, uint64_t conf
 }
 
 template<MemType srcMemType, MemType dstMemType, DataType dataType>
-__aicore__ inline void RecordMovV2Event(RecordFixParams &&fixParams, uint64_t config0, uint64_t config1)
+AICORE_FUNC_HEAD void RecordMovV2Event(RecordFixParams &&fixParams, uint64_t config0, uint64_t config1)
 {
     uint64_t block;
     if (!RecordPreCheck<MovV2Record>(fixParams.memInfo, block)) {
@@ -178,7 +178,7 @@ __aicore__ inline void RecordMovV2Event(RecordFixParams &&fixParams, uint64_t co
     DumpRecord<MovV2Record, RecordType::MOV_V2_A5>(fixParams.memInfo, record);
 }
 
-__aicore__ inline void SetPadCntNddma(EXTRA_PARAMS_DEC, uint64_t config)
+AICORE_FUNC_HEAD void SetPadCntNddma(EXTRA_PARAMS_DEC, uint64_t config)
 {
     uint64_t block;
     if (!RecordPreCheck<NdDMAOut2UbRecord>(memInfo, block)) {
@@ -191,14 +191,14 @@ __aicore__ inline void SetPadCntNddma(EXTRA_PARAMS_DEC, uint64_t config)
     Flush(memInfo);
 }
 
-__aicore__ inline uint64_t GetPadCntNddma(__gm__ const uint8_t *memInfo, uint64_t block)
+AICORE_FUNC_HEAD uint64_t GetPadCntNddma(__gm__ const uint8_t *memInfo, uint64_t block)
 {
     uint64_t offset = BLOCK_MEM_SIZE * static_cast<uint64_t>(block);
     auto header = reinterpret_cast<__gm__ const BlockHeader*>(memInfo + offset);
     return header->padCntNdDma;
 }
 
-__aicore__ inline void SetLoop0StrideNddma(EXTRA_PARAMS_DEC, uint64_t config)
+AICORE_FUNC_HEAD void SetLoop0StrideNddma(EXTRA_PARAMS_DEC, uint64_t config)
 {
     uint64_t block;
     if (!RecordPreCheck<NdDMAOut2UbRecord>(memInfo, block)) {
@@ -211,14 +211,14 @@ __aicore__ inline void SetLoop0StrideNddma(EXTRA_PARAMS_DEC, uint64_t config)
     Flush(memInfo);
 }
 
-__aicore__ inline uint64_t GetLoop0StrideNddma(__gm__ const uint8_t *memInfo, uint64_t block)
+AICORE_FUNC_HEAD uint64_t GetLoop0StrideNddma(__gm__ const uint8_t *memInfo, uint64_t block)
 {
     uint64_t offset = BLOCK_MEM_SIZE * static_cast<uint64_t>(block);
     auto header = reinterpret_cast<__gm__ const BlockHeader*>(memInfo + offset);
     return header->loop0StrideNdDma;
 }
 
-__aicore__ inline void SetLoop1StrideNddma(EXTRA_PARAMS_DEC, uint64_t config)
+AICORE_FUNC_HEAD void SetLoop1StrideNddma(EXTRA_PARAMS_DEC, uint64_t config)
 {
     uint64_t block;
     if (!RecordPreCheck<NdDMAOut2UbRecord>(memInfo, block)) {
@@ -231,13 +231,13 @@ __aicore__ inline void SetLoop1StrideNddma(EXTRA_PARAMS_DEC, uint64_t config)
     Flush(memInfo);
 }
 
-__aicore__ inline uint64_t GetLoop1StrideNddma(__gm__ const uint8_t *memInfo, uint64_t block)
+AICORE_FUNC_HEAD uint64_t GetLoop1StrideNddma(__gm__ const uint8_t *memInfo, uint64_t block)
 {
     uint64_t offset = BLOCK_MEM_SIZE * static_cast<uint64_t>(block);
     auto header = reinterpret_cast<__gm__ const BlockHeader*>(memInfo + offset);
     return header->loop1StrideNdDma;
 }
-__aicore__ inline void SetLoop2StrideNddma(EXTRA_PARAMS_DEC, uint64_t config)
+AICORE_FUNC_HEAD void SetLoop2StrideNddma(EXTRA_PARAMS_DEC, uint64_t config)
 {
     uint64_t block;
     if (!RecordPreCheck<NdDMAOut2UbRecord>(memInfo, block)) {
@@ -250,13 +250,13 @@ __aicore__ inline void SetLoop2StrideNddma(EXTRA_PARAMS_DEC, uint64_t config)
     Flush(memInfo);
 }
 
-__aicore__ inline uint64_t GetLoop2StrideNddma(__gm__ const uint8_t *memInfo, uint64_t block)
+AICORE_FUNC_HEAD uint64_t GetLoop2StrideNddma(__gm__ const uint8_t *memInfo, uint64_t block)
 {
     uint64_t offset = BLOCK_MEM_SIZE * static_cast<uint64_t>(block);
     auto header = reinterpret_cast<__gm__ const BlockHeader*>(memInfo + offset);
     return header->loop2StrideNdDma;
 }
-__aicore__ inline void SetLoop3StrideNddma(EXTRA_PARAMS_DEC, uint64_t config)
+AICORE_FUNC_HEAD void SetLoop3StrideNddma(EXTRA_PARAMS_DEC, uint64_t config)
 {
     uint64_t block;
     if (!RecordPreCheck<NdDMAOut2UbRecord>(memInfo, block)) {
@@ -269,13 +269,13 @@ __aicore__ inline void SetLoop3StrideNddma(EXTRA_PARAMS_DEC, uint64_t config)
     Flush(memInfo);
 }
 
-__aicore__ inline uint64_t GetLoop3StrideNddma(__gm__ const uint8_t *memInfo, uint64_t block)
+AICORE_FUNC_HEAD uint64_t GetLoop3StrideNddma(__gm__ const uint8_t *memInfo, uint64_t block)
 {
     uint64_t offset = BLOCK_MEM_SIZE * static_cast<uint64_t>(block);
     auto header = reinterpret_cast<__gm__ const BlockHeader*>(memInfo + offset);
     return header->loop3StrideNdDma;
 }
-__aicore__ inline void SetLoop4StrideNddma(EXTRA_PARAMS_DEC, uint64_t config)
+AICORE_FUNC_HEAD void SetLoop4StrideNddma(EXTRA_PARAMS_DEC, uint64_t config)
 {
     uint64_t block;
     if (!RecordPreCheck<NdDMAOut2UbRecord>(memInfo, block)) {
@@ -288,7 +288,7 @@ __aicore__ inline void SetLoop4StrideNddma(EXTRA_PARAMS_DEC, uint64_t config)
     Flush(memInfo);
 }
 
-__aicore__ inline uint64_t GetLoop4StrideNddma(__gm__ const uint8_t *memInfo, uint64_t block)
+AICORE_FUNC_HEAD uint64_t GetLoop4StrideNddma(__gm__ const uint8_t *memInfo, uint64_t block)
 {
     uint64_t offset = BLOCK_MEM_SIZE * static_cast<uint64_t>(block);
     auto header = reinterpret_cast<__gm__ const BlockHeader*>(memInfo + offset);
@@ -296,7 +296,7 @@ __aicore__ inline uint64_t GetLoop4StrideNddma(__gm__ const uint8_t *memInfo, ui
 }
 
 template<DataType dataType>
-__aicore__ inline void RecordNdDMAOut2Ub(RecordFixParams &&fixParams, uint64_t config0, uint64_t config1)
+AICORE_FUNC_HEAD void RecordNdDMAOut2Ub(RecordFixParams &&fixParams, uint64_t config0, uint64_t config1)
 {
     uint64_t block;
     if (!RecordPreCheck<NdDMAOut2UbRecord>(fixParams.memInfo, block)) {

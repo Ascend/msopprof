@@ -32,7 +32,7 @@ struct RecordFixParams {
 
 // 要写入gm的结构体保证4/8字节对齐，写入单字节数据大概率导致所有数据丢失
 template <typename Record>
-__aicore__ inline void WriteData(__gm__ uint8_t *memInfo, const Record &record)
+AICORE_FUNC_HEAD void WriteData(__gm__ uint8_t *memInfo, const Record &record)
 {
     static_assert(sizeof(record) % 4 == 0, "record type write into GM must 4/8B aligned");
     constexpr uint32_t step = sizeof(Record) / sizeof(uint32_t);
@@ -46,7 +46,7 @@ __aicore__ inline void WriteData(__gm__ uint8_t *memInfo, const Record &record)
 }
 
 template<typename Record>
-__aicore__ inline bool RecordPreCheck(__gm__ uint8_t *memInfo, uint64_t &blockIdx)
+AICORE_FUNC_HEAD bool RecordPreCheck(__gm__ uint8_t *memInfo, uint64_t &blockIdx)
 {
     if (!CheckMemInfo(memInfo) || !TryGetBlockIdx(blockIdx)) {
         return false;
@@ -73,7 +73,7 @@ __aicore__ inline bool RecordPreCheck(__gm__ uint8_t *memInfo, uint64_t &blockId
 }
 
 template<typename Record, RecordType recordType>
-__aicore__ inline void DumpRecord(__gm__ uint8_t *memInfo, const Record &record)
+AICORE_FUNC_HEAD void DumpRecord(__gm__ uint8_t *memInfo, const Record &record)
 {
     uint64_t offset = BLOCK_MEM_SIZE * static_cast<uint64_t>(record.coreID);
     auto header = reinterpret_cast<__gm__ BlockHeader*>(memInfo + offset);

@@ -31,17 +31,19 @@
 #define MSOPPROF_REPORT_AICORE(func, ...) \
     extern __attribute__((noinline)) __attribute__((weak)) __simt_callee__ __aicore__ void \
     MACRO_CONCAT(INSTR_STUB_PREFIX, func)(EXTRA_PARAMS_DEC, ## __VA_ARGS__)
+    #define AICORE_FUNC_HEAD __simt_callee__ __aicore__ inline
 #else
 #define MSOPPROF_REPORT_AICORE(func, ...) \
     extern __attribute__((noinline)) __attribute__((weak)) __aicore__ void \
     MACRO_CONCAT(INSTR_STUB_PREFIX, func)(EXTRA_PARAMS_DEC, ## __VA_ARGS__)
+    #define AICORE_FUNC_HEAD __aicore__ inline
 #endif
 #define MSOPPROF_REPORT MSOPPROF_REPORT_AICORE
 
 
 // transform config[leftBit, rightBit] into an unsigned integer
 template<uint8_t leftBit, uint8_t rightBit, typename confT>
-__aicore__ inline uint64_t GetUintFromConf(confT config)
+AICORE_FUNC_HEAD uint64_t GetUintFromConf(confT config)
 {
     constexpr uint8_t bitsPerByte= 8U;
     constexpr uint8_t maxBit = sizeof(config) * bitsPerByte - 1;
@@ -51,16 +53,89 @@ __aicore__ inline uint64_t GetUintFromConf(confT config)
     return (config >> rightBit) & (mask >> (63 - leftBit + rightBit));
 }
 
+AICORE_FUNC_HEAD uint64_t GetBlockIdx()
+{
+#if defined(__CCE_IS_AICORE__) && __CCE_IS_AICORE__ == 1 // AICORE
+
+#if (defined(__DAV_C220__) || defined(__DAV_C220_VEC__) || defined(__DAV_C220_CUBE__))
+    return get_block_idx() * get_subblockdim() + get_subblockid();
+#elif defined(__NPU_ARCH__) && (__NPU_ARCH__ == 3101 || __NPU_ARCH__ == 3510)
+    #if defined(__DAV_VEC__) && defined(SIMT_MODE) // c310-simt
+        return bisheng::cce::simt::get_block_idx();
+    #else
+        using namespace __cce_scalar;
+        int64_t coreId = get_coreid();
+        if ((coreId >= C310_A5_DEVICE_VEC_PHYS_SMALL_BOUND_CORE_START_IDS &&
+            coreId <= C310_A5_DEVICE_VEC_PHYS_SMALL_BOUND_CORE_END_IDS) ||
+            coreId >= C310_A5_DEVICE_VEC_PHYS_GREAT_BOUND_CORE_START_IDS) {    // c310-vec
+            return get_block_idx() * get_subblockdim() + get_subblockid();
+        } else {                                                               // c310-cube
+            return get_block_idx();
+        }
+    #endif
+#else // NOT C220 C310
+    return get_block_idx();
+#endif // __DAV
+#else // NOT AICORE
+    return 0;
+#endif
+}
+AICORE_FUNC_HEAD __attribute__((always_inline)) uint16_t GetThreadIdX()
+{
+#if defined(__CCE_IS_AICORE__) && __CCE_IS_AICORE__ == 1
+    #if defined(__NPU_ARCH__) && (__NPU_ARCH__ == 3101 || __NPU_ARCH__ == 3510) && defined(__DAV_VEC__)
+    return __cce_simt_get_TID_X();
+#endif // AICORE
+#endif // SIMT_MODE
+    return 0;
+}
+
+AICORE_FUNC_HEAD __attribute__((always_inline)) uint16_t GetThreadIdY()
+{
+#if defined(__CCE_IS_AICORE__) && __CCE_IS_AICORE__ == 1
+    #if defined(__NPU_ARCH__) && (__NPU_ARCH__ == 3101 || __NPU_ARCH__ == 3510) && defined(__DAV_VEC__)
+    return __cce_simt_get_TID_Y();
+#endif // AICORE
+#endif // SIMT_MODE
+    return 0;
+}
+
+AICORE_FUNC_HEAD __attribute__((always_inline)) uint16_t GetThreadIdZ()
+{
+#if defined(__CCE_IS_AICORE__) && __CCE_IS_AICORE__ == 1
+    #if defined(__NPU_ARCH__) && (__NPU_ARCH__ == 3101 || __NPU_ARCH__ == 3510) && defined(__DAV_VEC__)
+    return __cce_simt_get_TID_Z();
+#endif // AICORE
+#endif // SIMT_MODE
+    return 0;
+}
+
+/// x/y/z一维展开，从0开始计数
+AICORE_FUNC_HEAD __attribute__((always_inline)) uint16_t GetThreadId()
+{
+#if defined(__CCE_IS_AICORE__) && __CCE_IS_AICORE__ == 1
+    #if defined(__NPU_ARCH__) && (__NPU_ARCH__ == 3101 || __NPU_ARCH__ == 3510) && defined(__DAV_VEC__)
+    int32_t blockDimX = __cce_simt_get_BLOCK_DIM_X();
+    int32_t blockDimY = __cce_simt_get_BLOCK_DIM_Y();
+    int32_t threadIdX = GetThreadIdX();
+    int32_t threadIdY = GetThreadIdY();
+    int32_t threadIdZ = GetThreadIdZ();
+    return threadIdX + blockDimX * threadIdY + blockDimX * blockDimY * threadIdZ;
+#endif // AICORE
+#endif // SIMT_MODE
+    return 0;
+}
+
 // get a single bit
 template<uint8_t leftBit, typename confT>
-__aicore__ inline uint64_t GetUintFromConf(confT config)
+AICORE_FUNC_HEAD uint64_t GetUintFromConf(confT config)
 {
     return GetUintFromConf<leftBit, leftBit>(config);
 }
 
 // config[leftBit, rightBit] = val
 template<uint8_t leftBit, uint8_t rightBit, typename confT, typename uintT>
-__aicore__ inline void SetConfByUint(confT &config, uintT val)
+AICORE_FUNC_HEAD void SetConfByUint(confT &config, uintT val)
 {
     constexpr uint8_t bitsPerByte = 8U;
     constexpr uint8_t maxBit = sizeof(config) * bitsPerByte - 1;
@@ -76,7 +151,7 @@ __aicore__ inline void SetConfByUint(confT &config, uintT val)
     config |= mask;
 }
 
-__aicore__ inline uint64_t GetDataBits(OperandType type)
+AICORE_FUNC_HEAD uint64_t GetDataBits(OperandType type)
 {
     switch (type) {
         case OperandType::DATA_B4:
@@ -121,7 +196,7 @@ __aicore__ inline uint64_t GetDataBits(OperandType type)
     }
 }
 
-__aicore__ inline uint16_t CeilToFractal(uint16_t realSize, uint16_t fractalSize)
+AICORE_FUNC_HEAD uint16_t CeilToFractal(uint16_t realSize, uint16_t fractalSize)
 {
     if (fractalSize == 0) {
         return fractalSize;
@@ -129,12 +204,12 @@ __aicore__ inline uint16_t CeilToFractal(uint16_t realSize, uint16_t fractalSize
     return (realSize + fractalSize - 1) / fractalSize;
 }
 
-__aicore__ inline bool CheckMemInfo(__gm__ uint8_t *memInfo)
+AICORE_FUNC_HEAD bool CheckMemInfo(__gm__ uint8_t *memInfo)
 {
     return (memInfo != nullptr);
 }
 
-__aicore__ inline bool TryGetBlockIdx(uint64_t &blockIdx)
+AICORE_FUNC_HEAD bool TryGetBlockIdx(uint64_t &blockIdx)
 {
     uint64_t block = GetBlockIdx();
     int64_t coreId{};
@@ -169,7 +244,7 @@ __aicore__ inline bool TryGetBlockIdx(uint64_t &blockIdx)
     return true;
 }
 
-__aicore__ inline bool TryGetThreadId(uint64_t &threadId)
+AICORE_FUNC_HEAD bool TryGetThreadId(uint64_t &threadId)
 {
     uint64_t thread = GetThreadId();
     if (thread >= MAX_THREAD_NUM) {
@@ -178,13 +253,14 @@ __aicore__ inline bool TryGetThreadId(uint64_t &threadId)
     threadId = thread;
     return true;
 }
-__aicore__ inline void Flush(__gm__ uint8_t *gm)
+AICORE_FUNC_HEAD void Flush(__gm__ uint8_t *gm)
 {
 #if defined(__CCE_IS_AICORE__) && __CCE_IS_AICORE__ == 1
+    using namespace __cce_scalar;
 #if defined(__NPU_ARCH__) && (__NPU_ARCH__ == 3101 || __NPU_ARCH__ == 3510)
-        dcci((__gm__ uint64_t*)gm, ENTIRE_DATA_CACHE, CACHELINE_ALL);
+    dcci((__gm__ uint64_t*)gm, ENTIRE_DATA_CACHE, CACHELINE_ALL);
 #else
-        dcci(gm, ENTIRE_DATA_CACHE);
+    dcci(gm, ENTIRE_DATA_CACHE);
 #endif
 #endif
 }

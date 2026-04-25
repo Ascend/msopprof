@@ -94,6 +94,10 @@ struct Half {
 #define half struct Half
 #endif  // half
 
+#ifndef __simt_callee__
+#define __simt_callee__
+#endif // __simt_callee__
+
 #endif
 
 #endif  // CCEC_DEFINES_H
