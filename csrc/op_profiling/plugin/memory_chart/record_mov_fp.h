@@ -24,7 +24,7 @@
 
 namespace Common {
 
-__aicore__ inline void SetNdPara(EXTRA_PARAMS_DEC, uint64_t config)
+AICORE_FUNC_HEAD void SetNdPara(EXTRA_PARAMS_DEC, uint64_t config)
 {
     uint64_t block;
     if (!RecordPreCheck<MovFpRecord>(memInfo, block)) {
@@ -37,14 +37,14 @@ __aicore__ inline void SetNdPara(EXTRA_PARAMS_DEC, uint64_t config)
     Flush(memInfo);
 }
 
-__aicore__ inline uint64_t GetNdPara(__gm__ const uint8_t *memInfo, uint64_t block)
+AICORE_FUNC_HEAD uint64_t GetNdPara(__gm__ const uint8_t *memInfo, uint64_t block)
 {
     uint64_t offset = BLOCK_MEM_SIZE * static_cast<uint64_t>(block);
     auto header = reinterpret_cast<__gm__ const BlockHeader*>(memInfo + offset);
     return header->ndPara;
 }
 
-__aicore__ inline void SetLoop3Para(EXTRA_PARAMS_DEC, uint64_t config)
+AICORE_FUNC_HEAD void SetLoop3Para(EXTRA_PARAMS_DEC, uint64_t config)
 {
     uint64_t block;
     if (!RecordPreCheck<FixL0CGMRecord>(memInfo, block)) {
@@ -57,14 +57,14 @@ __aicore__ inline void SetLoop3Para(EXTRA_PARAMS_DEC, uint64_t config)
     Flush(memInfo);
 }
 
-__aicore__ inline uint64_t GetLoop3Para(__gm__ const uint8_t *memInfo, uint64_t block)
+AICORE_FUNC_HEAD uint64_t GetLoop3Para(__gm__ const uint8_t *memInfo, uint64_t block)
 {
     uint64_t offset = BLOCK_MEM_SIZE * static_cast<uint64_t>(block);
     auto header = reinterpret_cast<__gm__ const BlockHeader*>(memInfo + offset);
     return header->loop3Para;
 }
 
-__aicore__ inline void SetChannelPara(EXTRA_PARAMS_DEC, uint64_t config)
+AICORE_FUNC_HEAD void SetChannelPara(EXTRA_PARAMS_DEC, uint64_t config)
 {
     uint64_t block;
     if (!RecordPreCheck<FixL0CGMRecord>(memInfo, block)) {
@@ -77,7 +77,7 @@ __aicore__ inline void SetChannelPara(EXTRA_PARAMS_DEC, uint64_t config)
     Flush(memInfo);
 }
 
-__aicore__ inline uint64_t GetChannelPara(__gm__ const uint8_t *memInfo, uint64_t block)
+AICORE_FUNC_HEAD uint64_t GetChannelPara(__gm__ const uint8_t *memInfo, uint64_t block)
 {
     uint64_t offset = BLOCK_MEM_SIZE * static_cast<uint64_t>(block);
     auto header = reinterpret_cast<__gm__ const BlockHeader*>(memInfo + offset);
@@ -85,7 +85,7 @@ __aicore__ inline uint64_t GetChannelPara(__gm__ const uint8_t *memInfo, uint64_
 }
 
 // 根据配置的quantPRE，设置搬运目的数据类型长度
-__aicore__ inline void ParseMovfpQuantBits(const uint64_t quantPRE, MovFpRecord& record)
+AICORE_FUNC_HEAD void ParseMovfpQuantBits(const uint64_t quantPRE, MovFpRecord& record)
 {
     // 1:f32->f16; 10/11: s32->f16; 12/13: s32->s16; 16: f32->bf16;
     if (quantPRE == 1 || quantPRE == 10 || quantPRE == 11 || quantPRE == 12 || quantPRE == 13 || quantPRE == 16) {
@@ -103,7 +103,7 @@ __aicore__ inline void ParseMovfpQuantBits(const uint64_t quantPRE, MovFpRecord&
     }
 }
 
-__aicore__ inline void ParseFixfpQuantBits(uint64_t quantPRE, bool enNDorDN, FixL0CGMRecord& record)
+AICORE_FUNC_HEAD void ParseFixfpQuantBits(uint64_t quantPRE, bool enNDorDN, FixL0CGMRecord& record)
 {
     // 1:f32->f16; 10/11: s32->f16; 12/13: s32->s16; 16: f32->bf16;
     if (quantPRE == 1 || quantPRE == 10 || quantPRE == 11 || quantPRE == 12 || quantPRE == 13 || quantPRE == 16) {
@@ -122,7 +122,7 @@ __aicore__ inline void ParseFixfpQuantBits(uint64_t quantPRE, bool enNDorDN, Fix
 }
 
 template<AtomicMode atomicMode>
-__aicore__ inline void RecordMovFpEvent(RecordFixParams &&fixParams, uint64_t xm, uint64_t xt)
+AICORE_FUNC_HEAD void RecordMovFpEvent(RecordFixParams &&fixParams, uint64_t xm, uint64_t xt)
 {
     uint64_t block;
     if (!RecordPreCheck<MovFpRecord>(fixParams.memInfo, block)) {
@@ -152,7 +152,7 @@ __aicore__ inline void RecordMovFpEvent(RecordFixParams &&fixParams, uint64_t xm
 }
 
 template<MemType srcMemType, MemType dstMemType, DataType dataType>
-__aicore__ inline void RecordFixL0CGMEvent(RecordFixParams &&fixParams, uint64_t xm, uint64_t xt)
+AICORE_FUNC_HEAD void RecordFixL0CGMEvent(RecordFixParams &&fixParams, uint64_t xm, uint64_t xt)
 {
     uint64_t block;
     if (!RecordPreCheck<FixL0CGMRecord>(fixParams.memInfo, block)) {

@@ -28,7 +28,7 @@ struct BasicInfo {
     uint64_t threadId;
 };
 // 要写入gm的结构体保证4/8字节对齐(这里用了8字节对齐)，写入单字节数据大概率导致所有数据丢失
-__aicore__ inline void AccumulateData(__gm__ uint8_t *memInfo, const OperandRecord &record)
+AICORE_FUNC_HEAD void AccumulateData(__gm__ uint8_t *memInfo, const OperandRecord &record)
 {
     auto dst = reinterpret_cast<__gm__ uint64_t*>(memInfo);
     uint64_t instructions = *dst + record.instructions;
@@ -38,7 +38,7 @@ __aicore__ inline void AccumulateData(__gm__ uint8_t *memInfo, const OperandReco
     *(dst + 2) = record.funcType;
 }
 
-__aicore__ inline void DumpRecord(const BasicInfo &basicInfo, OperandType type, const OperandRecord &record, bool isSimt)
+AICORE_FUNC_HEAD void DumpRecord(const BasicInfo &basicInfo, OperandType type, const OperandRecord &record, bool isSimt)
 {
     uint64_t blockIdx = basicInfo.blockIdx;
     uint64_t threadId = basicInfo.threadId;
@@ -56,7 +56,7 @@ __aicore__ inline void DumpRecord(const BasicInfo &basicInfo, OperandType type, 
     Flush(basicInfo.memInfo);
 }
 
-__aicore__ inline bool CheckAndGetBasicInfo(__gm__ uint8_t *memInfo, uint64_t &blockIdx,
+AICORE_FUNC_HEAD bool CheckAndGetBasicInfo(__gm__ uint8_t *memInfo, uint64_t &blockIdx,
                                             uint64_t &threadId, bool isSimt)
 {
     if (!CheckMemInfo(memInfo)) {
@@ -72,7 +72,7 @@ __aicore__ inline bool CheckAndGetBasicInfo(__gm__ uint8_t *memInfo, uint64_t &b
 }
 
 template<InstrType instrType, OperandType operandType>
-__aicore__ inline void RecordOperandOperation(__gm__ uint8_t *memInfo, uint8_t operandNums, bool isSimt)
+AICORE_FUNC_HEAD void RecordOperandOperation(__gm__ uint8_t *memInfo, uint8_t operandNums, bool isSimt)
 {
     OperandRecord record {1, operandNums, static_cast<uint64_t>(instrType)};
     uint64_t blockIdx = 0;
@@ -84,7 +84,7 @@ __aicore__ inline void RecordOperandOperation(__gm__ uint8_t *memInfo, uint8_t o
 }
 
 template<InstrType instrType, OperandType operandType>
-__aicore__ inline void RecordMmadA5(__gm__ uint8_t *memInfo, uint64_t config, bool isMx = 0)
+AICORE_FUNC_HEAD void RecordMmadA5(__gm__ uint8_t *memInfo, uint64_t config, bool isMx = 0)
 {
     uint64_t blockIdx = 0;
     uint64_t threadId = 0;

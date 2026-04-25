@@ -25,7 +25,7 @@
 namespace Common {
 
 template<MemType srcMemType, MemType dstMemType, DataType dataType>
-__aicore__ inline void RecordMovAlignEvent(RecordFixParams &&fixParams, uint64_t config, uint64_t gapConfig)
+AICORE_FUNC_HEAD void RecordMovAlignEvent(RecordFixParams &&fixParams, uint64_t config, uint64_t gapConfig)
 {
     uint64_t block;
     if (!RecordPreCheck<MovAlignRecord>(fixParams.memInfo, block)) {
@@ -49,7 +49,7 @@ __aicore__ inline void RecordMovAlignEvent(RecordFixParams &&fixParams, uint64_t
     DumpRecord<MovAlignRecord, RecordType::MOV_ALIGN>(fixParams.memInfo, record);
 }
 
-__aicore__ inline void SetLoopSizeOuttol1(EXTRA_PARAMS_DEC, uint64_t config)
+AICORE_FUNC_HEAD void SetLoopSizeOuttol1(EXTRA_PARAMS_DEC, uint64_t config)
 {
     uint64_t block;
     if (!RecordPreCheck<MovAlignV2Record>(memInfo, block)) {
@@ -62,14 +62,14 @@ __aicore__ inline void SetLoopSizeOuttol1(EXTRA_PARAMS_DEC, uint64_t config)
     Flush(memInfo);
 }
 
-__aicore__ inline uint64_t GetLoopSizeOuttol1(__gm__ const uint8_t *memInfo, uint64_t block)
+AICORE_FUNC_HEAD uint64_t GetLoopSizeOuttol1(__gm__ const uint8_t *memInfo, uint64_t block)
 {
     uint64_t offset = BLOCK_MEM_SIZE * static_cast<uint64_t>(block);
     auto header = reinterpret_cast<__gm__ const BlockHeader*>(memInfo + offset);
     return header->loopSizeOuttol1;
 }
 
-__aicore__ inline void SetLoop1StrideOuttol1(EXTRA_PARAMS_DEC, uint64_t config)
+AICORE_FUNC_HEAD void SetLoop1StrideOuttol1(EXTRA_PARAMS_DEC, uint64_t config)
 {
     uint64_t block;
     if (!RecordPreCheck<MovAlignV2Record>(memInfo, block)) {
@@ -82,14 +82,14 @@ __aicore__ inline void SetLoop1StrideOuttol1(EXTRA_PARAMS_DEC, uint64_t config)
     Flush(memInfo);
 }
 
-__aicore__ inline uint64_t GetLoop1StrideOuttol1(__gm__ const uint8_t *memInfo, uint64_t block)
+AICORE_FUNC_HEAD uint64_t GetLoop1StrideOuttol1(__gm__ const uint8_t *memInfo, uint64_t block)
 {
     uint64_t offset = BLOCK_MEM_SIZE * static_cast<uint64_t>(block);
     auto header = reinterpret_cast<__gm__ const BlockHeader*>(memInfo + offset);
     return header->loop1StrideOuttol1;
 }
 
-__aicore__ inline void SetLoop2StrideOuttol1(EXTRA_PARAMS_DEC, uint64_t config)
+AICORE_FUNC_HEAD void SetLoop2StrideOuttol1(EXTRA_PARAMS_DEC, uint64_t config)
 {
     uint64_t block;
     if (!RecordPreCheck<MovAlignV2Record>(memInfo, block)) {
@@ -102,14 +102,14 @@ __aicore__ inline void SetLoop2StrideOuttol1(EXTRA_PARAMS_DEC, uint64_t config)
     Flush(memInfo);
 }
 
-__aicore__ inline uint64_t GetLoop2StrideOuttol1(__gm__ const uint8_t *memInfo, uint64_t block)
+AICORE_FUNC_HEAD uint64_t GetLoop2StrideOuttol1(__gm__ const uint8_t *memInfo, uint64_t block)
 {
     uint64_t offset = BLOCK_MEM_SIZE * static_cast<uint64_t>(block);
     auto header = reinterpret_cast<__gm__ const BlockHeader*>(memInfo + offset);
     return header->loop2StrideOuttol1;
 }
 
-__aicore__ inline void SetLoopSizeUbToOut(EXTRA_PARAMS_DEC, uint64_t config)
+AICORE_FUNC_HEAD void SetLoopSizeUbToOut(EXTRA_PARAMS_DEC, uint64_t config)
 {
     uint64_t block;
     if (!RecordPreCheck<MovAlignV2Record>(memInfo, block)) {
@@ -122,14 +122,14 @@ __aicore__ inline void SetLoopSizeUbToOut(EXTRA_PARAMS_DEC, uint64_t config)
     Flush(memInfo);
 }
 
-__aicore__ inline uint64_t GetLoopSizeUbToOut(__gm__ const uint8_t *memInfo, uint64_t block)
+AICORE_FUNC_HEAD uint64_t GetLoopSizeUbToOut(__gm__ const uint8_t *memInfo, uint64_t block)
 {
     uint64_t offset = BLOCK_MEM_SIZE * static_cast<uint64_t>(block);
     auto header = reinterpret_cast<__gm__ const BlockHeader*>(memInfo + offset);
     return header->loopSizeUbToOut;
 }
 
-__aicore__ inline void SetLoop1StrideUbToOut(EXTRA_PARAMS_DEC, uint64_t config)
+AICORE_FUNC_HEAD void SetLoop1StrideUbToOut(EXTRA_PARAMS_DEC, uint64_t config)
 {
     uint64_t block;
     if (!RecordPreCheck<MovAlignV2Record>(memInfo, block)) {
@@ -142,14 +142,14 @@ __aicore__ inline void SetLoop1StrideUbToOut(EXTRA_PARAMS_DEC, uint64_t config)
     Flush(memInfo);
 }
 
-__aicore__ inline uint64_t GetLoop1StrideUbToOut(__gm__ const uint8_t *memInfo, uint64_t block)
+AICORE_FUNC_HEAD uint64_t GetLoop1StrideUbToOut(__gm__ const uint8_t *memInfo, uint64_t block)
 {
     uint64_t offset = BLOCK_MEM_SIZE * static_cast<uint64_t>(block);
     auto header = reinterpret_cast<__gm__ const BlockHeader*>(memInfo + offset);
     return header->loop1StrideUbToOut;
 }
 
-__aicore__ inline void SetLoop2StrideUbToOut(EXTRA_PARAMS_DEC, uint64_t config)
+AICORE_FUNC_HEAD void SetLoop2StrideUbToOut(EXTRA_PARAMS_DEC, uint64_t config)
 {
     uint64_t block;
     if (!RecordPreCheck<MovAlignV2Record>(memInfo, block)) {
@@ -162,14 +162,14 @@ __aicore__ inline void SetLoop2StrideUbToOut(EXTRA_PARAMS_DEC, uint64_t config)
     Flush(memInfo);
 }
 
-__aicore__ inline uint64_t GetLoop2StrideUbToOut(__gm__ const uint8_t *memInfo, uint64_t block)
+AICORE_FUNC_HEAD uint64_t GetLoop2StrideUbToOut(__gm__ const uint8_t *memInfo, uint64_t block)
 {
     uint64_t offset = BLOCK_MEM_SIZE * static_cast<uint64_t>(block);
     auto header = reinterpret_cast<__gm__ const BlockHeader*>(memInfo + offset);
     return header->loop2StrideUbToOut;
 }
 
-__aicore__ inline void SetLoopSizeOuttoub(EXTRA_PARAMS_DEC, uint64_t config)
+AICORE_FUNC_HEAD void SetLoopSizeOuttoub(EXTRA_PARAMS_DEC, uint64_t config)
 {
     uint64_t block;
     if (!RecordPreCheck<MovAlignV2Record>(memInfo, block)) {
@@ -182,14 +182,14 @@ __aicore__ inline void SetLoopSizeOuttoub(EXTRA_PARAMS_DEC, uint64_t config)
     Flush(memInfo);
 }
 
-__aicore__ inline uint64_t GetLoopSizeOuttoub(__gm__ const uint8_t *memInfo, uint64_t block)
+AICORE_FUNC_HEAD uint64_t GetLoopSizeOuttoub(__gm__ const uint8_t *memInfo, uint64_t block)
 {
     uint64_t offset = BLOCK_MEM_SIZE * static_cast<uint64_t>(block);
     auto header = reinterpret_cast<__gm__ const BlockHeader*>(memInfo + offset);
     return header->loopSizeOuttoub;
 }
 
-__aicore__ inline void SetLoop1StrideOuttoub(EXTRA_PARAMS_DEC, uint64_t config)
+AICORE_FUNC_HEAD void SetLoop1StrideOuttoub(EXTRA_PARAMS_DEC, uint64_t config)
 {
     uint64_t block;
     if (!RecordPreCheck<MovAlignV2Record>(memInfo, block)) {
@@ -202,14 +202,14 @@ __aicore__ inline void SetLoop1StrideOuttoub(EXTRA_PARAMS_DEC, uint64_t config)
     Flush(memInfo);
 }
 
-__aicore__ inline uint64_t GetLoop1StrideOuttoub(__gm__ const uint8_t *memInfo, uint64_t block)
+AICORE_FUNC_HEAD uint64_t GetLoop1StrideOuttoub(__gm__ const uint8_t *memInfo, uint64_t block)
 {
     uint64_t offset = BLOCK_MEM_SIZE * static_cast<uint64_t>(block);
     auto header = reinterpret_cast<__gm__ const BlockHeader*>(memInfo + offset);
     return header->loop1StrideOuttoub;
 }
 
-__aicore__ inline void SetLoop2StrideOuttoub(EXTRA_PARAMS_DEC, uint64_t config)
+AICORE_FUNC_HEAD void SetLoop2StrideOuttoub(EXTRA_PARAMS_DEC, uint64_t config)
 {
     uint64_t block;
     if (!RecordPreCheck<MovAlignV2Record>(memInfo, block)) {
@@ -222,7 +222,7 @@ __aicore__ inline void SetLoop2StrideOuttoub(EXTRA_PARAMS_DEC, uint64_t config)
     Flush(memInfo);
 }
 
-__aicore__ inline uint64_t GetLoop2StrideOuttoub(__gm__ const uint8_t *memInfo, uint64_t block)
+AICORE_FUNC_HEAD uint64_t GetLoop2StrideOuttoub(__gm__ const uint8_t *memInfo, uint64_t block)
 {
     uint64_t offset = BLOCK_MEM_SIZE * static_cast<uint64_t>(block);
     auto header = reinterpret_cast<__gm__ const BlockHeader*>(memInfo + offset);
@@ -230,7 +230,7 @@ __aicore__ inline uint64_t GetLoop2StrideOuttoub(__gm__ const uint8_t *memInfo, 
 }
 
 template<MemType srcMemType, MemType dstMemType, DataType dataType>
-__aicore__ inline void RecordMovAlignV2Event(RecordFixParams &&fixParams, uint64_t config, uint64_t strideConfig)
+AICORE_FUNC_HEAD void RecordMovAlignV2Event(RecordFixParams &&fixParams, uint64_t config, uint64_t strideConfig)
 {
     uint64_t block;
     if (!RecordPreCheck<MovAlignV2Record>(fixParams.memInfo, block)) { return; }

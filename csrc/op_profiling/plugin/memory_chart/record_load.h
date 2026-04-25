@@ -25,7 +25,7 @@
 namespace Common {
 
 template<MemType srcMemType, MemType dstMemType>
-__aicore__ inline void RecordLoad2DEvent(RecordFixParams &&fixParams, uint64_t config, AddrCalMode addrCalMode)
+AICORE_FUNC_HEAD void RecordLoad2DEvent(RecordFixParams &&fixParams, uint64_t config, AddrCalMode addrCalMode)
 {
     uint64_t block;
     if (!RecordPreCheck<Load2DRecord>(fixParams.memInfo, block)) {
@@ -48,7 +48,7 @@ __aicore__ inline void RecordLoad2DEvent(RecordFixParams &&fixParams, uint64_t c
 }
 
 template<MemType srcMemType, MemType dstMemType, DataType dataType>
-__aicore__ inline void RecordLoadL1ToL0B2DTransposeEvent(RecordFixParams &&fixParams, uint64_t config,
+AICORE_FUNC_HEAD void RecordLoadL1ToL0B2DTransposeEvent(RecordFixParams &&fixParams, uint64_t config,
                                                          uint64_t fracStride)
 {
     uint64_t block;
@@ -72,7 +72,7 @@ __aicore__ inline void RecordLoadL1ToL0B2DTransposeEvent(RecordFixParams &&fixPa
 }
 
 template<MemType srcMemType, MemType dstMemType, DataType dataType>
-__aicore__ inline void RecordLoad2DV2Event(RecordFixParams &&fixParams, uint64_t config0, uint64_t config1,
+AICORE_FUNC_HEAD void RecordLoad2DV2Event(RecordFixParams &&fixParams, uint64_t config0, uint64_t config1,
                                                   bool transpose)
 {
     uint64_t block;
@@ -99,7 +99,7 @@ __aicore__ inline void RecordLoad2DV2Event(RecordFixParams &&fixParams, uint64_t
 }
 
 template<MemType srcMemType, MemType dstMemType>
-__aicore__ inline void RecordLoadMX2DV2Event(RecordFixParams &&fixParams, uint64_t config0, uint64_t config1)
+AICORE_FUNC_HEAD void RecordLoadMX2DV2Event(RecordFixParams &&fixParams, uint64_t config0, uint64_t config1)
 {
     uint64_t block;
     if (!RecordPreCheck<LoadMX2DV2Record>(fixParams.memInfo, block)) {
@@ -122,7 +122,7 @@ __aicore__ inline void RecordLoadMX2DV2Event(RecordFixParams &&fixParams, uint64
     DumpRecord<LoadMX2DV2Record, RecordType::LOAD_MX2DV2>(fixParams.memInfo, record);
 }
 
-__aicore__ inline void SetMte2SrcPara(EXTRA_PARAMS_DEC, uint64_t config)
+AICORE_FUNC_HEAD void SetMte2SrcPara(EXTRA_PARAMS_DEC, uint64_t config)
 {
     uint64_t block;
     if (!RecordPreCheck<Load2DV2DecRecord>(memInfo, block)) {
@@ -135,7 +135,7 @@ __aicore__ inline void SetMte2SrcPara(EXTRA_PARAMS_DEC, uint64_t config)
     Flush(memInfo);
 }
 
-__aicore__ inline uint64_t GetMte2SrcPara(__gm__ const uint8_t *memInfo, uint64_t block)
+AICORE_FUNC_HEAD uint64_t GetMte2SrcPara(__gm__ const uint8_t *memInfo, uint64_t block)
 {
     uint64_t offset = BLOCK_MEM_SIZE * static_cast<uint64_t>(block);
     auto header = reinterpret_cast<__gm__ const BlockHeader*>(memInfo + offset);
@@ -143,7 +143,7 @@ __aicore__ inline uint64_t GetMte2SrcPara(__gm__ const uint8_t *memInfo, uint64_
 }
 
 template<MemType srcMemType, MemType dstMemType>
-__aicore__ inline void RecordLoad2DV2DecEvent(RecordFixParams &&fixParams, uint64_t config0, uint64_t config1)
+AICORE_FUNC_HEAD void RecordLoad2DV2DecEvent(RecordFixParams &&fixParams, uint64_t config0, uint64_t config1)
 {
     uint64_t block;
     if (!RecordPreCheck<Load2DV2DecRecord>(fixParams.memInfo, block)) {
@@ -169,7 +169,7 @@ __aicore__ inline void RecordLoad2DV2DecEvent(RecordFixParams &&fixParams, uint6
 }
 
 template<MemType srcMemType, MemType dstMemType, DataType dataType>
-__aicore__ inline void RecordSet2DEvent(RecordFixParams &&fixParams, int64_t config)
+AICORE_FUNC_HEAD void RecordSet2DEvent(RecordFixParams &&fixParams, int64_t config)
 {
     uint64_t block;
     if (!RecordPreCheck<Set2DRecord>(fixParams.memInfo, block)) {
