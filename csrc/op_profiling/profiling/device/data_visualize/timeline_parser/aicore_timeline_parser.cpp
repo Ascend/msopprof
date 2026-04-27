@@ -40,6 +40,7 @@ void AicoreTimelineParser::GenPc2Code(std::vector<MsprofAicTimeStampInfoUpdate> 
 // 当前descId前16为为物理核，后16位逻辑核，物理核0~24为cube，25~74为vector
 // 在旧版本中runtime传递的descId为物理核，为兼容老版本，通过解析所有记录中物理核是否包含非0值判断新旧版本
 // 旧版本中使用原逻辑获取当前记录类型，新版本使用物理核值区分记录类型
+// A5上0~17,54~71是cube,18~53,72~108是vector的物理核
 void AicoreTimelineParser::GetTimeStampType(std::vector<MsprofAicTimeStampInfo> &infos, std::vector<MsprofAicTimeStampInfoUpdate> &aicoreTimeStamps)
 {
     bool isOldVersion = true;
@@ -72,7 +73,12 @@ void AicoreTimelineParser::GetTimeStampType(std::vector<MsprofAicTimeStampInfo> 
         uint16_t physicalId = static_cast<uint32_t>(item.blockId >> 16);
         uint16_t logicalId = static_cast<uint32_t>(item.blockId & 0xFFFF);
         item.blockId = logicalId;
-        std::string type = physicalId < VEC_START ? AIC_BLOCK : AIV_BLOCK;
+        if (chipSeries_ == ChipProductType::ASCEND950_SERIES) {
+            std::string type = (physicalId < A5_VEC_START_RANGE_ONE) || (physicalId > A5_VEC_END_RANGE_ONE && physicalId < A5_VEC_START_RANGE_TWO) ? AIC_BLOCK : AIV_BLOCK;
+            aicoreTimeStamps.emplace_back(MsprofAicTimeStampInfoUpdate(item, type));
+            continue;
+        }
+        std::string type = physicalId < A2_VEC_START ? AIC_BLOCK : AIV_BLOCK;
         aicoreTimeStamps.emplace_back(MsprofAicTimeStampInfoUpdate(item, type));
     }
 }
@@ -107,6 +113,7 @@ bool AicoreTimelineParser::TimelineToJson(const std::string &outputPath)
 
 bool AicoreTimelineParser::GetAicoreTimeStamps(std::vector<MsprofAicTimeStampInfoUpdate> &aicoreTimeStamps)
 {
+    chipSeries_ = GetChipTypeSeries();
     std::vector<MsprofAicTimeStampInfo> infos;
     if (!GetTimeStamp(infos)) {
         return false;

@@ -57,6 +57,7 @@ public:
     void GenPc2Code(std::vector<MsprofAicTimeStampInfoUpdate> &aicoreTimeStamps);
     void ProcessAicoreData(const std::vector<MsprofAicTimeStampInfoUpdate> &aicoreTimeStamps);
 private:
+    ChipProductType chipSeries_;
     void GetTimeStampType(std::vector<MsprofAicTimeStampInfo> &infos, std::vector<MsprofAicTimeStampInfoUpdate> &aicoreTimeStamps);
     uint32_t aicBlocKNum_ = 0;
     uint32_t aivBlockNum_ = 0;
