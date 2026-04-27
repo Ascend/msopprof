@@ -47,6 +47,7 @@
         <file value="empty_kernel_dav-c220-vec.o"/>
         <file value="libmsopprof_injection.so"/>
         <file value="libprofplugin_instrprofend.so"/>
+        <file value="libprofplugin_instrprofstart.so"/>
         <file value="libprofplugin_memorychart.so"/>
         <file value="libprofplugin_operandrecord.so"/>
     </file_info>
