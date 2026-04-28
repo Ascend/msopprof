@@ -103,7 +103,7 @@ mindstudio-opprof uninstall success!
 如果run包已经删除，则可执行如下命令，卸载软件：
  
 ```shell
-bash $HOME/Ascend/share/info/mindstudio-opprof/script/uninstall.sh  # 或bash ./xxx/share/info/mindstudio-opprof/script/uninstall.sh（指定路径安装场景）
+bash $HOME/Ascend/cann/share/info/mindstudio-opprof/script/uninstall.sh  # 或bash ./xxx/share/info/mindstudio-opprof/script/uninstall.sh（指定路径安装场景）
 ```
 
 ### 2.5 升级
