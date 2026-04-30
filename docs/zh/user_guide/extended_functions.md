@@ -288,7 +288,7 @@ mstx接口是MindStudio提供的一个性能分析接口，它允许用户在应
     > - 此样例工程不支持<term>Atlas A3 训练系列产品</term>。
     > - ${INSTALL_DIR}请替换为CANN软件安装后文件存储路径。以root用户安装为例，安装后文件默认存储路径为：/usr/local/Ascend/cann。
 
-    - 在\$\{git\_clone\_path\}/samples/operator/ascendc/0\_introduction/1\_add\_frameworklaunch/AclNNInvocation/src/CMakeLists.txt路径下新增库文件libms\_tools\_ext.so，地址为：$\{INSTALL\_DIR\}/lib64/libms\_tools\_ext.so。
+    - 在`${git_clone_path}/samples/operator/ascendc/0_introduction/1_add_frameworklaunch/AclNNInvocation/src/CMakeLists.txt`路径下新增库文件`libms_tools_ext.so`，地址为：`${INSTALL_DIR}/lib64/libms_tools_ext.so`。
 
         ```shell
         # Header path

@@ -1,27 +1,15 @@
-# **MindStudio Ops Profiler 安装指南**
+# MindStudio Ops Profiler 安装指南
 
 <br>
+
+## 1. 安装说明
 
 msOpProf工具的安装方式包括：
 
-- 二进制安装：msOpProf工具完整功能已集成在CANN包中发布，可直接安装CANN包，具体请参见[二进制安装](#1-二进制安装)。
-- 源码安装：如需使用最新代码的功能，或对源码进行修改以增强功能，可下载本仓库代码，自行编译、打包工具并完成安装，具体请参见[源码安装](#2-源码安装)。
+- 使用CANN包安装：msOpProf工具完整功能已集成在CANN包中，请参考《[CANN 快速安装](https://www.hiascend.com/cann/download)》安装昇腾NPU驱动和CANN软件（包含Toolkit和ops包），并配置环境变量。
+- 源码编译安装：如需使用最新代码的功能，或对源码进行修改以增强功能，可下载本仓库代码，自行编译、打包工具并完成安装，具体请参见[源码编译安装](#2-源码编译安装)。
 
-## 1. 二进制安装
-
-MindStudio工具链是集成到CANN包中发布的，可通过以下方式完成安装：
-
-### 方式一：依据 CANN 官方文档安装  
-
-请参考《[CANN 官方安装指南](https://www.hiascend.com/cann/download)》，按文档逐步完成安装与配置。
-
-### 方式二：使用 CANN 官方容器镜像
-
-请访问《[CANN 官方镜像仓库](https://www.hiascend.com/developer/ascendhub/detail/17da20d1c2b6493cb38765adeba85884)》，按仓库中的指引完成镜像拉取及容器启动。
-
-<br>
-
-## 2. 源码安装
+## 2. 源码编译安装
 
 如需使用最新代码的功能，或对源码进行修改以增强功能，可下载本仓库代码，自行编译、打包工具并完成安装。
 
@@ -31,17 +19,26 @@ MindStudio工具链是集成到CANN包中发布的，可通过以下方式完成
 
 ### 2.2 执行编译打包
 
-通过一键式脚本自动完成依赖仓库的下载与构建流程：
+- 克隆本仓库
 
-```shell
-python build.py
-```
+    ```sh
+    git clone https://gitcode.com/Ascend/msopprof.git
+    ```
+
+- 构建打包
+
+    通过一键式脚本自动完成依赖仓库的下载与构建流程：
+
+    ```shell
+    cd msopprof
+    python build.py
+    ```
 
 ### 2.3 安装
 
 #### 2.3.1 准备 run 包
 
-whl 包将生成于 output 目录下，执行以下命令确保其具备可执行权限：
+run 包将生成于 output 目录下，执行以下命令确保其具备可执行权限：
 
 ```shell
 cd output
@@ -63,8 +60,11 @@ mindstudio-opprof package install success!
 ```
 
 若系统中已安装该工具的旧版本，安装过程中会提示是否替换；输入 "y" 可执行覆盖安装。
+
 > [!NOTE]
+> 
 > 安装路径说明   
+> 
 > 若环境中已配置 `ASCEND_HOME_PATH` 环境变量，工具将安装至 `$ASCEND_HOME_PATH` 目录；
 > 否则，默认安装至 `$HOME/Ascend` 目录；  
 > 如需指定自定义安装路径，请使用 `--install-path` 选项，例如：
@@ -95,7 +95,9 @@ mindstudio-opprof uninstall success!
 ```
 
 > [!NOTE]
+> 
 > 卸载路径说明   
+> 
 > 默认将在 `$HOME/Ascend` 目录下卸载；若先前安装时通过 `--install-path` 指定了自定义路径，
 > 则卸载时也需显式添加 `--install-path` 选项，例如：
 > `./mindstudio-opprof_<version>_<arch>.run --install-path=./xxx --uninstall`。

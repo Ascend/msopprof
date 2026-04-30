@@ -450,7 +450,7 @@ trace.json文件可分别通过Chrome浏览器和MindStudio Insight展示，visu
     |字段名|字段含义|
     |---|---|
     |VECTOR|向量运算单元。|
-    |SCALAR|量运算单元。|
+    |SCALAR|标量运算单元。|
     |Cube|矩阵乘运算单元。|
     |MTE1|数据搬运流水，数据搬运方向为：L1 ->{L0A/L0B, UBUF}。|
     |MTE2|数据搬运流水，数据搬运方向为：{DDR/GM, L2} ->{L1, L0A/B, UBUF}。|
