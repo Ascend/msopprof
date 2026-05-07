@@ -176,10 +176,6 @@ void InstrParser::MergeInstrById(const std::unordered_map<uint64_t, std::vector<
 
 void InstrParser::ParseThreadId(const std::string &instrDetail, std::string &mergeDetail) const
 {
-    ChipProductType chiptTypeProduces = dataParserConfig_.GetProductSeriesType();
-    if (chiptTypeProduces != ChipProductType::ASCEND950_SERIES) {
-       return;
-    }
     std::smatch lineMatch;
     bool res = regex_search(instrDetail, lineMatch, maskPattern_);
     if (!res) {
