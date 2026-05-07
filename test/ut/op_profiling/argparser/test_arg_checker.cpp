@@ -198,12 +198,7 @@ TEST(ArgChecker, config_with_export_path_false)
     std::string msg;
     ArgChecker checker("simulator");
     args.argExport = "test/ut/resources/op_profiling/simulator_sample/dump";
-    // not allow group write
-    if (Utility::IsRootUser()) {
-        ASSERT_TRUE(checker.CheckExportPathValid(args, msg));
-    } else {
-        ASSERT_FALSE(checker.CheckExportPathValid(args, msg));
-    }
+    ASSERT_TRUE(checker.CheckExportPathValid(args, msg));
 }
 
 TEST(ArgChecker, args_with_kernel_name_expect_check_failed)

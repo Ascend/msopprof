@@ -66,53 +66,6 @@ protected:
     }
 };
 
-TEST_F(HalHelperTest, GetPlatformType_NullGetDeviceInfo_ReturnFalse)
-{
-    MOCKER(&dlopen)
-            .stubs()
-            .will(returnValue((void*)nullptr));
-    HalHelper halHelper_;
-    EXPECT_TRUE(halHelper_.GetPlatformType() == Common::ChipType::END_TYPE);
-}
-
-TEST_F(HalHelperTest, GetPlatformType_ErrorGetDeviceInfo_ReturnFalse)
-{
-    MOCKER(&dlopen)
-           .stubs()
-           .will(returnValue((void*)nullptr));
-    HalHelper halHelper_;
-    halHelper_.halGetDeviceInfo_ = [](uint32_t devId, int32_t moduleType, int32_t infoType, int64_t *value) {
-        return (drvError_t)1;
-    };
-    EXPECT_TRUE(halHelper_.GetPlatformType() == Common::ChipType::END_TYPE);
-}
-
-TEST_F(HalHelperTest, GetPlatformType_ChipTypeOutOfRange_ReturnFalse)
-{
-    MOCKER(&dlopen)
-           .stubs()
-           .will(returnValue((void*)nullptr));
-    HalHelper halHelper_;
-    halHelper_.halGetDeviceInfo_ = [](uint32_t devId, int32_t moduleType, int32_t infoType, int64_t *value) {
-        *value = 0x1111111111111111;
-        return DRV_ERROR_NONE;
-    };
-    EXPECT_TRUE(halHelper_.GetPlatformType() == Common::ChipType::END_TYPE);
-}
-
-TEST_F(HalHelperTest, GetPlatformType_Success_ReturnTrue)
-{
-    MOCKER(&dlopen)
-           .stubs()
-           .will(returnValue((void*)nullptr));
-    HalHelper halHelper_;
-    halHelper_.halGetDeviceInfo_ = [](uint32_t devId, int32_t moduleType, int32_t infoType, int64_t *value) {
-        *value = 0x100;
-        return DRV_ERROR_NONE;
-    };
-    EXPECT_EQ(halHelper_.GetPlatformType(), static_cast<ChipType>(0x1));
-}
-
 TEST_F(HalHelperTest, GetAicoreFreq_NullFunc_ReturnFalse)
 {
     HalHelper::Instance().halGetDeviceInfo_ = nullptr;

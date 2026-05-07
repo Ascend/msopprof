@@ -61,9 +61,8 @@ AICORE_FUNC_HEAD uint64_t GetBlockIdx()
     return get_block_idx() * get_subblockdim() + get_subblockid();
 #elif defined(__NPU_ARCH__) && (__NPU_ARCH__ == 3101 || __NPU_ARCH__ == 3510)
     #if defined(__DAV_VEC__) && defined(SIMT_MODE) // c310-simt
-        return bisheng::cce::simt::get_block_idx();
+        return __cce_simt::get_block_idx();
     #else
-        using namespace __cce_scalar;
         int64_t coreId = get_coreid();
         if ((coreId >= C310_A5_DEVICE_VEC_PHYS_SMALL_BOUND_CORE_START_IDS &&
             coreId <= C310_A5_DEVICE_VEC_PHYS_SMALL_BOUND_CORE_END_IDS) ||
@@ -216,7 +215,7 @@ AICORE_FUNC_HEAD bool TryGetBlockIdx(uint64_t &blockIdx)
 #if defined(__DAV_C220__) || defined(__DAV_C220_VEC__) || defined(__DAV_C220_CUBE__) || \
     (defined(__NPU_ARCH__) && (__NPU_ARCH__ == 3101 || __NPU_ARCH__ == 3510))
 #ifdef SIMT_MODE
-    coreId = bisheng::cce::simt::get_coreid();
+    coreId = __cce_simt::get_coreid();
 #else
     coreId = get_coreid();
 #endif // SIMT_MODE
