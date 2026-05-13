@@ -349,10 +349,10 @@ int SubcoreTimelineVisualizer::GetTid(const MergeInfo &instr, uint64_t maxCycle,
     // if not find or curThreadNum == 0, set additional thread
     tid = curThreadNum + 1;
     AddThreadMetaData(coreJsonList, tid, instr.pipe + "_" + std::to_string(tid), pid);
-    std::vector<int> threadOccupyNew(maxCycle, 0);
-    if (threadOccupyNew.size() > INT32_MAX) {
+    if (maxCycle > INT32_MAX) {
         return tid;
     }
+    std::vector<int> threadOccupyNew(maxCycle, 0);
     for (uint64_t i = instr.startTick; (i < instr.endTick + 1) && (i < threadOccupyNew.size()); ++i) {
         threadOccupyNew[i]++;
     }

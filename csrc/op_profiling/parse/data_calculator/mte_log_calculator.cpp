@@ -28,6 +28,7 @@ using namespace Utility;
 
 namespace Profiling {
 namespace Parse {
+constexpr uint64_t MAX_MTE_SIZE = 60000000; // 1分钟的算子运行时间申请MteThroughputChart的大小约为4.3GB
 
 PluginErrorCode MteLogCalculator::Entry()
 {
@@ -66,8 +67,13 @@ void MteLogCalculator::CalOneInstrThroughput(MteLogInstrType instrType,
                                              MteThroughputChart &mteThroughputInfo) const
 {
     size_t instrTypeIndex = static_cast<uint64_t>(instrType);
+    bool exceedLimit = false;
     for (const auto &reqPair : reqInfo) {
         uint64_t tsPoint = static_cast<uint64_t>(std::floor(reqPair.second.ts));
+        if (tsPoint > MAX_MTE_SIZE) {
+            exceedLimit = true;
+            continue;
+        }
         if (tsPoint >= mteThroughputInfo.size()) {
             std::vector<double> tmp(static_cast<size_t>(MteLogInstrType::END), 0);
             mteThroughputInfo.resize(tsPoint + 1, tmp);
@@ -80,6 +86,9 @@ void MteLogCalculator::CalOneInstrThroughput(MteLogInstrType instrType,
             mteThroughputInfo[tsPoint][static_cast<uint64_t>(MteLogInstrType::TOTAL_TO_GM)]
                 += (reqPair.second.dataSize * THROUGHPUT_CONVERSION);
         }
+    }
+    if (exceedLimit) {
+        LogWarn("MTE log receive ticks exceed one minutes, only show part result");
     }
 }
 }
