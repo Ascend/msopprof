@@ -22,6 +22,7 @@
 #include <utility>
 #include <vector>
 #include <map>
+#include <array>
 #include <unordered_set>
 #include <unordered_map>
 #include "profiling/op_prof_data_parse.h"
@@ -275,8 +276,11 @@ private:
     bool GenCodeLine(const std::string &line, const std::vector<Encoding> &encodings, CodeLine &codeLine) const;
     void UpdatePcSampling(const std::string &dumpPath);
     void ReadPcSamplingData(const std::string &filePath);
-    void ParsePcSamplingData(const std::vector<uint8_t> &pcSamplingData,
-                             std::map<uint64_t, std::vector<uint64_t>> &orderedPcStateMap) const;
+    uint64_t ParsePcSamplingData(const std::vector<uint8_t> &pcSamplingData) const;
+    void AccumulatePcSamplingRecord(uint64_t pc, const std::vector<uint8_t> &pcSamplingData,
+                                    std::unordered_set<uint64_t> &missingPcSet);
+    nlohmann::json GenTopStallReasonFigureJson() const;
+    void WriteTopStallReasonFigure(const std::string &outputPath) const;
     bool ExtractData(const std::string &outputPath);
     bool CalculateData(const std::string &outputPath, const std::vector<Common::MemRecord> &memoryRecords,
                        const std::shared_ptr<L2Cache> &l2CachePtr,
@@ -290,6 +294,7 @@ private:
     std::unordered_map<std::string, uint64_t> kernelStartAddr_; // {kernelName, start_addr}
     std::unordered_map<std::string, std::map<uint64_t, uint64_t>> fileLineCalls_;   // {fileName, {lineNo, calls}}
     std::unordered_map<uint64_t, Encoding> encodings_;
+    std::array<uint64_t, 8> topStallReasonByCore_ {};
     uint64_t startPc_ = 0;
     uint64_t startPcForPcSampling_ = 0;
     uint64_t pcOffset_ = 0;

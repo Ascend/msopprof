@@ -18,6 +18,9 @@
 #include <gtest/gtest.h>
 #include "mockcpp/mockcpp.hpp"
 
+#include <algorithm>
+#include <array>
+#include <fstream>
 #include <string>
 #include <sys/stat.h>
 #include "profiling/device/op_device_prof.h"
@@ -51,6 +54,36 @@ using namespace Profiling;
 using namespace Common;
 using namespace std;
 using namespace Encode;
+
+namespace {
+constexpr size_t TEST_PC_SAMPLING_DATA_LEN = 16;
+constexpr size_t TEST_PC_SAMPLING_CHUNK_SIZE = sizeof(InstrProfHeadInfo) + DATA_BUFFER_SIZE;
+
+void WritePcSamplingChunk(std::ofstream &file, const InstrProfHeadInfo &headInfo,
+                          const std::vector<std::array<uint8_t, TEST_PC_SAMPLING_DATA_LEN>> &records)
+{
+    std::vector<char> chunk(TEST_PC_SAMPLING_CHUNK_SIZE, 0);
+    ASSERT_EQ(memcpy_s(chunk.data(), chunk.size(), &headInfo, sizeof(InstrProfHeadInfo)), EOK);
+    size_t offset = sizeof(InstrProfHeadInfo);
+    for (const auto &record : records) {
+        ASSERT_LE(offset + record.size(), chunk.size());
+        ASSERT_EQ(memcpy_s(chunk.data() + offset, chunk.size() - offset, record.data(), record.size()), EOK);
+        offset += record.size();
+    }
+    file.write(chunk.data(), chunk.size());
+}
+
+std::array<uint8_t, TEST_PC_SAMPLING_DATA_LEN> BuildPcSamplingRecord(uint32_t pcBase,
+                                                                     const std::array<uint8_t, 9> &states)
+{
+    std::array<uint8_t, TEST_PC_SAMPLING_DATA_LEN> record {};
+    record[0] = static_cast<uint8_t>(pcBase & 0xFF);
+    record[1] = static_cast<uint8_t>((pcBase >> 8) & 0xFF);
+    record[2] = static_cast<uint8_t>((pcBase >> 16) & 0xFF);
+    std::copy(states.begin(), states.end(), record.begin() + 3);
+    return record;
+}
+}
 
 std::map<std::string, uint64_t> basicScalarPmu = {{"Scalar Time", 1832}, {"Scalar Single", 1899}, {"Scalar Dual", 1835}, {"Scalar Mte1 Stall", 1412}, {"Scalar Mte2 Stall", 1455}, {"Scalar Mte3 Stall", 1777},
     {"Scalar Wait IB", 133}, {"Scalar Wait", 1844}, {"Scalar Cube Stall", 1877}, {"Scalar Ub Stall", 1478}, {"Scalar Vector Stall", 1428},
@@ -1268,14 +1301,30 @@ TEST(DeviceDataParse, process_encoding_when_soc_is_a5_and_expect_success)
 /* | 用例集 | DeviceDataParse
 /* |测试函数| UpdatePcSampling
 /* | 用例名 | process_update_pcsampling_given_bin_and_expect_success
-/* |用例描述| 执行测试函数，soc 为a5时，返回预期结果
+/* |用例描述| 测试单个pcSampling文件解析后，指令采样和top stall统计结果正确
 */
 TEST(DeviceDataParse, process_update_pcsampling_given_bin_and_expect_success)
 {
     GlobalMockObject::verify();
 
     string soc = "Ascend950PR_9599";
-    string dir = "test/ut/resources/op_profiling/instr_prof";
+    const string dir = "test/ut/resources/op_profiling/instr_prof_single";
+    RemoveAll(dir);
+    ASSERT_TRUE(MkdirRecusively(dir));
+    const string filePath = JoinPath({dir, "pcSampling.bin.0"});
+    std::ofstream file(filePath, std::ios::out | std::ios::binary);
+    ASSERT_TRUE(file.is_open());
+    InstrProfHeadInfo headInfo;
+    headInfo.coreId = 0;
+    headInfo.coreType = 1;
+    headInfo.validLen = static_cast<uint32_t>(TEST_PC_SAMPLING_DATA_LEN * 3);
+    WritePcSamplingChunk(file, headInfo, {
+        BuildPcSamplingRecord(0x05, {1, 2, 3, 4, 5, 6, 7, 8, 9}),
+        BuildPcSamplingRecord(0x08, {2, 3, 4, 5, 6, 7, 8, 9, 10}),
+        BuildPcSamplingRecord(0x01, {3, 4, 5, 6, 7, 8, 9, 10, 11})
+    });
+    file.close();
+
     HotSpotFunctionGenerator hotSpotFunctionGenerator({soc, "", 0, false, true, false});
     hotSpotFunctionGenerator.startPc_ = 0;
     hotSpotFunctionGenerator.encodings_[0x28] = {0x28, "PIPEA", "NAMEA", "", 0, 0, 0, 0};  // 0x05 * 8 = 0x28
@@ -1285,13 +1334,208 @@ TEST(DeviceDataParse, process_update_pcsampling_given_bin_and_expect_success)
     ASSERT_EQ(hotSpotFunctionGenerator.encodings_[0x28].pcSampling.size(), 9);
     ASSERT_EQ(hotSpotFunctionGenerator.encodings_[0x40].pcSampling.size(), 9);
     ASSERT_EQ(hotSpotFunctionGenerator.encodings_[0x08].pcSampling.size(), 9);
-    ASSERT_EQ(hotSpotFunctionGenerator.encodings_[0x28].pcSampling[0], 257);
-    ASSERT_EQ(hotSpotFunctionGenerator.encodings_[0x28].pcSampling[8], 257);
-    ASSERT_EQ(hotSpotFunctionGenerator.encodings_[0x40].pcSampling[0], 4);
-    ASSERT_EQ(hotSpotFunctionGenerator.encodings_[0x40].pcSampling[8], 4);
-    ASSERT_EQ(hotSpotFunctionGenerator.encodings_[0x08].pcSampling[0], 9);
-    ASSERT_EQ(hotSpotFunctionGenerator.encodings_[0x08].pcSampling[8], 9);
+    ASSERT_EQ(hotSpotFunctionGenerator.encodings_[0x28].pcSampling[0], 1);
+    ASSERT_EQ(hotSpotFunctionGenerator.encodings_[0x28].pcSampling[8], 9);
+    ASSERT_EQ(hotSpotFunctionGenerator.encodings_[0x40].pcSampling[0], 2);
+    ASSERT_EQ(hotSpotFunctionGenerator.encodings_[0x40].pcSampling[8], 10);
+    ASSERT_EQ(hotSpotFunctionGenerator.encodings_[0x08].pcSampling[0], 3);
+    ASSERT_EQ(hotSpotFunctionGenerator.encodings_[0x08].pcSampling[8], 11);
+    ASSERT_EQ(hotSpotFunctionGenerator.topStallReasonByCore_[0], 6);
+    ASSERT_EQ(hotSpotFunctionGenerator.topStallReasonByCore_[7], 27);
+    RemoveAll(dir);
     GlobalMockObject::verify();
+}
+
+/**
+/* | 用例集 | DeviceDataParse
+/* |测试函数| UpdatePcSampling
+/* | 用例名 | process_update_pcsampling_group_by_coreid_and_include_all_coretype_expect_success
+/* |用例描述| 测试不同coreType的pcSampling记录都会累计到全局top stall统计中
+*/
+TEST(DeviceDataParse, process_update_pcsampling_group_by_coreid_and_include_all_coretype_expect_success)
+{
+    const string tmpDir = "test/ut/resources/op_profiling/instr_prof_group";
+    RemoveAll(tmpDir);
+    ASSERT_TRUE(MkdirRecusively(tmpDir));
+    const string filePath = JoinPath({tmpDir, "pcSampling.bin.0"});
+    std::ofstream file(filePath, std::ios::out | std::ios::binary);
+    ASSERT_TRUE(file.is_open());
+    InstrProfHeadInfo core2Head;
+    core2Head.coreId = 2;
+    core2Head.coreType = 1;
+    core2Head.validLen = static_cast<uint32_t>(TEST_PC_SAMPLING_DATA_LEN * 2);
+    WritePcSamplingChunk(file, core2Head, {
+        BuildPcSamplingRecord(0x05, {1, 2, 3, 4, 5, 6, 7, 8, 9}),
+        BuildPcSamplingRecord(0x08, {2, 3, 4, 5, 6, 7, 8, 9, 10})
+    });
+    InstrProfHeadInfo core3Head;
+    core3Head.coreId = 3;
+    core3Head.coreType = 2;
+    core3Head.validLen = static_cast<uint32_t>(TEST_PC_SAMPLING_DATA_LEN);
+    WritePcSamplingChunk(file, core3Head, {
+        BuildPcSamplingRecord(0x01, {3, 4, 5, 6, 7, 8, 9, 10, 11})
+    });
+    InstrProfHeadInfo cubeHead;
+    cubeHead.coreId = 7;
+    cubeHead.coreType = 0;
+    cubeHead.validLen = static_cast<uint32_t>(TEST_PC_SAMPLING_DATA_LEN);
+    WritePcSamplingChunk(file, cubeHead, {
+        BuildPcSamplingRecord(0x05, {50, 51, 52, 53, 54, 55, 56, 57, 58})
+    });
+    file.close();
+
+    HotSpotFunctionGenerator hotSpotFunctionGenerator({"Ascend950PR_9599", "", 0, false, true, false});
+    hotSpotFunctionGenerator.startPc_ = 0;
+    hotSpotFunctionGenerator.encodings_[0x28] = {0x28, "PIPEA", "NAMEA", "", 0, 0, 0, 0};
+    hotSpotFunctionGenerator.encodings_[0x40] = {0x40, "PIPEB", "NAMEB", "", 0, 0, 0, 0};
+    hotSpotFunctionGenerator.encodings_[0x08] = {0x08, "PIPEC", "NAMEC", "", 0, 0, 0, 0};
+
+    hotSpotFunctionGenerator.UpdatePcSampling(tmpDir);
+
+    ASSERT_EQ(hotSpotFunctionGenerator.topStallReasonByCore_[0], 56);
+    ASSERT_EQ(hotSpotFunctionGenerator.topStallReasonByCore_[7], 84);
+    RemoveAll(tmpDir);
+}
+
+/**
+/* | 用例集 | DeviceDataParse
+/* |测试函数| UpdatePcSampling
+/* | 用例名 | process_update_pcsampling_accumulate_duplicate_pc_and_skip_missing_pc_expect_success
+/* |用例描述| 测试重复PC采样会累加，缺失encoding的PC会被跳过且不影响top stall统计
+*/
+TEST(DeviceDataParse, process_update_pcsampling_accumulate_duplicate_pc_and_skip_missing_pc_expect_success)
+{
+    const string tmpDir = "test/ut/resources/op_profiling/instr_prof_duplicate_pc";
+    RemoveAll(tmpDir);
+    ASSERT_TRUE(MkdirRecusively(tmpDir));
+    const string filePath = JoinPath({tmpDir, "pcSampling.bin.0"});
+    std::ofstream file(filePath, std::ios::out | std::ios::binary);
+    ASSERT_TRUE(file.is_open());
+
+    InstrProfHeadInfo headInfo;
+    headInfo.coreId = 5;
+    headInfo.coreType = 1;
+    headInfo.validLen = static_cast<uint32_t>(TEST_PC_SAMPLING_DATA_LEN * 4);
+    WritePcSamplingChunk(file, headInfo, {
+        BuildPcSamplingRecord(0x05, {1, 2, 3, 4, 5, 6, 7, 8, 9}),
+        BuildPcSamplingRecord(0x05, {10, 11, 12, 13, 14, 15, 16, 17, 18}),
+        BuildPcSamplingRecord(0x09, {20, 21, 22, 23, 24, 25, 26, 27, 28}),
+        BuildPcSamplingRecord(0x09, {30, 31, 32, 33, 34, 35, 36, 37, 38})
+    });
+    file.close();
+
+    HotSpotFunctionGenerator hotSpotFunctionGenerator({"Ascend950PR_9599", "", 0, false, true, false});
+    hotSpotFunctionGenerator.startPc_ = 0;
+    hotSpotFunctionGenerator.encodings_[0x28] = {0x28, "PIPEA", "NAMEA", "", 0, 0, 0, 0};
+
+    hotSpotFunctionGenerator.UpdatePcSampling(tmpDir);
+
+    ASSERT_EQ(hotSpotFunctionGenerator.encodings_[0x28].pcSampling.size(), 9);
+    ASSERT_EQ(hotSpotFunctionGenerator.encodings_[0x28].pcSampling[0], 11);
+    ASSERT_EQ(hotSpotFunctionGenerator.encodings_[0x28].pcSampling[1], 13);
+    ASSERT_EQ(hotSpotFunctionGenerator.encodings_[0x28].pcSampling[7], 25);
+    ASSERT_EQ(hotSpotFunctionGenerator.encodings_[0x28].pcSampling[8], 27);
+    ASSERT_EQ(hotSpotFunctionGenerator.encodings_.count(0x48), 0);
+    ASSERT_EQ(hotSpotFunctionGenerator.topStallReasonByCore_[0], 11);
+    ASSERT_EQ(hotSpotFunctionGenerator.topStallReasonByCore_[7], 25);
+
+    RemoveAll(tmpDir);
+}
+
+/**
+/* | 用例集 | DeviceDataParse
+/* |测试函数| DataHandlerOf91095::ParseMemoryChartData
+/* | 用例名 | parse_memory_chart_data_skip_top_stall_when_not_simt_expect_success
+/* |用例描述| 测试非SIMT场景下不会进入top stall热点图生成流程
+*/
+TEST(DeviceDataParse, parse_memory_chart_data_skip_top_stall_when_not_simt_expect_success)
+{
+    GlobalMockObject::verify();
+    DataHandlerOf91095 dataHandler;
+    ProfMetricsAbilityConfig metricsConfig;
+    metricsConfig.pcSamplingEnable = true;
+    std::vector<MemRecord> memoryRecords;
+    dataHandler.hasSimt_ = false;
+    MOCKER(&HotSpotFunctionGenerator::Process)
+        .expects(never());
+    dataHandler.ParseMemoryChartData("test/ut/resources/op_profiling/deviceA5", metricsConfig, memoryRecords, "");
+    GlobalMockObject::verify();
+}
+
+/**
+/* | 用例集 | DeviceDataParse
+/* |测试函数| GenTopStallReasonFigureJson
+/* | 用例名 | gen_top_stall_reason_figure_json_expect_todo_format
+/* |用例描述| 测试top stall统计结果能够按约定格式生成figure json
+*/
+TEST(DeviceDataParse, gen_top_stall_reason_figure_json_expect_todo_format)
+{
+    HotSpotFunctionGenerator hotSpotFunctionGenerator({"Ascend950PR_9599", "", 0, false, true, false});
+    hotSpotFunctionGenerator.topStallReasonByCore_ = {3, 5, 7, 9, 11, 13, 15, 17};
+
+    nlohmann::json figure = hotSpotFunctionGenerator.GenTopStallReasonFigureJson();
+
+    ASSERT_TRUE(figure.contains("top_stall_reason_table"));
+    auto topStallReasonTable = figure["top_stall_reason_table"];
+    ASSERT_EQ(topStallReasonTable["IBuf_Empty"], 3);
+    ASSERT_EQ(topStallReasonTable["Nop_Cycles"], 5);
+    ASSERT_EQ(topStallReasonTable["Scoreboard_Not_Ready"], 7);
+    ASSERT_EQ(topStallReasonTable["Register_bank_conflict"], 9);
+    ASSERT_EQ(topStallReasonTable["Resource_conflict"], 11);
+    ASSERT_EQ(topStallReasonTable["Warp_Level_Sync"], 13);
+    ASSERT_EQ(topStallReasonTable["Divergence_Stack_Spill"], 15);
+    ASSERT_EQ(topStallReasonTable["Others"], 17);
+}
+
+/**
+/* | 用例集 | DeviceDataParse
+/* |测试函数| BaseSource::GenStallSampling
+/* | 用例名 | gen_stall_sampling_all_sample_expect_active_field_present
+/* |用例描述| 测试生成all sample采样详情时，结果中包含Active字段
+*/
+TEST(DeviceDataParse, gen_stall_sampling_all_sample_expect_active_field_present)
+{
+    BaseSource baseSource;
+    baseSource.pcSampling = {3, 5, 7, 9, 11, 13, 15, 17, 19};
+
+    nlohmann::json stallSampling = baseSource.GenStallSampling(true);
+
+    ASSERT_TRUE(stallSampling.contains("Details"));
+    ASSERT_EQ(stallSampling["Details"]["IBuf_Empty"], 3);
+    ASSERT_EQ(stallSampling["Details"]["Others"], 17);
+    ASSERT_EQ(stallSampling["Details"]["Active"], 19);
+}
+
+/**
+/* | 用例集 | DeviceDataParse
+/* |测试函数| WriteTopStallReasonFigure
+/* | 用例名 | write_top_stall_reason_figure_expect_visualize_bin_contains_todo_format
+/* |用例描述| 测试top stall统计结果能够写入visualize bin并包含约定字段
+*/
+TEST(DeviceDataParse, write_top_stall_reason_figure_expect_visualize_bin_contains_todo_format)
+{
+    const string tmpDir = "test/ut/resources/op_profiling/top_stall_visualize";
+    RemoveAll(tmpDir);
+    ASSERT_TRUE(MkdirRecusively(tmpDir));
+
+    HotSpotFunctionGenerator hotSpotFunctionGenerator({"Ascend950PR_9599", "", 0, false, true, false});
+    hotSpotFunctionGenerator.topStallReasonByCore_ = {1000, 111, 111, 111, 111, 111, 111, 111};
+    Utility::Visualize::DefaultWriter writer(Utility::VisualizeType::TOP_STALL_REASON, tmpDir);
+    writer.Write(hotSpotFunctionGenerator.GenTopStallReasonFigureJson().dump());
+
+    const string visualizeBinPath = JoinPath({tmpDir, Utility::VISUALIZE_DATA_BIN});
+    ASSERT_TRUE(IsExist(visualizeBinPath));
+    std::vector<char> binData;
+    ASSERT_TRUE(ReadBinaryFile(visualizeBinPath, binData));
+    ASSERT_GT(binData.size(), sizeof(uint64_t));
+    const uint8_t visualizeType = static_cast<uint8_t>(static_cast<unsigned char>(binData[sizeof(uint64_t)]));
+    ASSERT_EQ(visualizeType, static_cast<uint8_t>(Utility::VisualizeType::TOP_STALL_REASON));
+    std::string binContent(binData.begin(), binData.end());
+    ASSERT_NE(binContent.find("\"top_stall_reason_table\""), std::string::npos);
+    ASSERT_NE(binContent.find("\"IBuf_Empty\":1000"), std::string::npos);
+    ASSERT_NE(binContent.find("\"Others\":111"), std::string::npos);
+
+    RemoveAll(tmpDir);
 }
 
 TEST(DeviceDataParse, HotSpot_UpdateProcessBytes_expect_true)
@@ -1686,4 +1930,3 @@ TEST(VisualizeDataAccuracy, test_AddInternuclearScalarIndex_vector_operate_and_e
         ASSERT_EQ(st.memInfoScalarMap_["Scalar"][i].cycle, indexValue[i]);
     }
 }
-

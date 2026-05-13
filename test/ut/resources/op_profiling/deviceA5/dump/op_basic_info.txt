@@ -7,3 +7,4 @@ Current Freq=N/A
 Rated Freq=1650
 Is MC2=0
 Is Lccl=0
+Has Simt=1

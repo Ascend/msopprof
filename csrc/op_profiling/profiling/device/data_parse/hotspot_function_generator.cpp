@@ -38,27 +38,26 @@ static constexpr float PERCENTAGE = 100;
 static constexpr int PC_SAMPLING_DATA_LEN = 16;
 static constexpr int PC_SAMPLING_DATA_STATUS_OFFSET = 3;
 static constexpr int PC_SAMPLING_STATUS_NUM = 9;
-
-const std::unordered_map<int, std::string> PC_SAMPLING_STATE = {
-    {0, "IBuf_Empty"},                   // Byte 3
-    {1, "Nop_Cycles"},                   // Byte 4
-    {2, "Scoreboard_Not_Ready"},         // Byte 5
-    {3, "Register_bank_conflict"},       // Byte 6
-    {4, "Resource_conflict"},            // Byte 7
-    {5, "Warp_Level_Sync"},              // Byte 8
-    {6, "Divergence_Stack_Spill"},       // Byte 9
-    {7, "Others"},                       // Byte 10
-    {8, "Active"}                        // Byte 11
+static constexpr int TOP_STALL_REASON_NUM = 8;
+static constexpr char const *PC_SAMPLING_STATE_NAMES[PC_SAMPLING_STATUS_NUM] = {
+    "IBuf_Empty",
+    "Nop_Cycles",
+    "Scoreboard_Not_Ready",
+    "Register_bank_conflict",
+    "Resource_conflict",
+    "Warp_Level_Sync",
+    "Divergence_Stack_Spill",
+    "Others",
+    "Active"
 };
-
 nlohmann::json BaseSource::GenStallSampling(bool allSample) const
 {
     nlohmann::json samplingJson;
     samplingJson["Percent"] = allSample ? this->samplingPercentAllSample : this->samplingPercentNotIssue;
-    size_t stateCnt = allSample ? PC_SAMPLING_STATE.size() : PC_SAMPLING_STATE.size() - 1;
+    size_t stateCnt = allSample ? PC_SAMPLING_STATUS_NUM : TOP_STALL_REASON_NUM;
     nlohmann::json dataDetail;
     for (size_t i = 0; i < stateCnt; ++i) {
-        dataDetail[PC_SAMPLING_STATE.at(i)] = this->pcSampling[i];
+        dataDetail[PC_SAMPLING_STATE_NAMES[i]] = this->pcSampling[i];
     }
     samplingJson["Details"] = dataDetail;
     return samplingJson;
@@ -239,6 +238,9 @@ bool HotSpotFunctionGenerator::Process(const std::string &outputPath,
         LogWarn("Hot spot function visualize data failed");
         return false;
     }
+    if (pcSamplingEnable_) {
+        WriteTopStallReasonFigure(outputPath);
+    }
     return true;
 }
 
@@ -306,6 +308,7 @@ void HotSpotFunctionGenerator::UpdateProcessBytes(const std::vector<Common::MemR
 void HotSpotFunctionGenerator::UpdatePcSampling(const std::string &dumpPath)
 {
     std::vector<std::string> filenames;
+    topStallReasonByCore_.fill(0);
     if (!Utility::ListDir(dumpPath, std::back_inserter(filenames))) {
         return;
     }
@@ -324,7 +327,7 @@ void HotSpotFunctionGenerator::UpdatePcSampling(const std::string &dumpPath)
 
 void HotSpotFunctionGenerator::ReadPcSamplingData(const std::string &filePath)
 {
-    std::map<uint64_t, std::vector<uint64_t>> orderedPcStateMap;
+    std::unordered_set<uint64_t> missingPcSet;
     if (!IsReadable(filePath)) {
         LogWarn("File %s is not exists or not readable.", filePath.c_str());
         return;
@@ -351,26 +354,13 @@ void HotSpotFunctionGenerator::ReadPcSamplingData(const std::string &filePath)
                 LogDebug("pc sampling data memory get error");
                 continue;
             }
-            ParsePcSamplingData(pcSamplingData, orderedPcStateMap);
+            uint64_t pc = ParsePcSamplingData(pcSamplingData);
+            AccumulatePcSamplingRecord(pc, pcSamplingData, missingPcSet);
         }
-    }
-    for (auto &item : orderedPcStateMap) {
-        uint64_t pc = item.first;
-        if (encodings_.find(pc) == encodings_.end()) {
-            LogDebug("PC-Sampling pc [%lx] is not in encodings", pc);
-            continue;
-        }
-        if (encodings_[pc].pcSampling.size() != orderedPcStateMap[pc].size()) {
-            encodings_[pc].pcSampling.resize(orderedPcStateMap[pc].size());
-        }
-        std::transform(encodings_[pc].pcSampling.begin(), encodings_[pc].pcSampling.end(),
-                       orderedPcStateMap[pc].begin(), encodings_[pc].pcSampling.begin(),
-                       [](uint64_t &a, uint64_t &b) { return a + b; });
     }
 }
 
-void HotSpotFunctionGenerator::ParsePcSamplingData(const std::vector<uint8_t> &pcSamplingData,
-    std::map<uint64_t, std::vector<uint64_t>> &orderedPcStateMap) const
+uint64_t HotSpotFunctionGenerator::ParsePcSamplingData(const std::vector<uint8_t> &pcSamplingData) const
 {
     uint64_t pc = 0;
     for (int t = 0; t < PC_SAMPLING_DATA_STATUS_OFFSET; ++t) {
@@ -378,13 +368,51 @@ void HotSpotFunctionGenerator::ParsePcSamplingData(const std::vector<uint8_t> &p
     }
     // pc sampling 数据24位标识26:3的地址，所以*8进行偏移，减去start pc 以及插桩pc offset
     pc = pc * 8 - (startPcForPcSampling_ & 0xFFFFFFFUL) - pcOffset_;
-    if (orderedPcStateMap.find(pc) == orderedPcStateMap.end()) {
-        std::vector<uint64_t> pcSamplingStates(PC_SAMPLING_STATUS_NUM, 0);
-        orderedPcStateMap[pc] = pcSamplingStates;
+    return pc;
+}
+
+void HotSpotFunctionGenerator::AccumulatePcSamplingRecord(uint64_t pc, const std::vector<uint8_t> &pcSamplingData,
+                                                          std::unordered_set<uint64_t> &missingPcSet)
+{
+    auto encodingItem = encodings_.find(pc);
+    if (encodingItem == encodings_.end()) {
+        if (missingPcSet.insert(pc).second) {
+            LogDebug("PC-Sampling pc [%lx] is not in encodings", pc);
+        }
+        return;
+    }
+    if (encodingItem->second.pcSampling.size() != PC_SAMPLING_STATUS_NUM) {
+        encodingItem->second.pcSampling.resize(PC_SAMPLING_STATUS_NUM);
     }
     for (int i = 0; i < PC_SAMPLING_STATUS_NUM; ++i) {
-        orderedPcStateMap[pc][i] += static_cast<uint64_t>(pcSamplingData[i + PC_SAMPLING_DATA_STATUS_OFFSET]);
+        const uint64_t value = static_cast<uint64_t>(pcSamplingData[i + PC_SAMPLING_DATA_STATUS_OFFSET]);
+        encodingItem->second.pcSampling[i] += value;
+        if (i < static_cast<int>(topStallReasonByCore_.size())) {
+            topStallReasonByCore_[i] += value;
+        }
     }
+}
+
+nlohmann::json HotSpotFunctionGenerator::GenTopStallReasonFigureJson() const
+{
+    nlohmann::json topStallReasonData;
+    for (size_t i = 0; i < TOP_STALL_REASON_NUM; ++i) {
+        topStallReasonData[PC_SAMPLING_STATE_NAMES[i]] = topStallReasonByCore_[i];
+    }
+    nlohmann::json figure;
+    figure["top_stall_reason_table"] = topStallReasonData;
+    return figure;
+}
+
+void HotSpotFunctionGenerator::WriteTopStallReasonFigure(const std::string &outputPath) const
+{
+    const bool hasTopStallReason = std::any_of(topStallReasonByCore_.begin(), topStallReasonByCore_.end(),
+                                               [](uint64_t value) { return value != 0; });
+    if (!hasTopStallReason) {
+        return;
+    }
+    Utility::Visualize::WriteBin<Utility::VisualizeType::TOP_STALL_REASON>(outputPath,
+                                                                           GenTopStallReasonFigureJson());
 }
 
 bool HotSpotFunctionGenerator::ProcessEncoding(const std::string &kernelPath,

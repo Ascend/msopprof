@@ -51,7 +51,7 @@ struct TimelineInfo {
 
 struct InstrProfHeadInfo {
     uint16_t coreId = 0;
-    uint16_t coreType = 0;
+    uint16_t coreType = 0;   // 标识core类型，0：CUBE，1：VECTOR，2：SCALAR
     uint32_t validLen = 0;
 };
 

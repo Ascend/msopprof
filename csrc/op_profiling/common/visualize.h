@@ -49,6 +49,7 @@ enum class VisualizeType : uint8_t {
     OCCUPANCY_MAP = 0xc,
     ROOF_LINE = 0xd,
     CACHELINE_HEAT_MAP = 0xe,
+    TOP_STALL_REASON = 0xf,
     END,
 };
 
@@ -66,6 +67,7 @@ const std::map<VisualizeType, std::string> VISUALIZE_TYPE_STR = {
     {VisualizeType::OCCUPANCY_MAP,           "OccupancyMap"},
     {VisualizeType::ROOF_LINE,               "RoofLine"},
     {VisualizeType::CACHELINE_HEAT_MAP,      "CacheLineHeatMap"},
+    {VisualizeType::TOP_STALL_REASON,        "TopStallReason"},
 };
 
 // total 12 color names for mindstudio-insight

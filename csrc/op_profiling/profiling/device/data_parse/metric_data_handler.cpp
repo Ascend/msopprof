@@ -700,7 +700,8 @@ void DataHandlerOf910B::ParseMemoryChartData(const std::string &outputPath,
         l2Cache_->Modeling(memoryRecords);
     }
     if (metrics.isSource) {
-        HotSpotFunctionGenerator hotSpotFunctionGenerator({GetSoc(), kernelName, 0, true, false, metrics.isMemoryDetail});
+        HotSpotFunctionGenerator hotSpotFunctionGenerator({GetSoc(), kernelName, 0, true, false,
+                                                           metrics.isMemoryDetail});
         if (!hotSpotFunctionGenerator.Process(outputPath, memoryRecords, l2Cache_)) {
             LogWarn("Generate hot spot function failed");
         }
@@ -765,11 +766,20 @@ void DataHandlerOf91095::ParseMemoryChartData(const std::string &outputPath,
         RemoveAll(memoryChartBin);
     }
 
-    if (metrics.isSource || metrics.pcSamplingEnable) {
-        HotSpotFunctionGenerator hotSpotFunctionGenerator({GetSoc(), "", pcOffsetByPcSampling_,  metrics.isSource, metrics.pcSamplingEnable,
-                                                          metrics.isMemoryDetail});
+    const bool pcSamplingEnable = metrics.pcSamplingEnable && GetHasSimt();
+    if (pcSamplingEnable) {
+        LogInfo("Enable stall reason analysis for SIMT operator.");
+    } else {
+        LogDebug("Skip stall reason analysis because current operator is not SIMT.");
+    }
+
+    if (metrics.isSource || pcSamplingEnable) {
+        HotSpotFunctionGenerator hotSpotFunctionGenerator({GetSoc(), "", pcOffsetByPcSampling_, metrics.isSource,
+                                                           pcSamplingEnable,
+                                                           metrics.isMemoryDetail});
         if (!hotSpotFunctionGenerator.Process(outputPath, memoryRecords, l2Cache_)) {
             LogWarn("Generate hot spot function failed");
+            return;
         }
     }
 }
