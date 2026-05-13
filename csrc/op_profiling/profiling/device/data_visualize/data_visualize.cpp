@@ -79,8 +79,7 @@ void DataVisualize::GenerateAllVisualizeData(Profiling::Parse::DataCenter
             timelineVisualize.TimelineToJson(outputPath);
             Utility::Visualize::WriteBin<VT::TRACE>(outputPath, timelineVisualize.timelineJson_);
         }
-    }
-    if (timelineParser_->TimelineToJson(outputPath)) {
+    } else if (timelineParser_->TimelineToJson(outputPath)) {
         Utility::Visualize::WriteBin<VT::TRACE>(outputPath, timelineParser_->GetTimelineJson());
     }
     if (cachelineHeatMapParser_->ToJson(outputPath)) {
