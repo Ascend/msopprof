@@ -1,8 +1,9 @@
 cmake_minimum_required(VERSION 3.20.2)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(MAX_SUPPORTED_CMAKE_VERSION "3.31.10")
 if(CMAKE_VERSION VERSION_GREATER MAX_SUPPORTED_CMAKE_VERSION)
-    message(FATAL_ERROR 
+    message(FATAL_ERROR
         "CMake ${CMAKE_VERSION} is too new! The maximum supported version is ${MAX_SUPPORTED_CMAKE_VERSION}."
     )
 else()
@@ -65,7 +66,7 @@ set(INSTALL_GTEST OFF)
 if (${CMAKE_INSTALL_PREFIX} STREQUAL "/usr/local" OR ${CMAKE_INSTALL_PREFIX} STREQUAL "/usr" OR NOT DEFINED CMAKE_INSTALL_PREFIX)
     set(CMAKE_INSTALL_PREFIX ${ROOT_DIR}/output CACHE STRING "install prefix" FORCE)
     message(STATUS "No install prefix selected, default to ${CMAKE_INSTALL_PREFIX}")
-endif() 
+endif()
 
 option(BUILD_TESTS "build unit tests" OFF)
 include(cmake/options.cmake)

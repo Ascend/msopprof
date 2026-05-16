@@ -14,7 +14,6 @@
  * See the Mulan PSL v2 for more details.
  * ------------------------------------------------------------------------- */
 
-
 #include "op_sim_prof.h"
 
 #include "smart_pointer.h"
@@ -27,19 +26,17 @@
 using namespace Utility;
 
 namespace Profiling {
-OpSimProf::OpSimProf(const Common::ProfArgs &profArgs): OpProf(profArgs)
-{
+OpSimProf::OpSimProf(const Common::ProfArgs &profArgs) : OpProf(profArgs) {
     socVersion_ = profArgs.argSocVersion;
     exportPath_ = profArgs.argExport;
     coreId_ = profArgs.argCoreId;
     if (!profArgs.argTimeout.empty()) {
         int32_t minuteTime = 0;
         Utility::StringToNum<int32_t>(profArgs.argTimeout, minuteTime);
-        timeout_ = minuteTime * 60;  // 60s
+        timeout_ = minuteTime * 60; // 60s
     }
 }
-Profiling::TaskPtr OpSimProf::GetTask()
-{
+Profiling::TaskPtr OpSimProf::GetTask() {
     Profiling::TaskPtr task = nullptr;
     std::string ascendHomePath;
     std::string tmpPath = JoinPath({output_, "device0", Common::TMP_DUMP});
@@ -53,15 +50,13 @@ Profiling::TaskPtr OpSimProf::GetTask()
     return task;
 }
 
-std::unique_ptr<DataParse> OpSimProf::GetDataParser()
-{
+std::unique_ptr<DataParse> OpSimProf::GetDataParser() {
     return MakeUnique<SimDataParse>(socVersion_, exportPath_, coreId_, aicMetrics_, dump_);
 }
 
-bool OpSimProf::Run()
-{
+bool OpSimProf::Run() {
     if (exportPath_.empty() && !RunTask()) {
-        LogError("Running task failed, proceeding to data parsing");
+        LogWarn("Running task failed, proceeding to data parsing");
     }
 
     if (!RunDataParse()) {
@@ -71,4 +66,3 @@ bool OpSimProf::Run()
     return true;
 }
 }
-
