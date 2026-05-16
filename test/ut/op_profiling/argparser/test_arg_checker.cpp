@@ -50,7 +50,6 @@ private:
 
 TEST(ArgChecker, args_with_onboard_run_mode_expect_check_success)
 {
-    GlobalMockObject::verify();
     ProfArgs args;
     args.runMode = "device";
     std::string msg;
@@ -65,7 +64,6 @@ TEST(ArgChecker, args_with_onboard_run_mode_expect_check_success)
 
 TEST(ArgChecker, args_with_onboard_run_mode_expect_check_fail)
 {
-    GlobalMockObject::verify();
     ProfArgs args;
     args.runMode = "device";
     std::string msg;
@@ -162,19 +160,6 @@ TEST(ArgChecker, args_with_args_path_and_cmd_expect_can_not_specified_together_e
     ASSERT_NE(msg.find("Input parameter config, export and application can not be used together or empty at the same time"), std::string::npos);
 }
 
-TEST(ArgChecker, args_with_not_writable_outputpath_expect_no_permission_error)
-{
-    mkdir("/tmp/dump1", 0400);
-    ProfArgs args;
-    args.runMode = "device";
-    std::string msg;
-    ArgChecker checker("device");
-    args.argOutput = "/tmp/dump1";
-    ASSERT_FALSE(checker.CheckOutputPathValid(args, msg));
-    ASSERT_NE(msg.find("Output dir is not writable"), std::string::npos);
-    rmdir("/tmp/dump1");
-}
-
 TEST(ArgChecker, export_with_application_and_confg_expect_false)
 {
     mkdir("/tmp/dump1", 0664);
@@ -189,16 +174,6 @@ TEST(ArgChecker, export_with_application_and_confg_expect_false)
     args.cmd = {"test"};
     ASSERT_FALSE(checker.CheckApplicationValid(args, msg));
     rmdir("/tmp/dump1");
-}
-
-TEST(ArgChecker, config_with_export_path_false)
-{
-    ProfArgs args;
-    args.runMode = "simulator";
-    std::string msg;
-    ArgChecker checker("simulator");
-    args.argExport = "test/ut/resources/op_profiling/simulator_sample/dump";
-    ASSERT_TRUE(checker.CheckExportPathValid(args, msg));
 }
 
 TEST(ArgChecker, args_with_kernel_name_expect_check_failed)
@@ -249,6 +224,7 @@ TEST(ArgChecker, test_CheckMstxInclude_with_only_mstx_include_expect_check_faile
     std::string msg;
     ArgChecker checker("");
     ASSERT_FALSE(checker.CheckMstxInclude(args, msg));
+    ASSERT_TRUE(msg.find("--mstx-include only support when --mstx=on") != std::string::npos);
 }
 
 TEST(ArgChecker, test_CheckMstxInclude_with_normal_mstx_usage_expect_check_success)
@@ -269,6 +245,7 @@ TEST(ArgChecker, test_CheckMstxInclude_with_invalid_mstx_include_expect_check_fa
     std::string msg;
     ArgChecker checker("");
     ASSERT_FALSE(checker.CheckMstxInclude(args, msg));
+    ASSERT_TRUE(msg.find("Support characters in one message are: A-Z a-z 0-9 _") != std::string::npos);
 }
 
 TEST(ArgChecker, test_CheckMstxInclude_with_too_long_kernel_name_expect_check_failed)
@@ -279,6 +256,7 @@ TEST(ArgChecker, test_CheckMstxInclude_with_too_long_kernel_name_expect_check_fa
     std::string msg;
     ArgChecker checker("");
     ASSERT_FALSE(checker.CheckMstxInclude(args, msg));
+    ASSERT_TRUE(msg.find("--mstx-include input length exceeds limitation") != std::string::npos);
 }
 
 TEST(ArgChecker, replay_mode_return_should_be_true)
@@ -426,11 +404,11 @@ TEST(ArgChecker, args_with_sim_soc_version_in_chip_product_success)
     args.runMode = { "simulator" };
     args.argSocVersion = { "Ascend950DT_9573" };
     ASSERT_TRUE(checker.CheckSimSocVersion(args, msg));
+    GlobalMockObject::verify();
 }
 
 TEST(ArgChecker, args_with_sim_soc_version_get_ascend_home_path_failed)
 {
-    GlobalMockObject::verify();
     MOCKER(&Utility::GetAscendHomePath)
         .stubs()
         .will(returnValue(false));
@@ -441,11 +419,12 @@ TEST(ArgChecker, args_with_sim_soc_version_get_ascend_home_path_failed)
     args.runMode = { "simulator" };
     args.argSocVersion = { "Ascend910B1" };
     ASSERT_FALSE(checker.CheckSimSocVersion(args, msg));
+    ASSERT_TRUE(msg.find("$ASCEND_HOME_PATH not found") != std::string::npos);
+    GlobalMockObject::verify();
 }
 
 TEST(ArgChecker, args_with_sim_soc_version_get_file_names_failed)
 {
-    GlobalMockObject::verify();
     ProfArgs args;
     std::string msg;
     ArgChecker checker("simulator");
@@ -456,11 +435,12 @@ TEST(ArgChecker, args_with_sim_soc_version_get_file_names_failed)
         .stubs()
         .will(returnValue(true));
     ASSERT_FALSE(checker.CheckSimSocVersion(args, msg));
+    ASSERT_TRUE(msg.find("get simulator failed") != std::string::npos);
+    GlobalMockObject::verify();
 }
 
 TEST(ArgChecker, args_with_sim_soc_version_str_failed)
 {
-    GlobalMockObject::verify();
     ProfArgs args;
     std::string msg;
     ArgChecker checker("simulator");
@@ -474,11 +454,12 @@ TEST(ArgChecker, args_with_sim_soc_version_str_failed)
         .stubs()
         .will(returnValue(true));
     ASSERT_FALSE(checker.CheckSimSocVersion(args, msg));
+    ASSERT_TRUE(msg.find("--soc-version is invalid") != std::string::npos);
+    GlobalMockObject::verify();
 }
 
 TEST(ArgChecker, args_with_core_id_expect_failed)
 {
-    GlobalMockObject::verify();
     ArgChecker checker("");
     Common::ProfArgs args;
     std::string msg;
@@ -486,20 +467,23 @@ TEST(ArgChecker, args_with_core_id_expect_failed)
     auto str = std::string(201, '1');
     args.argCoreId = str;
     ASSERT_FALSE(checker.CheckCoreId(args, msg));
+    ASSERT_TRUE(msg.find("--core-id input length exceeds limitation") != std::string::npos);
     // test StringToNum failed
     args.argCoreId = "12a";
     ASSERT_FALSE(checker.CheckCoreId(args, msg));
+    ASSERT_TRUE(msg.find("should be an integer which within [0, 49]") != std::string::npos);
     // test core id smaller than 0
     args.argCoreId = "-1";
     ASSERT_FALSE(checker.CheckCoreId(args, msg));
+    ASSERT_TRUE(msg.find("should be an integer which within [0, 49]") != std::string::npos);
     // test core id larger than 49
     args.argCoreId = "50";
     ASSERT_FALSE(checker.CheckCoreId(args, msg));
+    ASSERT_TRUE(msg.find("should be an integer which within [0, 49]") != std::string::npos);
 }
 
 TEST(ArgChecker, args_with_core_id_expect_success)
 {
-    GlobalMockObject::verify();
     ArgChecker checker("");
     Common::ProfArgs args;
     std::string msg;
@@ -513,7 +497,6 @@ TEST(ArgChecker, args_with_core_id_expect_success)
 
 TEST(ArgChecker, args_with_timeout)
 {
-    GlobalMockObject::verify();
     ArgChecker checker("simulator");
     Common::ProfArgs args;
     std::string msg;
@@ -536,7 +519,6 @@ TEST(ArgChecker, args_with_timeout)
 
 TEST(ArgChecker, mstx_args_check)
 {
-    GlobalMockObject::verify();
     ArgChecker checker("");
     Common::ProfArgs args;
     std::string msg;
@@ -552,17 +534,18 @@ TEST(ArgChecker, mstx_args_check)
     // test error input
     args.argMstx = "ofn";
     ASSERT_FALSE(checker.CheckMstx(args, msg));
+    ASSERT_TRUE(msg.find("--mstx should use on/off") != std::string::npos);
 }
 
 TEST(ArgChecker, warm_up_args_check)
 {
-    GlobalMockObject::verify();
     ArgChecker checker("");
     Common::ProfArgs args;
     std::string msg;
     // test Non-numeric input
     args.argWarmUp = "aa";
     ASSERT_FALSE(checker.CheckWarmUp(args, msg));
+    ASSERT_TRUE(msg.find("should be number and within [0, 500]") != std::string::npos);
     // test numeric input
     args.argWarmUp = "400";
     ASSERT_TRUE(checker.CheckWarmUp(args, msg));
@@ -570,20 +553,131 @@ TEST(ArgChecker, warm_up_args_check)
     // test Inputs that exceed the maximum value
     args.argWarmUp = "501";
     ASSERT_FALSE(checker.CheckWarmUp(args, msg));
+    ASSERT_TRUE(msg.find("should within [0, 500]") != std::string::npos);
     // test inputs with a negative value
     args.argWarmUp = "-4294967294";
     ASSERT_FALSE(checker.CheckWarmUp(args, msg));
+    ASSERT_TRUE(msg.find("should be number and within [0, 500]") != std::string::npos);
 }
 
 /**
-* |  用例集 | ArgChecker
+* |  用例集  | ArgChecker
+* | 测试函数 | ArgChecker
+* |  用例名  | test_CheckExportPathValid_expect_return_true
+* | 用例描述 | 测试不输入或输入路径权限正确CheckExportPathValid成功
+*/
+TEST(ArgChecker, test_CheckExportPathValid_expect_return_true)
+{
+    ProfArgs args;
+    args.runMode = "simulator";
+    std::string msg;
+    ArgChecker checker("simulator");
+    // 不输入
+    args.argExport = "";
+    ASSERT_TRUE(checker.CheckExportPathValid(args, msg));
+    // 输入路径权限正确
+    args.argExport = "test/ut/resources/op_profiling/simulator_sample/dump";
+    ASSERT_TRUE(checker.CheckExportPathValid(args, msg));
+}
+
+/**
+* |  用例集  | ArgChecker
+* | 测试函数 | ArgChecker
+* |  用例名  | test_CheckExportPathValid_expect_return_false
+* | 用例描述 | 测试不输入或输入路径权限正确CheckExportPathValid失败
+*/
+TEST(ArgChecker, test_CheckExportPathValid_expect_return_false)
+{
+    ProfArgs args;
+    args.runMode = "simulator";
+    std::string msg;
+    ArgChecker checker("simulator");
+    // 输入路径没有写权限
+    args.argExport = "test/ut/resources/op_profiling/simulator_sample/dump";
+    MOCKER(&Utility::CheckPermission)
+        .stubs()
+        .will(returnValue(false));
+    ASSERT_FALSE(checker.CheckExportPathValid(args, msg));
+    ASSERT_TRUE(msg.find("cannot have write permission") != std::string::npos);
+    // 输入路径父目录权限问题
+    MOCKER(&Utility::CheckInputFileValid)
+        .stubs()
+        .will(returnValue(false));
+    ASSERT_FALSE(checker.CheckExportPathValid(args, msg));
+    ASSERT_TRUE(msg.find("parent dir permission wrong") != std::string::npos);
+    GlobalMockObject::verify();
+}
+
+/**
+* |  用例集  | ArgChecker
+* | 测试函数 | ArgChecker
+* |  用例名  | test_CheckOutputPathValid_expect_return_true
+* | 用例描述 | 测试输出路径权限正确CheckOutputPathValid成功
+*/
+TEST(ArgChecker, test_CheckOutputPathValid_expect_return_true)
+{
+    mkdir("/tmp/dump1", 0640);
+    ProfArgs args;
+    args.runMode = "device";
+    std::string msg;
+    ArgChecker checker("device");
+    args.argOutput = "/tmp/dump1";
+    ASSERT_TRUE(checker.CheckOutputPathValid(args, msg));
+    rmdir("/tmp/dump1");
+}
+
+/**
+* |  用例集  | ArgChecker
+* | 测试函数 | ArgChecker
+* |  用例名  | test_CheckOutputPathValid_expect_return_false
+* | 用例描述 | 测试输出路径非文件夹、权限问题、属主问题等CheckOutputPathValid失败
+*/
+TEST(ArgChecker, test_CheckOutputPathValid_expect_return_false)
+{
+    mkdir("/tmp/dump1", 0400);
+    ProfArgs args;
+    args.runMode = "device";
+    std::string msg;
+    ArgChecker checker("device");
+    args.argOutput = "/tmp/dump1";
+    // 输出路径没有写权限
+    ASSERT_FALSE(checker.CheckOutputPathValid(args, msg));
+    ASSERT_TRUE(msg.find("Output dir is not writable") != std::string::npos);
+    // 输出路径属主问题
+    MOCKER(&Utility::CheckOwnerPermission)
+        .stubs()
+        .will(returnValue(false));
+    ASSERT_FALSE(checker.CheckOutputPathValid(args, msg));
+    // 输出路径长度问题
+    MOCKER(&Utility::PathLenCheckValid)
+        .stubs()
+        .will(returnValue(false));
+    ASSERT_FALSE(checker.CheckOutputPathValid(args, msg));
+    ASSERT_TRUE(msg.find("--output parameter length is larger than 200") != std::string::npos);
+    // 输出路径字符不合规
+    MOCKER(&Utility::IsStringCharValid)
+        .stubs()
+        .will(returnValue(false));
+    ASSERT_FALSE(checker.CheckOutputPathValid(args, msg));
+    ASSERT_TRUE(msg.find("--output parameter contains") != std::string::npos);
+    // 输出路径存在但非文件夹
+    MOCKER(&Utility::IsDir)
+        .stubs()
+        .will(returnValue(false));
+    ASSERT_FALSE(checker.CheckOutputPathValid(args, msg));
+    ASSERT_TRUE(msg.find("--output parameter is not a folder but already exist") != std::string::npos);
+    rmdir("/tmp/dump1");
+    GlobalMockObject::verify();
+}
+
+/**
+* |  用例集  | ArgChecker
 * | 测试函数 | ArgChecker
 * |  用例名  | test_ArgChecker_size_expect_return_true
-* | 用例描述 | 测试不同场景下按照rumode分类的argcheck的size大小满足预期
+* | 用例描述 | 测试不同场景下按照runmode分类的argcheck的size大小满足预期
 */
 TEST(ArgChecker, test_ArgChecker_size_expect_return_true)
 {
-    GlobalMockObject::verify();
     ArgChecker checker1("device");
     ASSERT_TRUE(checker1.checkers_.size() == 14);
 
@@ -592,49 +686,144 @@ TEST(ArgChecker, test_ArgChecker_size_expect_return_true)
 
     ArgChecker checker3("");
     ASSERT_TRUE(checker3.checkers_.size() == 14);
-    GlobalMockObject::verify();
 }
 
 /**
-* |  用例集 | ArgChecker
+* |  用例集  | ArgChecker
 * | 测试函数 | CheckAicMetrics
-* |  用例名  | test_CheckAicMetrics_expect_return_false
-* | 用例描述 | 测试不同场景下按照rumode分类的CheckAicMetrics失败
+* |  用例名  | test_CheckAicMetrics_device_platform_get_failed_expect_return_false
+* | 用例描述 | 测试device场景芯片型号获取失败，CheckAicMetrics失败
 */
-TEST(ArgChecker, test_CheckAicMetrics_expect_return_false)
+TEST(ArgChecker, test_CheckAicMetrics_device_platform_get_failed_expect_return_false)
 {
-    GlobalMockObject::verify();
     ArgChecker checker("");
     Common::ProfArgs args;
     args.runMode = "device";
-    args.argAicMetrics.metricVec = {{"ooo"}};
     std::string msg;
+    MOCKER(&Common::HalHelper::GetPlatformType)
+        .stubs()
+        .will(returnValue(Common::ChipType::END_TYPE));
     ASSERT_FALSE(checker.CheckAicMetrics(args, msg));
-    args.runMode = "simulator";
-    args.argAicMetrics.metricVec = {{"ooo"}};
-    ASSERT_FALSE(checker.CheckAicMetrics(args, msg));
+    ASSERT_TRUE(msg.find("not support") != std::string::npos);
     GlobalMockObject::verify();
 }
 
 /**
-* |  用例集 | ArgChecker
-* | 测试函数 | CheckDump
-* |  用例名  | test_CheckDump_expect_return_true
-* | 用例描述 | 测试输入on/off CheckDump均pass,异常输入返回false
+* |  用例集  | ArgChecker
+* | 测试函数 | CheckAicMetrics
+* |  用例名  | test_CheckAicMetrics_device_metric_failed_expect_return_false
+* | 用例描述 | 测试device场景metric校验失败，CheckAicMetrics失败
 */
-TEST(ArgChecker, test_CheckDump_expect_return_true)
+TEST(ArgChecker, test_CheckAicMetrics_device_metric_failed_expect_return_false)
 {
+    ArgChecker checker("");
+    Common::ProfArgs args;
+    args.runMode = "device";
+    std::string msg;
+    MOCKER(&Common::HalHelper::GetPlatformType)
+        .stubs()
+        .will(returnValue(Common::ChipType::ASCEND910B));
+    // 测试错误metric
+    args.argAicMetrics.metricVec = {{"test"}};
+    ASSERT_FALSE(checker.CheckAicMetrics(args, msg));
+    ASSERT_TRUE(msg.find("maybe in wrong run mode") != std::string::npos);
+    // 测试芯片型号不支持的metric
+    args.argAicMetrics.metricVec = {{"pipetimeline"}};
+    ASSERT_FALSE(checker.CheckAicMetrics(args, msg));
+    ASSERT_TRUE(msg.find("maybe in wrong soc platform") != std::string::npos);
     GlobalMockObject::verify();
+}
+
+/**
+* |  用例集  | ArgChecker
+* | 测试函数 | CheckAicMetrics
+* |  用例名  | test_CheckAicMetrics_device_expect_return_true
+* | 用例描述 | 测试device场景CheckAicMetrics成功
+*/
+TEST(ArgChecker, test_CheckAicMetrics_device_expect_return_true)
+{
+    ArgChecker checker("");
+    Common::ProfArgs args;
+    args.runMode = "device";
+    std::string msg;
+    args.argAicMetrics.metricVec = {{"pipetimeline"}};
+    MOCKER(&Common::HalHelper::GetPlatformType)
+        .stubs()
+        .will(returnValue(Common::ChipType::ASCEND950));
+    ASSERT_TRUE(checker.CheckAicMetrics(args, msg));
+    GlobalMockObject::verify();
+}
+
+/**
+* |  用例集  | ArgChecker
+* | 测试函数 | CheckAicMetrics
+* |  用例名  | test_CheckAicMetrics_sim_expect_return_false
+* | 用例描述 | 测试simulator场景CheckAicMetrics失败
+*/
+TEST(ArgChecker, test_CheckAicMetrics_sim_expect_return_false)
+{
+    ArgChecker checker("");
+    Common::ProfArgs args;
+    args.runMode = "simulator";
+    std::string msg;
+    args.argSocVersion = "Ascend310P3";
+    // 测试错误metric
+    args.argAicMetrics.metricVec = {{"test"}};
+    ASSERT_FALSE(checker.CheckAicMetrics(args, msg));
+    ASSERT_TRUE(msg.find("maybe in wrong run mode") != std::string::npos);
+    // 测试芯片型号不支持的metric
+    args.argAicMetrics.metricVec = {{"pmsampling"}};
+    ASSERT_FALSE(checker.CheckAicMetrics(args, msg));
+    ASSERT_TRUE(msg.find("maybe in wrong soc platform") != std::string::npos);
+}
+
+/**
+* |  用例集  | ArgChecker
+* | 测试函数 | CheckAicMetrics
+* |  用例名  | test_CheckAicMetrics_sim_expect_return_true
+* | 用例描述 | 测试simulator场景CheckAicMetrics成功
+*/
+TEST(ArgChecker, test_CheckAicMetrics_sim_expect_return_true)
+{
+    ArgChecker checker("");
+    Common::ProfArgs args;
+    args.runMode = "simulator";
+    std::string msg;
+    args.argAicMetrics.metricVec = {{"pipeutilization"}};
+    ASSERT_TRUE(checker.CheckAicMetrics(args, msg));
+}
+
+/**
+* |  用例集  | ArgChecker
+* | 测试函数 | CheckDump
+* |  用例名  | test_CheckDump_expect_return_false
+* | 用例描述 | 测试异常输入CheckDump失败
+*/
+TEST(ArgChecker, test_CheckDump_expect_return_false)
+{
     ArgChecker checker("simulator");
     Common::ProfArgs args;
     std::string msg;
     args.runMode = "simulator";
-    args.argAicMetrics.metricVec = {{"ooo"}};
+    args.argDump = "test";
+    ASSERT_FALSE(checker.CheckDump(args, msg));
+    ASSERT_TRUE(msg.find("--dump should be on/off") != std::string::npos);
+}
+
+/**
+* |  用例集  | ArgChecker
+* | 测试函数 | CheckDump
+* |  用例名  | test_CheckDump_expect_return_true
+* | 用例描述 | 测试输入on/off CheckDump均成功
+*/
+TEST(ArgChecker, test_CheckDump_expect_return_true)
+{
+    ArgChecker checker("simulator");
+    Common::ProfArgs args;
+    std::string msg;
+    args.runMode = "simulator";
     args.argDump = "on";
     ASSERT_TRUE(checker.CheckDump(args, msg));
     args.argDump = "off";
     ASSERT_TRUE(checker.CheckDump(args, msg));
-    args.argDump = "ccc";
-    ASSERT_FALSE(checker.CheckDump(args, msg));
-    GlobalMockObject::verify();
 }
