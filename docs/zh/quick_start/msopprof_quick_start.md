@@ -41,11 +41,15 @@ python3 -c "import numpy, sympy, scipy, attrs, psutil, decorator; from packaging
 #### 2.3.1 修改编译选项并重新编译部署
 
 **1. 修改编译选项**
+
 在 Kernel 侧 CMakeLists.txt 首行插入一行配置，开启调试信息：
 
 ```shell
+# 进入对应目录进行文件备份
 cd ~/ot_demo/workspace/src/AddCustom
-\cp -f op_kernel/CMakeLists.txt op_kernel/CMakeLists.txt.bak
+cp -f op_kernel/CMakeLists.txt op_kernel/CMakeLists.txt.bak
+
+# 将以下配置内容插入CMakeLists.txt 首行
 printf '%s\n' "if(COMMAND add_ops_compile_options)" "  add_ops_compile_options(ALL OPTIONS -g)" "elseif(COMMAND npu_op_kernel_options)" "  npu_op_kernel_options(ascendc_kernels ALL OPTIONS -g)" "endif()" | cat - op_kernel/CMakeLists.txt > tmp && mv -f tmp op_kernel/CMakeLists.txt;
 ```
 
@@ -58,11 +62,12 @@ MY_OP_PKG=$(find ./build_out -maxdepth 1 -name "custom_opp_*.run" | head -1) && 
 
 #### 2.3.2 启动真机与仿真采集
 
->[!NOTE]说明   
->**知识点：上板和仿真采集信息的区别**   
->上板：可精确捕获算子运行耗时、各 Pipe 使用情况、内存带宽、Cache 行为等真实硬件特性，而这些往往是仿真器难以高保真复现的关键指标。   
->仿真：在指令流追踪、代码热点定位等方面提供更完整、稳定的分析能力，但对内存访问延迟、带宽瓶颈等硬件相关行为的模拟精度有限。    
->因此，建议结合两种方式，互补优势，实现全面性能诊断。若某些场景下您没有真实硬件（NPU 卡），可以使用仿真模式进行初步的性能估算和热点分析。    
+> [!NOTE]
+> 
+> **知识点：上板和仿真采集信息的区别**   
+> 上板：可精确捕获算子运行耗时、各 Pipe 使用情况、内存带宽、Cache 行为等真实硬件特性，而这些往往是仿真器难以高保真复现的关键指标。   
+> 仿真：在指令流追踪、代码热点定位等方面提供更完整、稳定的分析能力，但对内存访问延迟、带宽瓶颈等硬件相关行为的模拟精度有限。    
+> 因此，建议结合两种方式，互补优势，实现全面性能诊断。若某些场景下您没有真实硬件（NPU 卡），可以使用仿真模式进行初步的性能估算和热点分析。    
 
 ##### 2.3.2.1 上板性能采集   
 
@@ -81,7 +86,8 @@ msopprof --output=./msopprof_output_npu ./execute_add_op
 msopprof simulator --soc-version=Ascendxxxyy --output=./msopprof_output_sim ./execute_add_op
 ```
 
->[!NOTE]说明   
+> [!NOTE]
+> 
 > 如果执行时报`msopprof: command not found`，说明环境版本较旧，尝试将命令`msopprof`替换为`msprof op`，例如：`msprof op --output=./msprof_output_npu ./execute_add_op`
 
 #### 2.3.3 查看性能数据结果
@@ -125,5 +131,5 @@ msopprof simulator --soc-version=Ascendxxxyy --output=./msopprof_output_sim ./ex
 
 ```shell
 cd ~/ot_demo/workspace/src/AddCustom
-\cp -f op_kernel/CMakeLists.txt.bak op_kernel/CMakeLists.txt
+cp -f op_kernel/CMakeLists.txt.bak op_kernel/CMakeLists.txt
 ```
