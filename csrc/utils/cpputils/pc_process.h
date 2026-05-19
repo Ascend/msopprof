@@ -19,6 +19,7 @@
 #include <vector>
 #include <string>
 #include <set>
+#include <cstdint>
 namespace Utility {
 std::vector<std::vector<std::string>> MergeAddrRange(const std::set<uint64_t> &addrSet, uint64_t startPc = 0);
 std::vector<std::vector<std::string>> MergeAddrRange(const std::set<std::string> &addrSet, uint64_t startPc = 0);

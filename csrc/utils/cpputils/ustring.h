@@ -21,6 +21,7 @@
 #include <string>
 #include <set>
 #include <regex>
+#include <cstdint>
 
 #include "sstream"
 #include "log.h"

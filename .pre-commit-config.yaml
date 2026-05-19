@@ -45,8 +45,6 @@ repos:
     hooks:
       - id: clang-format
         files: \.(c|h|cpp|hpp|cc|hh|cxx|hxx)$
-        args:
-          - "--style=file"
-          - "--verbose"
-          - "-i"
+        entry: git-clang-format
+        args: [--binary, clang-format, -f]
         exclude: ^(build|test|thirdparty)/
