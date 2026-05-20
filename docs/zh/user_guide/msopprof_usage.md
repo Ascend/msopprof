@@ -55,7 +55,9 @@ Kernel直调场景，详细信息可参考《Ascend C算子开发指南》中“
     ```
 
 4. 使用如下命令完成msopprof simulator性能数据、流水图和热点图数据的采集，也可参考[msopprof simulator模式命令](https://gitcode.com/Ascend/msopprof/blob/master/docs/zh/user_guide/msopprof_simulator_user_guide.md#命令参考)指定其他命令参数。
-    参考<a href="https://gitcode.com/Ascend/msot/blob/master/docs/zh/quick_start/get_chip_soc_type.md" target="_blank">《芯片SoC类型获取方法》</a>获取芯片类型，作为如下参数 `--soc-version` 的值。
+
+    > [!NOTE]说明
+    > 参数 `--soc-version` 的值可通过执行以下命令获取：`python3 -c "import acl; print(acl.get_soc_name())"`。
 
     ```shell
     msprof op simulator --soc-version=Ascendxxxyy add_sim
@@ -110,7 +112,10 @@ Kernel直调场景，详细信息可参考《Ascend C算子开发指南》中“
     msprof op execute_add_op
     ```
     
-4. 使用如下命令完成msopprof simulator性能数据、流水图和热点图数据的采集。参考<a href="https://gitcode.com/Ascend/msot/blob/master/docs/zh/quick_start/get_chip_soc_type.md" target="_blank">《芯片SoC类型获取方法》</a>获取芯片类型，作为如下参数 `--soc-version` 的值。
+4. 使用如下命令完成msopprof simulator性能数据、流水图和热点图数据的采集。
+
+    > [!NOTE]说明
+    > 参数 `--soc-version` 的值可通过执行以下命令获取：`python3 -c "import acl; print(acl.get_soc_name())"`。
 
     ```shell
     msprof op simulator --soc-version=Ascendxxxyy execute_add_op
@@ -171,7 +176,10 @@ PyTorch框架算子调用场景下，进行性能数据采集的操作步骤与[
     msprof op python3 test_add.py
     ```
 
-3. 使用如下命令完成msopprof simulator性能数据、流水图和热点图数据的采集。参考<a href="https://gitcode.com/Ascend/msot/blob/master/docs/zh/quick_start/get_chip_soc_type.md" target="_blank">《芯片SoC类型获取方法》</a>获取芯片类型，作为如下参数 `--soc-version` 的值。
+3. 使用如下命令完成msopprof simulator性能数据、流水图和热点图数据的采集。
+
+    > [!NOTE]说明
+    > 参数 `--soc-version` 的值可通过执行以下命令获取：`python3 -c "import acl; print(acl.get_soc_name())"`。
 
     ```shell
     msprof op simulator --soc-version=Ascendxxxyy python3 test_add.py
@@ -223,7 +231,10 @@ PyTorch框架算子调用场景下，进行性能数据采集的操作步骤与[
     export LD_PRELOAD=/usr/local/Ascend/ascend-toolkit/latest/tools/simulator/Ascendxxxyy/lib/libruntime_camodel.so:/usr/local/Ascend/ascend-toolkit/latest/tools/simulator/Ascendxxxyy/lib/libnpu_drv_camodel.so
     ```
 
-4. 使用如下命令完成msopprof simulator性能数据、流水图和热点图数据的采集。参考<a href="https://gitcode.com/Ascend/msot/blob/master/docs/zh/quick_start/get_chip_soc_type.md" target="_blank">《芯片SoC类型获取方法》</a>获取芯片类型，作为如下参数 `--soc-version` 的值。
+4. 使用如下命令完成msopprof simulator性能数据、流水图和热点图数据的采集。
+
+    > [!NOTE]说明
+    > 参数 `--soc-version` 的值可通过执行以下命令获取：`python3 -c "import acl; print(acl.get_soc_name())"`。
 
     ```shell
     # 切换至编译产物目录
