@@ -47,4 +47,4 @@ repos:
         files: \.(c|h|cpp|hpp|cc|hh|cxx|hxx)$
         entry: git-clang-format
         args: [--binary, clang-format, -f]
-        exclude: ^(build|test|thirdparty)/
+        exclude: \.(build|test|third-party)
