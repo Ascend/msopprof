@@ -367,7 +367,8 @@ uint64_t HotSpotFunctionGenerator::ParsePcSamplingData(const std::vector<uint8_t
         pc |= (static_cast<uint64_t>(pcSamplingData[t]) << (t * 8));
     }
     // pc sampling 数据24位标识26:3的地址，所以*8进行偏移，减去start pc 以及插桩pc offset
-    pc = pc * 8 - (startPcForPcSampling_ & 0xFFFFFFFUL) - pcOffset_;
+    // 0x7FFFFFFUL为27位掩码，防止pc越界导致错误数据,表示范围到[26:0]
+    pc = pc * 8 - (startPcForPcSampling_ & 0x7FFFFFFUL) - pcOffset_;
     return pc;
 }
 
