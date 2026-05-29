@@ -35,7 +35,7 @@ namespace Profiling {
 class DeviceDataParse : public DataParse {
 public:
     DeviceDataParse(Common::ChipType chipType, Common::PmuEventsId pmuEventsId,
-                    Common::ProfMetricsAbilityConfig metrics);
+        Common::ProfMetricsAbilityConfig metrics, const std::string &kernelNameFilter = "");
     bool Execute(std::string dataPath) override;
 
 private:

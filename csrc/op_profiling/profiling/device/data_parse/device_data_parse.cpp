@@ -28,9 +28,9 @@ using namespace Common;
 using namespace std;
 
 namespace Profiling {
-DeviceDataParse::DeviceDataParse(Common::ChipType chipType, PmuEventsId pmuEventsId,
-    ProfMetricsAbilityConfig metrics): DataParse(metrics), chipType_(chipType), pmuEventsId_(pmuEventsId)
-{
+DeviceDataParse::DeviceDataParse(Common::ChipType chipType, PmuEventsId pmuEventsId, ProfMetricsAbilityConfig metrics,
+    const std::string &kernelNameFilter)
+    : DataParse(std::move(metrics), kernelNameFilter), chipType_(chipType), pmuEventsId_(pmuEventsId) {
     // register different profiling data handler
     chipInfoMap_ = {{ChipType::ASCEND950, {MetricHeaderForA5, Common::AIC_EVENTS_FOR_A5,
                         Common::AIV_EVENTS_FOR_A5}},
@@ -461,9 +461,7 @@ void DeviceDataParse::GetRangeKernelDurBin(const string &path)
 }
 
 void DeviceDataParse::GenerateRangeKernelBin(const vector<string> &outputVec, const vector<char> &profBinData,
-                                             const pair<uint16_t, uint16_t> &streamAndTaskId, const std::string &path, 
-                                             int round, size_t kernelIndex)
-{
+    const pair<uint16_t, uint16_t> &streamAndTaskId, const std::string &path, int round, size_t kernelIndex) {
     if (kernelIndex > outputVec.size() - 1) {
         LogWarn("Cannot find output path, replay count is %d, kernel index is %d.", round, kernelIndex);
         return;

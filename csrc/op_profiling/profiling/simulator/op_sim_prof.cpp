@@ -51,7 +51,7 @@ Profiling::TaskPtr OpSimProf::GetTask() {
 }
 
 std::unique_ptr<DataParse> OpSimProf::GetDataParser() {
-    return MakeUnique<SimDataParse>(socVersion_, exportPath_, coreId_, aicMetrics_, dump_);
+    return MakeUnique<SimDataParse>(socVersion_, exportPath_, coreId_, aicMetrics_, dump_, kernelName_);
 }
 
 bool OpSimProf::Run() {

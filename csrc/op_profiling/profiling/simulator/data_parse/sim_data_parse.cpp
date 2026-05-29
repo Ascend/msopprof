@@ -308,9 +308,9 @@ bool SimDataParse::CheckKernelFiles(const std::string &path, std::vector<std::st
 }
 
 SimDataParse::SimDataParse(std::string socVersion, std::string exportPath, std::string coreId,
-    Common::ProfMetricsAbilityConfig metrics, bool dump) : DataParse(std::move(metrics)),
-    socVersion_(std::move(socVersion)), coreId_(std::move(coreId)), exportPath_(std::move(exportPath)), dump_(dump)
-{
+    Common::ProfMetricsAbilityConfig metrics, bool dump, const std::string &kernelNameFilter)
+    : DataParse(std::move(metrics), kernelNameFilter), socVersion_(std::move(socVersion)), coreId_(std::move(coreId)),
+      exportPath_(std::move(exportPath)), dump_(dump) {
     if (socVersion_.empty() && !GetSocVersionFromEnvVar(socVersion_)) {
         socVersion_ = Common::RuntimeHelper::Instance().GetSocVersion();
         if (socVersion_.empty()) {

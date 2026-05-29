@@ -119,35 +119,48 @@ bool DataParse::ExecuteSummary(const std::string &outputPath) const
 bool DataParse::ParserDeviceIdDir(const std::string &dataPath)
 {
     std::vector<std::string> deviceIds;
+    bool kernelNameFilterMiss = false;
+    bool parseSuccess = true;
     if (!GetFileNames(dataPath, deviceIds)) {
-        LogWarn("No profiling data dumped.");
-        return false;
-    }
-    // device id dir
-    for (const std::string &deviceId : deviceIds) {
-        std::string deviceIdDir = JoinPath({dataPath, deviceId});
-        if (!IsDir(deviceIdDir)) {
-            continue;
-        }
-        std::vector<std::string> kernelNames;
-        DisposeTmp(deviceIdDir);
-        if (!GetFileNames(deviceIdDir, kernelNames)) {
-            continue;
-        }
-        // kernel name dir
-        for (const auto &file : kernelNames) {
-            std::string filePath = JoinPath({deviceIdDir, file});
-            if (!IsDir(filePath)) {
+        kernelNameFilterMiss = !kernelNameFilter_.empty();
+        parseSuccess = false;
+    } else {
+        // device id dir
+        for (const std::string &deviceId : deviceIds) {
+            std::string deviceIdDir = JoinPath({dataPath, deviceId});
+            if (!IsDir(deviceIdDir)) {
                 continue;
             }
-            ParseKernelFile(filePath, file, deviceId);
+            std::vector<std::string> kernelNames;
+            DisposeTmp(deviceIdDir);
+            if (!GetFileNames(deviceIdDir, kernelNames)) {
+                continue;
+            }
+            // kernel name dir
+            for (const auto &file : kernelNames) {
+                std::string filePath = JoinPath({deviceIdDir, file});
+                if (!IsDir(filePath)) {
+                    continue;
+                }
+                ParseKernelFile(filePath, file, deviceId);
+            }
+            if (!theOnlyDevicePath_.empty()) {
+                isTheOnlyDevice_ = false;
+            }
+            if (isTheOnlyDevice_) {
+                theOnlyDevicePath_ = deviceIdDir;
+            }
         }
-        if (!theOnlyDevicePath_.empty()) {
-            isTheOnlyDevice_ = false;
-        }
-        if (isTheOnlyDevice_) {
-            theOnlyDevicePath_ = deviceIdDir;
-        }
+        kernelNameFilterMiss = (totalKernelNum_ == 0 && !kernelNameFilter_.empty());
+    }
+    if (kernelNameFilterMiss) {
+        LogError("No profiling data matched --kernel-name=%s. All kernels were filtered out or no matching dump was "
+                 "generated. Please confirm the kernel name or wildcard pattern.",
+            kernelNameFilter_.c_str());
+    }
+    if (!parseSuccess) {
+        LogWarn("No profiling data dumped.");
+        return false;
     }
     return true;
 }
@@ -192,7 +205,7 @@ bool SymbolizerParser::Symbolizer()
     }
     std::vector<std::string> cmd = {symbolizerPath, "-f", "-e", relocFilePath_,
                                     "--inlining=true", "--output-style=JSON"};
-    // calculate the number of parameters thar symbolizer parsed at a time
+    // calculate the number of parameters than symbolizer parsed at a time
     size_t maxExcuteAddr = GetSymbolizerCount();
     if (maxExcuteAddr == 0) {
         Utility::LogDebug("There are something wrong with system, can't parse pc address");

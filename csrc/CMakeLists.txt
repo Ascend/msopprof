@@ -11,6 +11,9 @@ add_link_options("-Wl,-z,now")
 add_link_options("-Wl,-z,noexecstack")
 add_link_options("-pie")
 
+# 启用编译命令导出，用于IDE代码导航（跳转到定义）
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # 根据CMAKE_BUILD_TYPE选择编译选项
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     message(STATUS "Debug build: -O0, strip disabled")
@@ -41,4 +44,3 @@ install(DIRECTORY ${MSOPT_SRC_DIR}/framework DESTINATION ${CMAKE_INSTALL_PREFIX}
 
 install(DIRECTORY ${MSOPT_SRC_DIR}/utils/pyutils/ DESTINATION ${CMAKE_INSTALL_PREFIX}/framework/utils
         FILES_MATCHING PATTERN "*.py")
-

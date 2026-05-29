@@ -27,7 +27,8 @@ namespace Profiling {
 
 class DataParse {
 public:
-    explicit DataParse(Common::ProfMetricsAbilityConfig metrics): metrics_(std::move(metrics)) {};
+    explicit DataParse(Common::ProfMetricsAbilityConfig metrics, std::string kernelNameFilter = "")
+        : metrics_(std::move(metrics)), kernelNameFilter_(std::move(kernelNameFilter)) {}
     virtual ~DataParse() = default;
     virtual bool Execute(std::string dataPath) = 0;
     void SingleKernelOutputReorganize(const std::string &outputPath);
@@ -50,6 +51,7 @@ protected:
     std::string theOnlyDevicePath_;
     int16_t totalKernelNum_ {0};
     int16_t failedKernelNum_ {0};
+    std::string kernelNameFilter_;
 };
 
 struct Symbol {

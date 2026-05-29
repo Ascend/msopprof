@@ -33,7 +33,7 @@ float GetMicrosecond(ChipProductType chipType,  int64_t cycles, int roundParam =
 class SimDataParse : public DataParse {
 public:
     SimDataParse(std::string socVersion, std::string exportPath, std::string coreId,
-                 Common::ProfMetricsAbilityConfig metrics, bool dump = false);
+        Common::ProfMetricsAbilityConfig metrics, bool dump = false, const std::string &kernelNameFilter = "");
     bool Execute(std::string dataPath) override;
     std::string socVersion_;
     std::string coreId_;
