@@ -86,11 +86,15 @@ struct InstrInfo {
     std::vector<int> callCount;
     std::vector<int> cycles;
     std::vector<int> realStallCyc;
-    void ToJson(nlohmann::json &instrDetails, bool hasStallCyc) const;
+    std::vector<int> iCacheCyc;
+    std::vector<int> ccuCyc;
+    std::vector<int> scalarCyc;
+    void ToJson(nlohmann::json &instrDetails, bool hasStallCyc, bool hasScalarCyc) const;
 };
 
 struct CodeInstrData {
     bool hasStallCyc;
+    bool hasScalarCyc;
     std::vector<std::string> cores;
     std::vector<CodeFile> files;
     std::vector<InstrInfo> instrs;
@@ -118,6 +122,9 @@ struct InstructionsDtype {
     int ubReadConflict = static_cast<int>(Utility::VisualizeBinDType::INT);
     int ubWriteConflict = static_cast<int>(Utility::VisualizeBinDType::INT);
     int realStallCyc = static_cast<int>(Utility::VisualizeBinDType::INT);
+    int iCacheCyc = static_cast<int>(Utility::VisualizeBinDType::INT);
+    int ccuCyc = static_cast<int>(Utility::VisualizeBinDType::INT);
+    int scalarCyc = static_cast<int>(Utility::VisualizeBinDType::INT);
 };
 
 struct UpdateCode {
@@ -134,7 +141,7 @@ class ApiData {
 public:
     static bool VisualizeApiData(const std::string &outputPath, CodeInstrData &codeInstrData);
     static void FileDtypeStats(nlohmann::json &apiJson);
-    static void InstrDtypeStats(nlohmann::json &apiJson, bool hasStallCyc);
+    static void InstrDtypeStats(nlohmann::json &apiJson, bool hasStallCyc, bool hasScalarCyc);
     static bool FileStats(CodeInstrData &codeInstrData, const std::string &outputPath, nlohmann::json &apiJson);
     static bool InstrStats(CodeInstrData &codeInstrData, const std::string &outputPath, nlohmann::json &apiJson);
 

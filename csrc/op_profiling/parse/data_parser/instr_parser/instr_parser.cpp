@@ -99,7 +99,7 @@ bool InstrParser::MergeInstr(const std::unordered_map<uint64_t, std::vector<Inst
     }
     return !mergeList.empty();
 }
- 
+
 void InstrParser::MergeInstrByPc(const std::unordered_map<uint64_t, std::vector<InstrParseInfo>> &instrMap,
                                  const std::unordered_map<uint64_t, std::vector<PoppedInstrParseInfo>> &popMap,
                                  std::vector<MergeInfo> &mergeList)
@@ -132,11 +132,15 @@ void InstrParser::MergeInstrByPc(const std::unordered_map<uint64_t, std::vector<
             mergeList.push_back(mergeItem);
         }
     }
+    // 对指令顺序排序，vector中的指令按照pc、startTick依次排序，方便后面处理scalar时间
     sort(mergeList.begin(), mergeList.end(), [](const MergeInfo &l, const MergeInfo &r) {
-        return l.pc < r.pc;
+        if (l.pc != r.pc) {
+            return l.pc < r.pc;
+        }
+        return l.startTick < r.startTick;
     });
 }
- 
+
 void InstrParser::MergeInstrById(const std::unordered_map<uint64_t, std::vector<InstrParseInfo>> &instrMap,
                                  const std::unordered_map<uint64_t, std::vector<PoppedInstrParseInfo>> &popMap,
                                  std::vector<MergeInfo> &mergeList)
@@ -194,6 +198,8 @@ void InstrParser::ParseThreadId(const std::string &instrDetail, std::string &mer
 void InstrParser::InitMergeItem(const PoppedInstrParseInfo& instrPopped, const InstrParseInfo& instr,
                                 MergeInfo& mergeItem) const
 {
+    mergeItem.icacheTick = UINT64_MAX;
+    mergeItem.ccuTick = UINT64_MAX;
     mergeItem.startTick = instrPopped.tick;
     mergeItem.endTick = instr.tick;
     mergeItem.pipe = instrPopped.pipe;

@@ -29,6 +29,9 @@ namespace Serialization {
 struct CycleInfo {
     int cycles;
     int realStallCyc;
+    int iCacheCyc;
+    int ccuCyc;
+    int scalarCyc;
 };
 
 struct Instr {

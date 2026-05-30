@@ -126,6 +126,7 @@ TEST(SubcoreTimelineVisualizer, test_CollectInstrEvents4SepTrace_collect_json_su
     ChipProductType chipType = ChipProductType::ASCEND310P1;
     SimVisualizerConfig config = GetVisualizeConfig(output, chipType);
     MergeInfo m1;
+    m1.icacheTick = UINT64_MAX;
     m1.pc = 0x10cfa000;
     m1.startTick = 782;
     m1.endTick = 788;
@@ -135,6 +136,7 @@ TEST(SubcoreTimelineVisualizer, test_CollectInstrEvents4SepTrace_collect_json_su
     m1.warpId = DEFAULT_INT_VALUE;
     m1.schId = DEFAULT_INT_VALUE;
     MergeInfo m2;
+    m2.icacheTick = UINT64_MAX;
     m2.pc = 0x10cfa008;
     m2.startTick = 779;
     m2.endTick = 1112;
@@ -144,6 +146,7 @@ TEST(SubcoreTimelineVisualizer, test_CollectInstrEvents4SepTrace_collect_json_su
     m2.warpId = DEFAULT_INT_VALUE;
     m2.schId = DEFAULT_INT_VALUE;
     MergeInfo m3;
+    m3.icacheTick = UINT64_MAX;
     m3.pc = 0x10cfa012;
     m3.startTick = 787;
     m3.endTick = 1112;
@@ -167,8 +170,8 @@ TEST(SubcoreTimelineVisualizer, test_CollectInstrEvents4SepTrace_collect_json_su
         if (i.at("name") == "flow" && i.at("ph") == "t") { flowt = i; }
     }
     ASSERT_EQ(coreJsonList.size(), 15);
-    EXPECT_FLOAT_EQ(scalar.at("ts"), GetMicrosecond(chipType, 782));
-    EXPECT_FLOAT_EQ(scalar.at("dur"), GetMicrosecond(chipType, 6));
+    EXPECT_FLOAT_EQ(scalar.at("ts"), GetMicrosecond(chipType, 782, -1));
+    EXPECT_FLOAT_EQ(scalar.at("dur"), GetMicrosecond(chipType, 6, -1));
     // test wait flag display optimization when overlapping, its start will be end of common instr
     EXPECT_FLOAT_EQ(wait.at("ts"), GetMicrosecond(chipType, 788, -1));
     EXPECT_FLOAT_EQ(wait.at("dur"), GetMicrosecond(chipType, 1112 - 788, -1));
@@ -196,6 +199,7 @@ TEST(SubcoreTimelineVisualizer, test_CollectEvents_collect_json_success_of_910B_
     ChipProductType chipType = ChipProductType::ASCEND910B1;
     SimVisualizerConfig config = GetVisualizeConfig(output, chipType);
     MergeInfo m1;
+    m1.icacheTick = UINT64_MAX;
     m1.pc = 0x10cfa000;
     m1.startTick = 782;
     m1.endTick = 788;
@@ -203,6 +207,7 @@ TEST(SubcoreTimelineVisualizer, test_CollectEvents_collect_json_success_of_910B_
     m1.name = "BAR";
     m1.detail = "THIS IS A NORMAL SCALAR INSTRUCTION,";
     MergeInfo m2;
+    m2.icacheTick = UINT64_MAX;
     m2.pc = 0x10cfa008;
     m2.startTick = 779;
     m2.endTick = 1112;
@@ -210,6 +215,7 @@ TEST(SubcoreTimelineVisualizer, test_CollectEvents_collect_json_success_of_910B_
     m2.name = "WAIT_FLAG";
     m2.detail = "PIPE:MTE1,TRIGGERPIPE:MTE3,FLAGID:0,";
     MergeInfo m3;
+    m3.icacheTick = UINT64_MAX;
     m3.pc = 0x10cfa012;
     m3.startTick = 787;
     m3.endTick = 1112;

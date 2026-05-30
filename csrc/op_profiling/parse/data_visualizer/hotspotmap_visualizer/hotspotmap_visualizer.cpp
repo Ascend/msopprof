@@ -42,7 +42,7 @@ PluginErrorCode HotSpotMapVisualizer::Entry()
     simCodeToPc.CalCulate();
     std::vector<CodeFile> files = simCodeToPc.GetCodeFile();
 
-    CodeInstrData codeInstrData = {simPcToCode.GetStallCyc(), coreVec, files, instrInfoList};
+    CodeInstrData codeInstrData = {simPcToCode.GetStallCyc(), simPcToCode.GetScalarCyc() ,coreVec, files, instrInfoList};
     Serialization::ApiData::VisualizeApiData(dataVisualizerConfig_.GetOutputPath(), codeInstrData);
     PrintCoreInfo();
     return PluginErrorCode::SUCCESS;

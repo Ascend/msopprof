@@ -19,6 +19,7 @@ inline std::shared_ptr<std::map<std::string, SimData>> GetSimData()
     std::shared_ptr<CacheDetailTable> cachePtr;
     std::shared_ptr<UserMarkStruct> userMarkPtr;
     MergeInfo m1;
+    m1.icacheTick = UINT64_MAX;
     m1.pc = 0x10f86004;
     m1.startTick = 11035;
     m1.endTick = 11036;
@@ -26,6 +27,7 @@ inline std::shared_ptr<std::map<std::string, SimData>> GetSimData()
     m1.name = SET_FLAG;
     m1.detail = "PIPE:VEC,TRIGGERPIPE:MTE3,FLAGID:0,";
     MergeInfo m2;
+    m2.icacheTick = UINT64_MAX;
     m2.pc = 0x10f86000;
     m2.startTick = 11030;
     m2.endTick = 11036;

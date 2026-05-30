@@ -224,6 +224,32 @@ void SubcoreTimelineVisualizer::CollectSIMTEvents(std::map<int, std::vector<Merg
     }
 }
 
+bool SubcoreTimelineVisualizer::AddScalarHeadEvents(const MergeInfo &instr, const std::string &groupId, const XEvent &event, std::vector<nlohmann::json> &json) const
+{
+    if (instr.icacheTick == UINT64_MAX || instr.name == "BAR" || instr.pipe == "CACHEMISS" || instr.name == setFlagName_) {
+        return false;
+    }
+    int durationCycle = instr.ccuTick - instr.icacheTick;
+    XEvent scalarEvent = {"cache_time", "X", event.pid, event.tid,
+        GetMicrosecond(chipType_, instr.icacheTick, -1),
+        GetMicrosecond(chipType_, durationCycle, -1), event.cName, event.args};
+
+    nlohmann::json jsonData;
+    scalarEvent.ToJson(jsonData);
+    jsonData["group_id"] = groupId;
+    json.emplace_back(jsonData);
+
+    durationCycle = instr.startTick - instr.ccuTick;
+    XEvent ccuEvent = {"ccu_time", "X", event.pid, event.tid,
+        GetMicrosecond(chipType_, instr.ccuTick, -1),
+        GetMicrosecond(chipType_, durationCycle, -1), event.cName, event.args};
+
+    ccuEvent.ToJson(jsonData);
+    jsonData["group_id"] = groupId;
+    json.emplace_back(jsonData);
+    return true;
+}
+
 void SubcoreTimelineVisualizer::CollectEvents(const std::map<int, std::vector<MergeInfo>> &instrsGroup,
     std::vector<nlohmann::json> &coreJsonList, std::map<std::string, std::vector<XEvent>> &setFlagRecord,
     std::map<std::string, std::vector<XEvent>> &waitFlagRecord)
@@ -246,8 +272,8 @@ void SubcoreTimelineVisualizer::CollectEvents(const std::map<int, std::vector<Me
             // get x event instr info
             uint64_t startCycle = tmpInstr.startTick;
             uint64_t durationCycle = tmpInstr.endTick - tmpInstr.startTick;
-            XEvent xEvent = {tmpInstr.name, "X", pidMap_[tmpInstr.pipe], tid, GetMicrosecond(chipType_, startCycle),
-                GetMicrosecond(chipType_, durationCycle), GetCNameByPipe(tmpInstr.pipe), {}};
+            XEvent xEvent = {tmpInstr.name, "X", pidMap_[tmpInstr.pipe], tid, GetMicrosecond(chipType_, startCycle, -1),
+                GetMicrosecond(chipType_, durationCycle, -1), GetCNameByPipe(tmpInstr.pipe), {}};
             EventArgs evtArgs = {GetPc2String(tmpInstr.pc), Utility::Join(codeStack.begin(), codeStack.end(), "\n"),
                 tmpInstr.detail};
             xEvent.args["pc_addr"] = evtArgs.pcAddr;
@@ -273,6 +299,10 @@ void SubcoreTimelineVisualizer::CollectEvents(const std::map<int, std::vector<Me
             }
             nlohmann::json jsonData;
             xEvent.ToJson(jsonData);
+            std::string groupId = tmpInstr.pipe + std::to_string(i);
+            if (AddScalarHeadEvents(tmpInstr, groupId, xEvent, coreJsonList)) {
+                jsonData["group_id"] = groupId;
+            }
             coreJsonList.emplace_back(jsonData);
         }
     }

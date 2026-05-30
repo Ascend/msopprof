@@ -29,7 +29,7 @@ repos:
             "-L",
             "CANN,cann,NNAL,nnal,ASCEND,ascend,EnQue,CopyIn,ArchType,AND,ND,tbe,copyin,alog,thirdparty",
             "--skip",
-            "*.py,*.cpp,*.hpp,*.c,*.h",
+            "*.py,*.cpp,*.hpp,*.c,*.h,*.toml",
           ]
 
   # typos

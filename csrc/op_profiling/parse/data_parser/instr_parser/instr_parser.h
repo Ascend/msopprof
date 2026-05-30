@@ -25,7 +25,6 @@
 #include "parse/data_parser/instr_parser/pop_log_parser.h"
 #include "parse/data_parser/sim_data_parser_config.h"
 #include "parse/data_parser/sim_data_parser.h"
-
 namespace Profiling {
 namespace Parse {
 

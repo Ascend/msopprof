@@ -22,12 +22,12 @@ namespace Profiling {
 namespace Parse {
 InstrDetailTable::InstrDetailTable(std::vector<MergeInfo>& data) : tableSize_(data.size())
 {
-    for (uint32_t i = 0; i < END_OF_STRING_TYPE; i++) {
-        auto vector = Utility::MakeShared<std::vector<std::string>>(0);
-        if (vector != nullptr) { stringDataVec_.emplace_back(vector); }
+    for (uint32_t i = 0; i < END_OF_UINT64_TYPE; i++) {
+        auto vector = Utility::MakeShared<std::vector<uint64_t>>(0);
+        if (vector != nullptr) { uint64DataVec_.emplace_back(vector); }
     }
 
-    for (uint32_t i = 0; i < END_OF_INT_TYPE - END_OF_STRING_TYPE - 1; i++) {
+    for (uint32_t i = 0; i < END_OF_INT_TYPE - END_OF_UINT64_TYPE - 1; i++) {
         auto vector = Utility::MakeShared<std::vector<int>>(0);
         if (vector != nullptr) { intDataVec_.emplace_back(vector); }
     }
@@ -68,12 +68,22 @@ void InstrDetailTable::UpdateRow()
     if (ubReadConflict == nullptr) {
         Utility::LogDebug("Get ub read conflict data failed because of nullptr");
     }
+    std::shared_ptr<std::vector<uint64_t>> icache = GetColumnData<uint64_t>(ICACHE_CYC);
+    if (icache == nullptr) {
+        Utility::LogDebug("Get icache data failed because of nullptr");
+    }
+    std::shared_ptr<std::vector<uint64_t>> ccu = GetColumnData<uint64_t>(CCU_CYC);
+    if (ccu == nullptr) {
+        Utility::LogDebug("Get ccu data failed because of nullptr");
+    }
     for (uint32_t i = 0; i < tableSize_; i++) {
         mergeInfo[i].processBytes = processBytes == nullptr ? 0 : (*processBytes)[i];
         mergeInfo[i].gprCount = gprCount == nullptr ? 0 : (*gprCount)[i];
         mergeInfo[i].vecUtilization = vecUtilization == nullptr ? 0 : (*vecUtilization)[i];
         mergeInfo[i].ubReadConflict = ubReadConflict == nullptr ? 0 : (*ubReadConflict)[i];
         mergeInfo[i].ubWriteConflict = ubWriteConflict == nullptr ? 0 : (*ubWriteConflict)[i];
+        mergeInfo[i].icacheTick = icache == nullptr ? UINT64_MAX : (*icache)[i];
+        mergeInfo[i].ccuTick = ccu == nullptr ? UINT64_MAX : (*ccu)[i];
     }
     for (auto &vec : intDataVec_) {
         if (vec != nullptr) {
@@ -85,9 +95,9 @@ void InstrDetailTable::UpdateRow()
             std::vector<float>().swap(*vec);
         }
     }
-    for (auto &vec : stringDataVec_) {
+    for (auto &vec : uint64DataVec_) {
         if (vec != nullptr) {
-            std::vector<std::string>().swap(*vec);
+            std::vector<uint64_t>().swap(*vec);
         }
     }
 }

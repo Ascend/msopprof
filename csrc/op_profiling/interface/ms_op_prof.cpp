@@ -211,8 +211,8 @@ void PrintSimulatorHelp(void)
         << "   --output                           <Optional> Output path" << std::endl
         << "   --kernel-name                      <Optional> Specify the kernel name to profile."
         << " It's not effective in config mode." << std::endl
-        << "   --aic-metrics=metric1,metric2,...  <Optional> Enable PipeUtilization / ResourceConflictRatio / "
-            "PMSampling metrics. PipeUtilization is required" << std::endl
+        << "   --aic-metrics=metric1,metric2,...  <Optional> Enable PipeUtilization / ResourceConflictRatio /"
+            "PMSampling / Overhead metrics. PipeUtilization is required" << std::endl
         << "   --launch-count                     <Optional> Number of kernel that can be collected,"
         << " number in [1, 5000]." << std::endl
         << "   --mstx                             <Optional> Enable mstx api or not, select on / off,"

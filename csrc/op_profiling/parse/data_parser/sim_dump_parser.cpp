@@ -18,6 +18,7 @@
 #include "sim_dump_parser.h"
 #include "pc_process.h"
 #include "parse/data_parser/instr_parser/instr_parser.h"
+#include "parse/data_parser/ccu_parser/ccu_log_parser.h"
 #include "parse/data_parser/cache_parser/icache_parser.h"
 #include "parse/data_calculator/instr_detail_calculator/process_bytes_calculator.h"
 #include "parse/data_calculator/instr_detail_calculator/vector_utilization_calculator.h"
@@ -25,6 +26,7 @@
 #include "parse/data_calculator/instr_detail_calculator/gpr_live_register_calculator.h"
 #include "parse/data_visualizer/hotspotmap_visualizer/hotspotmap_visualizer.h"
 #include "parse/data_visualizer/timeline_visualizer/core_timeline/core_timeline_visualizer.h"
+#include "parse/data_calculator/instr_detail_calculator/scalar_calculator.h"
 #include "parse/data_visualizer/timeline_visualizer/subcore_timeline/subcore_timeline_visualizer.h"
 #include "profiling/simulator/data_parse/api_data.h"
 
@@ -37,11 +39,15 @@ void AnalySisFileByCore(Profiling::Parse::DataCenter &dataCenter, const SimParse
     const CoreNameAndPreFixPair &coresNamePair, uint32_t parseThread)
 {
     bool enableResourceConflictRatio = simParseContext.metricsConfig.IsOn(Common::ProfMetrics::RESOURCE_CONFLICT_RATIO);
+    bool enableOverhead = simParseContext.metricsConfig.overHead;
     Profiling::Parse::PluginManager pluginManager(parseThread);
     Profiling::Parse::SimDataParserConfig config {simParseContext.dumpPath, coresNamePair, simParseContext.parseCorIds,
-        enableResourceConflictRatio, simParseContext.chipType};
+        enableResourceConflictRatio, enableOverhead, simParseContext.chipType};
     pluginManager.AddPlugin<Profiling::Parse::InstrParser>(dataCenter, config);
     pluginManager.AddPlugin<Profiling::Parse::ICacheParser>(dataCenter, config);
+    if (enableOverhead) {
+        pluginManager.AddPlugin<Profiling::Parse::CcuParser>(dataCenter, config);
+    }
     std::vector<PluginErrorCode> results;
     pluginManager.RunAllPlugins(results);
 }
@@ -144,7 +150,7 @@ std::set<uint64_t> CollectPcFromCore(const std::shared_ptr<Profiling::Parse::Dat
     return pcSet;
 }
 
-void CalCulateDetail(Parse::DataCenter &dataCenter, const ChipProductType &chipProductType, uint32_t calThread)
+void CalCulateDetail(Parse::DataCenter &dataCenter, const ChipProductType &chipProductType, const Common::ProfMetricsAbilityConfig &config, uint32_t calThread)
 {
     using namespace Common;
     Parse::PluginManager pluginManager(calThread);
@@ -161,6 +167,10 @@ void CalCulateDetail(Parse::DataCenter &dataCenter, const ChipProductType &chipP
         pluginManager.AddPlugin<Parse::ProcessBytesCalculator>(dataCenter, instrDetailContext);
         pluginManager.AddPlugin<Parse::VectorUtilizationCalculator>(dataCenter, instrDetailContext);
         pluginManager.AddPlugin<Parse::UbConflictCalculator>(dataCenter, instrDetailContext);
+
+    }
+    if (config.overHead) {
+        pluginManager.AddPlugin<Parse::ScalarCalculator>(dataCenter, instrDetailContext);
     }
     pluginManager.AddPlugin<Parse::GPRLiveRegisterCalculator>(dataCenter, instrDetailContext);
     std::vector<PluginErrorCode> results;
@@ -172,7 +182,7 @@ void CalCulateDetail(Parse::DataCenter &dataCenter, const ChipProductType &chipP
 }
 
 void CalCulate(std::map<std::string, std::shared_ptr<Profiling::Parse::DataCenter>> &dataMap,
-               const std::shared_ptr<ParsePcCode> &pc2code, bool isNeedGetPc2Code, ChipProductType chipType)
+               const std::shared_ptr<ParsePcCode> &pc2code, const Common::ProfMetricsAbilityConfig &config, bool isNeedGetPc2Code, ChipProductType chipType)
 {
     auto poolSize = static_cast<uint32_t>(std::thread::hardware_concurrency() * MAX_THREAD_USAGE_RATIO);
     auto coreSize = dataMap.size();
@@ -190,8 +200,8 @@ void CalCulate(std::map<std::string, std::shared_ptr<Profiling::Parse::DataCente
             std::set<uint64_t> partPcSet = CollectPcFromCore(datacenter);
             pcSet.insert(partPcSet.begin(), partPcSet.end());
         }
-        calPool.AddTask([&datacenter, &calCulThread, chipType] {
-            CalCulateDetail(*datacenter, chipType, calCulThread);
+        calPool.AddTask([&datacenter, &calCulThread, &config, chipType] {
+            CalCulateDetail(*datacenter, chipType, config, calCulThread);
         });
     }
     if (isNeedGetPc2Code && pc2code != nullptr) {
@@ -226,7 +236,7 @@ bool CalCulate(const SimParseContext &simParseContext, std::map<std::string,
             continue;
         }
         calPool.AddTask([&datacenter, &calCulThread, &simParseContext] {
-            CalCulateDetail(*datacenter, simParseContext.chipType, calCulThread);
+            CalCulateDetail(*datacenter, simParseContext.chipType, simParseContext.metricsConfig, calCulThread);
         });
     }
     pcCode.Parse();
@@ -280,11 +290,9 @@ bool ParseDumpFile(const SimParseContext &simParseContext,
 }
 
 bool CombineCoreData(const std::map<std::string, std::shared_ptr<Profiling::Parse::DataCenter>> &dataCenterMap,
-                     const Profiling::Parse::DataCenter &icacheDataCenter,
                      std::shared_ptr<Profiling::Parse::DataCenter> &dataCenterPtr)
 {
     std::map<std::string, SimData> allDataMap;
-    auto icacheData = icacheDataCenter.GetDbPtr<std::map<std::string, Parse::CacheDetailTable>>();
     for (const auto &coreDataCenter : dataCenterMap) {
         std::string logiCoreName = coreDataCenter.first; // coreName is logi core name
         auto tempDataCenter = coreDataCenter.second;
@@ -292,13 +300,7 @@ bool CombineCoreData(const std::map<std::string, std::shared_ptr<Profiling::Pars
         if (instrPtr == nullptr || instrPtr->GetColumnData<MergeInfo>(InstrDetailTable::MERGE_INFO) == nullptr) {
             continue;
         }
-        std::string phyCoreName;
-        GetphyCoreName(*tempDataCenter, phyCoreName);
-        std::shared_ptr<Parse::CacheDetailTable> cachePtr;
-        if (icacheData != nullptr && (*icacheData).count(phyCoreName) != 0) {
-            cachePtr = Utility::MakeShared<Parse::CacheDetailTable>((*icacheData).at(phyCoreName));
-            // cachePtr will check nullptr when used. And it doses not influence normal sim dump parser.
-        }
+        auto cachePtr = tempDataCenter->GetDbPtr<Parse::CacheDetailTable>();
         auto userMarkPtr = tempDataCenter->GetDbPtr<UserMarkStruct>();
         SimData data = {instrPtr, cachePtr, userMarkPtr};
         allDataMap[logiCoreName] = data;

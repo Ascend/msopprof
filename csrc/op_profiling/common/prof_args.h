@@ -28,7 +28,7 @@
 #include "ustring.h"
 #include "log.h"
 #include "op_runner.h"
-#include "include/opprof/BasicDefs.h" 
+#include "include/opprof/BasicDefs.h"
 
 namespace Common {
 const std::map<std::string, ReplayMode> ReplayModeMap {
@@ -57,12 +57,13 @@ struct ProfMetricsAbilityConfig {
     bool pmSamplingEnable = false;
     bool timelineEnable = false;
     bool pcSamplingEnable = false;
+    bool overHead = false;
     ReplayMode replayMode = ReplayMode::KERNEL;
     inline explicit ProfMetricsAbilityConfig(bool defaultOptionsStatus = true)
     {
         std::fill(std::begin(metricsConfig), std::end(metricsConfig), Parser::OnOff{defaultOptionsStatus});
     }
-    
+
     inline Parser::OnOff &operator[](ProfMetrics metrics)
     {
         return metricsConfig[static_cast<uint32_t>(metrics)];

@@ -36,6 +36,7 @@ Packet::Packet(std::size_t clientId) : clientId_(clientId)
     msgParseFunc_.emplace(ProfPacketType::POPPED_LOG, std::bind(&Packet::ProcessInstrData, this));
     msgParseFunc_.emplace(ProfPacketType::ICACHE_LOG, std::bind(&Packet::ProcessICacheData, this));
     msgParseFunc_.emplace(ProfPacketType::MTE_LOG, std::bind(&Packet::ProcessMteData, this));
+    msgParseFunc_.emplace(ProfPacketType::CCU_LOG, std::bind(&Packet::ProcessCcuData, this));
     msgParseFunc_.emplace(ProfPacketType::COLLECT_START, std::bind(&Packet::ProcessCollectStartMessage, this));
     msgParseFunc_.emplace(ProfPacketType::PROF_FINISH, std::bind(&Packet::InitConfigAsk, this));
 
@@ -47,6 +48,7 @@ Packet::Packet(std::size_t clientId) : clientId_(clientId)
     msgMaxLength_.emplace(ProfPacketType::POPPED_LOG, sizeof(DvcInstrLog));
     msgMaxLength_.emplace(ProfPacketType::ICACHE_LOG, sizeof(DvciCacheLog));
     msgMaxLength_.emplace(ProfPacketType::MTE_LOG, sizeof(DvcMteLog));
+    msgMaxLength_.emplace(ProfPacketType::CCU_LOG, sizeof(DvcCcuLog));
     msgMaxLength_.emplace(ProfPacketType::COLLECT_START, sizeof(CollectLogStart));
     msgMaxLength_.emplace(ProfPacketType::PROF_FINISH, 0);
 }
@@ -197,6 +199,16 @@ PacketParseRet Packet::ProcessICacheData()
     }
     LogDebug("Packet for icache data invalid, expect length: %lu, actual length: %lu.",
              sizeof(DvciCacheLog), askMsg_.length());
+    return PacketParseRet::FAILED;
+}
+
+PacketParseRet Packet::ProcessCcuData() {
+    if (askMsg_.size() == sizeof(DvcCcuLog)) {
+        Deserialize<struct DvcCcuLog>(askMsg_, payload_.dvcCcuLog);
+        return PacketParseRet::SUCCESS;
+    }
+    LogDebug(
+        "Packet for ccu data invalid, expect length: %lu, actual length: %lu.", sizeof(DvcCcuLog), askMsg_.length());
     return PacketParseRet::FAILED;
 }
 }

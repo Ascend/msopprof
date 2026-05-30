@@ -31,7 +31,7 @@ namespace Parse {
 void AnalySisFileByCore(Profiling::Parse::DataCenter &dataCenter, const SimParseContext &simParseContext,
     const CoreNameAndPreFixPair &coresNamePair, uint32_t parseThread);
 
-void CalCulateDetail(Parse::DataCenter &dataCenter, const ChipProductType &chipProductType, uint32_t calThread);
+void CalCulateDetail(Parse::DataCenter &dataCenter, const ChipProductType &chipProductType, const Common::ProfMetricsAbilityConfig &config, uint32_t calThread);
 
 bool ParseDumpFile(const SimParseContext &simParseContext,
     std::shared_ptr<Profiling::Parse::DataCenter> &dataCenterPtr,
@@ -43,7 +43,7 @@ bool CalCulate(const SimParseContext &simParseContext, std::map<std::string,
     std::shared_ptr<Pc2CodeMap> &pc2codePtr, uint32_t poolSize);
 
 void CalCulate(std::map<std::string, std::shared_ptr<Profiling::Parse::DataCenter>> &dataMap,
-               const std::shared_ptr<ParsePcCode> &pc2code, bool isNeedGetPc2Code, ChipProductType chipType);
+               const std::shared_ptr<ParsePcCode> &pc2code, const Common::ProfMetricsAbilityConfig &config, bool isNeedGetPc2Code, ChipProductType chipType);
 
 void Visualizedata(const std::string &outputPath, ChipProductType chipType, Pc2CodeMap &pc2code,
     std::shared_ptr<Profiling::Parse::DataCenter> &dataCneterPtr, uint32_t systemCores);
@@ -52,7 +52,6 @@ bool CombineCoreData(const std::map<std::string, std::shared_ptr<Profiling::Pars
     const ChipProductType &chipProductType, std::shared_ptr<Profiling::Parse::DataCenter> &dataCenterPtr);
 
 bool CombineCoreData(const std::map<std::string, std::shared_ptr<Profiling::Parse::DataCenter>> &dataCenterMap,
-                     const Profiling::Parse::DataCenter &icacheDataCenter,
                      std::shared_ptr<Profiling::Parse::DataCenter> &dataCenterPtr);
 
 std::set<uint64_t> CollectPcFromCore(const std::shared_ptr<Profiling::Parse::DataCenter> &dataCenterPtr);

@@ -100,7 +100,18 @@ struct InstrParseInfoForRealTime : public InstrParseInfo {
                               std::string coreName) : InstrParseInfo(instrParseInfo), coreName(std::move(coreName)) {}
 };
 
+struct ScalarInstrInfo {
+    ScalarInstrInfo(uint64_t icacheTick, uint64_t ccuTick, uint64_t pc)
+        : icacheTick(icacheTick), ccuTick(ccuTick), pc(pc) {}
+    uint64_t icacheTick;
+    uint64_t ccuTick;
+    uint64_t pc;
+};
+using scalarHead = std::map<uint64_t, std::vector<ScalarInstrInfo>>;
+
 struct MergeInfo : InstrParseInfo {
+    uint64_t icacheTick;
+    uint64_t ccuTick;
     uint64_t startTick;
     uint64_t endTick;
     // simt struction
@@ -133,12 +144,19 @@ struct IcacheParseInfoForRealTime {
     uint64_t pc;
     std::string coreName;
     std::string detail;
+    std::string opType;
 };
 
 struct IcacheParseInfo {
     uint64_t tick;
     uint64_t pc;
     std::string detail;
+};
+
+struct CcuParseInfoForRealTime {
+    uint64_t tick;
+    uint64_t pc;
+    std::string coreName;
 };
 
 using PoppedInstrDataParseMap = Utility::ThreadSafeUnorderedMap<std::string, std::vector<MergeInfo>>;

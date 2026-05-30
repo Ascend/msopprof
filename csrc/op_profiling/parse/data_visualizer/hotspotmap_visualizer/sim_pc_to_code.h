@@ -45,6 +45,7 @@ public:
     void CalCulate();
     std::vector <Serialization::InstrInfo> GetInstrInfo();
     bool GetStallCyc() const { return hasStallCyc_; }
+    bool GetScalarCyc() const { return hasScalarCyc_; }
 
 private:
     void Statistic(const std::string &coreName, SimData &data);
@@ -66,6 +67,7 @@ private:
     DataCenter &dataCenter_;
     std::vector<std::string> cores_;
     bool hasStallCyc_ = false;
+    bool hasScalarCyc_ = false;
 };
 }
 }
