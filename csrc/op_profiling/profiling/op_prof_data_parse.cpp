@@ -105,6 +105,10 @@ void DataParse::RenameCsvFileAndModifyKernelData(const std::string &fromPath, co
 }
 bool DataParse::ExecuteSummary(const std::string &outputPath) const
 {
+    if (totalKernelNum_ == 0) {
+        LogWarn("Profiling results are empty. No kernel profiling data was generated. Please check the dump output.");
+        return false;
+    }
     LogInfo("Profiling results saved in %s", outputPath.c_str());
     if (failedKernelNum_ > 0) {
         LogWarn("Profiling kernels result is: %s success, %s failed. Please check",
@@ -154,8 +158,8 @@ bool DataParse::ParserDeviceIdDir(const std::string &dataPath)
         kernelNameFilterMiss = (totalKernelNum_ == 0 && !kernelNameFilter_.empty());
     }
     if (kernelNameFilterMiss) {
-        LogError("No profiling data matched --kernel-name=%s. All kernels were filtered out or no matching dump was "
-                 "generated. Please confirm the kernel name or wildcard pattern.",
+        LogWarn("No profiling data matched --kernel-name=%s. All kernels were filtered out or no matching dump was "
+                "generated. Please confirm the kernel name or wildcard pattern.",
             kernelNameFilter_.c_str());
     }
     if (!parseSuccess) {
