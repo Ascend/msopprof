@@ -30,7 +30,7 @@
 #include "l2cache/l2cache.h"
 #include "common/visualize.h"
 #include "common/defs.h"
-#include "parse_timeline.h"
+#include "profiling/device/data_visualize/biu_timeline.h"
 #include "tlv_parse.h"
 #include "log.h"
 

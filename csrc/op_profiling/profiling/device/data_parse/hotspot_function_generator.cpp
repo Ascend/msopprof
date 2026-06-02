@@ -334,19 +334,20 @@ void HotSpotFunctionGenerator::ReadPcSamplingData(const std::string &filePath)
     }
     size_t fileSize = GetFileSize(filePath);
     std::vector<char> totalBin(fileSize);
-    size_t structSize = sizeof(InstrProfHeadInfo) + DATA_BUFFER_SIZE;
+    size_t headSize = sizeof(Visualize::InstrProfHeadInfo);
+    size_t structSize = headSize + Visualize::DATA_BUFFER_SIZE;
     if (!ReadBinaryFile(filePath, totalBin)) {
         LogWarn("File %s failed to be read.", filePath.c_str());
         return;
     }
     // 第一个for循环取数据，每组数据包含一个数据头以及2M的数据段
     for (size_t i = 0; i < fileSize; i += structSize) {
-        InstrProfHeadInfo instrProfHeadInfo;
-        if (memcpy_s(&instrProfHeadInfo, sizeof(InstrProfHeadInfo), &totalBin[i], sizeof(InstrProfHeadInfo)) != EOK) {
+        Visualize::InstrProfHeadInfo instrProfHeadInfo;
+        if (memcpy_s(&instrProfHeadInfo, headSize, &totalBin[i], headSize) != EOK) {
             LogDebug("Instr profiling data memory get error");
             continue;
         }
-        std::vector<char> splitData{&totalBin[i] + sizeof(InstrProfHeadInfo), &totalBin[i] + structSize};
+        std::vector<char> splitData{&totalBin[i] + headSize, &totalBin[i] + structSize};
         // 第二个for循环分割数据段，每个数据段中的一组数据为16Byte
         for (size_t j = 0; j < instrProfHeadInfo.validLen && j < splitData.size(); j += PC_SAMPLING_DATA_LEN) {
             std::vector<uint8_t> pcSamplingData(PC_SAMPLING_DATA_LEN, 0);

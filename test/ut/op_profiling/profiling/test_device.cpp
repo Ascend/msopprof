@@ -30,12 +30,12 @@
 #include "instr_encoding/instr_encoding.h"
 #include "profiling/device/data_parse/device_data_parse.h"
 #include "profiling/device/data_parse/pmu_calculate.h"
-#include "profiling/device/data_parse/parse_timeline.h"
 #include "profiling/device/data_parse/dbi_parser.h"
 #include "profiling/device/data_parse/hotspot_function_generator.h"
 #include "profiling/device/data_parse/l2cache/l2cache.h"
 #include "profiling/device/data_parse/metric_csv_header.h"
 #include "profiling/device/data_parse/metric_data_handler.h"
+#include "profiling/device/data_visualize/biu_timeline.h"
 #include "profiling/device/data_visualize/storage_access.h"
 #include "instr_encoding/instr_encoding.h"
 #include "common/hal_helper.h"
@@ -54,6 +54,7 @@ using namespace Profiling;
 using namespace Common;
 using namespace std;
 using namespace Encode;
+using namespace Visualize;
 
 namespace {
 constexpr size_t TEST_PC_SAMPLING_DATA_LEN = 16;
@@ -91,7 +92,7 @@ std::map<std::string, uint64_t> basicScalarPmu = {{"Scalar Time", 1832}, {"Scala
     {"Scalar Time Vec1", 1148}, {"Scalar Single Vec1", 4318}, {"Scalar Dual Vec1", 7158}, {"Scalar Mte2 Stall Vec1", 1388}, {"Scalar Mte3 Stall Vec1", 8158}, {"Scalar Vector Stall Vec1", 118}, {"Scalar Wait IB Vec1", 318}, {"Scalar Wait Vec1", 148}, {"Scalar Ub Stall Vec1", 818},
     {"Scalar Internuclear ID0", 1275}, {"Scalar Internuclear ID1", 3542}, {"Scalar Internuclear ID2", 4345}, {"Scalar Internuclear ID3", 6514}, {"Scalar Internuclear ID4", 3144}, {"Scalar Internuclear ID5", 5315},
     {"Scalar Internuclear ID6", 6432}, {"Scalar Internuclear ID7", 3152}, {"Scalar Internuclear ID8", 5476}, {"Scalar Internuclear ID9", 2453}, {"Scalar Internuclear ID10", 653},
-    {"Scalar Internuclear ID11", 324}, {"Scalar Internuclear ID12", 424}, {"Scalar Internuclear ID13", 653}, {"Scalar Internuclear ID14", 536}, {"Scalar Internuclear ID15", 133}, 
+    {"Scalar Internuclear ID11", 324}, {"Scalar Internuclear ID12", 424}, {"Scalar Internuclear ID13", 653}, {"Scalar Internuclear ID14", 536}, {"Scalar Internuclear ID15", 133},
 
     {"Scalar Internuclear ID0 Vec0", 1275}, {"Scalar Internuclear ID1 Vec0", 3542}, {"Scalar Internuclear ID2 Vec0", 4345}, {"Scalar Internuclear ID3 Vec0", 6514},
     {"Scalar Internuclear ID4 Vec0", 3144}, {"Scalar Internuclear ID5 Vec0", 5315}, {"Scalar Internuclear ID6 Vec0", 6432}, {"Scalar Internuclear ID7 Vec0", 3152},
@@ -101,7 +102,7 @@ std::map<std::string, uint64_t> basicScalarPmu = {{"Scalar Time", 1832}, {"Scala
     {"Scalar Internuclear ID0 Vec1", 1275}, {"Scalar Internuclear ID1 Vec1", 3542}, {"Scalar Internuclear ID2 Vec1", 4345}, {"Scalar Internuclear ID3 Vec1", 6514},
     {"Scalar Internuclear ID4 Vec1", 3144}, {"Scalar Internuclear ID5 Vec1", 5315}, {"Scalar Internuclear ID6 Vec1", 6432}, {"Scalar Internuclear ID7 Vec1", 3152},
     {"Scalar Internuclear ID8 Vec1", 5476}, {"Scalar Internuclear ID9 Vec1", 2453}, {"Scalar Internuclear ID10 Vec1", 653}, {"Scalar Internuclear ID11 Vec1", 324},
-    {"Scalar Internuclear ID12 Vec1", 424}, {"Scalar Internuclear ID13 Vec1", 653}, {"Scalar Internuclear ID14 Vec1", 536}, {"Scalar Internuclear ID15 Vec1", 133}, 
+    {"Scalar Internuclear ID12 Vec1", 424}, {"Scalar Internuclear ID13 Vec1", 653}, {"Scalar Internuclear ID14 Vec1", 536}, {"Scalar Internuclear ID15 Vec1", 133},
 };
 
 TEST(OpDeviceProf, GetDataParser_expect_success)
@@ -522,6 +523,71 @@ TEST(DeviceTask, Check_events_for_910B)
     }
 }
 
+/**
+ * |  用例集  | DeviceTask
+ * | 测试函数 | DeviceTask::GetReplayTimes
+ * |  用例名  | test_GetReplayTimes_success_in_kernel_replay_mode
+ * | 用例描述 | 测试kernel重放模式，返回正确的replay次数
+ */
+TEST(DeviceTask, test_GetReplayTimes_success_in_kernel_replay_mode)
+{
+    GlobalMockObject::verify();
+    ProfArgs args;
+    args.argReplayMode = "kernel";
+    OpDeviceProf opDeviceProf(args);
+    DeviceTask deviceTask{"DeviceProf", opDeviceProf};
+    ASSERT_EQ(deviceTask.GetReplayTimes(), 1);
+}
+
+/**
+ * |  用例集  | DeviceTask
+ * | 测试函数 | DeviceTask::GetReplayTimes
+ * |  用例名  | test_GetReplayTimes_success_in_application_replay_mode_910B
+ * | 用例描述 | 测试application重放模式，910B芯片部分插桩，返回正确的replay次数
+ */
+TEST(DeviceTask, test_GetReplayTimes_success_in_application_replay_mode_910B)
+{
+    GlobalMockObject::verify();
+    MOCKER(&Common::HalHelper::GetPlatformType)
+        .stubs()
+        .will(returnValue(Common::ChipType::ASCEND910B));
+    ProfMetricsAbilityConfig metrics;
+    metrics.isMemoryDetail = true;
+    metrics.pcSamplingEnable = true;
+    ProfArgs args;
+    args.argReplayMode = "application";
+    args.argAicMetrics = metrics;
+    OpDeviceProf opDeviceProf(args);
+    DeviceTask deviceTask{"DeviceProf", opDeviceProf};
+    ASSERT_EQ(deviceTask.GetReplayTimes(), 12);
+}
+
+/**
+ * |  用例集  | DeviceTask
+ * | 测试函数 | DeviceTask::GetReplayTimes
+ * |  用例名  | test_GetReplayTimes_success_in_application_replay_mode_950
+ * | 用例描述 | 测试application重放模式，950芯片全部插桩，返回正确的replay次数
+ */
+TEST(DeviceTask, test_GetReplayTimes_success_in_application_replay_mode_950)
+{
+    GlobalMockObject::verify();
+    MOCKER(&Common::HalHelper::GetPlatformType)
+        .stubs()
+        .will(returnValue(Common::ChipType::ASCEND950));
+    ProfMetricsAbilityConfig metrics;
+    metrics.isMemoryDetail = true;
+    metrics.pcSamplingEnable = true;
+    metrics.pipeTimelineEnable = true;
+    metrics.instrTimelineEnable = true;
+    metrics.isSource = true;
+    ProfArgs args;
+    args.argReplayMode = "application";
+    args.argAicMetrics = metrics;
+    OpDeviceProf opDeviceProf(args);
+    DeviceTask deviceTask{"DeviceProf", opDeviceProf};
+    ASSERT_EQ(deviceTask.GetReplayTimes(), 12);
+}
+
 TEST(DeviceDataParse, Execute_Success)
 {
     std::string sourceDir = "test/ut/resources/op_profiling/device910B";
@@ -667,49 +733,6 @@ TEST(DeviceDataParse, SaveOpBasicInfo_expect_false)
     DataHandler dataHandler;
     std::string filePath = "test/ut/resources/op_profiling/device910B/dump/op_basic_info.txt";
     ASSERT_FALSE(dataHandler.SaveOpBasicInfo(filePath));
-}
-
-/**
-/* | 用例集 | DeviceDataParse
-/* |测试函数| ParseTimeline::GenerateBiuTimeStamps()
-/* | 用例名 | test_device_timeline_get_biu_time_stamps_and_expect_success
-/* |用例描述| 执行测试函数，当输入一组数据时，结果正常
-*/
-TEST(DeviceDataParse, test_device_timeline_get_biu_time_stamps_and_expect_success)
-{
-    vector<char> totalBin(2097160, 0);
-    InstrProfHeadInfo headInfo;
-    headInfo.coreId = 0;
-    headInfo.coreType = 1;
-    headInfo.validLen = 8;
-    BiuPerfInfo biuPerfInfo1;
-    biuPerfInfo1.cycles = 100;
-    biuPerfInfo1.biuInfo = 0xf001;
-    BiuPerfInfo biuPerfInfo2;
-    biuPerfInfo2.cycles = 50;
-    biuPerfInfo2.biuInfo = 0xf000;
-    ASSERT_TRUE(memcpy_s(&totalBin[0], sizeof(totalBin), &headInfo, sizeof(InstrProfHeadInfo)) == EOK);
-    ASSERT_TRUE(memcpy_s(&totalBin[8], sizeof(totalBin) - 8, &biuPerfInfo1, sizeof(BiuPerfInfo)) == EOK);
-    ASSERT_TRUE(memcpy_s(&totalBin[12], sizeof(totalBin) - 12, &biuPerfInfo2, sizeof(BiuPerfInfo)) == EOK);
-    ParseTimeline timelineParser;
-    MOCKER(&IsReadable)
-        .stubs()
-        .will(returnValue(true));
-    MOCKER(&GetFileSize)
-        .stubs()
-        .will(returnValue(size_t(2097160)));
-    MOCKER(&ReadBinaryFile)
-        .stubs()
-        .with(any(), outBound(totalBin))
-        .will(returnValue(true));
-    ASSERT_TRUE(timelineParser.GenerateBiuTimeStamps("test/ut/resources/"));
-    std::vector<TimelineInfo> timelineVec = timelineParser.GetTimeline();
-    ASSERT_EQ(timelineVec.size(), 1);
-    ASSERT_EQ(timelineVec[0].pipeName, "SCALAR");
-    ASSERT_EQ(timelineVec[0].coreName, "core0.veccore0");
-    ASSERT_EQ(timelineVec[0].start, 100);
-    ASSERT_EQ(timelineVec[0].duration, 50);
-    GlobalMockObject::verify();
 }
 
 TEST(DeviceDataParse, SaveOpBasicInfo_expect_true)

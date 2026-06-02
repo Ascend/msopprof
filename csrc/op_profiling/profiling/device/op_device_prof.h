@@ -34,6 +34,7 @@ public:
     ReplayMode replayMode_;
     uint16_t warmUp_;
     std::string coreId_;
+    std::string instrTimelinePipe_;
 };
 
 }

@@ -20,24 +20,19 @@
 #include "log.h"
 #include "common/visualize.h"
 #include "roofline.h"
-#include "profiling/device/data_parse/parse_timeline.h"
-#include "timeline_visualize.h"
 
 using namespace Common;
 using namespace Profiling;
 
 namespace Visualize {
 void DataVisualize::GenerateVisualizeData(Parse::DataCenter &dataCenter, const std::string &outputPath,
-                                          const Common::ProfMetricsAbilityConfig &metrics)
-{
+                                          const Common::ProfMetricsAbilityConfig &metrics) {
     GenerateAllVisualizeData(dataCenter, outputPath, metrics);
     CleanupAndLog(dataCenter, outputPath);
 }
 
-void DataVisualize::GenerateAllVisualizeData(Profiling::Parse::DataCenter 
-    &dataCenter, const std::string &outputPath,
-                                          const Common::ProfMetricsAbilityConfig &metrics)
-{
+void DataVisualize::GenerateAllVisualizeData(Profiling::Parse::DataCenter
+    &dataCenter, const std::string &outputPath, const Common::ProfMetricsAbilityConfig &metrics) {
     using VT = Utility::VisualizeType;
     opBasicInfo_->OpBasicInfoToJson();
     Utility::Visualize::WriteBin<VT::OP_BASIC_INFO>(outputPath, opBasicInfo_->opBasicFileJson_);
@@ -47,7 +42,7 @@ void DataVisualize::GenerateAllVisualizeData(Profiling::Parse::DataCenter
         Utility::Visualize::WriteBin<VT::COMPUTE_LOAD_FIGURE>(outputPath, computeLoadInfoPtr->figure);
         Utility::Visualize::WriteBin<VT::COMPUTE_LOAD_TABLE>(outputPath, computeLoadInfoPtr->table);
     } else {
-        Utility::LogDebug("computeLoadInfoPtr is null, skipping writing compute load data"); 
+        Utility::LogDebug("computeLoadInfoPtr is null, skipping writing compute load data");
     }
 
     storageAccess_->StorageAccessToJson(metrics.isKernelScale, metrics.isMemoryDetail);
@@ -72,13 +67,8 @@ void DataVisualize::GenerateAllVisualizeData(Profiling::Parse::DataCenter
         Utility::Visualize::WriteBin<VT::ROOF_LINE>(outputPath, roofLine_->visualRoofLineJson_);
     }
 
-    if (metrics.timelineEnable) {
-        ParseTimeline timelineParser;
-        if (timelineParser.GenerateBiuTimeStamps(outputPath)) {
-            TimelineVisualize timelineVisualize(timelineParser.GetTimeline());
-            timelineVisualize.TimelineToJson(outputPath);
-            Utility::Visualize::WriteBin<VT::TRACE>(outputPath, timelineVisualize.timelineJson_);
-        }
+    if ((metrics.pipeTimelineEnable || metrics.instrTimelineEnable) && biuTimeline_->TimelineToJson(outputPath)) {
+        Utility::Visualize::WriteBin<VT::TRACE>(outputPath, biuTimeline_->GetTimelineJson());
     } else if (timelineParser_->TimelineToJson(outputPath)) {
         Utility::Visualize::WriteBin<VT::TRACE>(outputPath, timelineParser_->GetTimelineJson());
     }
@@ -88,8 +78,7 @@ void DataVisualize::GenerateAllVisualizeData(Profiling::Parse::DataCenter
     }
 }
 
-void DataVisualize::CleanupAndLog(Profiling::Parse::DataCenter &dataCenter, const std::string &outputPath)
-{
+void DataVisualize::CleanupAndLog(Profiling::Parse::DataCenter &dataCenter, const std::string &outputPath) {
     occupancy_->ClearOccupancyJson();
     opBasicInfo_->ClearOpBasicFileJson();
     storageAccess_->ClearStorageAccessJson();

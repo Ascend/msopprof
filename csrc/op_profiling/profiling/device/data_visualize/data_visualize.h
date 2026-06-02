@@ -24,6 +24,7 @@
 #include "common/prof_args.h"
 #include "filesystem.h"
 #include "basic_op_and_pmu.h"
+#include "biu_timeline.h"
 #include "storage_access.h"
 #include "roofline.h"
 #include "occupancy.h"
@@ -39,6 +40,7 @@ struct DataVisualizePtr {
     std::unique_ptr<Occupancy> &occupancy;
     std::unique_ptr<RoofLine> &roofLine;
     std::unique_ptr<TimelineParser> &timelineParser;
+    std::unique_ptr<BiuTimeline> &biuTimeline;
     std::unique_ptr<CachelineHeatMap> &cachelineHeatMapParser;
 };
 
@@ -50,6 +52,7 @@ public:
           occupancy_(ptr.occupancy),
           roofLine_(ptr.roofLine),
           timelineParser_(ptr.timelineParser),
+          biuTimeline_(ptr.biuTimeline),
           cachelineHeatMapParser_(ptr.cachelineHeatMapParser)
     {}
 
@@ -65,6 +68,7 @@ private:
     std::unique_ptr<Occupancy> &occupancy_;
     std::unique_ptr<RoofLine> &roofLine_;
     std::unique_ptr<TimelineParser> &timelineParser_;
+    std::unique_ptr<BiuTimeline> &biuTimeline_;
     std::unique_ptr<CachelineHeatMap> &cachelineHeatMapParser_;
 };
 } // namespace Visualize

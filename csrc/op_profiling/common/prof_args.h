@@ -55,7 +55,8 @@ struct ProfMetricsAbilityConfig {
     bool isBasicInfo = false;
     bool isMemoryDetail = false;
     bool pmSamplingEnable = false;
-    bool timelineEnable = false;
+    bool pipeTimelineEnable = false;
+    bool instrTimelineEnable = false;
     bool pcSamplingEnable = false;
     bool overHead = false;
     ReplayMode replayMode = ReplayMode::KERNEL;
@@ -83,8 +84,7 @@ struct ProfMetricsAbilityConfig {
     bool HasEnabledAllPmu() const;
 };
 
-inline void SetAllAbility(ProfMetricsAbilityConfig &ability)
-{
+inline void SetAllAbility(ProfMetricsAbilityConfig &ability) {
     std::fill(std::begin(ability.metricsConfig), std::end(ability.metricsConfig), Parser::OnOff{true});
 }
 
@@ -138,7 +138,7 @@ struct ProfArgs {
     std::string argWarmUp {"5"};
     std::string argTimeout;
     std::string argDump {"off"};
-
+    std::string argInstrTimelinePipe{};
     std::vector<std::string> cmd { };
     OpRunner::KernelConfig kernelConfig;
 };

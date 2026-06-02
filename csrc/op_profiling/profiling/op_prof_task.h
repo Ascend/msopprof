@@ -26,29 +26,6 @@
 #include "common/prof_args.h"
 
 namespace Profiling {
-
-struct TaskConfig {
-    std::vector<std::string> cmd;
-    std::map<std::string, std::string> env;
-    std::string opRunMode {Common::OpRunnerMode::EXECUTE_BINARY};
-    std::string appKernelName {""};
-    OpRunner::KernelConfig kernelConfig;
-    Common::ProfMetricsAbilityConfig metrics{};
-    Common::ChipType chipType;
-    uint16_t profMaxTimes {1};
-    uint16_t profSkipTimes {0};
-    uint16_t profWarmUpTimes {0};
-    ReplayMode replayMode {ReplayMode::KERNEL};
-    Common::PmuEventsId pmuEventsId;
-    bool killAdvance {false};
-    bool isMstxEnable {false};
-    std::string mstxEnabledMessageString;
-    bool isDeviceToSimulator {false};
-    bool isSetSocVersion;
-    std::string simSocVersion;
-    int32_t timeout {-1};
-};
-
 enum class ExecStatus : uint8_t {
     NOT_RUNNING,
     RUNNING,

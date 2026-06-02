@@ -170,6 +170,14 @@ inline std::string NumToHexString(uint64_t num, int size)
     return ss.str();
 }
 
+inline std::string ToUpper(const std::string &s) {
+    std::string res = s;
+    for (auto& c : res) {
+        c = (char)toupper((unsigned char)c);
+    }
+    return res;
+}
+
 std::string KernelNameConver(const std::string& kernelName);
 bool IsStringCharValid(const std::string &inputString, std::string &msg);
 bool GetUint64ListFromStr(const std::regex &pattern, const std::string &inputStr, std::vector<uint64_t> &resValueList);

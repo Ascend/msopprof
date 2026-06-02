@@ -71,6 +71,7 @@ public:
         pmuValue_ = profConfig->pmuEventsId_;
         isDeviceToSimulator_ = profConfig->aicMetrics_.isDeviceToSimulator;
         profWarmUpTimes_ = profConfig->warmUp_;
+        instrTimelinePipe_ = profConfig->instrTimelinePipe_;
         isMstxEnable = profConfig->isMstxEnable_;
         mstxEnabledMessageString = profConfig->mstxInclude_;
         opRunMode = Common::OpRunnerMode::EXECUTE_BINARY;
@@ -94,6 +95,7 @@ private:
     uint32_t GetReplayTimes();
 
     std::string kernelName_;
+    std::string instrTimelinePipe_;
     std::vector<ProfDBIType> dbiTypes;
     Common::ProfMetricsAbilityConfig metrics_{};
     Common::ChipType chipType_{Common::ChipType::END_TYPE};

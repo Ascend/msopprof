@@ -679,13 +679,14 @@ TEST(ArgChecker, test_CheckOutputPathValid_expect_return_false)
 TEST(ArgChecker, test_ArgChecker_size_expect_return_true)
 {
     ArgChecker checker1("device");
-    ASSERT_TRUE(checker1.checkers_.size() == 14);
+    ASSERT_TRUE(checker1.checkers_.size() == 15);
 
     ArgChecker checker2("simulator");
     ASSERT_TRUE(checker2.checkers_.size() == 13);
 
     ArgChecker checker3("");
-    ASSERT_TRUE(checker3.checkers_.size() == 14);
+    ASSERT_TRUE(checker3.checkers_.size() == 15);
+    GlobalMockObject::verify();
 }
 
 /**
@@ -732,6 +733,28 @@ TEST(ArgChecker, test_CheckAicMetrics_device_metric_failed_expect_return_false)
     ASSERT_FALSE(checker.CheckAicMetrics(args, msg));
     ASSERT_TRUE(msg.find("maybe in wrong soc platform") != std::string::npos);
     GlobalMockObject::verify();
+}
+
+/**
+* |  用例集  | ArgChecker
+* | 测试函数 | CheckAicMetrics
+* |  用例名  | test_CheckAicMetrics_device_timeline_metric_both_exist_expect_return_false
+* | 用例描述 | 测试device场景两种timeline metric不能同时存在，CheckAicMetrics失败
+*/
+TEST(ArgChecker, test_CheckAicMetrics_device_timeline_metric_both_exist_expect_return_false)
+{
+    ArgChecker checker("");
+    Common::ProfArgs args;
+    args.runMode = "device";
+    std::string msg;
+    MOCKER(&Common::HalHelper::GetPlatformType)
+        .stubs()
+        .will(returnValue(Common::ChipType::ASCEND950));
+    args.argAicMetrics.metricVec = {{"pipetimeline", "instrtimeline"}};
+    args.argAicMetrics.pipeTimelineEnable = true;
+    args.argAicMetrics.instrTimelineEnable = true;
+    ASSERT_FALSE(checker.CheckAicMetrics(args, msg));
+    ASSERT_TRUE(msg.find("'PipeTimeline' and 'InstrTimeline' cannot be specified together") != std::string::npos);
 }
 
 /**
@@ -826,4 +849,57 @@ TEST(ArgChecker, test_CheckDump_expect_return_true)
     ASSERT_TRUE(checker.CheckDump(args, msg));
     args.argDump = "off";
     ASSERT_TRUE(checker.CheckDump(args, msg));
+}
+
+/**
+* |  用例集 | ArgChecker
+* | 测试函数 | CheckInstrTimelinePipe
+* |  用例名  | test_CheckInstrTimelinePipe_expect_return_true
+* | 用例描述 | 测试输入正确字符串或为空 CheckInstrTimelinePipe均pass
+*/
+TEST(ArgChecker, test_CheckInstrTimelinePipe_expect_return_true)
+{
+    GlobalMockObject::verify();
+    ArgChecker checker("device");
+    Common::ProfArgs args;
+    std::string msg;
+    // 空字符
+    args.argInstrTimelinePipe = "";
+    ASSERT_TRUE(checker.CheckInstrTimelinePipe(args, msg));
+
+    // 正确字符串
+    args.argInstrTimelinePipe = "CUBE|mte1|Vector";
+    args.argAicMetrics.instrTimelineEnable = true;
+    ASSERT_TRUE(checker.CheckInstrTimelinePipe(args, msg));
+}
+
+/**
+* |  用例集 | ArgChecker
+* | 测试函数 | CheckInstrTimelinePipe
+* |  用例名  | test_CheckInstrTimelinePipe_expect_return_false
+* | 用例描述 | 测试输入错误或不合规字符串 CheckInstrTimelinePipe均fail
+*/
+TEST(ArgChecker, test_CheckInstrTimelinePipe_expect_return_false)
+{
+    GlobalMockObject::verify();
+    ArgChecker checker("device");
+    Common::ProfArgs args;
+    std::string msg;
+    // instrTimelineEnable未开启
+    args.argInstrTimelinePipe = "fixp|vector";
+    args.argAicMetrics.instrTimelineEnable = false;
+    ASSERT_FALSE(checker.CheckInstrTimelinePipe(args, msg));
+    ASSERT_TRUE(msg.find("only support when --aic-metrics include InstrTimeline") != std::string::npos);
+
+    // 字符串超限
+    args.argInstrTimelinePipe = std::string(201, '|');
+    args.argAicMetrics.instrTimelineEnable = true;
+    ASSERT_FALSE(checker.CheckInstrTimelinePipe(args, msg));
+    ASSERT_TRUE(msg.find("input length exceeds limitation") != std::string::npos);
+
+    // 字符串错误
+    args.argInstrTimelinePipe = "simd|simt";
+    args.argAicMetrics.instrTimelineEnable = true;
+    ASSERT_FALSE(checker.CheckInstrTimelinePipe(args, msg));
+    ASSERT_TRUE(msg.find("only support pipes in [cube,fixp,vector,mte1,mte2,mte3]") != std::string::npos);
 }

@@ -22,7 +22,9 @@
 #include <vector>
 #include <string>
 #include <set>
+#include <algorithm>
 #include "core/PlatformConfig.h"
+#include "ustring.h"
 
 namespace Common {
 
@@ -183,7 +185,8 @@ struct MsprofMetrics {
     static constexpr char const *OCCUPANCY = "occupancy";
     static constexpr char const *TIMELINE_DETAIL = "timelinedetail";
     static constexpr char const *ROOFLINE = "roofline";
-    static constexpr char const *PIPETIMELINE = "pipetimeline";
+    static constexpr char const *PIPE_TIMELINE = "pipetimeline";
+    static constexpr char const *INSTR_TIMELINE = "instrtimeline";
     static constexpr char const *PCSAMPLING = "pcsampling";
     static constexpr char const *BASIC_INFO = "basicinfo";
     static constexpr char const *SOURCE = "source";
@@ -221,6 +224,20 @@ struct OpType {
     static constexpr char const *MIX = "mix";
     // default op type for 310P
     static constexpr char const *AI_CORE = "AiCore";
+};
+
+struct DfxPipe {
+    static constexpr char const *CUBE = "CUBE";
+    static constexpr char const *FIXP = "FIXP";
+    static constexpr char const *VECTOR = "VECTOR";
+    static constexpr char const *MTE1 = "MTE1";
+    static constexpr char const *MTE2 = "MTE2";
+    static constexpr char const *MTE3 = "MTE3";
+    static bool IsValidDfxPipe(const std::string &pipe) {
+        const std::vector<const char *> validPipes = {CUBE, FIXP, VECTOR, MTE1, MTE2, MTE3};
+        std::string str = Utility::ToUpper(pipe);
+        return std::any_of(validPipes.begin(), validPipes.end(), [&](const char *p) { return str == p; });
+    }
 };
 
 const MetricEventsMapType AIC_EVENTS_FOR_910B = {

@@ -96,6 +96,7 @@ void DeviceTask::ProcessApplication(uint32_t count) {
         {ProfDBIType::MEMORY_CHART, DBI_FLAG_MEMORY_CHART},
         {ProfDBIType::INSTR_PROF_START, DBI_FLAG_INSTR_PROF_START},
         {ProfDBIType::INSTR_PROF_END, DBI_FLAG_INSTR_PROF_END},
+        {ProfDBIType::INSTR_PROF_DFX, DBI_FLAG_INSTR_PROF_DFX},
         {ProfDBIType::BB_COUNT, DBI_FLAG_BB_COUNT},
     };
     profMessage_.replayCount = count;
@@ -128,10 +129,11 @@ uint32_t DeviceTask::GetReplayTimes() {
         const std::map<ProfDBIType, bool> dbiTypeMap = {
             {ProfDBIType::MEMORY_CHART,     metrics_.isMemoryDetail},
             {ProfDBIType::INSTR_PROF_START, metrics_.pcSamplingEnable},
-            {ProfDBIType::INSTR_PROF_END,   metrics_.timelineEnable},
+            {ProfDBIType::INSTR_PROF_END,   metrics_.pipeTimelineEnable},
+            {ProfDBIType::INSTR_PROF_DFX,   metrics_.instrTimelineEnable},
             {ProfDBIType::BB_COUNT,         metrics_.isSource}
         };
-        for (const auto &pair : dbiTypeMap) {
+        for (const auto& pair : dbiTypeMap) {
             if (pair.second) {
                 dbiTypes.emplace_back(pair.first);
                 replayTimes++;
@@ -167,8 +169,15 @@ bool DeviceTask::PreProcess() {
     profMessage_.dbiFlag = chipType_ == ChipType::ASCEND950 ? DBI_FLAG_OPERAND_RECORD : 0;
     profMessage_.dbiFlag |= metrics_.isMemoryDetail ? DBI_FLAG_MEMORY_CHART : 0;
     profMessage_.dbiFlag |= metrics_.pcSamplingEnable ? DBI_FLAG_INSTR_PROF_START : 0;
-    profMessage_.dbiFlag |= metrics_.timelineEnable ? DBI_FLAG_INSTR_PROF_END : 0;
+    profMessage_.dbiFlag |= metrics_.pipeTimelineEnable ? DBI_FLAG_INSTR_PROF_END : 0;
     profMessage_.dbiFlag |= metrics_.isSource ? DBI_FLAG_BB_COUNT : 0;
+    if (metrics_.instrTimelineEnable) {
+        profMessage_.dbiFlag |= DBI_FLAG_INSTR_PROF_DFX;
+        if (strcpy_s(profMessage_.instrTimelinePipe, sizeof(profMessage_.instrTimelinePipe), instrTimelinePipe_.c_str()) != 0) {
+            LogError("Subprocess control message generate failed");
+            return false;
+        }
+    }
     std::copy(pmuValue_.aicPmu.begin(), pmuValue_.aicPmu.end(), profMessage_.aicPmu);
     std::copy(pmuValue_.aivPmu.begin(), pmuValue_.aivPmu.end(), profMessage_.aivPmu);
     if (chipType_ == ChipType::ASCEND310P) {

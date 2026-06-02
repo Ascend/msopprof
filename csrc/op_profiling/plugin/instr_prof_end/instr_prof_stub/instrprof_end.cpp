@@ -22,23 +22,23 @@ MSOPPROF_REPORT(before_kernel_end)
 {
     asm volatile("bar.all");
     asm volatile(".rept 32\n\tNOP \n\t.endr");     // 确保MTE变为IDLE
-    asm("DFX_REGION.S %0" :: "l" (0x888));         // 8个DFX_REGION指令确保刷满32BYTE
+    asm("DFX_REGION.S %0" :: "l" (0xd88));         // 8个DFX_REGION指令确保刷满32BYTE
     asm volatile("nop");
-    asm("DFX_REGION.S %0" :: "l" (0x999));
+    asm("DFX_REGION.S %0" :: "l" (0xd99));
     asm volatile("nop");
-    asm("DFX_REGION.S %0" :: "l" (0xaaa));
+    asm("DFX_REGION.S %0" :: "l" (0xdaa));
     asm volatile("nop");
-    asm("DFX_REGION.S %0" :: "l" (0xbbb));
+    asm("DFX_REGION.S %0" :: "l" (0xdbb));
     asm volatile("nop");
-    asm("DFX_REGION.S %0" :: "l" (0xccc));
+    asm("DFX_REGION.S %0" :: "l" (0xdcc));
     asm volatile("nop");
     asm("DFX_REGION.S %0" :: "l" (0xddd));
     asm volatile("nop");
-    asm("DFX_REGION.S %0" :: "l" (0xeee));
+    asm("DFX_REGION.S %0" :: "l" (0xdee));
     asm volatile("nop");
-    asm("DFX_REGION.S %0" :: "l" (0xfff));
+    asm("DFX_REGION.S %0" :: "l" (0xdff));
     asm volatile(".rept 3500\n\tNOP \n\t.endr");     // 增加时延，以确保buffer刷入总线
-    asm("DFX_REGION.S %0" :: "l" (0xfff));
+    asm("DFX_REGION.S %0" :: "l" (0xdff));
     asm volatile("nop");
     return;
 }

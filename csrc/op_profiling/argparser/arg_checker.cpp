@@ -68,7 +68,7 @@ const AicMetricsSupportMap DEVICE_AIC_METRICS_SUPPORT_MAP{
                                                                    ChipProductType::ASCEND950_SERIES}},
     {std::string(Common::MsprofMetrics::MEMORYDETAIL),            {ChipProductType::ASCEND910B_SERIES,
                                                                    ChipProductType::ASCEND910_93_SERIES}},
-    {std::string(Common::MsprofMetrics::PIPETIMELINE),                {ChipProductType::ASCEND950_SERIES}},
+    {std::string(Common::MsprofMetrics::PIPE_TIMELINE),           {ChipProductType::ASCEND950_SERIES}},
     {std::string(Common::MsprofMetrics::PCSAMPLING),              {ChipProductType::ASCEND950_SERIES}},
 };
 // 仿真模式下支持的AIC指标，key是指标名称，value是支持的产品类型列表
@@ -106,6 +106,7 @@ ArgChecker::ArgChecker(const std::string &runMode)
         checkers_.emplace_back(&ArgChecker::CheckKillAdvance);
         checkers_.emplace_back(&ArgChecker::CheckReplayMode);
         checkers_.emplace_back(&ArgChecker::CheckWarmUp);
+        checkers_.emplace_back(&ArgChecker::CheckInstrTimelinePipe);
     }
 }
 
@@ -141,6 +142,10 @@ bool ArgChecker::CheckAicMetrics(const Common::ProfArgs &config, std::string &ms
         ChipType chipType = Common::HalHelper::Instance().GetPlatformType();
         if (CHIP_ARCHITECTURE_TO_PRODUCT_SERIES.find(chipType) == CHIP_ARCHITECTURE_TO_PRODUCT_SERIES.end()) {
             msg = "chiptype " + std::to_string(static_cast<int>(chipType)) + " not support.";
+            return false;
+        }
+        if (config.argAicMetrics.pipeTimelineEnable && config.argAicMetrics.instrTimelineEnable) {
+            msg = "Unexpected argument --aic-metrics, 'PipeTimeline' and 'InstrTimeline' cannot be specified together.";
             return false;
         }
         ChipProductType productType = CHIP_ARCHITECTURE_TO_PRODUCT_SERIES.at(chipType);
@@ -507,4 +512,30 @@ bool ArgChecker::CheckTimeout(const Common::ProfArgs &config, std::string &msg) 
     }
     return true;
 }
-}  // namespace Parser
+
+bool ArgChecker::CheckInstrTimelinePipe(const Common::ProfArgs &config, std::string &msg) const {
+    if (config.argInstrTimelinePipe.empty()) {
+        return true;
+    }
+
+    if (!config.argAicMetrics.instrTimelineEnable) {
+        msg = "--instr-timeline-pipe only support when --aic-metrics include InstrTimeline.";
+        return false;
+    }
+
+    if (config.argInstrTimelinePipe.size() >= MAX_INPUT_STR_LENGTH) {
+        msg = "--instr-timeline-pipe input length exceeds limitation.";
+        return false;
+    }
+
+    std::set<std::string> pipeSet;
+    Utility::SplitString(config.argInstrTimelinePipe, '|', pipeSet);
+    for (const auto &pipe : pipeSet) {
+        if (!DfxPipe::IsValidDfxPipe(pipe)) {
+            msg = "--instr-timeline-pipe only support pipes in [cube,fixp,vector,mte1,mte2,mte3].";
+            return false;
+        }
+    }
+    return true;
+}
+} // namespace Parser

@@ -51,10 +51,12 @@ private:
     bool CheckMetrics(const std::vector<std::string> &metricsVec, const ChipProductType &productType,
                       const AicMetricsSupportMap &supports, std::string &msg) const;
     bool CheckDump(const Common::ProfArgs &config, std::string &msg) const;
+    bool CheckInstrTimelinePipe(const Common::ProfArgs &config, std::string &msg) const;
+
 private:
     std::vector<CheckFunc> checkers_;
 };
- 
+
 } // namespace Interface
 
 #endif  // __MSOPPROF_ARGPARSER_ARG_CHECKER_H__

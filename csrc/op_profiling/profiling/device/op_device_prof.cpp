@@ -30,7 +30,7 @@ using namespace Utility;
 namespace Profiling {
 OpDeviceProf::OpDeviceProf(const Common::ProfArgs &profArgs): OpProf(profArgs),
     chipType_(Common::HalHelper::Instance().GetPlatformType()), replayMode_(Common::ReplayModeMap.at(profArgs.argReplayMode)),
-    coreId_(profArgs.argCoreId)
+    coreId_(profArgs.argCoreId), instrTimelinePipe_(profArgs.argInstrTimelinePipe)
 {
     pmuEventsId_.LoadPmuVec(profArgs.argAicMetrics, chipType_, profArgs.argReplayMode);
     StringToNum<uint16_t>(profArgs.argWarmUp, warmUp_);

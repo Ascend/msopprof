@@ -171,6 +171,19 @@ unique_ptr<Visualize::CachelineHeatMap> GetCachelineHeatMapObj(unique_ptr<DataHa
     return parserPtr;
 }
 
+unique_ptr<Visualize::BiuTimeline> &GetBiuTimelineObj(const Common::ProfMetricsAbilityConfig &metrics)
+{
+    static unique_ptr<Visualize::BiuTimeline> biuTimelinePtr;
+    if (metrics.instrTimelineEnable) {
+        biuTimelinePtr = MakeUnique<InstrBiuTimeline>();
+    } else if (metrics.pipeTimelineEnable) {
+        biuTimelinePtr = MakeUnique<PipeBiuTimeline>();
+    } else {
+        biuTimelinePtr = MakeUnique<BiuTimeline>();
+    }
+    return biuTimelinePtr;
+}
+
 bool DeviceDataParse::ParseExactKernelData(const string &path, const string &kernelName)
 {
     Parse::DataCenter dataCenter;
@@ -200,8 +213,9 @@ bool DeviceDataParse::ParseExactKernelData(const string &path, const string &ker
     auto &occupancyObj = GetOccupancyObj(chipType_, opBasicInfoObj, basicPmuObj);
     auto &roofLineObj = GetRoofLineObj(handler, opBasicInfoObj, basicPmuObj, pmuCalculatorObj);
     auto &timelineObj = GetTimelineObj(handler, opBasicInfoObj, basicPmuObj);
+    auto &biuTimelineObj = GetBiuTimelineObj(metrics_);
     auto cachelineHeatMapObj = GetCachelineHeatMapObj(handler);
-    if (!storageAccessObj || !occupancyObj || !roofLineObj || !timelineObj || !cachelineHeatMapObj) {
+    if (!storageAccessObj || !occupancyObj || !roofLineObj || !timelineObj || !biuTimelineObj || !cachelineHeatMapObj) {
         LogError("Get visualize data failed because of nullptr");
         return false;
     }
@@ -211,7 +225,7 @@ bool DeviceDataParse::ParseExactKernelData(const string &path, const string &ker
     calculatorPluginManager.AddPlugin<Parse::ComputeLoadCalculator>(dataCenter, chipProductType_);
     calculatorPluginManager.RunAllPlugins(results);
 
-    DataVisualizePtr ptr = { opBasicInfoObj, storageAccessObj, occupancyObj, roofLineObj, timelineObj, cachelineHeatMapObj};
+    DataVisualizePtr ptr = { opBasicInfoObj, storageAccessObj, occupancyObj, roofLineObj, timelineObj, biuTimelineObj, cachelineHeatMapObj};
     auto dataVisualize = Utility::MakeShared<DataVisualize>(ptr);
     if (!dataVisualize || !storageAccessObj) {
         LogError("Get visualize data failed because of nullptr");
