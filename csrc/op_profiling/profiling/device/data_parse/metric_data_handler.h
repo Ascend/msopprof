@@ -167,6 +167,7 @@ protected:
                                       const std::string &kernelName = "") {}
     virtual void Statics(std::vector<Common::MemRecord> &memoryRecords,
                          std::map<uint64_t, std::map<std::string, uint64_t>> &dataSize) {}
+    virtual void PrepareDbiParams(CalculateParams &params, uint64_t blockId, const std::string &subBlockId) {}
     void InitPlatformInfo();
     DefaultDeviceInfo defaultDeviceInfo_;
     // For MC2 timeline, record stars times
@@ -301,6 +302,11 @@ private:
                               const std::string &kernelName = "") override;
     void Statics(std::vector<Common::MemRecord> &memoryRecords,
                  std::map<uint64_t, std::map<std::string, uint64_t>> &dataSize) override;
+    static uint64_t CalcRequest(uint64_t x, uint64_t align);
+    void PrepareDbiParams(CalculateParams &params, uint64_t blockId, const std::string &subBlockId) override;
+    void CollectStats(const Common::MemRecord &record,
+        std::map<uint16_t, std::map<std::string, uint64_t>> &subblockStats,
+        std::map<uint16_t, std::map<std::string, uint64_t>> &aicoreStats);
     static constexpr int64_t DEFAULT_AICORE_FREQ = 1650;
     // DEFAULT_TSCPU_FREQ needs to be obtained from the driver and updated after physical goods are available.
     static constexpr int64_t DEFAULT_TSCPU_FREQ = 1000000;

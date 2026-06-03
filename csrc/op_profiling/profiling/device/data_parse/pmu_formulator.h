@@ -276,7 +276,6 @@ const std::map<std::string, CalInfo> FormulaFor310P = {
     {"aic_vec_mte_cflt_ratio", {{103}, {}, FuncType::RATIO}},
 };
 
-// AscendA5
 const std::map<std::string, std::function<std::string(const CalculateParams &params)>> FormulaForA5 {
     {"aic_time(us)", [](const CalculateParams &params) {
         return Ratio(params.totalCycles, params.frequency);}},
@@ -372,6 +371,12 @@ const std::map<std::string, std::function<std::string(const CalculateParams &par
         return std::to_string(params.pmuMap.At(513));}},
     {"aic_mte3_ratio", [](const CalculateParams &params) {
         return Ratio(params.pmuMap.At(515), params.totalCycles);}},
+    {"aiv_ub_to_gm_bw(GB/s)", [](const CalculateParams &params) {
+        if (!params.hasDbiUBToGMData) {
+            return std::string("NA");
+        }
+        float dbiUBToGMGB = static_cast<float>(params.dbiUBToGMData) / (BIT_CONVERSION * BIT_CONVERSION * BIT_CONVERSION);
+        return BandWidth(dbiUBToGMGB, params.duration);}},
     {"aiv_gm_to_ub_bw(GB/s)", [](const CalculateParams &params) {
         uint64_t other = Utility::SafeAdd(params.pmuMap.At(1407), params.pmuMap.At(1408), "gm to ub");
         auto val = Utility::SafeSub(params.pmuMap.At(1058), other, "gm to ub", false);
@@ -405,6 +410,18 @@ const std::map<std::string, std::function<std::string(const CalculateParams &par
     {"GM_to_L1_bw_usage_rate(%)", [](const CalculateParams &params) {
         return BandWidthUsage(GetDataNumberFp(params.pmuMap.At(1058), REQ_DATA_OF_A5.at(TransportType::GM_TO_L1)),
             params.duration, TransportType::GM_TO_L1, params.socVersion);}},
+    {"UB_to_GM_datas(KB)", [](const CalculateParams &params) {
+        if (!params.hasDbiUBToGMData) {
+            return std::string("NA");
+        }
+        float dbiUBToGMGB = static_cast<float>(params.dbiUBToGMData) / BIT_CONVERSION;
+        return std::to_string(dbiUBToGMGB);}},
+    {"UB_to_GM_bw_usage_rate(%)", [](const CalculateParams &params) {
+        if (!params.hasDbiUBToGMData) {
+            return std::string("NA");
+        }
+        float dbiUBToGMGB = static_cast<float>(params.dbiUBToGMData) / (BIT_CONVERSION * BIT_CONVERSION * BIT_CONVERSION);
+        return BandWidthUsage(dbiUBToGMGB, params.duration, TransportType::UB_TO_GM, params.socVersion);}},
     {"L0C_to_L1_bw_usage_rate(%)", [](const CalculateParams &params) {
         return BandWidthUsage(GetDataNumberFp(params.pmuMap.At(1806), REQ_DATA_OF_A5.at(TransportType::L0C_TO_L1)),
             params.duration, TransportType::L0C_TO_L1, params.socVersion);}},
@@ -438,7 +455,12 @@ const std::map<std::string, std::function<std::string(const CalculateParams &par
         uint64_t other = Utility::SafeAdd(params.pmuMap.At(1407), params.pmuMap.At(1408), "gm to ub");
         auto val = Utility::SafeSub(params.pmuMap.At(1058), other, "gm to ub", false);
         return BandWidth(GetDataNumberFp(val, REQ_DATA_OF_A5.at(TransportType::GM_TO_UB)), params.duration);}},
-
+    {"aiv_ub_read_bw_gm(GB/s)", [](const CalculateParams &params) {
+        if (!params.hasDbiUBToGMData) {
+            return std::string("NA");
+        }
+        float dbiUBToGMGB = static_cast<float>(params.dbiUBToGMData) / (BIT_CONVERSION * BIT_CONVERSION * BIT_CONVERSION);
+        return BandWidth(dbiUBToGMGB, params.duration);}},
     {"aic_cube_time(us)", [](const CalculateParams &params) {
         return Ratio(params.pmuMap.At(810), params.frequency);}},
      {"aic_cube_ratio", [](const CalculateParams &params) {
@@ -495,6 +517,12 @@ const std::map<std::string, std::function<std::string(const CalculateParams &par
         return Ratio(params.pmuMap.At(515), params.frequency);}},
     {"aiv_mte3_ratio", [](const CalculateParams &params) {
         return Ratio(params.pmuMap.At(515), params.totalCycles);}},
+    {"aiv_mte3_active_bw(GB/s)", [](const CalculateParams &params) {
+        if (!params.hasDbiUBToGMData) {
+            return std::string("NA");
+        }
+        float dbiUBToGMGB = static_cast<float>(params.dbiUBToGMData) / (BIT_CONVERSION * BIT_CONVERSION * BIT_CONVERSION);
+        return BandWidth(dbiUBToGMGB, RatioFp(params.pmuMap.At(515), params.frequency));}},
     {"aiv_icache_miss_rate", [](const CalculateParams &params) {
         return Ratio(params.pmuMap.At(53), params.pmuMap.At(52));}},
 

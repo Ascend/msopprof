@@ -69,6 +69,7 @@ enum class TransportType : uint16_t {
     GM_TO_L0A,
     GM_TO_L0B,
     MTE2_WRITE,
+    DCACHE_TO_GM,
     UNKNOWN
 };
 
@@ -132,6 +133,7 @@ const std::map<TransportType, uint16_t> REQ_DATA_OF_A5 = {
     {TransportType::VEC_TO_GM,               128},
     {TransportType::VEC_TO_DCACHE,           128}, // 估算值，假设WARP写满
     {TransportType::DCACHE_TO_VEC,           128},
+    {TransportType::DCACHE_TO_GM,            128},
 };
 
 const std::map<TransportType, uint16_t> REQ_DATA_OF_310P = {

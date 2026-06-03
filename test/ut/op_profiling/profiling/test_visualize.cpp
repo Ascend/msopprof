@@ -269,7 +269,7 @@ TEST(DataVisualize, occupancy_analyze_occupy_and_expect_success)
     std::vector<std::string> advicesThroughput;
     std::vector<std::string> advicesCacheHitRate;
     std::vector<std::string> advicesSimtInstr;
-    
+
     occupancy.opType_ = Common::OpType::VECTOR;
     occupancy.NormalizeOccupy(cyclesOccupancy, Visualize::OccupancyDataType::OCPY_CYCLES);
     occupancy.AnalyzeOccupy(cyclesOccupancy,
@@ -286,7 +286,7 @@ TEST(DataVisualize, occupancy_analyze_occupy_and_expect_success)
     occupancy.NormalizeOccupy(simtInstrOccupancy, Visualize::OccupancyDataType::OCPY_SIMT_INSTR);
     occupancy.AnalyzeOccupy(simtInstrOccupancy,
         Visualize::OccupancyDataType::OCPY_SIMT_INSTR, advicesSimtInstr);
-    
+
     std::vector<std::string> cyclesRes = {{"vector1 of core[1] take more time than other vector cores"}};
     std::vector<std::string> throughtputRes = {{"cube0 of core[4] write/read more data than other cube cores"}};
     std::vector<std::string> cacheHitRateRes = {{"vector0, vector1 of core[0], vector0 of core[1] cache hit rate lower than other vector cores"}};
@@ -792,4 +792,213 @@ TEST(LcclTimelineParser, test_generate_lccl_timeline_correct)
     ASSERT_TRUE(IsExist(tracePath));
     std::experimental::filesystem::remove_all(testDir);
     GlobalMockObject::verify();
+}
+
+/**
+/* | 用例集 | DataHandlerOf91095
+/* |测试函数| Statics
+/* | 用例名 | test_statics_mix_operator
+/* |用例描述| 测试MIX算子类型的内存数据统计功能
+*/
+TEST(DataHandlerOf91095, test_statics_mix_operator) {
+    // 创建测试对象
+    DataHandlerOf91095 handler;
+
+    // 设置 MIX 算子的 memMapDetail_
+    handler.memMapDetail_.push_back({
+        .blockId = 0,
+        .blockType = "cube",
+        .opType = Common::OpType::MIX
+    });
+
+    // 创建测试的内存记录
+    std::vector<Common::MemRecord> memoryRecords;
+
+    // 1. 添加 GM -> REG 的内存访问记录 (subblockId = 0, vec0 子块)
+    Common::MemRecord rec1 {};
+    rec1.srcMemSize = 1024;
+    rec1.blockId = 0;
+    rec1.subBlockID = 0;
+    rec1.src = Common::MemType::GM;
+    rec1.dst = Common::MemType::REG;
+    memoryRecords.push_back(rec1);
+
+    // 2. 添加 UB -> L1 的内存访问记录 (subblockId = 1, vec1 子块)
+    Common::MemRecord rec2 {};
+    rec2.srcMemSize = 512;
+    rec2.blockId = 1;
+    rec2.subBlockID = 0;
+    rec2.src = Common::MemType::UB;
+    rec2.dst = Common::MemType::L1;
+    memoryRecords.push_back(rec2);
+
+    // 3. 添加 L1 -> UB 的内存访问记录 (subblockId = 2, cube 子块)
+    Common::MemRecord rec3 {};
+    rec3.srcMemSize = 256;
+    rec3.blockId = 2;
+    rec3.subBlockID = 0;
+    rec3.src = Common::MemType::L1;
+    rec3.dst = Common::MemType::UB;
+    memoryRecords.push_back(rec3);
+
+    // 4. 添加 REG -> GM 的内存访问记录 (subblockId = 0, vec0 子块)
+    Common::MemRecord rec4 {};
+    rec4.srcMemSize = 768;
+    rec4.blockId = 0;
+    rec4.subBlockID = 0;
+    rec4.src = Common::MemType::REG;
+    rec4.dst = Common::MemType::GM;
+    memoryRecords.push_back(rec4);
+
+    // 调用 Statics 函数
+    std::map<uint64_t, std::map<std::string, uint64_t>> dataSize;
+    handler.Statics(memoryRecords, dataSize);
+
+    // 验证 vec0 数据统计 (subblockId = 0)
+    auto &vec0Trans = handler.memMapDetail_[0].apiDataTransVolumeVec0;
+    ASSERT_FALSE(vec0Trans.empty());
+    ASSERT_TRUE(vec0Trans.find("GM_TO_DCACHE") != vec0Trans.end());
+    ASSERT_TRUE(vec0Trans.find("DCACHE_TO_VEC") != vec0Trans.end());
+    ASSERT_TRUE(vec0Trans.find("VEC_TO_DCACHE") != vec0Trans.end());
+    ASSERT_TRUE(vec0Trans.find("DCACHE_TO_GM") != vec0Trans.end());
+    ASSERT_TRUE(vec0Trans.find("GM_TO_DCACHE_DATA") != vec0Trans.end());
+    ASSERT_TRUE(vec0Trans.find("DCACHE_TO_VEC_DATA") != vec0Trans.end());
+    ASSERT_TRUE(vec0Trans.find("VEC_TO_DCACHE_DATA") != vec0Trans.end());
+    ASSERT_TRUE(vec0Trans.find("DCACHE_TO_GM_DATA") != vec0Trans.end());
+
+    // 验证 vec1 数据统计 (subblockId = 1)
+    auto &vec1Trans = handler.memMapDetail_[0].apiDataTransVolumeVec1;
+    ASSERT_FALSE(vec1Trans.empty());
+    ASSERT_TRUE(vec1Trans.find("UB_TO_L1") != vec1Trans.end());
+    ASSERT_TRUE(vec1Trans.find("UB_TO_L1_DATA") != vec1Trans.end());
+
+    // 验证 cube 数据统计 (subblockId = 2)
+    auto &cubeTrans = handler.memMapDetail_[0].ApiDataTransVolume_;
+    ASSERT_FALSE(cubeTrans.empty());
+    ASSERT_TRUE(cubeTrans.find("L1_TO_UB") != cubeTrans.end());
+    ASSERT_TRUE(cubeTrans.find("L1_TO_UB_DATA") != cubeTrans.end());
+
+    // 验证 dataSize 统计
+    ASSERT_TRUE(dataSize.find(0) != dataSize.end());
+    auto &aicore0Data = dataSize[0];
+    ASSERT_FALSE(aicore0Data.empty());
+    // 所有数据应该汇总到 aicoreId = 0
+}
+
+/**
+/* | 用例集 | DataHandlerOf91095
+/* |测试函数| Statics
+/* | 用例名 | test_statics_non_mix_operator
+/* |用例描述| 测试非MIX算子类型的内存数据统计功能
+*/
+TEST(DataHandlerOf91095, test_statics_non_mix_operator) {
+    // 创建测试对象
+    DataHandlerOf91095 handler;
+
+    // 设置非 MIX 算子的 memMapDetail_
+    handler.memMapDetail_.push_back({
+        .blockId = 0,
+        .blockType = "vector0",
+        .opType = Common::OpType::VECTOR
+    });
+
+    // 创建测试的内存记录
+    std::vector<Common::MemRecord> memoryRecords;
+
+    // 1. 添加 GM -> UB 的内存访问记录 (subblockId = 0)
+    Common::MemRecord rec1 {};
+    rec1.srcMemSize = 2048;
+    rec1.blockId = 0;
+    rec1.subBlockID = 0;
+    rec1.src = Common::MemType::GM;
+    rec1.dst = Common::MemType::UB;
+    memoryRecords.push_back(rec1);
+
+    // 2. 添加 REG -> GM 的内存访问记录 (subblockId = 1)
+    Common::MemRecord rec2 {};
+    rec2.srcMemSize = 1024;
+    rec2.blockId = 1;
+    rec2.subBlockID = 0;
+    rec2.src = Common::MemType::REG;
+    rec2.dst = Common::MemType::GM;
+    memoryRecords.push_back(rec2);
+
+    // 3. 添加 UB -> VEC 的内存访问记录 (subblockId = 0)
+    Common::MemRecord rec3 {};
+    rec3.srcMemSize = 512;
+    rec3.blockId = 0;
+    rec3.subBlockID = 0;
+    rec3.src = Common::MemType::UB;
+    rec3.dst = Common::MemType::REG;
+    memoryRecords.push_back(rec3);
+
+    // 4. 添加 GM -> REG 的内存访问记录 (subblockId = 1, vec1)
+    Common::MemRecord rec4 {};
+    rec4.srcMemSize = 768;
+    rec4.blockId = 1;
+    rec4.subBlockID = 0;
+    rec4.src = Common::MemType::GM;
+    rec4.dst = Common::MemType::REG;
+    memoryRecords.push_back(rec4);
+
+    // 调用 Statics 函数
+    std::map<uint64_t, std::map<std::string, uint64_t>> dataSize;
+    handler.Statics(memoryRecords, dataSize);
+
+    // 验证通用数据统计
+    auto &transVolume = handler.memMapDetail_[0].ApiDataTransVolume_;
+    ASSERT_FALSE(transVolume.empty());
+    ASSERT_TRUE(transVolume.find("GM_TO_UB") != transVolume.end());
+    ASSERT_TRUE(transVolume.find("GM_TO_UB_DATA") != transVolume.end());
+    ASSERT_TRUE(transVolume.find("VEC_TO_DCACHE") != transVolume.end());
+    ASSERT_TRUE(transVolume.find("DCACHE_TO_GM") != transVolume.end());
+    ASSERT_TRUE(transVolume.find("VEC_TO_DCACHE_DATA") != transVolume.end());
+    ASSERT_TRUE(transVolume.find("DCACHE_TO_GM_DATA") != transVolume.end());
+    ASSERT_TRUE(transVolume.find("UB_TO_VEC") != transVolume.end());
+    ASSERT_TRUE(transVolume.find("UB_TO_VEC_DATA") != transVolume.end());
+    ASSERT_TRUE(transVolume.find("GM_TO_DCACHE") != transVolume.end());
+    ASSERT_TRUE(transVolume.find("DCACHE_TO_VEC") != transVolume.end());
+    ASSERT_TRUE(transVolume.find("GM_TO_DCACHE_DATA") != transVolume.end());
+    ASSERT_TRUE(transVolume.find("DCACHE_TO_VEC_DATA") != transVolume.end());
+
+    // 验证非 MIX 算子不会填充 vec0/vec1 特定字段
+    ASSERT_TRUE(handler.memMapDetail_[0].apiDataTransVolumeVec0.empty());
+    ASSERT_TRUE(handler.memMapDetail_[0].apiDataTransVolumeVec1.empty());
+
+    // 验证 dataSize 统计
+    ASSERT_TRUE(dataSize.find(0) != dataSize.end());
+    auto &aicore0Data = dataSize[0];
+    ASSERT_FALSE(aicore0Data.empty());
+    // 所有数据应该汇总到 aicoreId = 0
+}
+
+/**
+/* | 用例集 | DataHandlerOf91095
+/* |测试函数| Statics
+/* | 用例名 | test_statics_empty_records
+/* |用例描述| 测试空内存记录的处理
+*/
+TEST(DataHandlerOf91095, test_statics_empty_records) {
+    // 创建测试对象
+    DataHandlerOf91095 handler;
+
+    // 设置 memMapDetail_
+    handler.memMapDetail_.push_back({
+        .blockId = 0,
+        .blockType = "vector0",
+        .opType = Common::OpType::VECTOR
+    });
+
+    // 空的内存记录
+    std::vector<Common::MemRecord> memoryRecords;
+
+    // 调用 Statics 函数
+    std::map<uint64_t, std::map<std::string, uint64_t>> dataSize;
+    handler.Statics(memoryRecords, dataSize);
+
+    // 验证结果：应该为空
+    ASSERT_TRUE(handler.memMapDetail_[0].ApiDataTransVolume_.empty());
+    ASSERT_TRUE(handler.memMapDetail_[0].apiDataTransVolumeVec0.empty());
+    ASSERT_TRUE(handler.memMapDetail_[0].apiDataTransVolumeVec1.empty());
+    ASSERT_TRUE(dataSize.empty());
 }

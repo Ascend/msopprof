@@ -1264,7 +1264,12 @@ TEST(CalMetricItems, CalMetricItems_A5_success)
     pmuEventValueMap.erase(pmuEventValueMap.begin());
     PmuMap pmuMap(pmuEventValueMap);
 
-    CalculateParams params = { 1000, 1000, 1, "Ascend950PR_9599", pmuMap};
+    CalculateParams params;
+    params.totalCycles = 1000;
+    params.frequency = 1000;
+    params.duration = 1;
+    params.socVersion = "Ascend950PR_9599";
+    params.pmuMap = pmuMap;
     set<std::string> metricItems;
     for (const auto &temp : MetricHeaderForA5) {
         metricItems.insert(temp.second.begin(), temp.second.end());

@@ -196,9 +196,9 @@ std::map<std::string, uint64_t> StorageAccess910B::GetDataVector910BMix(MemMapDe
 void StorageAccess910B::LoadScalarMixPmu(const std::string &core, std::map<uint64_t, uint64_t> &pmuMap, std::map<std::string, uint64_t> &indexMap) const
 {
     std::vector<std::string> index = {"Scalar Time", "Scalar Single", "Scalar Dual", "Scalar Mte2 Stall", "Scalar Mte3 Stall", "Scalar Vector Stall", "Scalar Ub Stall",
-        "Scalar Wait IB", "Scalar Wait", "Scalar Internuclear ID0", "Scalar Internuclear ID1", "Scalar Internuclear ID2", "Scalar Internuclear ID3", "Scalar Internuclear ID4", 
-        "Scalar Internuclear ID5", "Scalar Internuclear ID6", "Scalar Internuclear ID7", "Scalar Internuclear ID8", "Scalar Internuclear ID9", 
-        "Scalar Internuclear ID10", "Scalar Internuclear ID11", "Scalar Internuclear ID12", "Scalar Internuclear ID13", "Scalar Internuclear ID14", "Scalar Internuclear ID15", 
+        "Scalar Wait IB", "Scalar Wait", "Scalar Internuclear ID0", "Scalar Internuclear ID1", "Scalar Internuclear ID2", "Scalar Internuclear ID3", "Scalar Internuclear ID4",
+        "Scalar Internuclear ID5", "Scalar Internuclear ID6", "Scalar Internuclear ID7", "Scalar Internuclear ID8", "Scalar Internuclear ID9",
+        "Scalar Internuclear ID10", "Scalar Internuclear ID11", "Scalar Internuclear ID12", "Scalar Internuclear ID13", "Scalar Internuclear ID14", "Scalar Internuclear ID15",
     };
     std::vector<uint64_t> pmuValue = {9, 112, 113, 108, 109, 111, 106, 114, 87, 1792, 1793, 1794, 1795, 1796, 1797, 1798, 1799, 1780, 1781, 1782, 1783, 1784, 1785, 1786, 1787};
     for (uint32_t i = 0; i < index.size(); i++) {
@@ -714,7 +714,7 @@ void StorageAccess910B::SetScalarMemInfo(const std::string &opType, std::map<std
             scalarIndex["Scalar Mte3 Stall"], scalarIndex["Scalar Wait IB"], scalarIndex["Scalar Wait"], scalarIndex["Scalar Cube Stall"]};
         return;
     }
-        
+
     if (opType == Common::OpType::MIX) {
         std::vector<std::string> scalarIndexMixVec = {"Scalar Cube Stall", "Scalar Mte1 Stall", "Scalar Time Vec0", "Scalar Single Vec0", "Scalar Dual Vec0", "Scalar Mte2 Stall Vec0", "Scalar Mte3 Stall Vec0",
             "Scalar Vector Stall Vec0", "Scalar Wait IB Vec0", "Scalar Wait Vec0", "Scalar Ub Stall Vec0", "Scalar Time Vec1", "Scalar Single Vec1", "Scalar Dual Vec1", "Scalar Mte2 Stall Vec1", "Scalar Mte3 Stall Vec1",
@@ -827,6 +827,10 @@ std::map<PipeAll, MemInfoAiCore> StorageAccessA5::GetVecMap()
         {PipeAll::L2_TO_DCACHE, memInfoAiCoreMap_["DCache"][0]},
         {PipeAll::VEC_TO_DCACHE, memInfoAiCoreMap_["DCache"][1]},
         {PipeAll::DCACHE_TO_VEC, memInfoAiCoreMap_["DCache"][2]}};
+    if (memoryDetail_) {
+        aiCoreMap[PipeAll::DCACHE_TO_L2] = memInfoAiCoreMap_["DCache"][3];
+        aiCoreMap[PipeAll::UB_TO_L2] = memInfoAiCoreMap_["UB"][8];
+    }
     return aiCoreMap;
 }
 
@@ -866,6 +870,16 @@ std::map<PipeAll, MemInfoAiCore> StorageAccessA5::GetMixMap()
         {PipeAll::DCACHE_TO_VEC, memInfoAiCoreMap_["DCache Core0"][2]},
         {PipeAll::DCACHE_TO_VEC_2, memInfoAiCoreMap_["DCache Core1"][2]},
     };
+    if (memoryDetail_) {
+        aiCoreMap[PipeAll::UB_TO_L2] = memInfoAiCoreMap_["UB Core0"][8];
+        aiCoreMap[PipeAll::UB_TO_L2_2] = memInfoAiCoreMap_["UB Core1"][8];
+        aiCoreMap[PipeAll::UB_TO_L1] = memInfoAiCoreMap_["UB Core0"][7];
+        aiCoreMap[PipeAll::UB_TO_L1_2] = memInfoAiCoreMap_["UB Core1"][7];
+        aiCoreMap[PipeAll::L1_TO_UB] = memInfoAiCoreMap_["UB Core0"][6];
+        aiCoreMap[PipeAll::L1_TO_UB_2] = memInfoAiCoreMap_["UB Core1"][6];
+        aiCoreMap[PipeAll::DCACHE_TO_L2] = memInfoAiCoreMap_["DCache Core0"][3];
+        aiCoreMap[PipeAll::DCACHE_TO_L2_2] = memInfoAiCoreMap_["DCache Core1"][3];
+    }
     return aiCoreMap;
 }
 
@@ -1144,7 +1158,7 @@ void StorageAccess910B::LoadLineMap(const std::string &opType)
         {"GM", gm_}, {"Cache", {"L2 Cache Write", "L2 Cache Read", "L2 Cache Total", "iCache Total"}},
         {"Pipe", {"MTE1", "MTE2", "MTE3", "FIXP", "Scalar"}}
     };
-    
+
     std::map<std::string, std::vector<std::string>> scalarVec = {
         {"Scalar", scalarVec_},
     };
@@ -1355,6 +1369,7 @@ void StorageAccessA5::PreProcess(bool isKernelScale, bool isMemoryDetail)
         coreMemJson["core_no"] = std::to_string(memMapDetail[i].blockId);
         coreMemJson["op_type"] = opType;
         coreMemJson["soc"] = "910A5";
+        coreMemJson["memory_detail"] = isMemoryDetail ? "1" : "0";
         coreMemJson["memory_unit"] = GetAiCoreMemUnitJson(opType);
         mapTableJson_.emplace_back(memTableJson);
         heatMapJson_.emplace_back(coreMemJson);
@@ -1544,10 +1559,15 @@ vector<MemInfoPipe> StorageAccessA5::LoadVecPipeData(map<uint64_t, uint64_t> &ev
     float mte3ActRate = pmuCalculatorObj_->CalculatePer(eventMap[515], totalCycles);
 
     // add pipe advice if ratio < advicePipe_
-    // MTE3数据量暂无法获取
+    // MTE3数据量根据是否使能memorydetail_判断是否显示数据
     map<string, pair<float, float>> mtePipe = {
         {"MTE2 vector", {mte2ActRate, mte2Data}},
     };
+    float mte3Data = -1.0f; // 初始化为-1.0f，表示未找到UB_TO_GM_DATA数据
+    if (memoryDetail_ && dbiRequest_.find("UB_TO_GM_DATA") != dbiRequest_.end()) {
+        mte3Data = static_cast<float>(dbiRequest_.at("UB_TO_GM_DATA")) / (BIT_CONVERSION * BIT_CONVERSION * BIT_CONVERSION);
+        mtePipe["MTE3 vector"] = {mte3ActRate, mte3Data};
+    }
     for (const auto& mte: mtePipe) {
         if (!IsZero(mte.second.first) && !IsZero(mteBwMap_[mte.first])) {
             if (BandWidthFp(mte.second.second, time) / mte.second.first / mteBwMap_[mte.first] < idealRatio) {
@@ -1557,9 +1577,38 @@ vector<MemInfoPipe> StorageAccessA5::LoadVecPipeData(map<uint64_t, uint64_t> &ev
     }
     return {
         {MemInfoPipe{eventMap[512], eventMap[514], eventMap[14], bwPipe(mte2Data, eventMap[514]),  mte2ActRate}},
-        {MemInfoPipe{eventMap[513], eventMap[515], eventMap[15], "NA", mte3ActRate}},
+        {MemInfoPipe{eventMap[513], eventMap[515], eventMap[15], bwPipe(mte3Data, eventMap[515]),  mte3ActRate}},
         {MemInfoPipe{eventMap[0],   eventMap[1],   eventMap[10], "NA", pmuCalculatorObj_->CalculatePer(eventMap[1], totalCycles)}},
     };
+}
+
+void StorageAccessA5::ApplyDbiDataForVec(VecDataStats &stats, bool hasSimt) {
+    stats.readMainMem = 0;
+    stats.writeMainMem = 0;
+
+    auto getVal = [this, &stats](const std::string &key, uint64_t &target) {
+        auto it = dbiRequest_.find(key);
+        if (it != dbiRequest_.end()) {
+            target = it->second;
+        }
+    };
+
+    getVal("L1_TO_UB", stats.dbiL1ToUb);
+    getVal("UB_TO_L1", stats.dbiUbToL1);
+    getVal("GM_TO_UB", stats.pmuGmToUb);
+    getVal("UB_TO_GM", stats.dbiUbToGM);
+    getVal("GM_TO_DCACHE", stats.gmToDcache);
+    getVal("VEC_TO_DCACHE", stats.vecToDcache);
+    getVal("DCACHE_TO_VEC", stats.dcacheToVec);
+    getVal("DCACHE_TO_GM", stats.dbiDcacheToGM);
+
+    if (hasSimt) {
+        getVal("UB_TO_VEC", stats.ubToVec);
+        getVal("VEC_TO_UB", stats.vecToUb);
+    }
+
+    stats.readMainMem = stats.pmuGmToUb + stats.gmToDcache;
+    stats.writeMainMem = stats.dbiUbToGM + stats.dbiDcacheToGM;
 }
 
 StorageVecTableData StorageAccessA5::LoadVecData(const map<uint64_t, uint64_t> &eventMap, uint64_t totalCycles, int64_t freq, float time, int subCoreId)
@@ -1569,44 +1618,64 @@ StorageVecTableData StorageAccessA5::LoadVecData(const map<uint64_t, uint64_t> &
     if (IsZero(time)) {
         time = freq == 0 ? 0.0f : static_cast<float>(totalCycles) / freq;
     }
+
+    // 1. 加载缓存数据
     vector<MemInfoCache> cache = LoadCacheData(pmu);
+
+    // 2. 计算基础统计数据
+    VecDataStats stats;
     string location = "vec storage";
-    uint64_t pmuL0cToUb = subCoreId == 0 ? fixpToUbVec0_ : fixpToUbVec1_;
-    uint64_t gmToDcache = SafeAdd(pmu[1407], pmu[1408], location);
-    uint64_t pmuGmToUb = SafeSub(pmu[1058], gmToDcache, location, false);
-    uint64_t dcacheToVec = SafeAddAll<uint64_t>({pmu[1395], pmu[1396], pmu[1404]}, location);
-    uint64_t vecToDcache = SafeAddAll<uint64_t>({pmu[1397], pmu[1398], pmu[1400], pmu[1404]}, location);
+    stats.pmuL0cToUb = subCoreId == 0 ? fixpToUbVec0_ : fixpToUbVec1_;
+    stats.gmToDcache = SafeAdd(pmu[1407], pmu[1408], location);
+    stats.pmuGmToUb = SafeSub(pmu[1058], stats.gmToDcache, location, false);
+    stats.dcacheToVec = SafeAddAll<uint64_t>({pmu[1395], pmu[1396], pmu[1404]}, location);
+    stats.vecToDcache = SafeAddAll<uint64_t>({pmu[1397], pmu[1398], pmu[1400], pmu[1404]}, location);
+
     // 算子存在VEC SIMT架构时，暂不显示UB<->VEC通路数据
     bool hasSimt = opBasicInfoObj_->GetHasSimt();
-    uint64_t ubToVec = hasSimt ? EMPTY_PMU_VALUE : pmu[1393];
- 	uint64_t vecToUb = hasSimt ? EMPTY_PMU_VALUE : pmu[1394];
-    auto pmuGmToL2 = SafeAddAll<uint64_t>({pmu[1061], pmu[1062], pmu[1064], pmu[1065]}, location);
-    auto pmuL2ToGm = SafeAddAll<uint64_t>({pmu[1062], pmu[1065], pmu[1068], pmu[1071]}, location);
+    stats.ubToVec = hasSimt ? EMPTY_PMU_VALUE : pmu[1393];
+    stats.vecToUb = hasSimt ? EMPTY_PMU_VALUE : pmu[1394];
 
-    float mte2Data = GetDataNumberFp(pmuGmToUb, REQ_DATA_OF_A5.at(TransportType::GM_TO_UB));
+    stats.pmuGmToL2 = SafeAddAll<uint64_t>({pmu[1061], pmu[1062], pmu[1064], pmu[1065]}, location);
+    stats.pmuL2ToGm = SafeAddAll<uint64_t>({pmu[1062], pmu[1065], pmu[1068], pmu[1071]}, location);
+    stats.readMainMem = pmu[1058];
+    stats.writeMainMem = pmu[1059];
+
+    // 3. 如果启用插桩数据，应用覆盖
+    if (memoryDetail_) {
+        ApplyDbiDataForVec(stats, hasSimt);
+    }
+
+    // 4. 加载管道数据
+    float mte2Data = GetDataNumberFp(stats.pmuGmToUb, REQ_DATA_OF_A5.at(TransportType::GM_TO_UB));
     vector<MemInfoPipe> pipe = LoadVecPipeData(pmu, totalCycles, freq, time, {{"MTE2", mte2Data}});
 
+    // 5. 构建返回结果
     return StorageVecTableData{cache, pipe,
         // gm
-        {CalAiCore(time, pmu[1058],   TransportType::READ_MAIN_MEMORY),
-         CalAiCore(time, pmu[1059],   TransportType::WRITE_MAIN_MEMORY)},
+        {CalAiCore(time, stats.readMainMem,   TransportType::READ_MAIN_MEMORY),
+         CalAiCore(time, stats.writeMainMem,   TransportType::WRITE_MAIN_MEMORY)},
         // ub
         {CalAiCore(time, pmu[518],    TransportType::MTE_TO_UB),
          CalAiCore(time, pmu[516],    TransportType::UB_TO_MTE),
-         CalAiCore(time, pmuGmToUb,   TransportType::GM_TO_UB, true),
-         CalAiCore(time, vecToUb,     TransportType::VEC_TO_UB),
-         CalAiCore(time, ubToVec,     TransportType::UB_TO_VEC),
-         CalAiCore(time, pmuL0cToUb,  TransportType::L0C_TO_UB)},
+         CalAiCore(time, stats.pmuGmToUb,   TransportType::GM_TO_UB, true),
+         CalAiCore(time, stats.vecToUb,     TransportType::VEC_TO_UB),
+         CalAiCore(time, stats.ubToVec,     TransportType::UB_TO_VEC),
+         CalAiCore(time, stats.pmuL0cToUb,  TransportType::L0C_TO_UB),
+         CalAiCore(time, stats.dbiL1ToUb,  TransportType::L1_TO_UB),
+         CalAiCore(time, stats.dbiUbToL1,  TransportType::UB_TO_L1),
+         CalAiCore(time, stats.dbiUbToGM,  TransportType::UB_TO_GM)},
         // vec
-        {CalAiCore(time, vecToUb,     TransportType::VEC_TO_UB),
-         CalAiCore(time, ubToVec,     TransportType::UB_TO_VEC)},
+        {CalAiCore(time, stats.vecToUb,     TransportType::VEC_TO_UB),
+         CalAiCore(time, stats.ubToVec,     TransportType::UB_TO_VEC)},
         // dcache
-        {CalAiCore(time, gmToDcache,  TransportType::GM_TO_DCACHE),
-         CalAiCore(time, vecToDcache, TransportType::VEC_TO_DCACHE),
-         CalAiCore(time, dcacheToVec, TransportType::DCACHE_TO_VEC)},
+        {CalAiCore(time, stats.gmToDcache,  TransportType::GM_TO_DCACHE),
+         CalAiCore(time, stats.vecToDcache, TransportType::VEC_TO_DCACHE),
+         CalAiCore(time, stats.dcacheToVec, TransportType::DCACHE_TO_VEC),
+         CalAiCore(time, stats.dbiDcacheToGM,  TransportType::DCACHE_TO_GM)},
         // l2cache
-        {CalAiCore(time, pmuGmToL2,   TransportType::READ_MAIN_MEMORY),   // GM -> l2cache
-         CalAiCore(time, pmuL2ToGm,   TransportType::WRITE_MAIN_MEMORY)}, // l2cache -> GM
+        {CalAiCore(time, stats.pmuGmToL2,   TransportType::READ_MAIN_MEMORY),   // GM -> l2cache
+         CalAiCore(time, stats.pmuL2ToGm,   TransportType::WRITE_MAIN_MEMORY)}, // l2cache -> GM
     };
 }
 
@@ -1618,6 +1687,7 @@ void StorageAccessA5::LoadMapData(const string &opType, MemMapDetail &memMapDeta
         bwTime = GetDurCalBandWidth();
     }
     std::vector<MemInfoAiCore> l2CacheTransData;
+    dbiRequest_ = memMapDetail.ApiDataTransVolume_;
     if (opType == Common::OpType::VECTOR) {
         auto vecData = LoadVecData(memMapDetail.eventMap, memMapDetail.totalCycles, memMapDetail.freq, bwTime);
         memInfoCacheMap_ = {{"Cache", vecData.cache}};
@@ -1631,7 +1701,9 @@ void StorageAccessA5::LoadMapData(const string &opType, MemMapDetail &memMapDeta
         memInfoPipeMap_ = {{"Pipe", cubeData.pipe}};
     } else {
         auto cubeData = LoadCubeData(memMapDetail.eventMap, memMapDetail.cycMap["Cube"], memMapDetail.freq, bwTime);
+        dbiRequest_ = memMapDetail.apiDataTransVolumeVec0;
         auto vecData0 = LoadVecData(memMapDetail.eventMapVec0, memMapDetail.cycMap["Vector"], memMapDetail.freq, bwTime, 0);
+        dbiRequest_ = memMapDetail.apiDataTransVolumeVec1;
         auto vecData1 = LoadVecData(memMapDetail.eventMapVec1, memMapDetail.cycMap["Vector1"], memMapDetail.freq, bwTime, 1);
         vector<MemInfoCache> mixCache;
         string location = "mix storage";

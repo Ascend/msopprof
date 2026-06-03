@@ -84,6 +84,7 @@ struct Mte1BwPmusWithSize {
 
 class PmuMap {
 public:
+    PmuMap() = default;
     explicit PmuMap(std::map<uint16_t, uint64_t> &pmuMap) : pmuMap_(pmuMap) {}
     uint64_t At(const uint16_t key) const
     {
@@ -101,6 +102,8 @@ struct CalculateParams {
     float duration;
     std::string socVersion;
     PmuMap pmuMap;
+    uint64_t dbiUBToGMData = 0;
+    bool hasDbiUBToGMData = false;
 };
 
 const std::map<Common::ChipType, VecFopsNums> VEC_FOPS_NUMS = {

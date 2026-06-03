@@ -34,10 +34,10 @@ enum class Event : uint64_t {
     MTE3_INSTR = 6,
     VEC_CYCLES = 8,
     SCALAR_CYCLES = 9,
- 
+
     MTE2_CYCLES = 12,
     MTE3_CYCLES = 13,
- 
+
     MAIN_MEM_REQ = 19,
     MTE_TO_L0A_REQ = 28,
     L0B_READ_REQ = 33,
@@ -57,27 +57,27 @@ enum class Event : uint64_t {
     VEC_FP16_EXECUTED_64 = 77,
     VEC_S32_EXECUTED = 78,
     VEC_MISC_EXECUTED = 79,
- 
+
     ICACHE_REQ = 84,
     ICACHE_MISS = 85,
     SCALAR_WAIT_CYCLES = 87,
     CUBE_WAIT_CYCLES = 88,
     VEC_WAIT_CYCLES = 89,
- 
+
     MTE1_WAIT_CYCLES = 90,
     MTE2_WAIT_CYCLES = 91,
     MTE3_WAIT_CYCLES = 92,
- 
+
     BANK_GROUP_CONFLICT = 100,
     BANK_CONFLICT = 101,
     VALU_RESOURCE_CONFLICT = 102,
     MTE_URGENT_REQUEST = 103,
- 
+
     VEC_FP16_EXECUTED_32 = 174,
     FUSION_INSTR = 184,
     PARA_INSTR = 185,
     VEC_S16_EXECUTED = 186,
- 
+
     // 310P max pmu id is 197, The remaining value is the content of 910B.
 
     FIXP_TO_L1_REQ = 518,
@@ -88,10 +88,10 @@ enum class Event : uint64_t {
     READ_MISS_R0 = 1286,
     READ_HIT_R1 = 1288,
     READ_MISS_R1 = 1290,
- 
+
     FP_MMAD_INSTR = 1032,
     INT_MMAD_INSTR = 1033,
- 
+
     WRITE_DATA = 1292, // number of write data sent (128B word granularity)
     READ_DATA_R0 = 1293,
     READ_DATA_R1 = 1294,
@@ -352,6 +352,9 @@ struct MemMapDetail {
     std::map<uint64_t, uint64_t> eventMapVec1;
     std::map<std::string, uint64_t> cycMap;
     std::map<std::string, uint64_t> ApiDataTransVolume_;
+     // 新增：subblock 级别的数据搬运统计
+    std::map<std::string, uint64_t> apiDataTransVolumeVec0;   // vector0 数据搬运
+    std::map<std::string, uint64_t> apiDataTransVolumeVec1;   // vector1 数据搬运
 };
 
 // for MC2 timeline

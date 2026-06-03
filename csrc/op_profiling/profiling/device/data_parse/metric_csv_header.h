@@ -418,6 +418,7 @@ const std::vector<std::string> memoryForA5_ = {
     "aic_mte3_ratio",
     "aiv_time(us)",
     "aiv_total_cycles",
+    "aiv_ub_to_gm_bw(GB/s)",
     "aiv_gm_to_ub_bw(GB/s)",
     "aiv_main_mem_read_bw(GB/s)",
     "aiv_main_mem_write_bw(GB/s)",
@@ -435,6 +436,8 @@ const std::vector<std::string> memoryForA5_ = {
     "L0C_to_GM_bw_usage_rate(%)",
     "GM_to_UB_datas(KB)",
     "GM_to_UB_bw_usage_rate(%)",
+    "UB_to_GM_datas(KB)",
+    "UB_to_GM_bw_usage_rate(%)",
 };
 
 const std::vector<std::string> memoryL0ForA5_ = {
@@ -461,6 +464,7 @@ const std::vector<std::string> memoryUbForA5_ = {
     "aiv_total_cycles",
     "aiv_ub_read_bw_vector(GB/s)",
     "aiv_ub_write_bw_vector(GB/s)",
+    "aiv_ub_read_bw_gm(GB/s)",
     "aiv_ub_write_bw_gm(GB/s)",
 };
 
@@ -497,6 +501,7 @@ const std::vector<std::string> pipeForA5_ = {
     "aiv_mte2_active_bw(GB/s)",
     "aiv_mte3_time(us)",
     "aiv_mte3_ratio",
+    "aiv_mte3_active_bw(GB/s)",
     "aiv_icache_miss_rate",
 };
 

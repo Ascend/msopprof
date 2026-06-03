@@ -162,7 +162,7 @@ void PrintDeviceHelp(ChipType chipType)
         std::cout << "/ Occupancy / TimelineDetail / KernelScale / Source / MemoryDetail ";
     }
     if (chipType == Common::ChipType::ASCEND950) {
-        std::cout << "/ Occupancy / KernelScale / PipeTimeline / Source / PCSampling ";
+        std::cout << "/ Occupancy / KernelScale / PipeTimeline / Source / PCSampling / MemoryDetail ";
     }
     std::cout
         << "/ Default. " << std::endl

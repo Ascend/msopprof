@@ -32,6 +32,11 @@ using namespace Common;
 using namespace Utility;
 using namespace Visualize;
 
+constexpr uint16_t SUBLOCK_NUM = 3;
+constexpr uint16_t VEC0_SUBBLOCK_INDEX = 0;
+constexpr uint16_t VEC1_SUBBLOCK_INDEX = 1;
+constexpr uint16_t CUBE_SUBBLOCK_INDEX = 2;
+
 namespace Profiling {
 
 // {src, dst} map to record direction
@@ -43,6 +48,54 @@ struct MemTypeHash {
         return h1 ^ (h2 << 8);
     }
 };
+
+// 内存传输规则结构体
+struct MemTransferRule {
+    std::string reqKey;
+    std::string dataKey;
+    TransportType transportType;
+    bool needExtraUbIdMapping;  // 是否需要额外的 ubId 映射（L1 -> UB 特殊处理）
+};
+
+// 初始化内存传输规则映射表
+const std::unordered_map<std::pair<MemType, MemType>, std::vector<MemTransferRule>, MemTypeHash>& GetMemTransferRules()
+{
+    static std::unordered_map<std::pair<MemType, MemType>, std::vector<MemTransferRule>, MemTypeHash> rules = {
+        {std::make_pair(MemType::GM, MemType::REG), {
+            {GM_TO_DCACHE, GM_TO_DCACHE_DATA, TransportType::GM_TO_DCACHE, false},
+            {DCACHE_TO_VEC, DCACHE_TO_VEC_DATA, TransportType::DCACHE_TO_VEC, false}
+        }},
+        {std::make_pair(MemType::GM, MemType::UB), {
+            {GM_TO_UB, GM_TO_UB_DATA, TransportType::GM_TO_UB, false}
+        }},
+        {std::make_pair(MemType::UB, MemType::L1), {
+            {UB_TO_L1, UB_TO_L1_DATA, TransportType::UB_TO_L1, false}
+        }},
+        {std::make_pair(MemType::UB, MemType::GM), {
+            {UB_TO_GM, UB_TO_GM_DATA, TransportType::UB_TO_GM, false}
+        }},
+        {std::make_pair(MemType::UB, MemType::REG), {
+            {UB_TO_VEC, UB_TO_VEC_DATA, TransportType::UB_TO_VEC, false}
+        }},
+        {std::make_pair(MemType::L1, MemType::UB), {
+            {L1_TO_UB, L1_TO_UB_DATA, TransportType::L1_TO_UB, true}
+        }},
+        {std::make_pair(MemType::REG, MemType::GM), {
+            {VEC_TO_DCACHE, VEC_TO_DCACHE_DATA, TransportType::VEC_TO_DCACHE, false},
+            {DCACHE_TO_GM, DCACHE_TO_GM_DATA, TransportType::DCACHE_TO_GM, false}
+        }},
+        {std::make_pair(MemType::REG, MemType::UB), {
+            {VEC_TO_UB, VEC_TO_UB_DATA, TransportType::VEC_TO_UB, false}
+        }},
+        {std::make_pair(MemType::REG, MemType::PRIVATE), {
+            {VEC_TO_DCACHE, VEC_TO_DCACHE_DATA, TransportType::VEC_TO_DCACHE, false}
+        }},
+        {std::make_pair(MemType::PRIVATE, MemType::REG), {
+            {DCACHE_TO_VEC, DCACHE_TO_VEC_DATA, TransportType::DCACHE_TO_VEC, false}
+        }}
+    };
+    return rules;
+}
 
 // 核间同步指标，仅在当前pmu存在时写入csv进行展示
 const std::map<uint16_t, std::string> scalarPmuToIndex = {
@@ -299,8 +352,11 @@ bool DataHandler::CalMetrics(const ParserConfig &config, const Common::ProfMetri
     std::map<uint64_t, std::map<std::string, uint64_t>> &dbiMap)
 {
     vector<map<string, string>> totalCalValues;
+    bool useA5Formula = SOC_STRING_TO_CHIP_PRODUCT.find(socVersion_) != SOC_STRING_TO_CHIP_PRODUCT.end() &&
+                        IsChipSeriesTypeValid(SOC_STRING_TO_CHIP_PRODUCT.at(socVersion_),
+                        ChipProductType::ASCEND950_SERIES);
+
     for (const auto &pair: totalPmuData_) {
-        // Use cur_freq for caculation.
         int64_t calFreq = (curFreq_ != -1) ? curFreq_ : aicoreFreq_;
         float calDurationA5 = calFreq <= 0 ? 0 : static_cast<float>(pair.second.totalCycles) / calFreq;
         uint64_t frequency = calFreq <= 0 ? 0 : static_cast<uint64_t>(calFreq);
@@ -313,20 +369,23 @@ bool DataHandler::CalMetrics(const ParserConfig &config, const Common::ProfMetri
             aiCoreNum_, blockDim_, socVersion_}, calDuration);
         map<string, string> metricValues;
         PmuMap pmuMap(cal.pmuEventValueMap_);
-        CalculateParams params = {pair.second.totalCycles, frequency, calDurationA5, socVersion_, pmuMap};
-        if (pair.second.blockType == OpType::CUBE) {
-            if (SOC_STRING_TO_CHIP_PRODUCT.find(socVersion_) != SOC_STRING_TO_CHIP_PRODUCT.end() &&
-                IsChipSeriesTypeValid(SOC_STRING_TO_CHIP_PRODUCT.at(socVersion_),
-                ChipProductType::ASCEND950_SERIES)) {
+        CalculateParams params;
+        params.totalCycles = pair.second.totalCycles;
+        params.frequency = frequency;
+        params.duration = calDurationA5;
+        params.socVersion = socVersion_;
+        params.pmuMap = pmuMap;
+
+        if (useA5Formula) {
+            if (pair.second.blockType == OpType::CUBE) {
                 metricValues = CalMetricItems(params, config.aicCalMetricItems, formulaOfA5_);
             } else {
-                metricValues = CalMetricItems(cal, config.aicCalMetricItems, formula, dbiMap[pair.first.first]);
+                PrepareDbiParams(params, pair.first.first, pair.first.second);
+                metricValues = CalMetricItems(params, config.aivCalMetricItems, formulaOfA5_);
             }
         } else {
-            if (SOC_STRING_TO_CHIP_PRODUCT.find(socVersion_) != SOC_STRING_TO_CHIP_PRODUCT.end() &&
-                IsChipSeriesTypeValid(SOC_STRING_TO_CHIP_PRODUCT.at(socVersion_),
-                ChipProductType::ASCEND950_SERIES)) {
-                metricValues = CalMetricItems(params, config.aivCalMetricItems, formulaOfA5_);
+            if (pair.second.blockType == OpType::CUBE) {
+                metricValues = CalMetricItems(cal, config.aicCalMetricItems, formula, dbiMap[pair.first.first]);
             } else {
                 metricValues = CalMetricItems(cal, config.aivCalMetricItems, formula, dbiMap[pair.first.first]);
             }
@@ -536,7 +595,7 @@ void DataHandlerOf910B::AddIndexToCsv(const Common::ProfMetricsAbilityConfig &me
         for (const auto &pmuMap : blockWithData.second.pmuEventValueMap) {
             auto it = scalarPmuToIndex.find(pmuMap.first);
             if (it == scalarPmuToIndex.end() || pmuMap.second == 0) {
-                continue;        
+                continue;
             }
             std::string metricValue = scalarPmuToIndex.at(pmuMap.first);
             if (blockWithData.second.blockType == OpType::CUBE) {
@@ -882,13 +941,90 @@ TypeOperandRecord DataHandler::GetOperandRecordMap(uint16_t blockId, const strin
 void DataHandlerOf91095::Statics(std::vector<MemRecord> &memoryRecords,
     std::map<uint64_t, std::map<std::string, uint64_t>> &dataSize)
 {
-    unordered_map<uint16_t, SrcToDstRecordMap> requests;
-    unordered_map<uint16_t, SrcToDstRecordMap> dates;
+    std::map<uint16_t, std::map<std::string, uint64_t>> subblockStats;
+    std::map<uint16_t, std::map<std::string, uint64_t>> aicoreStats;
+
     for (const auto &record : memoryRecords) {
         DBIHelper::Instance().PrintRecord(record);
-        requests[record.blockId][{record.src, record.dst}]++;
-        dates[record.blockId][{record.src, record.dst}] +=
-            (record.srcMemSize > 0U) ? record.srcMemSize : record.dstMemSize;
+        CollectStats(record, subblockStats, aicoreStats);
+    }
+
+    for (auto &memDetail : memMapDetail_) {
+        uint16_t aicoreId = memDetail.blockId;
+        if (memDetail.opType == Common::OpType::MIX) {
+            memDetail.apiDataTransVolumeVec0.insert(subblockStats[aicoreId * SUBLOCK_NUM + VEC0_SUBBLOCK_INDEX].begin(), subblockStats[aicoreId * SUBLOCK_NUM + VEC0_SUBBLOCK_INDEX].end());
+            memDetail.apiDataTransVolumeVec1.insert(subblockStats[aicoreId * SUBLOCK_NUM + VEC1_SUBBLOCK_INDEX].begin(), subblockStats[aicoreId * SUBLOCK_NUM + VEC1_SUBBLOCK_INDEX].end());
+            memDetail.ApiDataTransVolume_.insert(subblockStats[aicoreId * SUBLOCK_NUM + CUBE_SUBBLOCK_INDEX].begin(), subblockStats[aicoreId * SUBLOCK_NUM + CUBE_SUBBLOCK_INDEX].end());
+        } else {
+            memDetail.ApiDataTransVolume_.insert(aicoreStats[aicoreId].begin(), aicoreStats[aicoreId].end());
+        }
+        if (!aicoreStats[aicoreId].empty()) {
+            dataSize[aicoreId] = aicoreStats[aicoreId];
+        }
+    }
+}
+
+void DataHandlerOf91095::PrepareDbiParams(CalculateParams &params, uint64_t blockId, const std::string &subBlockId)
+{
+    const auto &memDetail = memMapDetail_[blockId];
+
+    auto findUbToGmData = [&](const std::map<std::string, uint64_t> &dataMap) {
+        auto it = dataMap.find("UB_TO_GM_DATA");
+        if (it != dataMap.end()) {
+            params.hasDbiUBToGMData = true;
+            params.dbiUBToGMData = it->second;
+        }
+    };
+
+    if (GetOpType() == Common::OpType::MIX) {
+        if (subBlockId == "vector0") {
+            findUbToGmData(memDetail.apiDataTransVolumeVec0);
+        } else if (subBlockId == "vector1") {
+            findUbToGmData(memDetail.apiDataTransVolumeVec1);
+        }
+    } else {
+        findUbToGmData(memDetail.ApiDataTransVolume_);
+    }
+}
+
+uint64_t DataHandlerOf91095::CalcRequest(uint64_t x, uint64_t align)
+{
+    return (align == 0) ? 0 : (x + align - 1) / align;
+}
+
+void DataHandlerOf91095::CollectStats(const Common::MemRecord &record,
+    std::map<uint16_t, std::map<std::string, uint64_t>> &subblockStats,
+    std::map<uint16_t, std::map<std::string, uint64_t>> &aicoreStats)
+{
+    uint16_t subblockId = record.blockId;
+    uint16_t aicoreId = subblockId / SUBLOCK_NUM;
+
+    auto addStats = [&](const std::string &reqKey, const std::string &dataKey, uint64_t req, uint64_t data) {
+        subblockStats[subblockId][reqKey] += req;
+        subblockStats[subblockId][dataKey] += data;
+        aicoreStats[aicoreId][reqKey] += req;
+        aicoreStats[aicoreId][dataKey] += data;
+    };
+
+    auto addUbIdStats = [&](const std::string &reqKey, const std::string &dataKey, uint64_t req, uint64_t data, uint16_t targetSubblockId) {
+        subblockStats[targetSubblockId][reqKey] += req;
+        subblockStats[targetSubblockId][dataKey] += data;
+    };
+
+    uint64_t data = record.srcMemSize;
+    const auto &rules = GetMemTransferRules();
+    auto it = rules.find(std::make_pair(record.src, record.dst));
+
+    if (it != rules.end()) {
+        for (const auto &rule : it->second) {
+            uint64_t req = CalcRequest(data, REQ_DATA_OF_A5.at(rule.transportType));
+            addStats(rule.reqKey, rule.dataKey, req, data);
+
+            if (rule.needExtraUbIdMapping && subblockId % SUBLOCK_NUM == CUBE_SUBBLOCK_INDEX) {
+                uint16_t ubId = subblockId - CUBE_SUBBLOCK_INDEX + record.subBlockID;
+                addUbIdStats(rule.reqKey, rule.dataKey, req, data, ubId);
+            }
+        }
     }
 }
 

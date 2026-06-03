@@ -44,6 +44,23 @@ struct StorageVecTableData {
     std::vector<MemInfoAiCore> dcache;
     std::vector<MemInfoAiCore> l2cache;
 };
+struct VecDataStats {
+    uint64_t pmuL0cToUb{};
+    uint64_t gmToDcache{};
+    uint64_t pmuGmToUb{};
+    uint64_t dcacheToVec{};
+    uint64_t vecToDcache{};
+    uint64_t ubToVec{};
+    uint64_t vecToUb{};
+    uint64_t pmuGmToL2{};
+    uint64_t pmuL2ToGm{};
+    uint64_t readMainMem{};
+    uint64_t writeMainMem{};
+    uint64_t dbiUbToL1{};
+    uint64_t dbiL1ToUb{};
+    uint64_t dbiUbToGM{};
+    uint64_t dbiDcacheToGM{};
+};
 class StorageAccess {
 public:
     StorageAccess(std::shared_ptr<OpBasicInfo> &opBasicInfoObj, std::shared_ptr<BasicPmu> &basicPmuObj,
@@ -220,15 +237,18 @@ private:
     std::vector<MemInfoPipe> LoadVecPipeData(std::map<uint64_t, uint64_t> &eventMap, uint64_t totalCycles,
                                              int64_t freq, float time, const std::map<std::string, float> &mteData);
     std::vector<MemInfoCache> LoadCacheData(std::map<uint64_t, uint64_t> &eventMap) const;
+    void ApplyDbiDataForVec(VecDataStats &stats, bool hasSimt);
     std::map<PipeAll, MemInfoAiCore> GetVecMap();
     std::map<PipeAll, MemInfoAiCore> GetCubeMap();
     std::map<PipeAll, MemInfoAiCore> GetMixMap();
     std::map<std::string, uint64_t> GetCycleMap(const std::string &opType, MemMapDetail &detail) const;
     MemInfoAiCore CalAiCore(float time, uint64_t pmu, Profiling::TransportType type, bool calPeak = false);
     std::map<std::string, float> mteBwMap_;
+    std::map<std::string, uint64_t> dbiRequest_;
     std::set<std::string> advicePipe_;
     uint64_t fixpToUbVec0_ = 0;
     uint64_t fixpToUbVec1_ = 0;
+
 };
 }
 #endif // __STORAGE_ACCESS_H__

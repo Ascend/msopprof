@@ -38,30 +38,6 @@ std::unordered_map<Common::DataType, std::string> RECORD_DATA_TYPE_MAP {
     {Common::DataType::DATA_S32, "S32"},
 };
 
-std::unordered_map<Common::RecordType, std::string> RECORD_TYPE_MAP {
-    {Common::RecordType::INVALID, "INVALID"},
-    {Common::RecordType::MOV_A5, "MOV_A5"},
-    {Common::RecordType::MOV_V2_A5, "MOV_V2_A5"},
-    {Common::RecordType::DMA_MOV, "DMA_MOV"},
-    {Common::RecordType::MOV_ALIGN, "MOV_ALIGN"},
-    {Common::RecordType::MOV_ALIGN_V2, "MOV_ALIGN_V2"},
-    {Common::RecordType::LOAD_2D, "LOAD_2D"},
-    {Common::RecordType::DMA_MOV_ND2NZ, "DMA_MOV_ND2NZ"},
-    {Common::RecordType::DMA_MOV_DN2NZ_D, "DMA_MOV_DN2NZ_D"},
-    {Common::RecordType::DMA_MOV_ND2NZ_DAV, "DMA_MOV_ND2NZ_DAV"},
-    {Common::RecordType::MOV_FP, "MOV_FP"},
-    {Common::RecordType::LOAD_L1_TO_L0B_2D_TRANSPOSE, "LOAD_L1_TO_L0B_2D_TRANSPOSE"},
-    {Common::RecordType::LOAD_2DV2, "LOAD_2DV2"},
-    {Common::RecordType::LOAD_2DV2_DEC, "LOAD_2DV2_DEC"},
-    {Common::RecordType::LOAD_MX2DV2, "LOAD_MX2DV2"},
-    {Common::RecordType::SET_2D, "SET_2D"},
-    {Common::RecordType::FIX_L0C_TO_OUT, "FIX_L0C_TO_OUT"},
-    {Common::RecordType::ND_DMA_OUT_TO_UB, "ND_DMA_OUT_TO_UB"},
-    {Common::RecordType::END, "END"},
-    {Common::RecordType::SIMT_LOAD_STORE, "SIMT_LOAD_STORE"},
-    {Common::RecordType::SIMT_ATOM_RED, "SIMT_ATOM_RED"},
-};
-
 std::unordered_map<Common::SimtType, std::string> SIMT_TYPE_MAP {
     {Common::SimtType::INVALID, "INVALID"},
     {Common::SimtType::LD, "LD"},
