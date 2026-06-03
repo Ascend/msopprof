@@ -58,6 +58,23 @@ enum class MemType : uint8_t {
     INVALID,
 };
 
+// SIMT指令类型枚举，用于区分不同的SIMT指令
+enum class SimtType : uint8_t {
+    INVALID = 0,
+    // Load/Store指令
+    LD,          // 通用加载
+    ST,          // 通用存储
+    LDG,         // 全局内存加载
+    STG,         // 全局内存存储
+    LDS,         // 共享内存加载
+    STS,         // 共享内存存储
+    LDK,         // 常量内存加载
+    STK,         // 常量内存存储
+    // Atomic/Reduction指令
+    ATOM,        // 原子操作
+    RED,         // 归约操作
+};
+
 // 当前涉及的所有记录类型，每个类型根据接口行为不同定义自己的存储结构体。
 enum class RecordType : uint32_t {
     INVALID = 0,
@@ -78,6 +95,8 @@ enum class RecordType : uint32_t {
     SET_2D,
     FIX_L0C_TO_OUT,
     ND_DMA_OUT_TO_UB,
+    SIMT_LOAD_STORE,  // 合并所有SIMT Load/Store指令
+    SIMT_ATOM_RED,    // 合并所有SIMT Atomic/Reduction指令
     END,
 };
 
@@ -125,11 +144,12 @@ struct MemRecord {
     uint64_t pc{};
     uint64_t serialNo{};
     uint16_t blockId{};
+    uint16_t subBlockID{};
     MemType src{MemType::INVALID};
     MemType dst{MemType::INVALID};
 };
 
-// OperandType需要与msopcom仓include/opprof/DbiDefs.h的OperandType保持一致 
+// OperandType需要与msopcom仓include/opprof/DbiDefs.h的OperandType保持一致
 const std::map<OperandType, std::string> OperandTypeStrMap = {
     {OperandType::DATA_F16,          "F16"},
     {OperandType::DATA_F16X2,        "F16X2"},
@@ -190,6 +210,7 @@ struct BaseRecord {
 };
 
 struct MovRecord : BaseRecord {
+    uint16_t subBlockID;
     uint16_t coreID;
     uint16_t nBurst;
     uint16_t lenBurst;
@@ -402,6 +423,26 @@ struct FixL0CGMRecord : BaseRecord {
     MemType srcMemType;
     DataType dataType;
 };
+
+struct LoadStoreRecord : BaseRecord {
+    uint64_t reg;
+    uint64_t addr;
+    uint64_t size;
+    uint16_t coreID;
+    MemType memType;
+    SimtType simtType;
+    OperandType dataType;
+};
+
+struct AtomRedRecord : BaseRecord {
+    uint64_t size;
+    uint16_t coreID;
+    MemType memType;
+    uint64_t addr;
+    SimtType simtType;
+    OperandType dataType;
+};
+
 // 依据指令手册该章节的算法3/4，src/dst_stride * element_size才是偏移内存
 struct LoopInfo {
     bool operator==(const LoopInfo &r) const

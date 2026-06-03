@@ -53,6 +53,23 @@ AICORE_FUNC_HEAD uint64_t GetUintFromConf(confT config)
     return (config >> rightBit) & (mask >> (63 - leftBit + rightBit));
 }
 
+AICORE_FUNC_HEAD uint64_t GetSysVaBase()
+{
+#if defined(__CCE_IS_AICORE__) && __CCE_IS_AICORE__ == 1 // AICORE
+
+#if defined(__DAV_C220__) || defined(__DAV_C220_VEC__) || defined(__DAV_C220_CUBE__) || \
+    (defined(__NPU_ARCH__) && (__NPU_ARCH__ == 3101 || __NPU_ARCH__ == 3510))
+    using namespace __cce_scalar;
+    return get_sys_va_base();
+#else
+    return 0;
+#endif
+
+#else // NOT AICORE
+    return 0;
+#endif
+}
+
 AICORE_FUNC_HEAD uint64_t GetBlockIdx()
 {
 #if defined(__CCE_IS_AICORE__) && __CCE_IS_AICORE__ == 1 // AICORE

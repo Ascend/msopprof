@@ -730,6 +730,7 @@ bool DBIParser::ParseMovA5Record(const std::string &buffer, std::size_t &index, 
     memRec.src = record.srcMemType;
     memRec.dst = record.dstMemType;
     memRec.blockId = blockId;
+    memRec.subBlockID = record.subBlockID;
 
     for (uint64_t idx = 0; idx < record.nBurst; ++idx) {
         uint64_t Len = record.lenBurst * MOV_LOCAL_BLOCK_SIZE;
@@ -961,6 +962,12 @@ void DBIParser::InitializeRecordParserFunctions()
     recordParserFunc_[RecordType::ND_DMA_OUT_TO_UB] =
         std::bind(&DBIParser::ParseNdDMAOut2UbRecord, this, std::placeholders::_1, std::placeholders::_2,
         std::placeholders::_3, std::placeholders::_4);
+    recordParserFunc_[RecordType::SIMT_LOAD_STORE] =
+        std::bind(&DBIParser::ParseLoadStoreRecord, this, std::placeholders::_1, std::placeholders::_2,
+        std::placeholders::_3, std::placeholders::_4);
+    recordParserFunc_[RecordType::SIMT_ATOM_RED] =
+        std::bind(&DBIParser::ParseAtomRedRecord, this, std::placeholders::_1, std::placeholders::_2,
+        std::placeholders::_3, std::placeholders::_4);
 }
 
 DBIParser::DBIParser(std::string outputPath) : outputPath_(std::move(outputPath)),
@@ -1096,6 +1103,79 @@ void DBIParser::MemoryChartMetrics::PrintMetrics() const
              invalidRecordType, outOfBoundsRead, memoryRecords.size(), processed.str().c_str(),
              processFailed.str().c_str());
     LogDebug("Output path: %s.", outputPath.c_str());
+}
+
+bool DBIParser::ParseAtomRedRecord(const std::string &buffer, std::size_t &index, std::size_t key, uint16_t blockId)
+{
+    static const std::string LOCATION("ParseAtomRedRecord");
+    AtomRedRecord record{};
+    if (!CheckRecord(record, buffer, index, key)) {
+        return false;
+    }
+    MemRecord memRec{};
+    memRec.pc = record.pc;
+    memRec.blockId = blockId;
+    memRec.src = record.memType;      // GM/UB/PRIVATE
+    memRec.dst = MemType::REG;
+    memRec.srcMemSize = record.size;
+    memRec.dstMemSize = record.size;
+    Emplace(key, memRec);
+    if (record.simtType == SimtType::ATOM) {
+        // ATOM 是读-修改-写操作，需要记录双向数据搬运
+        MemRecord memRecWrite{};
+        memRecWrite.pc = record.pc;
+        memRecWrite.blockId = blockId;
+        memRecWrite.src = MemType::REG;
+        memRecWrite.dst = record.memType;
+        memRecWrite.srcMemSize = record.size;
+        memRecWrite.dstMemSize = record.size;
+        Emplace(key, memRecWrite);
+    }
+    return true;
+}
+
+bool DBIParser::ParseLoadStoreRecord(const std::string &buffer, std::size_t &index, std::size_t key, uint16_t blockId)
+{
+    static const std::string LOCATION("ParseLoadStoreRecord");
+    LoadStoreRecord record{};
+    if (!CheckRecord(record, buffer, index, key)) {
+        return false;
+    }
+
+    MemRecord memRec{};
+    memRec.pc = record.pc;
+    memRec.blockId = blockId;
+
+    if (IsLoadOperation(record)) {
+        // 加载操作：从内存到寄存器
+        memRec.srcAddr = record.addr;
+        memRec.dstAddr = record.reg; // 寄存器地址，这里简化处理
+        memRec.src = record.memType;
+        memRec.dst = MemType::REG;
+    } else {
+        // 存储操作：从寄存器到内存
+        memRec.srcAddr = record.reg; // 寄存器地址，这里简化处理
+        memRec.dstAddr = record.addr;
+        memRec.src = MemType::REG;
+        memRec.dst = record.memType;
+    }
+
+    // 设置内存大小
+    memRec.srcMemSize = record.size;
+    memRec.dstMemSize = record.size;
+
+    // 将内存记录添加到结果中
+    Emplace(key, memRec);
+
+    return true;
+}
+
+bool DBIParser::IsLoadOperation(const Common::LoadStoreRecord &record)
+{
+    if (record.simtType == SimtType::LD || record.simtType == SimtType::LDG || record.simtType == SimtType::LDS || record.simtType == SimtType::LDK) {
+        return true;
+    }
+    return false;
 }
 
 void DBIParser::MemoryChartMetrics::Dump() const

@@ -136,6 +136,7 @@ AICORE_FUNC_HEAD void RecordMovEvent(RecordFixParams &&fixParams, uint64_t confi
     }
 
     MovRecord record{};
+    record.subBlockID = GetUintFromConf<0, 0, uint64_t>(config);
     record.dst = fixParams.dst;
     record.src = fixParams.src;
     record.pc = fixParams.pc;

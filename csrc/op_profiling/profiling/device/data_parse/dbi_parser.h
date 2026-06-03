@@ -239,6 +239,9 @@ private:
     void VerifyAndDump(const MemoryChartMetrics& metrics);
     bool ValidateFixL0CGMRecord(const Common::FixL0CGMRecord &record, std::size_t key);
     bool ParseFixL0CGMRecord(const std::string &buffer, std::size_t &index, std::size_t key, uint16_t blockId);
+    bool ParseLoadStoreRecord(const std::string &buffer, std::size_t &index, std::size_t key, uint16_t blockId);
+ 	bool IsLoadOperation(const Common::LoadStoreRecord &record);
+    bool ParseAtomRedRecord(const std::string &buffer, std::size_t &index, std::size_t key, uint16_t blockId);
     // key: clientId, 所有client一次性只会发送一个kernel的数据，基础组件每个线程clientId唯一
     std::unordered_map<std::size_t, MemoryChartMetrics> memoryChartMetrics_;
     std::string outputPath_;

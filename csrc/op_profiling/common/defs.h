@@ -426,6 +426,24 @@ constexpr char const *GM_TO_L0B_DATA = "GM_TO_L0B_DATA";
 constexpr char const *GM_TO_L1_DATA = "GM_TO_L1_DATA";
 constexpr char const * MIX_AIC_TAIL = "_mix_aic";
 constexpr char const * MIX_AIV_TAIL = "_mix_aiv";
+constexpr char const * L1_TO_UB = "L1_TO_UB";
+constexpr char const * UB_TO_L1 = "UB_TO_L1";
+constexpr char const * UB_TO_VEC = "UB_TO_VEC";
+constexpr char const * VEC_TO_UB = "VEC_TO_UB";
+constexpr char const * GM_TO_DCACHE = "GM_TO_DCACHE";
+constexpr char const * DCACHE_TO_GM = "DCACHE_TO_GM";
+constexpr char const * DCACHE_TO_VEC = "DCACHE_TO_VEC";
+constexpr char const * VEC_TO_DCACHE = "VEC_TO_DCACHE";
+constexpr char const * DCACHE_TO_VEC_DATA = "DCACHE_TO_VEC_DATA";
+constexpr char const * VEC_TO_DCACHE_DATA = "VEC_TO_DCACHE_DATA";
+constexpr char const * L1_TO_UB_DATA = "L1_TO_UB_DATA";
+constexpr char const * UB_TO_L1_DATA = "UB_TO_L1_DATA";
+constexpr char const * UB_TO_GM_DATA = "UB_TO_GM_DATA";
+constexpr char const * UB_TO_VEC_DATA = "UB_TO_VEC_DATA";
+constexpr char const * VEC_TO_UB_DATA = "VEC_TO_UB_DATA";
+constexpr char const * GM_TO_DCACHE_DATA = "GM_TO_DCACHE_DATA";
+constexpr char const * DCACHE_TO_GM_DATA = "DCACHE_TO_GM_DATA";
+constexpr char const * GM_TO_UB_DATA = "GM_TO_UB_DATA";
 
 const std::map<DumpMessageType, std::string> DUMP_MESSAGE_TYPE_ENUM_TO_STRING {
     {DumpMessageType::BIN_PATH, BIN_PATH},

@@ -19,10 +19,14 @@ locale = "en"
 extend-ignore-identifiers-re = [".*Unc.*", ".*_thw",
     ".*UE8M0.*", ".*[UE4M3|ue4m3].*", ".*eles.*", ".*fo.*", ".*ba.*",
     ".*ot.*", ".*[Tt]h[rR].*"]
-extend-ignore-words-re = ["CANN", "cann","ND","alog","nd"]
+extend-ignore-words-re = ["CANN", "cann","ND","nd","ND","datas","Datas","alog"]
 extend-ignore-re = []
 
 [default.extend-identifiers]
+nd = "nd"
+Nd = "Nd"
+datas = "datas"
+Datas = "Datas"
 nd_to_nz_2d = "nd_to_nz_2d"
 bbc5b7ede = "bbc5b7ede"
 womens_doubles = "womens_doubles"
@@ -41,6 +45,10 @@ depthwise_seperable_CNN = "depthwise_seperable_CNN"
 L0C_to_L1_datas = "L0C_to_L1_datas"
 
 [default.extend-words]
+nd = "nd"
+Nd = "Nd"
+datas = "datas"
+Datas = "Datas"
 iy = "iy"
 tendencias = "tendencias"
 # intel cpu features
@@ -70,8 +78,12 @@ extend-ignore-re = []
 
 [type.cpp.extend-identifiers]
 countr_one = "countr_one"
+nd = "nd"
+datas = "datas"
 
 [type.cpp.extend-words]
+nd = "nd"
+datas = "datas"
 
 [type.rust]
 extend-glob = []
@@ -140,6 +152,7 @@ extend-ignore-re = []
 
 [type.man.extend-identifiers]
 Nd = "Nd"
+nd = "nd"
 
 [type.man.extend-words]
 

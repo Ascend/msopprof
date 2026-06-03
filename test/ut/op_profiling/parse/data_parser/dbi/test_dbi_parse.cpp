@@ -486,3 +486,124 @@ TEST(DBIParser, test_parse_load2dv2dec_record_expect_return_true)
     EXPECT_EQ(dbiParser.memoryChartMetrics_[0].memoryRecords[0].srcAddr, 0x1000);
     EXPECT_EQ(dbiParser.memoryChartMetrics_[0].memoryRecords[0].dstAddr, 0x2000);
 }
+
+TEST(DBIParser, test_parse_LD_load_store_record_expect_return_true)
+{
+    DBIParser dbiParser("");
+    std::string buffer(sizeof(LoadStoreRecord), 0);
+    LoadStoreRecord record{};
+    record.reg = 0x110000;
+    record.addr = 0x100000;
+    record.size = 8;
+    record.coreID = 0;
+    record.memType = MemType::GM;
+    record.simtType = SimtType::LD;
+    record.dataType = OperandType::DATA_B64;
+
+    if (memcpy_s(&buffer[0], sizeof(LoadStoreRecord), &record, sizeof(LoadStoreRecord)) != EOK) {
+        printf("memcpy_s failed\n");
+    }
+    std::size_t index = 0;
+    ASSERT_EQ(dbiParser.memoryChartMetrics_[0].memoryRecords.size(), 0);
+    ASSERT_TRUE(dbiParser.ParseLoadStoreRecord(buffer, index, 0, 0));
+    std::cout << dbiParser.IsLoadOperation(record) << std::endl;
+    ASSERT_EQ(dbiParser.memoryChartMetrics_[0].memoryRecords.size(), 1);
+    EXPECT_EQ(dbiParser.memoryChartMetrics_[0].memoryRecords[0].srcMemSize, 8);
+    EXPECT_EQ(dbiParser.memoryChartMetrics_[0].memoryRecords[0].dstMemSize, 8);
+    EXPECT_EQ(dbiParser.memoryChartMetrics_[0].memoryRecords[0].src, MemType::GM);
+    EXPECT_EQ(dbiParser.memoryChartMetrics_[0].memoryRecords[0].dst, MemType::REG);
+    EXPECT_EQ(dbiParser.memoryChartMetrics_[0].memoryRecords[0].srcAddr, 0x100000);
+    EXPECT_EQ(dbiParser.memoryChartMetrics_[0].memoryRecords[0].dstAddr, 0x110000);
+}
+
+TEST(DBIParser, test_parse_ST_load_store_record_expect_return_true)
+{
+    DBIParser dbiParser("");
+    std::string buffer(sizeof(LoadStoreRecord), 0);
+    LoadStoreRecord record{};
+    record.reg = 0x110000;
+    record.addr = 0x100000;
+    record.size = 8;
+    record.coreID = 0;
+    record.memType = MemType::GM;
+    record.simtType = SimtType::ST;
+    record.dataType = OperandType::DATA_B64;
+
+    if (memcpy_s(&buffer[0], sizeof(LoadStoreRecord), &record, sizeof(LoadStoreRecord)) != EOK) {
+        printf("memcpy_s failed\n");
+    }
+    std::size_t index = 0;
+    ASSERT_EQ(dbiParser.memoryChartMetrics_[0].memoryRecords.size(), 0);
+    ASSERT_TRUE(dbiParser.ParseLoadStoreRecord(buffer, index, 0, 0));
+    ASSERT_EQ(dbiParser.memoryChartMetrics_[0].memoryRecords.size(), 1);
+    EXPECT_EQ(dbiParser.memoryChartMetrics_[0].memoryRecords[0].srcMemSize, 8);
+    EXPECT_EQ(dbiParser.memoryChartMetrics_[0].memoryRecords[0].dstMemSize, 8);
+    EXPECT_EQ(dbiParser.memoryChartMetrics_[0].memoryRecords[0].src, MemType::REG);
+    EXPECT_EQ(dbiParser.memoryChartMetrics_[0].memoryRecords[0].dst, MemType::GM);
+    EXPECT_EQ(dbiParser.memoryChartMetrics_[0].memoryRecords[0].srcAddr, 0x110000);
+    EXPECT_EQ(dbiParser.memoryChartMetrics_[0].memoryRecords[0].dstAddr, 0x100000);
+}
+
+TEST(DBIParser, test_parse_ATOM_GM_record_expect_return_true)
+{
+    DBIParser dbiParser("");
+    std::string buffer(sizeof(AtomRedRecord), 0);
+    AtomRedRecord record{};
+    record.src = 0x100000;           // 内存地址
+    record.dst = 0x110000;           // 寄存器地址
+    record.size = 4;                  // 数据大小
+    record.coreID = 0;
+    record.memType = MemType::GM;     // GM 内存类型
+    record.simtType = SimtType::ATOM;
+    record.dataType = OperandType::DATA_S32;
+
+    if (memcpy_s(&buffer[0], sizeof(AtomRedRecord), &record, sizeof(AtomRedRecord)) != EOK) {
+        printf("memcpy_s failed\n");
+    }
+    std::size_t index = 0;
+    ASSERT_EQ(dbiParser.memoryChartMetrics_[0].memoryRecords.size(), 0);
+    ASSERT_TRUE(dbiParser.ParseAtomRedRecord(buffer, index, 0, 0));
+    // ATOM 是读-修改-写操作，应该产生两个内存记录：读取路径和写回路径
+    ASSERT_EQ(dbiParser.memoryChartMetrics_[0].memoryRecords.size(), 2);
+
+    // 验证读取路径：GM -> REG
+    EXPECT_EQ(dbiParser.memoryChartMetrics_[0].memoryRecords[0].srcMemSize, 4);
+    EXPECT_EQ(dbiParser.memoryChartMetrics_[0].memoryRecords[0].dstMemSize, 4);
+    EXPECT_EQ(dbiParser.memoryChartMetrics_[0].memoryRecords[0].src, MemType::GM);
+    EXPECT_EQ(dbiParser.memoryChartMetrics_[0].memoryRecords[0].dst, MemType::REG);
+
+    // 验证写回路径：REG -> GM
+    EXPECT_EQ(dbiParser.memoryChartMetrics_[0].memoryRecords[1].srcMemSize, 4);
+    EXPECT_EQ(dbiParser.memoryChartMetrics_[0].memoryRecords[1].dstMemSize, 4);
+    EXPECT_EQ(dbiParser.memoryChartMetrics_[0].memoryRecords[1].src, MemType::REG);
+    EXPECT_EQ(dbiParser.memoryChartMetrics_[0].memoryRecords[1].dst, MemType::GM);
+}
+
+TEST(DBIParser, test_parse_RED_UB_record_expect_return_true)
+{
+    DBIParser dbiParser("");
+    std::string buffer(sizeof(AtomRedRecord), 0);
+    AtomRedRecord record{};
+    record.src = 0x80000;            // UB 内存地址
+    record.dst = 0x110000;           // 寄存器地址
+    record.size = 8;                  // 数据大小
+    record.coreID = 1;
+    record.memType = MemType::UB;     // UB 内存类型
+    record.simtType = SimtType::RED;
+    record.dataType = OperandType::DATA_S64;
+
+    if (memcpy_s(&buffer[0], sizeof(AtomRedRecord), &record, sizeof(AtomRedRecord)) != EOK) {
+        printf("memcpy_s failed\n");
+    }
+    std::size_t index = 0;
+    ASSERT_EQ(dbiParser.memoryChartMetrics_[0].memoryRecords.size(), 0);
+    ASSERT_TRUE(dbiParser.ParseAtomRedRecord(buffer, index, 0, 0));
+    // RED 是读-修改操作，应该产生一个内存记录
+    ASSERT_EQ(dbiParser.memoryChartMetrics_[0].memoryRecords.size(), 1);
+
+    // 验证读取路径：UB -> REG
+    EXPECT_EQ(dbiParser.memoryChartMetrics_[0].memoryRecords[0].srcMemSize, 8);
+    EXPECT_EQ(dbiParser.memoryChartMetrics_[0].memoryRecords[0].dstMemSize, 8);
+    EXPECT_EQ(dbiParser.memoryChartMetrics_[0].memoryRecords[0].src, MemType::UB);
+    EXPECT_EQ(dbiParser.memoryChartMetrics_[0].memoryRecords[0].dst, MemType::REG);
+}

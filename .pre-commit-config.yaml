@@ -27,7 +27,7 @@ repos:
       - id: codespell
         args: [
             "-L",
-            "CANN,cann,NNAL,nnal,ASCEND,ascend,EnQue,CopyIn,ArchType,AND,ND,tbe,copyin,alog,thirdparty",
+            "CANN,cann,NNAL,nnal,ASCEND,ascend,EnQue,CopyIn,ArchType,AND,ND,tbe,copyin,alog,thirdparty,nd,datas,Datas",
             "--skip",
             "*.py,*.cpp,*.hpp,*.c,*.h,*.toml",
           ]
