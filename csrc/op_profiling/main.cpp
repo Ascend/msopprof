@@ -16,6 +16,7 @@
 
 
 #include "interface/ms_op_prof.h"
+#include "interface/cli_logo.h"
 #include "common/prof_args.h"
 #include "common/hal_helper.h"
 #include "common/runtime_helper.h"
@@ -41,6 +42,8 @@ int main(int argc, char *argv[], char *env[])
         }
         return 0;
     }
+    // print mindstudio start logo
+    Interface::PrintLogo();
     if (Utility::IsRootUser()) {
         Utility::LogWarn("Currently, the root permission is used, which is unrecommended."
                          " Please ensure the security of the execution environment and programs.");
