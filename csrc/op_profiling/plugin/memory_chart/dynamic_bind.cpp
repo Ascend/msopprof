@@ -14,11 +14,20 @@
  * See the Mulan PSL v2 for more details.
  * ------------------------------------------------------------------------- */
 
-#include <tuple>
+#include <string>
+#include <vector>
+#include <cstdint>
 #include "kernel_injection/include/MSBit.h"
 
-extern "C" {
-std::vector<std::tuple<InstrType, std::string, std::vector<uint16_t>>> BIND_FUNCTION{
+namespace {
+struct InstBindInfo {
+    InstrType instrType;
+    std::string funcName;
+    std::vector<uint16_t> argsIndex;
+    InstrForCore type;
+};
+
+std::vector<InstBindInfo> BIND_FUNCTION{
     // ccec type, stub function name, stub function args index
     // DMA_MOV
     {InstrType::COPY_GM_TO_UBUF, "__msopprof_report_copy_gm_to_ubuf", {0, 1, 2}},
@@ -114,54 +123,54 @@ std::vector<std::tuple<InstrType, std::string, std::vector<uint16_t>>> BIND_FUNC
     {InstrType::LOOP2_STRIDE_NDDMA, "__msopprof_report_set_loop2_stride_nddma", {0}},
     {InstrType::LOOP3_STRIDE_NDDMA, "__msopprof_report_set_loop3_stride_nddma", {0}},
     {InstrType::LOOP4_STRIDE_NDDMA, "__msopprof_report_set_loop4_stride_nddma", {0}},
-
-    // LDG LDK LDS STG STS STK LD ST系列桩
-    {InstrType::SIMT_LDG_U8, "__msopprof_report_simt_ldg_u8", {0, 1, 2}},
-    {InstrType::SIMT_LDG_U16, "__msopprof_report_simt_ldg_u16", {0, 1, 2}},
-    {InstrType::SIMT_LDG_S8, "__msopprof_report_simt_ldg_s8", {0, 1, 2}},
-    {InstrType::SIMT_LDG_S16, "__msopprof_report_simt_ldg_s16", {0, 1, 2}},
-    {InstrType::SIMT_LDG_B32, "__msopprof_report_simt_ldg_b32", {0, 1, 2}},
-    {InstrType::SIMT_LDG_B64, "__msopprof_report_simt_ldg_b64", {0, 1, 2}},
-    {InstrType::SIMT_LDG_B128, "__msopprof_report_simt_ldg_b128", {0, 1, 2}},
-    {InstrType::SIMT_STG_B8, "__msopprof_report_simt_stg_b8", {0, 1, 2}},
-    {InstrType::SIMT_STG_B16, "__msopprof_report_simt_stg_b16", {0, 1, 2}},
-    {InstrType::SIMT_STG_B32, "__msopprof_report_simt_stg_b32", {0, 1, 2}},
-    {InstrType::SIMT_STG_B64, "__msopprof_report_simt_stg_b64", {0, 1, 2}},
-    {InstrType::SIMT_STG_B128, "__msopprof_report_simt_stg_b128", {0, 1, 2}},
-    {InstrType::SIMT_LDS_U8, "__msopprof_report_simt_lds_u8", {0, 1, 2}},
-    {InstrType::SIMT_LDS_S8, "__msopprof_report_simt_lds_s8", {0, 1, 2}},
-    {InstrType::SIMT_LDS_U16, "__msopprof_report_simt_lds_u16", {0, 1, 2}},
-    {InstrType::SIMT_LDS_S16, "__msopprof_report_simt_lds_s16", {0, 1, 2}},
-    {InstrType::SIMT_LDS_B32, "__msopprof_report_simt_lds_b32", {0, 1, 2}},
-    {InstrType::SIMT_LDS_B64, "__msopprof_report_simt_lds_b64", {0, 1, 2}},
-    {InstrType::SIMT_LDS_B128, "__msopprof_report_simt_lds_b128", {0, 1, 2}},
-    {InstrType::SIMT_STS_B8, "__msopprof_report_simt_sts_b8", {0, 1, 2}},
-    {InstrType::SIMT_STS_B16, "__msopprof_report_simt_sts_b16", {0, 1, 2}},
-    {InstrType::SIMT_STS_B32, "__msopprof_report_simt_sts_b32", {0, 1, 2}},
-    {InstrType::SIMT_STS_B64, "__msopprof_report_simt_sts_b64", {0, 1, 2}},
-    {InstrType::SIMT_STS_B128, "__msopprof_report_simt_sts_b128", {0, 1, 2}},
-    {InstrType::SIMT_LDK_U8, "__msopprof_report_simt_ldk_u8", {0, 1, 2}},
-    {InstrType::SIMT_LDK_S8, "__msopprof_report_simt_ldk_s8", {0, 1, 2}},
-    {InstrType::SIMT_LDK_U16, "__msopprof_report_simt_ldk_u16", {0, 1, 2}},
-    {InstrType::SIMT_LDK_S16, "__msopprof_report_simt_ldk_s16", {0, 1, 2}},
-    {InstrType::SIMT_LDK_B32, "__msopprof_report_simt_ldk_b32", {0, 1, 2}},
-    {InstrType::SIMT_STK_B8, "__msopprof_report_simt_stk_b8", {0, 1, 2}},
-    {InstrType::SIMT_STK_B16, "__msopprof_report_simt_stk_b16", {0, 1, 2}},
-    {InstrType::SIMT_STK_B32, "__msopprof_report_simt_stk_b32", {0, 1, 2}},
-    {InstrType::SIMT_LD_U8, "__msopprof_report_simt_ld_u8", {0, 1, 2}},
-    {InstrType::SIMT_LD_S8, "__msopprof_report_simt_ld_s8", {0, 1, 2}},
-    {InstrType::SIMT_LD_U16, "__msopprof_report_simt_ld_u16", {0, 1, 2}},
-    {InstrType::SIMT_LD_S16, "__msopprof_report_simt_ld_s16", {0, 1, 2}},
-    {InstrType::SIMT_LD_B32, "__msopprof_report_simt_ld_b32", {0, 1, 2}},
-    {InstrType::SIMT_ST_B8, "__msopprof_report_simt_st_b8", {0, 1, 2}},
-    {InstrType::SIMT_ST_B16, "__msopprof_report_simt_st_b16", {0, 1, 2}},
-    {InstrType::SIMT_ST_B32, "__msopprof_report_simt_st_b32", {0, 1, 2}},
+    {InstrType::SIMT_LDG_U8, "__msopprof_report_simt_ldg_u8", {0, 1, 2}, InstrForCore::VEC},
+    {InstrType::SIMT_LDG_U16, "__msopprof_report_simt_ldg_u16", {0, 1, 2}, InstrForCore::VEC},
+    {InstrType::SIMT_LDG_S8, "__msopprof_report_simt_ldg_s8", {0, 1, 2}, InstrForCore::VEC},
+    {InstrType::SIMT_LDG_S16, "__msopprof_report_simt_ldg_s16", {0, 1, 2}, InstrForCore::VEC},
+    {InstrType::SIMT_LDG_B32, "__msopprof_report_simt_ldg_b32", {0, 1, 2}, InstrForCore::VEC},
+    {InstrType::SIMT_LDG_B64, "__msopprof_report_simt_ldg_b64", {0, 1, 2}, InstrForCore::VEC},
+    {InstrType::SIMT_LDG_B128, "__msopprof_report_simt_ldg_b128", {0, 1, 2}, InstrForCore::VEC},
+    {InstrType::SIMT_STG_B8, "__msopprof_report_simt_stg_b8", {0, 1, 2}, InstrForCore::VEC},
+    {InstrType::SIMT_STG_B16, "__msopprof_report_simt_stg_b16", {0, 1, 2}, InstrForCore::VEC},
+    {InstrType::SIMT_STG_B32, "__msopprof_report_simt_stg_b32", {0, 1, 2}, InstrForCore::VEC},
+    {InstrType::SIMT_STG_B64, "__msopprof_report_simt_stg_b64", {0, 1, 2}, InstrForCore::VEC},
+    {InstrType::SIMT_STG_B128, "__msopprof_report_simt_stg_b128", {0, 1, 2}, InstrForCore::VEC},
+    {InstrType::SIMT_LDS_U8, "__msopprof_report_simt_lds_u8", {0, 1, 2}, InstrForCore::VEC},
+    {InstrType::SIMT_LDS_S8, "__msopprof_report_simt_lds_s8", {0, 1, 2}, InstrForCore::VEC},
+    {InstrType::SIMT_LDS_U16, "__msopprof_report_simt_lds_u16", {0, 1, 2}, InstrForCore::VEC},
+    {InstrType::SIMT_LDS_S16, "__msopprof_report_simt_lds_s16", {0, 1, 2}, InstrForCore::VEC},
+    {InstrType::SIMT_LDS_B32, "__msopprof_report_simt_lds_b32", {0, 1, 2}, InstrForCore::VEC},
+    {InstrType::SIMT_LDS_B64, "__msopprof_report_simt_lds_b64", {0, 1, 2}, InstrForCore::VEC},
+    {InstrType::SIMT_LDS_B128, "__msopprof_report_simt_lds_b128", {0, 1, 2}, InstrForCore::VEC},
+    {InstrType::SIMT_STS_B8, "__msopprof_report_simt_sts_b8", {0, 1, 2}, InstrForCore::VEC},
+    {InstrType::SIMT_STS_B16, "__msopprof_report_simt_sts_b16", {0, 1, 2}, InstrForCore::VEC},
+    {InstrType::SIMT_STS_B32, "__msopprof_report_simt_sts_b32", {0, 1, 2}, InstrForCore::VEC},
+    {InstrType::SIMT_STS_B64, "__msopprof_report_simt_sts_b64", {0, 1, 2}, InstrForCore::VEC},
+    {InstrType::SIMT_STS_B128, "__msopprof_report_simt_sts_b128", {0, 1, 2}, InstrForCore::VEC},
+    {InstrType::SIMT_LDK_U8, "__msopprof_report_simt_ldk_u8", {0, 1, 2}, InstrForCore::VEC},
+    {InstrType::SIMT_LDK_S8, "__msopprof_report_simt_ldk_s8", {0, 1, 2}, InstrForCore::VEC},
+    {InstrType::SIMT_LDK_U16, "__msopprof_report_simt_ldk_u16", {0, 1, 2}, InstrForCore::VEC},
+    {InstrType::SIMT_LDK_S16, "__msopprof_report_simt_ldk_s16", {0, 1, 2}, InstrForCore::VEC},
+    {InstrType::SIMT_LDK_B32, "__msopprof_report_simt_ldk_b32", {0, 1, 2}, InstrForCore::VEC},
+    {InstrType::SIMT_STK_B8, "__msopprof_report_simt_stk_b8", {0, 1, 2}, InstrForCore::VEC},
+    {InstrType::SIMT_STK_B16, "__msopprof_report_simt_stk_b16", {0, 1, 2}, InstrForCore::VEC},
+    {InstrType::SIMT_STK_B32, "__msopprof_report_simt_stk_b32", {0, 1, 2}, InstrForCore::VEC},
+    {InstrType::SIMT_LD_U8, "__msopprof_report_simt_ld_u8", {0, 1, 2}, InstrForCore::VEC},
+    {InstrType::SIMT_LD_S8, "__msopprof_report_simt_ld_s8", {0, 1, 2}, InstrForCore::VEC},
+    {InstrType::SIMT_LD_U16, "__msopprof_report_simt_ld_u16", {0, 1, 2}, InstrForCore::VEC},
+    {InstrType::SIMT_LD_S16, "__msopprof_report_simt_ld_s16", {0, 1, 2}, InstrForCore::VEC},
+    {InstrType::SIMT_LD_B32, "__msopprof_report_simt_ld_b32", {0, 1, 2}, InstrForCore::VEC},
+    {InstrType::SIMT_ST_B8, "__msopprof_report_simt_st_b8", {0, 1, 2}, InstrForCore::VEC},
+    {InstrType::SIMT_ST_B16, "__msopprof_report_simt_st_b16", {0, 1, 2}, InstrForCore::VEC},
+    {InstrType::SIMT_ST_B32, "__msopprof_report_simt_st_b32", {0, 1, 2}, InstrForCore::VEC},
 };
+}
 
+extern "C" {
 void MSBitAtInit()
 {
     for (auto it : BIND_FUNCTION) {
-        Bind(std::get<0>(it), std::get<1>(it), std::get<2>(it));
+        Bind(it.instrType, it.funcName, it.argsIndex, it.type);
     }
 }
 }
