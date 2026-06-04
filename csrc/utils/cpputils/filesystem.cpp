@@ -49,7 +49,7 @@ std::string RandomizeDir(std::string const &path)
     for (std::size_t i = 0; i < seqLen; ++i) {
         randomSeq.push_back(static_cast<char>('A' + dist(rd)));
     }
- 
+
     /// randomize dir constructed with <path>_<time-stamp>_<random-seq>
     return pathWithoutTail + "_" + buf + "_" + randomSeq;
 }
@@ -167,7 +167,7 @@ bool MkdirRecusively(std::string const &path, mode_t mode)
     if (IsDir(path)) {
         return true;
     }
-    
+
     std::string current;
     for (auto it = dirs.cbegin(); it != dirs.cend(); ++it) {
         if (it == dirs.cbegin()) {
@@ -728,7 +728,7 @@ void ReadFileByMMap(const std::string &fileName, std::vector<std::string> &fileL
 bool ReadBinFileByMultiStruct(const std::string &filePath, const size_t &fileSize, const size_t &structSize,
                               std::vector<char> &binData)
 {
-    if ((fileSize == 0) || (fileSize % structSize != 0)) {
+    if ((fileSize < structSize) || (fileSize % structSize != 0)) {
         LogDebug("File %s is not complete, please check the file.", filePath.c_str());
         return false;
     }

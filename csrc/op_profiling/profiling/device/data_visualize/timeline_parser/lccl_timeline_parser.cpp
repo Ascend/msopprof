@@ -136,10 +136,6 @@ bool LcclTimelineParser::TimelineToJson(const string &outputPath)
     result["schemaVersion"] = 1;
     result["traceEvents"] = timelineJson_;
     timelineJson_ = result;
-    string tracePath = JoinPath({outputPath_, "trace.json"});
-    if (!WriteFileByStream(tracePath, timelineJson_)) {
-        LogWarn("Generate %s failed.", tracePath.c_str());
-    }
     return true;
 }
 }

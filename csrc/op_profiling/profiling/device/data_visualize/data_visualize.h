@@ -63,6 +63,8 @@ public:
     void CleanupAndLog(Profiling::Parse::DataCenter &dataCenter, const std::string &outputPath);
 
 private:
+    static void MergeTraceJson(nlohmann::json &dst, nlohmann::json src);
+
     std::shared_ptr<OpBasicInfo> &opBasicInfo_;
     std::unique_ptr<StorageAccess> &storageAccess_;
     std::unique_ptr<Occupancy> &occupancy_;

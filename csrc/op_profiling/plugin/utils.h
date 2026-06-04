@@ -73,22 +73,21 @@ AICORE_FUNC_HEAD uint64_t GetSysVaBase()
 AICORE_FUNC_HEAD uint64_t GetBlockIdx()
 {
 #if defined(__CCE_IS_AICORE__) && __CCE_IS_AICORE__ == 1 // AICORE
-
-#if (defined(__DAV_C220__) || defined(__DAV_C220_VEC__) || defined(__DAV_C220_CUBE__))
+#if defined(__DAV_C220__) || defined(__DAV_C220_VEC__) || defined(__DAV_C220_CUBE__)
     return get_block_idx() * get_subblockdim() + get_subblockid();
 #elif defined(__NPU_ARCH__) && (__NPU_ARCH__ == 3101 || __NPU_ARCH__ == 3510)
-    #if defined(__DAV_VEC__) && defined(SIMT_MODE) // c310-simt
-        return __cce_simt::get_block_idx();
-    #else
-        int64_t coreId = get_coreid();
-        if ((coreId >= C310_A5_DEVICE_VEC_PHYS_SMALL_BOUND_CORE_START_IDS &&
+#if defined(__DAV_VEC__) && defined(SIMT_MODE) // c310-simt
+    return __cce_simt::get_block_idx();
+#else
+    int64_t coreId = get_coreid();
+    if ((coreId >= C310_A5_DEVICE_VEC_PHYS_SMALL_BOUND_CORE_START_IDS &&
             coreId <= C310_A5_DEVICE_VEC_PHYS_SMALL_BOUND_CORE_END_IDS) ||
-            coreId >= C310_A5_DEVICE_VEC_PHYS_GREAT_BOUND_CORE_START_IDS) {    // c310-vec
-            return get_block_idx() * get_subblockdim() + get_subblockid();
-        } else {                                                               // c310-cube
-            return get_block_idx();
-        }
-    #endif
+        coreId >= C310_A5_DEVICE_VEC_PHYS_GREAT_BOUND_CORE_START_IDS) { // c310-vec
+        return get_block_idx() * get_subblockdim() + get_subblockid();
+    } else { // c310-cube
+        return get_block_idx();
+    }
+#endif
 #else // NOT C220 C310
     return get_block_idx();
 #endif // __DAV
@@ -232,7 +231,7 @@ AICORE_FUNC_HEAD bool TryGetBlockIdx(uint64_t &blockIdx)
 #if defined(__DAV_C220__) || defined(__DAV_C220_VEC__) || defined(__DAV_C220_CUBE__) || \
     (defined(__NPU_ARCH__) && (__NPU_ARCH__ == 3101 || __NPU_ARCH__ == 3510))
 #ifdef SIMT_MODE
-    coreId = __cce_simt::get_coreid();
+    coreId = __cce_simt_get_COREID();
 #else
     coreId = get_coreid();
 #endif // SIMT_MODE
@@ -269,6 +268,49 @@ AICORE_FUNC_HEAD bool TryGetThreadId(uint64_t &threadId)
     threadId = thread;
     return true;
 }
+
+AICORE_FUNC_HEAD uint64_t GetWarpTimelineClock() {
+#if defined(__CCE_IS_AICORE__) && __CCE_IS_AICORE__ == 1
+#if defined(__NPU_ARCH__) && (__NPU_ARCH__ == 3101 || __NPU_ARCH__ == 3510) && defined(__DAV_VEC__)
+    return static_cast<uint64_t>(__cce_simt_get_CLOCK64());
+#endif
+#endif
+    return 0;
+}
+
+AICORE_FUNC_HEAD uint32_t GetLaneId() {
+#if defined(__CCE_IS_AICORE__) && __CCE_IS_AICORE__ == 1
+#if defined(__NPU_ARCH__) && (__NPU_ARCH__ == 3101 || __NPU_ARCH__ == 3510) && defined(__DAV_VEC__)
+    return static_cast<uint32_t>(__cce_simt_get_laneID());
+#endif
+#endif
+    return 0;
+}
+
+AICORE_FUNC_HEAD bool GetWarpBasicInfo(
+    __gm__ uint8_t *memInfo, uint64_t &blockIdx, uint32_t &warpId, uint32_t &coreId, uint32_t &coreType)
+{
+    if (!CheckMemInfo(memInfo)) {
+        return false;
+    }
+    uint64_t threadId = 0;
+    constexpr uint32_t warpThreadNum = 32U;
+#if defined(__CCE_IS_AICORE__) && __CCE_IS_AICORE__ == 1
+#if defined(__NPU_ARCH__) && (__NPU_ARCH__ == 3101 || __NPU_ARCH__ == 3510) && defined(__DAV_VEC__)
+    blockIdx = GetBlockIdx();
+    threadId = GetThreadId();
+#else
+    return false;
+#endif
+#else
+    return false;
+#endif
+    warpId = static_cast<uint32_t>(threadId / warpThreadNum);
+    coreId = static_cast<uint32_t>(blockIdx / MIX_SUB_BLOCKDIM);
+    coreType = static_cast<uint32_t>(blockIdx % MIX_SUB_BLOCKDIM);
+    return blockIdx < MAX_BLOCK && warpId < WARP_NUM_PER_BLOCK;
+}
+
 AICORE_FUNC_HEAD void Flush(__gm__ uint8_t *gm)
 {
 #if defined(__CCE_IS_AICORE__) && __CCE_IS_AICORE__ == 1

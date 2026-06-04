@@ -585,7 +585,7 @@ TEST(DeviceTask, test_GetReplayTimes_success_in_application_replay_mode_950)
     args.argAicMetrics = metrics;
     OpDeviceProf opDeviceProf(args);
     DeviceTask deviceTask{"DeviceProf", opDeviceProf};
-    ASSERT_EQ(deviceTask.GetReplayTimes(), 12);
+    ASSERT_EQ(deviceTask.GetReplayTimes(), 13);
 }
 
 TEST(DeviceDataParse, Execute_Success)

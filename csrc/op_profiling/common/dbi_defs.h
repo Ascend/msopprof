@@ -197,6 +197,12 @@ struct BlockOperandRecords {
     uint64_t blockGap[8]{}; // BLOCK_GAP 64B
 };
 
+struct BlockWarpRecords {
+    WarpHeader header;
+    WarpRecord records[WARP_NUM_PER_BLOCK];
+    uint64_t blockGap[8]{}; // BLOCK_GAP 64B
+};
+
 struct RecordHeader {
     RecordType recordType;
     uint32_t magicWords = DBI_RECORD_MAGIC_WORDS;

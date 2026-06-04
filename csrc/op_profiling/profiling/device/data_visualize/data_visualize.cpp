@@ -20,19 +20,40 @@
 #include "log.h"
 #include "common/visualize.h"
 #include "roofline.h"
+#include "warp_timeline_visualize.h"
 
 using namespace Common;
 using namespace Profiling;
 
 namespace Visualize {
+namespace {
+bool HasTraceEvents(const nlohmann::json &traceJson) {
+    return traceJson.contains("traceEvents") && traceJson["traceEvents"].is_array() &&
+        !traceJson["traceEvents"].empty();
+}
+}
+
 void DataVisualize::GenerateVisualizeData(Parse::DataCenter &dataCenter, const std::string &outputPath,
                                           const Common::ProfMetricsAbilityConfig &metrics) {
     GenerateAllVisualizeData(dataCenter, outputPath, metrics);
     CleanupAndLog(dataCenter, outputPath);
 }
 
-void DataVisualize::GenerateAllVisualizeData(Profiling::Parse::DataCenter
-    &dataCenter, const std::string &outputPath, const Common::ProfMetricsAbilityConfig &metrics) {
+void DataVisualize::MergeTraceJson(nlohmann::json &dst, nlohmann::json src) {
+    if (!HasTraceEvents(src)) {
+        return;
+    }
+    if (!HasTraceEvents(dst)) {
+        dst = std::move(src);
+        return;
+    }
+    for (auto &event : src["traceEvents"]) {
+        dst["traceEvents"].emplace_back(std::move(event));
+    }
+}
+
+void DataVisualize::GenerateAllVisualizeData(Profiling::Parse::DataCenter &dataCenter, const std::string &outputPath,
+    const Common::ProfMetricsAbilityConfig &metrics) {
     using VT = Utility::VisualizeType;
     opBasicInfo_->OpBasicInfoToJson();
     Utility::Visualize::WriteBin<VT::OP_BASIC_INFO>(outputPath, opBasicInfo_->opBasicFileJson_);
@@ -67,10 +88,22 @@ void DataVisualize::GenerateAllVisualizeData(Profiling::Parse::DataCenter
         Utility::Visualize::WriteBin<VT::ROOF_LINE>(outputPath, roofLine_->visualRoofLineJson_);
     }
 
+    nlohmann::json traceJson;
     if ((metrics.pipeTimelineEnable || metrics.instrTimelineEnable) && biuTimeline_->TimelineToJson(outputPath)) {
-        Utility::Visualize::WriteBin<VT::TRACE>(outputPath, biuTimeline_->GetTimelineJson());
+        traceJson = biuTimeline_->GetTimelineJson();
     } else if (timelineParser_->TimelineToJson(outputPath)) {
-        Utility::Visualize::WriteBin<VT::TRACE>(outputPath, timelineParser_->GetTimelineJson());
+        traceJson = timelineParser_->GetTimelineJson();
+    }
+    WarpTimelineVisualize warpTimelineVisualize;
+    if (warpTimelineVisualize.TimelineToJson(outputPath)) {
+        MergeTraceJson(traceJson, warpTimelineVisualize.GetTimelineJson());
+    }
+    if (HasTraceEvents(traceJson)) {
+        std::string tracePath = Utility::JoinPath({outputPath, "trace.json"});
+        if (!Utility::WriteFileByStream(tracePath, traceJson)) {
+            Utility::LogWarn("Generate %s failed", tracePath.c_str());
+        }
+        Utility::Visualize::WriteBin<VT::TRACE>(outputPath, traceJson);
     }
     if (cachelineHeatMapParser_->ToJson(outputPath)) {
         Utility::Visualize::WriteBin<VT::CACHELINE_HEAT_MAP>(outputPath,

@@ -198,7 +198,7 @@ void GetStreamIdAndTaskId(uint32_t &taskId, uint16_t &streamId)
         streamId = hardwareStreamId % (1 << offset);
     }
 }
-    
+
 void MC2TimelineParser::GetAicpuDatas(vector<AicpuKfcProfCommTurn> &aicpuTurns,
                                       vector<MsprofAicpuHcclTaskInfo> &aicpuHcclTasks)
 {
@@ -256,7 +256,7 @@ void MC2TimelineParser::PreProcessData(vector<AicpuKfcProfCommTurn> &aicpuTurns,
                                        vector<MsprofAicpuHcclTaskInfo> &aicpuHcclTasks,
                                        vector<MsprofAicTimeStampInfoUpdate> &aicoreTimeStamps)
 {
-    // get aicpu datas from aicpu.bin
+    // get aicpu data from aicpu.bin
     GetAicpuDatas(aicpuTurns, aicpuHcclTasks);
     if (!GetAicoreTimeStamps(aicoreTimeStamps)) {
         LogDebug("Can not parse aic_timestamp.bin, no need to generate timeline.");
@@ -571,10 +571,6 @@ bool MC2TimelineParser::TimelineToJson(const string &outputPath)
     result["schemaVersion"] = 1;
     result["traceEvents"] = timelineJson_;
     timelineJson_ = result;
-    string tracePath = JoinPath({outputPath_, "trace.json"});
-    if (!WriteFileByStream(tracePath, timelineJson_)) {
-        LogWarn("Generate %s failed.", tracePath.c_str());
-    }
     return true;
 }
 }

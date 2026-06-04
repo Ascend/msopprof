@@ -98,6 +98,7 @@ void DeviceTask::ProcessApplication(uint32_t count) {
         {ProfDBIType::INSTR_PROF_END, DBI_FLAG_INSTR_PROF_END},
         {ProfDBIType::INSTR_PROF_DFX, DBI_FLAG_INSTR_PROF_DFX},
         {ProfDBIType::BB_COUNT, DBI_FLAG_BB_COUNT},
+        {ProfDBIType::WARP_TIMELINE, DBI_FLAG_WARP_TIMELINE},
     };
     profMessage_.replayCount = count;
     auto it = dbiFlagMap.find(dbiTypes[count]);
@@ -124,6 +125,8 @@ uint32_t DeviceTask::GetReplayTimes() {
         }
         if (chipType_ == ChipType::ASCEND950) {
             dbiTypes.emplace_back(ProfDBIType::OPERAND_RECORD);
+            dbiTypes.emplace_back(ProfDBIType::WARP_TIMELINE);
+            replayTimes++;
             replayTimes++;
         }
         const std::map<ProfDBIType, bool> dbiTypeMap = {
@@ -166,7 +169,8 @@ bool DeviceTask::PreProcess() {
     if (metrics_.isKernelScale) {
         profMessage_.useProfileMode = true;
     }
-    profMessage_.dbiFlag = chipType_ == ChipType::ASCEND950 ? DBI_FLAG_OPERAND_RECORD : 0;
+    profMessage_.dbiFlag = chipType_ == ChipType::ASCEND950 ?
+        (DBI_FLAG_OPERAND_RECORD | DBI_FLAG_WARP_TIMELINE) : 0;
     profMessage_.dbiFlag |= metrics_.isMemoryDetail ? DBI_FLAG_MEMORY_CHART : 0;
     profMessage_.dbiFlag |= metrics_.pcSamplingEnable ? DBI_FLAG_INSTR_PROF_START : 0;
     profMessage_.dbiFlag |= metrics_.pipeTimelineEnable ? DBI_FLAG_INSTR_PROF_END : 0;

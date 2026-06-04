@@ -57,14 +57,12 @@ bool BiuTimeline::TimelineToJson(const std::string &outputPath)
         return false;
     }
     PrintMissData();
-    timelineJson_["profilingType"] = "op-biuperf";
-    timelineJson_["displayTimeUnit"] = "ns";
-    timelineJson_["schemaVersion"] = 1;
-    timelineJson_["traceEvents"] = traceEvents;
-    std::string tracePath = JoinPath({outputPath_, "trace.json"});
-    if (!WriteFileByStream(tracePath, timelineJson_)) {
-        LogWarn("Generate %s failed.", tracePath.c_str());
-    }
+    nlohmann::json result;
+    result["profilingType"] = "op";
+    result["displayTimeUnit"] = "ns";
+    result["schemaVersion"] = 1;
+    result["traceEvents"] = traceEvents;
+    timelineJson_ = result;
     return true;
 }
 

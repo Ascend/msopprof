@@ -17,10 +17,13 @@
 #include <gtest/gtest.h>
 #include "mockcpp/mockcpp.hpp"
 
+#include <fstream>
 #include <string>
 #include "smart_pointer.h"
 #define private public
 #define protected public
+#include "common/dbi_defs.h"
+#include "profiling/device/data_visualize/warp_timeline_visualize.h"
 #include "profiling/device/data_visualize/data_visualize.h"
 #include "profiling/device/data_visualize/occupancy.h"
 #include "profiling/device/data_visualize/pmu_calculator.h"
@@ -35,6 +38,60 @@ using namespace Profiling;
 using namespace Common;
 using namespace Utility;
 using namespace std;
+
+namespace {
+constexpr int64_t TEST_AICORE_FREQ = 1000;
+constexpr uint32_t TEST_CORE_TYPE_VEC0 = 0U;
+
+class ScopedAicoreFreqMock {
+public:
+    ScopedAicoreFreqMock() : oldFunc_(HalHelper::Instance().halGetDeviceInfo_) {
+        HalHelper::Instance().halGetDeviceInfo_ = [](uint32_t, int32_t, int32_t, int64_t *value) {
+            if (value != nullptr) {
+                *value = TEST_AICORE_FREQ;
+            }
+            return DRV_ERROR_NONE;
+        };
+    }
+
+    ~ScopedAicoreFreqMock() { HalHelper::Instance().halGetDeviceInfo_ = oldFunc_; }
+
+private:
+    halGetDeviceInfoFunc oldFunc_;
+};
+
+void WriteWarpTimelineBin(const std::string &outputPath, const std::vector<std::pair<uint64_t, uint64_t>> &warpTimes,
+                          uint32_t coreId = 0, uint32_t coreType = TEST_CORE_TYPE_VEC0) {
+    const std::string dumpPath = JoinPath({outputPath, "dump"});
+    ASSERT_TRUE(MkdirRecusively(dumpPath));
+
+    BlockWarpRecords blockRecords{};
+    blockRecords.header.magicWords = DBI_RECORD_MAGIC_WORDS;
+    blockRecords.header.warpCount = static_cast<uint32_t>(warpTimes.size());
+    blockRecords.header.coreId = coreId;
+    blockRecords.header.coreType = coreType;
+    for (size_t warpId = 0; warpId < warpTimes.size() && warpId < WARP_NUM_PER_BLOCK; ++warpId) {
+        blockRecords.records[warpId].startTime = warpTimes[warpId].first;
+        blockRecords.records[warpId].endTime = warpTimes[warpId].second;
+    }
+
+    const std::string warpBinPath = JoinPath({dumpPath, WARP_TIMELINE});
+    std::ofstream output(warpBinPath, std::ios::binary | std::ios::trunc);
+    ASSERT_TRUE(output.is_open());
+    output.write(reinterpret_cast<const char *>(&blockRecords), sizeof(blockRecords));
+    ASSERT_TRUE(output.good());
+}
+
+nlohmann::json MakeTracePayload(const std::string &profilingType, const std::string &eventName) {
+    nlohmann::json payload;
+    payload["profilingType"] = profilingType;
+    payload["displayTimeUnit"] = "ns";
+    payload["schemaVersion"] = 1;
+    payload["traceEvents"] = nlohmann::json::array(
+        {nlohmann::json{{"name", eventName}, {"ph", "X"}, {"pid", "pid"}, {"tid", "tid"}, {"ts", 1}, {"dur", 2}}});
+    return payload;
+}
+}
 
 MemMapDetail mixPmuMapDetails = {
     .blockId = 0,
@@ -204,6 +261,12 @@ auto &pmuCalculatorObj1 = GetPmuCalculatorObjTest1(g_chipType, opBasicInfoObj1, 
 auto &storageAccessObj1 = GetStorageAccessObjTest1(g_chipType, opBasicInfoObj1, basicPmuObj1, pmuCalculatorObj1);
 Occupancy910B occupancy(opBasicInfoObj1, basicPmuObj1);
 
+/**
+ * |  用例集  | DataVisualize
+ * | 测试函数 | Occupancy::MergeSameCorePmu
+ * |  用例名  | occupancy_merge_same_core_pmu_and_expect_success
+ * | 用例描述 | 测试相同core的PMU数据可以正确合并
+ */
 TEST(DataVisualize, occupancy_merge_same_core_pmu_and_expect_success)
 {
     std::vector<MemMapDetail> pmuMapDetails;
@@ -223,6 +286,12 @@ TEST(DataVisualize, occupancy_merge_same_core_pmu_and_expect_success)
         vecPmuMapDetails1.eventMap[1280] + vecPmuMapDetails2.eventMap[1280]);
 }
 
+/**
+ * |  用例集  | DataVisualize
+ * | 测试函数 | Occupancy::GetOccupancyBlockJson
+ * |  用例名  | occupancy_calculate_metric_and_expect_success
+ * | 用例描述 | 测试生成occupancy块信息时吞吐、周期和命中率指标计算正确
+ */
 TEST(DataVisualize, occupancy_calculate_metric_and_expect_success)
 {
     std::map<std::string, OccupancyMetrics> metricsMapMix;
@@ -249,6 +318,12 @@ TEST(DataVisualize, occupancy_calculate_metric_and_expect_success)
     ASSERT_TRUE(metricsMapVector["0vector0"].cacheHitRate == 80);
 }
 
+/**
+ * |  用例集  | DataVisualize
+ * | 测试函数 | Occupancy::AnalyzeOccupy
+ * |  用例名  | occupancy_analyze_occupy_and_expect_success
+ * | 用例描述 | 测试不同类型occupancy数据可生成预期优化建议
+ */
 TEST(DataVisualize, occupancy_analyze_occupy_and_expect_success)
 {
     std::vector<std::pair<std::string, double>> cyclesOccupancy = {
@@ -298,6 +373,12 @@ TEST(DataVisualize, occupancy_analyze_occupy_and_expect_success)
     EXPECT_EQ(advicesSimtInstr, simtInstrRes);
 }
 
+/**
+ * |  用例集  | DataVisualize
+ * | 测试函数 | Occupancy910B::GetOccupancyMap
+ * |  用例名  | 910b_gen_occupy_and_expect_success
+ * | 用例描述 | 测试910B场景下可以成功生成occupancy地图
+ */
 TEST(DataVisualize, 910b_gen_occupy_and_expect_success)
 {
     std::string soc = "Ascend910B1";
@@ -306,6 +387,12 @@ TEST(DataVisualize, 910b_gen_occupy_and_expect_success)
     ASSERT_TRUE(res == true);
 }
 
+/**
+ * |  用例集  | DataVisualize
+ * | 测试函数 | Occupancy::GetOccupancyMap
+ * |  用例名  | 310P_gen_occupy_and_expect_fail
+ * | 用例描述 | 测试310P场景下生成occupancy地图时返回空的op_detail
+ */
 TEST(DataVisualize, 310P_gen_occupy_and_expect_fail)
 {
     ChipType chipType = ChipType::ASCEND310P;
@@ -327,6 +414,12 @@ TEST(DataVisualize, 310P_gen_occupy_and_expect_fail)
     ASSERT_EQ(occupancyMapJson.at("op_detail").size(), 0);
 }
 
+/**
+ * |  用例集  | DataVisualize
+ * | 测试函数 | Occupancy::GetOccupancyBlockJson
+ * |  用例名  | occupancy_getOccupancyBlockJson_expect_success
+ * | 用例描述 | 测试混合算子可正确生成3个occupancy块JSON
+ */
 TEST(DataVisualize, occupancy_getOccupancyBlockJson_expect_success)
 {
     occupancy.opType_ = Common::OpType::MIX;
@@ -335,6 +428,12 @@ TEST(DataVisualize, occupancy_getOccupancyBlockJson_expect_success)
     ASSERT_TRUE(res1.size()==3);
 }
 
+/**
+ * |  用例集  | DeviceDataParse
+ * | 测试函数 | DataHandler::SaveOpBasicInfo
+ * |  用例名  | SaveOpBasicInfo_Return_True
+ * | 用例描述 | 测试保存算子基础信息成功返回true
+ */
 TEST(DeviceDataParse, SaveOpBasicInfo_Return_True)
 {
     GlobalMockObject::verify();
@@ -344,6 +443,12 @@ TEST(DeviceDataParse, SaveOpBasicInfo_Return_True)
     ASSERT_TRUE(dataHandler.SaveOpBasicInfo(path));
 }
 
+/**
+ * |  用例集  | DataVisualize
+ * | 测试函数 | OpBasicInfo::GenFreAdvice
+ * |  用例名  | genfreadvice_low_freq_advice
+ * | 用例描述 | 测试当前频率低于额定频率时生成低频告警建议
+ */
 TEST(DataVisualize, genfreadvice_low_freq_advice)
 {
     ChipType chipType = ChipType::ASCEND310P;
@@ -358,6 +463,12 @@ TEST(DataVisualize, genfreadvice_low_freq_advice)
     EXPECT_EQ(res[0], "The current frequency is lower than the rated frequency");
 }
 
+/**
+ * |  用例集  | DataVisualize
+ * | 测试函数 | PmuCalculator910B::GetPipeBwByWeight
+ * |  用例名  | GetPipeBwByWeight_by_freq_datas_success
+ * | 用例描述 | 测试不同频点和数据量下返回正确的pipe带宽权重
+ */
 TEST(DataVisualize, GetPipeBwByWeight_by_freq_datas_success)
 {
     ChipType chipType = ChipType::ASCEND910B;
@@ -368,20 +479,20 @@ TEST(DataVisualize, GetPipeBwByWeight_by_freq_datas_success)
     opBasicInfoObj->SetBlockDetail();
     auto &pmuCalculatorObj = GetPmuCalculatorObjTest1(chipType, opBasicInfoObj, basicPmuObj);
     // 输入数据量为0时，取默认数据
-    uint64_t l0aDatas = 0;
-    uint64_t l0bDatas = 0;
-    uint64_t l0cToGmDatas = 0;
-    uint64_t l0cToL1Datas = 0;
+    uint64_t l0aData = 0;
+    uint64_t l0bData = 0;
+    uint64_t l0cToGmData = 0;
+    uint64_t l0cToL1Data = 0;
     // 有效可用通路为MTE1\MTE2\MTE3\MTE2 Vector\MTE3 Vector 5种
-    auto resB1 = pmuCalculatorObj->GetPipeBwByWeight("Ascend910B1", l0aDatas, l0bDatas, l0cToGmDatas, l0cToL1Datas);
+    auto resB1 = pmuCalculatorObj->GetPipeBwByWeight("Ascend910B1", l0aData, l0bData, l0cToGmData, l0cToL1Data);
     EXPECT_FLOAT_EQ(resB1["MTE1"], 324.0);
     EXPECT_FLOAT_EQ(resB1["MTE2"], 340.1);
     EXPECT_FLOAT_EQ(resB1["MTE3"], 199.43);
     EXPECT_FLOAT_EQ(resB1["MTE2 vector"], 220.06);
     EXPECT_FLOAT_EQ(resB1["MTE3 vector"], 186.8);
     // B2=B3
-    auto resB2 = pmuCalculatorObj->GetPipeBwByWeight("Ascend910B2", l0aDatas, l0bDatas, l0cToGmDatas, l0cToL1Datas);
-    auto resB3 = pmuCalculatorObj->GetPipeBwByWeight("Ascend910B3", l0aDatas, l0bDatas, l0cToGmDatas, l0cToL1Datas);
+    auto resB2 = pmuCalculatorObj->GetPipeBwByWeight("Ascend910B2", l0aData, l0bData, l0cToGmData, l0cToL1Data);
+    auto resB3 = pmuCalculatorObj->GetPipeBwByWeight("Ascend910B3", l0aData, l0bData, l0cToGmData, l0cToL1Data);
     EXPECT_FLOAT_EQ(resB2["MTE1"], 315.245);
     EXPECT_FLOAT_EQ(resB2["MTE2"], 330.91);
     EXPECT_FLOAT_EQ(resB2["MTE3"], 193.99);
@@ -390,7 +501,7 @@ TEST(DataVisualize, GetPipeBwByWeight_by_freq_datas_success)
     for (auto &pipe : resB3) {
         EXPECT_FLOAT_EQ(pipe.second, resB2[pipe.first]);
     }
-    auto resB4 = pmuCalculatorObj->GetPipeBwByWeight("Ascend910B4", l0aDatas, l0bDatas, l0cToGmDatas, l0cToL1Datas);
+    auto resB4 = pmuCalculatorObj->GetPipeBwByWeight("Ascend910B4", l0aData, l0bData, l0cToGmData, l0cToL1Data);
     EXPECT_FLOAT_EQ(resB4["MTE1"], 271.005);
     EXPECT_FLOAT_EQ(resB4["MTE2"], 222.17);
     EXPECT_FLOAT_EQ(resB4["MTE3"], 189.89);
@@ -406,6 +517,12 @@ TEST(DataVisualize, GetPipeBwByWeight_by_freq_datas_success)
     EXPECT_FLOAT_EQ(resB4["FIXP"], maxBwRateOf910B4.at(TransportType::L0C_TO_GM) * 0.125 + maxBwRateOf910B4.at(TransportType::L0C_TO_L1) * 0.875);
 }
 
+/**
+ * |  用例集  | DataVisualize
+ * | 测试函数 | PmuCalculator910B::AddBasicPmu910B
+ * |  用例名  | addbasicpmu910b_success
+ * | 用例描述 | 测试910B场景下基础PMU指标补充结果正确
+ */
 TEST(DataVisualize, addbasicpmu910b_success)
 {
     ChipType chipType = ChipType::ASCEND910B;
@@ -470,6 +587,12 @@ TEST(DataVisualize, addbasicpmu910b_success)
     GlobalMockObject::verify();
 }
 
+/**
+ * |  用例集  | DataVisualize
+ * | 测试函数 | PmuCalculator910B::GetTableLineAiCore
+ * |  用例名  | gettablelineaicore_success
+ * | 用例描述 | 测试不同算子类型对应的AiCore表头信息生成正确
+ */
 TEST(DataVisualize, gettablelineaicore_success)
 {
     std::vector<std::string> ubMem = {"UB Read MTE", "UB Write MTE", "UB Read GM", "UB Write GM", "UB Write Vector",
@@ -551,6 +674,12 @@ TEST(DataVisualize, gettablelineaicore_success)
     }
 }
 
+/**
+ * |  用例集  | MC2TimelineParser
+ * | 测试函数 | MC2TimelineParser::ProcessHcclData
+ * |  用例名  | ProcessHcclDataSuccess
+ * | 用例描述 | 测试处理HCCL数据后生成预期timeline事件
+ */
 TEST(MC2TimelineParser, ProcessHcclDataSuccess)
 {
     unique_ptr<DataHandler> handler = Utility::MakeUnique<DataHandlerOf910B>();
@@ -594,6 +723,12 @@ TEST(MC2TimelineParser, ProcessHcclDataSuccess)
     EXPECT_EQ(threadSortIndex.at("args").at("sort_index"), 10053); // SORT_BIAS + streamid
 }
 
+/**
+ * |  用例集  | MC2TimelineParser
+ * | 测试函数 | MC2TimelineParser::ProcessHcclTaskData
+ * |  用例名  | ProcessHcclTaskDataSuccess
+ * | 用例描述 | 测试处理HCCL task数据后生成预期plane事件
+ */
 TEST(MC2TimelineParser, ProcessHcclTaskDataSuccess)
 {
     unique_ptr<DataHandler> handler = Utility::MakeUnique<DataHandlerOf910B>();
@@ -651,6 +786,12 @@ TEST(MC2TimelineParser, ProcessHcclTaskDataSuccess)
     EXPECT_EQ(notifyWait.at("args").at("link type"), "PCIE");
 }
 
+/**
+ * |  用例集  | MC2TimelineParser
+ * | 测试函数 | MC2TimelineParser::ProcessAicpuTurnData
+ * |  用例名  | ProcessAicpuTurnDataSuccess
+ * | 用例描述 | 测试处理AICPU turn数据后生成预期turn事件
+ */
 TEST(MC2TimelineParser, ProcessAicpuTurnDataSuccess)
 {
     unique_ptr<DataHandler> handler = Utility::MakeUnique<DataHandlerOf910B>();
@@ -693,11 +834,11 @@ TEST(MC2TimelineParser, ProcessAicpuTurnDataSuccess)
 }
 
 /**
-/* | 用例集 | OpProf
-/* |测试函数| CalPipeTime
-/* | 用例名 | test_cal_pipe_time_when_timefactor_is_zero_and_expect_no_throw
-/* |用例描述| 执行测试函数，当timefactor_为0时，不抛出异常
-*/
+ * |  用例集  | OpProf
+ * | 测试函数 | Calculate::CalPipeTime
+ * |  用例名  | test_cal_pipe_time_when_timefactor_is_zero_and_expect_no_throw
+ * | 用例描述 | 测试timefactor为0时调用CalPipeTime不抛出异常
+ */
 TEST(OpProf, test_cal_pipe_time_when_timefactor_is_zero_and_expect_no_throw)
 {
     Profiling::CalDeviceInfo calDeviceInfo =
@@ -708,11 +849,11 @@ TEST(OpProf, test_cal_pipe_time_when_timefactor_is_zero_and_expect_no_throw)
 }
 
 /**
-/* | 用例集 | OpProf
-/* |测试函数| CalTransportBwUsageRate
-/* | 用例名 | test_cal_transport_bw_usage_rate_when_timefactor_is_zero_and_expect_no_throw
-/* |用例描述| 执行测试函数，当timefactor_为0时，不抛出异常
-*/
+ * |  用例集  | OpProf
+ * | 测试函数 | Calculate::CalTransportBwUsageRate
+ * |  用例名  | test_cal_transport_bw_usage_rate_when_timefactor_is_zero_and_expect_no_throw
+ * | 用例描述 | 测试timefactor为0时调用CalTransportBwUsageRate不抛出异常
+ */
 TEST(OpProf, test_cal_transport_bw_usage_rate_when_timefactor_is_zero_and_expect_no_throw)
 {
     Profiling::CalDeviceInfo calDeviceInfo =
@@ -724,11 +865,11 @@ TEST(OpProf, test_cal_transport_bw_usage_rate_when_timefactor_is_zero_and_expect
 }
 
 /**
-/* | 用例集 | DataVisualize
-/* |测试函数| AnalyzeOccupy
-/* | 用例名 | test_analysis_occupy_when_given_zero_and_expect_no_throw
-/* |用例描述| 执行测试函数，当occupy中最大为0时，不抛出异常
-*/
+ * |  用例集  | DataVisualize
+ * | 测试函数 | Occupancy::AnalyzeOccupy
+ * |  用例名  | test_analyze_occupy_when_given_zero_and_expect_no_throw
+ * | 用例描述 | 测试occupancy最大值为0时调用AnalyzeOccupy不抛出异常
+ */
 TEST(DataVisualize, test_analyze_occupy_when_given_zero_and_expect_no_throw)
 {
     std::vector<std::pair<std::string, double>> cyclesOccupancy = {
@@ -745,11 +886,102 @@ TEST(DataVisualize, test_analyze_occupy_when_given_zero_and_expect_no_throw)
 }
 
 /**
-/* | 用例集 | LcclTimelineParser
-/* |测试函数| ProcessJsonData
-/* | 用例名 | test_lccl_process_data_correct
-/* |用例描述| 测试lccl算子通算流水图正确生成json数据
-*/
+ * |  用例集  | WarpTimelineVisualize
+ * | 测试函数 | WarpTimelineVisualize::TimelineToJson
+ * |  用例名  | timeline_to_json_generates_warp_trace_only_in_memory
+ * | 用例描述 | 测试warp timeline仅在内存中生成标准trace数据且不落独立文件
+ */
+TEST(WarpTimelineVisualize, timeline_to_json_generates_warp_trace_only_in_memory) {
+    GlobalMockObject::verify();
+    const std::string testDir = "test/ut/resources/op_profiling/warp_timeline_visualize";
+    std::experimental::filesystem::remove_all(testDir);
+    const std::string outputPath = JoinPath({testDir, "device0/add/0"});
+    WriteWarpTimelineBin(outputPath, {{100, 160}});
+    ScopedAicoreFreqMock freqMock;
+
+    WarpTimelineVisualize warpTimelineVisualize;
+    ASSERT_TRUE(warpTimelineVisualize.TimelineToJson(outputPath));
+
+    nlohmann::json traceJson = warpTimelineVisualize.GetTimelineJson();
+    ASSERT_TRUE(traceJson.contains("traceEvents"));
+    ASSERT_TRUE(traceJson["traceEvents"].is_array());
+    ASSERT_EQ(traceJson["traceEvents"].size(), 1);
+    EXPECT_EQ(traceJson["traceEvents"][0]["name"], "Warp_0");
+    EXPECT_EQ(traceJson["traceEvents"][0]["pid"], "core0.veccore0.warp");
+    EXPECT_EQ(traceJson["traceEvents"][0]["tid"], "Warp 0");
+    EXPECT_DOUBLE_EQ(traceJson["traceEvents"][0]["ts"].get<double>(), 0.1);
+    EXPECT_DOUBLE_EQ(traceJson["traceEvents"][0]["dur"].get<double>(), 0.06);
+    EXPECT_EQ(traceJson["traceEvents"][0]["args"]["core_id"], 0);
+    EXPECT_EQ(traceJson["traceEvents"][0]["args"]["core_type"], TEST_CORE_TYPE_VEC0);
+    EXPECT_FALSE(IsExist(JoinPath({outputPath, "warp_timeline_trace.json"})));
+
+    std::experimental::filesystem::remove_all(testDir);
+    GlobalMockObject::verify();
+}
+
+/**
+ * |  用例集  | DataVisualize
+ * | 测试函数 | DataVisualize::MergeTraceJson
+ * |  用例名  | merge_trace_json_appends_warp_events_without_overwriting_metadata
+ * | 用例描述 | 测试合并warp trace时追加事件且不覆盖基础元数据
+ */
+TEST(DataVisualize, merge_trace_json_appends_warp_events_without_overwriting_metadata) {
+    nlohmann::json baseTrace = MakeTracePayload("op-biuperf", "base_event");
+    nlohmann::json warpTrace = MakeTracePayload("op", "warp_event");
+
+    DataVisualize::MergeTraceJson(baseTrace, warpTrace);
+
+    ASSERT_TRUE(baseTrace.contains("traceEvents"));
+    ASSERT_TRUE(baseTrace["traceEvents"].is_array());
+    EXPECT_EQ(baseTrace["traceEvents"].size(), 2);
+    EXPECT_EQ(baseTrace["traceEvents"][0]["name"], "base_event");
+    EXPECT_EQ(baseTrace["traceEvents"][1]["name"], "warp_event");
+    EXPECT_EQ(baseTrace["profilingType"], "op-biuperf");
+    EXPECT_EQ(baseTrace["displayTimeUnit"], "ns");
+    EXPECT_EQ(baseTrace["schemaVersion"], 1);
+}
+
+/**
+ * |  用例集  | DataVisualize
+ * | 测试函数 | DataVisualize::MergeTraceJson
+ * |  用例名  | merge_trace_json_uses_warp_payload_when_base_trace_missing
+ * | 用例描述 | 测试基础trace缺失时直接使用warp payload作为最终trace
+ */
+TEST(DataVisualize, merge_trace_json_uses_warp_payload_when_base_trace_missing) {
+    nlohmann::json baseTrace;
+    nlohmann::json warpTrace = MakeTracePayload("op", "warp_event");
+
+    DataVisualize::MergeTraceJson(baseTrace, warpTrace);
+
+    ASSERT_TRUE(baseTrace.contains("traceEvents"));
+    EXPECT_EQ(baseTrace["profilingType"], "op");
+    EXPECT_EQ(baseTrace["traceEvents"].size(), 1);
+    EXPECT_EQ(baseTrace["traceEvents"][0]["name"], "warp_event");
+}
+
+/**
+ * |  用例集  | DataVisualize
+ * | 测试函数 | DataVisualize::MergeTraceJson
+ * |  用例名  | merge_trace_json_ignores_invalid_warp_payload
+ * | 用例描述 | 测试warp payload无效时不会污染已有trace数据
+ */
+TEST(DataVisualize, merge_trace_json_ignores_invalid_warp_payload) {
+    nlohmann::json baseTrace = MakeTracePayload("op-biuperf", "base_event");
+    nlohmann::json beforeMerge = baseTrace;
+    nlohmann::json invalidWarpTrace;
+    invalidWarpTrace["profilingType"] = "op";
+    invalidWarpTrace["traceEvents"] = nlohmann::json::array();
+
+    DataVisualize::MergeTraceJson(baseTrace, invalidWarpTrace);
+    EXPECT_EQ(baseTrace, beforeMerge);
+}
+
+/**
+ * |  用例集  | LcclTimelineParser
+ * | 测试函数 | LcclTimelineParser::ProcessAicoreData
+ * |  用例名  | test_lccl_process_data_correct
+ * | 用例描述 | 测试处理LCCL算子AICORE数据后生成正确的timeline事件
+ */
 TEST(LcclTimelineParser, test_lccl_process_data_correct)
 {
     unique_ptr<DataHandler> handler = Utility::MakeUnique<DataHandlerOf910B>();
@@ -770,11 +1002,11 @@ TEST(LcclTimelineParser, test_lccl_process_data_correct)
 }
 
 /**
-/* | 用例集 | LcclTimelineParser
-/* |测试函数| TimelineToJson
-/* | 用例名 | test_generate_lccl_timeline_correct
-/* |用例描述| 测试lccl算子通算流水图正确输出流水图
-*/
+ * |  用例集  | LcclTimelineParser
+ * | 测试函数 | LcclTimelineParser::TimelineToJson
+ * |  用例名  | test_generate_lccl_timeline_correct
+ * | 用例描述 | 测试LCCL算子通算流水图可正确生成traceEvents输出
+ */
 TEST(LcclTimelineParser, test_generate_lccl_timeline_correct)
 {
     GlobalMockObject::verify();
@@ -788,8 +1020,8 @@ TEST(LcclTimelineParser, test_generate_lccl_timeline_correct)
     LcclTimelineParser parser{0, opBasicInfoPtr, basicPmuPtr};
     MOCKER(&LcclTimelineParser::GetTimeStamp<LcclDumpLogInfo>).stubs().will(returnValue(true));
     ASSERT_TRUE(parser.TimelineToJson(outputPath));
-    string tracePath = JoinPath({outputPath, "trace.json"});
-    ASSERT_TRUE(IsExist(tracePath));
+    ASSERT_TRUE(parser.timelineJson_.contains("traceEvents"));
+    ASSERT_TRUE(parser.timelineJson_["traceEvents"].is_array());
     std::experimental::filesystem::remove_all(testDir);
     GlobalMockObject::verify();
 }

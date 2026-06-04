@@ -104,10 +104,6 @@ bool AicoreTimelineParser::TimelineToJson(const std::string &outputPath)
     result["schemaVersion"] = 1;
     result["traceEvents"] = timelineJson_;
     timelineJson_ = result;
-    std::string tracePath = JoinPath({outputPath_, "trace.json"});
-    if (!WriteFileByStream(tracePath, timelineJson_)) {
-        LogWarn("Generate %s failed", tracePath.c_str());
-    }
     return true;
 }
 
@@ -186,4 +182,3 @@ void AicoreTimelineParser::ProcessAicoreData(const std::vector<MsprofAicTimeStam
 }
 
 }
-
