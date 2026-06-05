@@ -132,6 +132,7 @@ TEST(CoreTimeLineVisualizer, test_CollectInstrEvents_collect_json_success_of_310
     CoreTimeLineVisualizer core(dataCenter, config);
     std::vector<nlohmann::json> coreJsonList;
     MergeInfo m1;
+    m1.icacheTick = UINT64_MAX;
     m1.pc = 0x10cfa000;
     m1.startTick = 782;
     m1.endTick = 788;
@@ -139,6 +140,7 @@ TEST(CoreTimeLineVisualizer, test_CollectInstrEvents_collect_json_success_of_310
     m1.name = "scalar_mov_xd_imme16";
     m1.detail = "x[0]=0x0,imme16:0x1";
     MergeInfo m2;
+    m2.icacheTick = UINT64_MAX;
     m2.pc = 0x10cfa008;
     m2.startTick = 779;
     m2.endTick = 1112;
@@ -146,6 +148,7 @@ TEST(CoreTimeLineVisualizer, test_CollectInstrEvents_collect_json_success_of_310
     m2.name = "wait_event";
     m2.detail = "pipe_type: L2,tigger_pipe: SCALAR,event_id: 0";
     MergeInfo m3;
+    m3.icacheTick = UINT64_MAX;
     m3.pc = 0x10cfa012;
     m3.startTick = 787;
     m3.endTick = 1112;
@@ -168,8 +171,8 @@ TEST(CoreTimeLineVisualizer, test_CollectInstrEvents_collect_json_success_of_310
         if (i.at("name") == "flow" && i.at("ph") == "t" && i.at("cat") == "MTE2ToSCALAR") { flowt = i; }
     }
     ASSERT_EQ(coreJsonList.size(), 7);
-    EXPECT_FLOAT_EQ(scalar.at("ts"), GetMicrosecond(chipType, 782));
-    EXPECT_FLOAT_EQ(scalar.at("dur"), GetMicrosecond(chipType, 6));
+    EXPECT_FLOAT_EQ(scalar.at("ts"), GetMicrosecond(chipType, 782, -1));
+    EXPECT_FLOAT_EQ(scalar.at("dur"), GetMicrosecond(chipType, 6, -1));
     // test wait flag display optimization when overlapping, its start will be end of common instr
     EXPECT_FLOAT_EQ(waitBegin.at("ts"), GetMicrosecond(chipType, 788, -1));
     auto waitEndTime = GetMicrosecond(chipType, 1112, -1);

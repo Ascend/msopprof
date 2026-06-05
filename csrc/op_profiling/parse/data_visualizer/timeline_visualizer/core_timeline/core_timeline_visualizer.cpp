@@ -196,6 +196,7 @@ void CoreTimeLineVisualizer::CollectInstrEvents(const std::string &coreName, std
     std::map<std::string, uint32_t> markCnt;
     std::map<std::string, std::vector<SetWaitFlag>> setFlagRecord;
     std::map<std::string, std::vector<SetWaitFlag>> waitFlagRecord;
+    int count = 0;
     for (auto &instr: instrs) {
         std::vector<std::string> codeStack {};
         if (pc2code_.Find(instr.pc)) {
@@ -220,19 +221,8 @@ void CoreTimeLineVisualizer::CollectInstrEvents(const std::string &coreName, std
         if (pipeEndTime.count(instr.pipe) == 0 || instr.endTick > pipeEndTime.at(instr.pipe)) {
             pipeEndTime[instr.pipe] = instr.endTick;
         }
-        uint64_t startCycle = instr.startTick;
-        uint64_t durationCycle = (instr.endTick >= instr.startTick) ? instr.endTick - instr.startTick : 0;
-        if (instr.name == "BAR") {
-            startCycle = instr.endTick >= 1 ? instr.endTick - 1 : 0;
-            durationCycle = 1;
-        }
-        Event event = GenerateEvent(instr, evtArgs, startCycle, durationCycle, coreName);
-        if (instr.processBytes != -1 && instr.processBytes != 0) {
-            event.args["process_bytes"] = std::to_string(instr.processBytes);
-        }
-        nlohmann::json jsonData;
-        event.ToJson(jsonData);
-        coreJson.emplace_back(jsonData);
+        GenerateEvent(instr, evtArgs, coreName, instr.name + std::to_string(count), coreJson);
+        count++;
     }
     CollectFlowEvents(setFlagRecord, waitFlagRecord, coreJson);
 }
@@ -304,6 +294,10 @@ void CoreTimeLineVisualizer::AddFlag(const SetWaitFlag &flag, const std::string 
     nlohmann::json setFlagEndJson;
     flagBeginEvent.ToJson(setFlagBeginJson);
     flagEndEvent.ToJson(setFlagEndJson);
+    if (flag.instr.name == waitFlagName_ && AddScalarHeadEvents(flag, id, coreJson)) {
+        setFlagBeginJson["group_id"] = id;
+        setFlagEndJson["group_id"] = id;
+    }
     coreJson.emplace_back(setFlagBeginJson);
     coreJson.emplace_back(setFlagEndJson);
 }
@@ -331,12 +325,72 @@ void CoreTimeLineVisualizer::GetFlowEvents(SetWaitFlag &begin, SetWaitFlag &end,
     coreJson.emplace_back(flowEnd);
 }
 
-Event CoreTimeLineVisualizer::GenerateEvent(const MergeInfo &instr, EventArgs &evtArgs, int startCycle,
-    int durationCycle, const std::string &coreName) const
-{
-    Event event = {instr.name, "", "X",
-                   GetMicrosecond(chipType_, startCycle),
-                   GetMicrosecond(chipType_, durationCycle), coreName, instr.pipe, {}};
+bool CoreTimeLineVisualizer::AddScalarHeadEvents(
+    const SetWaitFlag &flag, const std::string &groupId, std::vector<nlohmann::json> &json) const {
+    if (flag.instr.icacheTick == UINT64_MAX) {
+        return false;
+    }
+    int durationCycle = flag.instr.ccuTick - flag.instr.icacheTick;
+    Event scalarEvent = {"cache_time", GetCNameByPipe(flag.instr.name), "X",
+        GetMicrosecond(chipType_, flag.instr.icacheTick, -1), GetMicrosecond(chipType_, durationCycle, -1),
+        flag.coreName, flag.instr.pipe, {}};
+    scalarEvent.args["pc_addr"] = flag.evtArgs.pcAddr;
+    scalarEvent.args["code"] = flag.evtArgs.code;
+    scalarEvent.args["detail"] = flag.evtArgs.detail;
+
+    nlohmann::json jsonData;
+    scalarEvent.ToJson(jsonData);
+    jsonData["group_id"] = groupId;
+    json.emplace_back(jsonData);
+
+    durationCycle = flag.instr.startTick - flag.instr.ccuTick;
+    Event ccuEvent = {"ccu_time", GetCNameByPipe(flag.instr.name), "X",
+        GetMicrosecond(chipType_, flag.instr.ccuTick, -1), GetMicrosecond(chipType_, durationCycle, -1), flag.coreName,
+        flag.instr.pipe, {}};
+    ccuEvent.args["pc_addr"] = flag.evtArgs.pcAddr;
+    ccuEvent.args["code"] = flag.evtArgs.code;
+    ccuEvent.args["detail"] = flag.evtArgs.detail;
+
+    ccuEvent.ToJson(jsonData);
+    jsonData["group_id"] = groupId;
+    json.emplace_back(jsonData);
+    return true;
+}
+
+bool CoreTimeLineVisualizer::AddScalarHeadEvents(
+    const MergeInfo &instr, const std::string &groupId, const Event &event, std::vector<nlohmann::json> &json) const {
+    if (instr.icacheTick == UINT64_MAX || instr.name == "BAR" || instr.pipe == "CACHEMISS") {
+        return false;
+    }
+    int durationCycle = instr.ccuTick - instr.icacheTick;
+    Event scalarEvent = {"cache_time", event.cName, "X", GetMicrosecond(chipType_, instr.icacheTick, -1),
+        GetMicrosecond(chipType_, durationCycle, -1), event.pid, event.tid, {}};
+    scalarEvent.args = event.args;
+    nlohmann::json jsonData;
+    scalarEvent.ToJson(jsonData);
+    jsonData["group_id"] = groupId;
+    json.emplace_back(jsonData);
+
+    durationCycle = instr.startTick - instr.ccuTick;
+    Event ccuEvent = {"ccu_time", event.cName, "X", GetMicrosecond(chipType_, instr.ccuTick, -1),
+        GetMicrosecond(chipType_, durationCycle, -1), event.pid, event.tid, {}};
+    ccuEvent.args = event.args;
+    ccuEvent.ToJson(jsonData);
+    jsonData["group_id"] = groupId;
+    json.emplace_back(jsonData);
+    return true;
+}
+
+void CoreTimeLineVisualizer::GenerateEvent(const MergeInfo &instr, const EventArgs &evtArgs,
+    const std::string &coreName, const std::string &groupId, std::vector<nlohmann::json> &json) const {
+    uint64_t startCycle = instr.startTick;
+    uint64_t durationCycle = (instr.endTick >= instr.startTick) ? instr.endTick - instr.startTick : 0;
+    if (instr.name == "BAR") {
+        startCycle = instr.endTick >= 1 ? instr.endTick - 1 : 0;
+        durationCycle = 1;
+    }
+    Event event = {instr.name, "", "X", GetMicrosecond(chipType_, startCycle, -1),
+        GetMicrosecond(chipType_, durationCycle, -1), coreName, instr.pipe, {}};
     if (instr.warpId != DEFAULT_INT_VALUE && instr.schId != DEFAULT_INT_VALUE) {
         event.tid = "WARP_" + std::to_string(instr.warpId);
         event.cName = GetCNameByInstrName(instr.name);
@@ -346,7 +400,15 @@ Event CoreTimeLineVisualizer::GenerateEvent(const MergeInfo &instr, EventArgs &e
     event.args["pc_addr"] = evtArgs.pcAddr;
     event.args["code"] = evtArgs.code;
     event.args["detail"] = evtArgs.detail;
-    return event;
+    if (instr.processBytes != -1 && instr.processBytes != 0) {
+        event.args["process_bytes"] = std::to_string(instr.processBytes);
+    }
+    nlohmann::json jsonData;
+    event.ToJson(jsonData);
+    if (AddScalarHeadEvents(instr, groupId, event, json)) {
+        jsonData["group_id"] = groupId;
+    }
+    json.emplace_back(jsonData);
 }
 
 void CoreTimeLineVisualizer::CollectUserMarkEvents(const std::string &coreName, const SimData &data,

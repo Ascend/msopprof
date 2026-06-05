@@ -41,6 +41,7 @@ public:
         Common::DvcInstrLog dvcInstrLog;
         Common::DvciCacheLog dvcIcacheLog;
         Common::DvcMteLog dvcMteLog;
+        Common::DvcCcuLog dvcCcuLog;
         CollectLogStart collectLogStart;
     };
     PacketParseRet ProcessMsg(const std::string &msg, size_t &idx);
@@ -56,6 +57,7 @@ private:
     PacketParseRet ProcessInstrData();
     PacketParseRet ProcessMteData();
     PacketParseRet ProcessICacheData();
+    PacketParseRet ProcessCcuData();
     PacketParseRet ProcessCollectStartMessage();
     bool IsPacketHeadValid() const;
 

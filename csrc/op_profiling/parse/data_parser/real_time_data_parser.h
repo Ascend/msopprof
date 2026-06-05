@@ -46,6 +46,8 @@ public:
     }
 private:
     void ParseLine(const IcacheParseInfoForRealTime &info);
+    void ParseScalar(const IcacheParseInfoForRealTime &info);
+    std::map<std::string, scalarHeadCache> scalarMap_;
     std::map<std::string, std::vector<MergeInfo>> cacheInstrMap_;
 };
 
@@ -115,10 +117,48 @@ private:
     std::shared_ptr<RealTimeMteParserPlugin> realTimeMteParserPlugin_;
 };
 
+class RealTimeCcuParserPlugin : public PluginInterface {
+public:
+    RealTimeCcuParserPlugin(DataCenter& dataCenter,
+        ChipProductType chipType) : PluginInterface(dataCenter, chipType) {};
+        PluginErrorCode Entry() override;
+    void DependencyRegister() override
+    {
+        RegisterPluginName("RealTimeCcuParser");
+        RegisterMandatoryDb({});
+        RegisterChip({ChipProductType::ASCEND910B_SERIES, ChipProductType::ASCEND910_93_SERIES});
+    }
+private:
+    std::map<std::string, scalarHead> ccuInstrMap_;
+};
+
+class RealTimeCcuParser : public RealTimeLogParer {
+public:
+    explicit RealTimeCcuParser(RealTimeSimParseContext context);
+    ~RealTimeCcuParser() = default;
+    void SetCcuLog(const CcuParseInfoForRealTime &ccuLog);
+    void Start() override
+    {
+        dataCenter_.Clear();
+        dataCenter_.DataStreamRegister<CcuParseInfoForRealTime>();
+        pluginManager_.RunAllPluginsNoBlock();
+    }
+    void Stop() override
+    {
+        auto dataStream = dataCenter_.GetStreamPtr<CcuParseInfoForRealTime>();
+        if (dataStream != nullptr) {
+            dataStream->Shutdown();
+        }
+        pluginManager_.WaitForStop();
+    }
+private:
+    std::shared_ptr<RealTimeCcuParserPlugin> realTimeCcuParserPlugin_;
+};
+
 class RealTimeDataParser {
 public:
     explicit RealTimeDataParser(RealTimeSimParseContext context) : context_(std::move(context)),
-        realTimeInstrParser_(context_), realTimeICacheParser_(context_), realTimeMteParser_(context_) {};
+        realTimeInstrParser_(context_), realTimeICacheParser_(context_), realTimeMteParser_(context_), realTimeCcuParser_(context_) {}
     ~RealTimeDataParser()
     {
         std::lock_guard<std::mutex> lock(mtx_);
@@ -136,6 +176,9 @@ public:
     void SetPopInstrLog(const Common::DvcInstrLog &dvcInstrLog);
     void SetICacheLog(const Common::DvciCacheLog &iCacheLog);
     void SetMteLog(const Common::DvcMteLog &dvcMteLog);
+    void SetCcuLog(const Common::DvcCcuLog &ccuLog);
+    void InsertScalar(std::map<std::string, std::shared_ptr<Profiling::Parse::DataCenter>> &dataCenterMap);
+    void InsertCache(std::map<std::string, std::shared_ptr<Profiling::Parse::DataCenter>> &dataCenterMap);
 private:
     void ProcessAfterKernelExit();
     void GetPc2Code();
@@ -146,6 +189,7 @@ private:
     RealTimeInstrParser realTimeInstrParser_;
     RealTimeICacheParser realTimeICacheParser_;
     RealTimeMteParser realTimeMteParser_;
+    RealTimeCcuParser realTimeCcuParser_;
     std::atomic<bool> isStop_ {true};
     std::thread afterExitProcessThr_;
     std::thread pc2CodeThr_;

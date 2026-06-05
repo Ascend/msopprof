@@ -45,9 +45,12 @@ PluginErrorCode RealTimeICacheParserPlugin::Entry()
         if (ptr->IsStop()) {
             break;
         }
-        ParseLine(icacheInfo);
+        if (icacheInfo.opType == "miss_read") {
+            ParseLine(icacheInfo);
+        } else {
+            ParseScalar(icacheInfo);
+        }
     }
-
     std::map<std::string, Parse::CacheDetailTable> cacheDetailTableMap;
     for (const auto &cacheInstr : cacheInstrMap_) {
         if (cacheInstr.second.empty()) {
@@ -63,8 +66,20 @@ PluginErrorCode RealTimeICacheParserPlugin::Entry()
         LogWarn("Failed to register cache table");
         return PluginErrorCode::NONBLOCKING_ERROR;
     }
+    if (!scalarMap_.empty()) {
+        auto scalarTable = Utility::MakeShared<std::map<std::string, scalarHeadCache>>(scalarMap_);
+        if (scalarTable != nullptr && !dataCenter_.DataTableRegister(scalarTable)) {
+            LogWarn("Failed to register icache scalar table");
+        }
+    }
     SetEntry(false);
     return PluginErrorCode::SUCCESS;
+}
+
+void RealTimeICacheParserPlugin::ParseScalar(const IcacheParseInfoForRealTime &info) {
+    for (auto i = 0; i < 4; i++) {
+        scalarMap_[info.coreName][info.pc + i * 4].insert(info.tick);
+    }
 }
 
 void RealTimeICacheParserPlugin::ParseLine(const IcacheParseInfoForRealTime &info)
@@ -191,7 +206,8 @@ void RealTimeDataParser::SetICacheLog(const Common::DvciCacheLog &iCacheLog)
         LogWarn("Set iCache log failed, core name is empty");
         return;
     }
-    IcacheParseInfoForRealTime iCacheParseInfo = {iCacheLog.time, iCacheLog.addr, coreName, oss.str()};
+    IcacheParseInfoForRealTime iCacheParseInfo = {
+        iCacheLog.time, iCacheLog.addr, coreName, oss.str(), iCacheLog.opType};
     realTimeICacheParser_.SetICacheLog(iCacheParseInfo);
 }
 
@@ -209,7 +225,10 @@ void RealTimeDataParser::ProcessAfterKernelExit()
         LogWarn("Inter data center ptr create failed");
         return;
     }
-
+    InsertCache(dateCenterMap);
+    if (context_.metricsConfig.overHead) {
+        InsertScalar(dateCenterMap);
+    }
     if (context_.metricsConfig.pmSamplingEnable) {
         realTimeMteParser_.MteProcessAfterExit(InteDataCenterPtr);
     }
@@ -225,12 +244,12 @@ void RealTimeDataParser::ProcessAfterKernelExit()
             return;
         }
     }
-    CalCulate(dateCenterMap, pc2Code_, isNeedGetPc2Code, context_.chipType);
+    CalCulate(dateCenterMap, pc2Code_, context_.metricsConfig, isNeedGetPc2Code, context_.chipType);
 
     auto pcToCode = pc2Code_->GetPc2Code();
     std::shared_ptr<Pc2CodeMap> pc2codePtr = MakeShared<Pc2CodeMap>(pcToCode);
 
-    CombineCoreData(dateCenterMap, realTimeICacheParser_.dataCenter_, InteDataCenterPtr);
+    CombineCoreData(dateCenterMap, InteDataCenterPtr);
     auto systemCores = static_cast<uint32_t>(std::thread::hardware_concurrency() * MAX_THREAD_USAGE_RATIO);
     std::string simulatorPath = JoinPath({outputPath_, "simulator"});
     Mkdir(simulatorPath);
@@ -271,6 +290,7 @@ void RealTimeDataParser::Stop()
         realTimeMteParser_.Stop();
     }
     realTimeInstrParser_.Stop();
+    realTimeCcuParser_.Stop();
     Utility::LogDebug("Real time all plugin stopped");
     {
         std::lock_guard<std::mutex> lock(mtx_);
@@ -295,6 +315,7 @@ void RealTimeDataParser::Start(const std::string &outputPath, const std::string 
     GetPc2Code();
     realTimeInstrParser_.Start();
     realTimeICacheParser_.Start();
+    realTimeCcuParser_.Start();
     if (context_.metricsConfig.pmSamplingEnable) {
         Utility::LogDebug("PMSampling is enabled. Start to dispose mte log");
         realTimeMteParser_.Start();
@@ -352,6 +373,103 @@ void RealTimeMteParser::MteProcessAfterExit(const std::shared_ptr<Profiling::Par
     visPluginManager.RunAllPlugins(results);
 
     InteDataCenterPtr->DataTableRegister(dataCenter_.GetDbPtr<std::vector<nlohmann::json>>());
+}
+
+PluginErrorCode RealTimeCcuParserPlugin::Entry() {
+    ccuInstrMap_.clear();
+    auto ptr = dataCenter_.GetStreamPtr<CcuParseInfoForRealTime>();
+    SetEntry(true);
+    LogDebug("Ccu real time plugin entry");
+    while (ptr != nullptr) {
+        CcuParseInfoForRealTime ccuInfo = ptr->Pop();
+        if (ptr->IsStop()) {
+            break;
+        }
+        ccuInstrMap_[ccuInfo.coreName][ccuInfo.pc].emplace_back(ScalarInstrInfo{UINT64_MAX, ccuInfo.tick, ccuInfo.pc});
+    }
+    auto ccuPtr = MakeShared<std::map<std::string, scalarHead>>(ccuInstrMap_);
+    if (!dataCenter_.DataTableRegister(ccuPtr)) {
+        LogDebug("Failed to register ccu table");
+        return PluginErrorCode::NONBLOCKING_ERROR;
+    }
+    SetEntry(false);
+    return PluginErrorCode::SUCCESS;
+}
+
+void RealTimeCcuParser::SetCcuLog(const CcuParseInfoForRealTime &ccuLog) {
+    auto ptr = dataCenter_.GetStreamPtr<CcuParseInfoForRealTime>();
+    if (ptr == nullptr) {
+        LogWarn("Set ccu log failed, can not match object format");
+        return;
+    }
+    ptr->Push(ccuLog);
+}
+
+RealTimeCcuParser::RealTimeCcuParser(RealTimeSimParseContext context) : RealTimeLogParer(std::move(context), 1) {
+    realTimeCcuParserPlugin_ = Utility::MakeShared<RealTimeCcuParserPlugin>(dataCenter_, context_.chipType);
+    pluginManager_.AddPlugin(realTimeCcuParserPlugin_);
+}
+
+void RealTimeDataParser::SetCcuLog(const Common::DvcCcuLog &ccuLog) {
+    const std::string &coreName = GetCoreName(ccuLog.coreId, ccuLog.subCoreId);
+    if (coreName.empty()) {
+        LogDebug("Set iCache log failed, core name is empty");
+        return;
+    }
+    CcuParseInfoForRealTime ccuParseInfo = {ccuLog.time, ccuLog.pc, coreName};
+    realTimeCcuParser_.SetCcuLog(ccuParseInfo);
+}
+
+void RealTimeDataParser::InsertScalar(
+    std::map<std::string, std::shared_ptr<Profiling::Parse::DataCenter>> &dataCenterMap) {
+    auto ccuPtr = realTimeCcuParser_.dataCenter_.GetDbPtr<std::map<std::string, scalarHead>>();
+    auto cacheScalarPtr = realTimeICacheParser_.dataCenter_.GetDbPtr<std::map<std::string, scalarHeadCache>>();
+    if (ccuPtr == nullptr || cacheScalarPtr == nullptr) {
+        LogDebug("Failed to register scalar info");
+        return;
+    }
+
+    for (auto iter : dataCenterMap) {
+        std::string logicName = iter.first;
+        auto dataCenter = iter.second;
+        auto physisToLogicalPtr = dataCenter->GetDbPtr<PhysicalAndLogicalPair>();
+        if (physisToLogicalPtr == nullptr) {
+            LogDebug("Failed to merge scalar because physical core name lost");
+            continue;
+        }
+        std::string phyCoreName = physisToLogicalPtr->first;
+        if ((*ccuPtr).find(phyCoreName) != (*ccuPtr).end() &&
+            (*cacheScalarPtr).find(phyCoreName) != (*cacheScalarPtr).end()) {
+            auto scalarCcuPtr = Utility::MakeShared<scalarHead>((*ccuPtr)[phyCoreName]);
+            auto scalarCachePtr = Utility::MakeShared<scalarHeadCache>((*cacheScalarPtr)[phyCoreName]);
+            if (!dataCenter->DataTableRegister(scalarCcuPtr) || !dataCenter->DataTableRegister(scalarCachePtr)) {
+                LogDebug("Failed register ccu instr for core %s", phyCoreName.c_str());
+            }
+        }
+    }
+}
+
+void RealTimeDataParser::InsertCache(
+    std::map<std::string, std::shared_ptr<Profiling::Parse::DataCenter>> &dateCenterMap) {
+    auto cacheMapPtr = realTimeICacheParser_.dataCenter_.GetDbPtr<std::map<std::string, Parse::CacheDetailTable>>();
+    if (cacheMapPtr == nullptr) {
+        return;
+    }
+    for (const auto &iter : dateCenterMap) {
+        std::string logicName = iter.first;
+        auto dataCenter = iter.second;
+        auto physisToLogicalPtr = dataCenter->GetDbPtr<PhysicalAndLogicalPair>();
+        if (physisToLogicalPtr == nullptr) {
+            continue;
+        }
+        std::string phyCoreName = physisToLogicalPtr->first;
+        if ((*cacheMapPtr).find(phyCoreName) != (*cacheMapPtr).end()) {
+            auto cachePtr = Utility::MakeShared<Parse::CacheDetailTable>((*cacheMapPtr)[phyCoreName]);
+            if (!dataCenter->DataTableRegister(cachePtr)) {
+                LogDebug("Failed register cache instr for core %s", phyCoreName.c_str());
+            }
+        }
+    }
 }
 }
 }

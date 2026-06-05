@@ -372,6 +372,12 @@ void Task::RegisterRunningEvent()
         }}
     );
     ProfStub::InjectionEvent::Instance().RegisterPacketHandler(
+        {ProfPacketType::CCU_LOG, [&](const std::shared_ptr<ProfStub::Packet> &pkt, size_t) {
+            if (pkt != nullptr) { realTimeDataParser_->SetCcuLog(pkt->GetPayload().dvcCcuLog); }
+            return "";
+        }}
+    );
+    ProfStub::InjectionEvent::Instance().RegisterPacketHandler(
         {ProfPacketType::PROF_FINISH, [&](const std::shared_ptr<ProfStub::Packet>& pkt, size_t) {
             (void)pkt;
             realTimeDataParser_->Stop();

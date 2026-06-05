@@ -124,9 +124,9 @@ void RealTimeInstrParser::SetPopInstrLog(const Profiling::PoppedInstrParseInfoFo
 RealTimeInstrParser::RealTimeInstrParser(RealTimeSimParseContext context) : RealTimeLogParer(std::move(context), 2)
 {
     realTimeInstrParserPlugin_ = std::make_shared<RealTimeInstrParserPlugin>(dataCenter_,
-        SimDataParserConfig("", context_.parseCoreId, context_.enableResourceConflictRatio));
+        SimDataParserConfig("", context_.parseCoreId, context_.enableResourceConflictRatio, context_.metricsConfig.overHead));
     realTimePopParserPlugin_ = std::make_shared<RealTimePopParserPlugin>(dataCenter_,
-        SimDataParserConfig("", context_.parseCoreId, context_.enableResourceConflictRatio));
+        SimDataParserConfig("", context_.parseCoreId, context_.enableResourceConflictRatio, context_.metricsConfig.overHead));
     pluginManager_.AddPlugin(realTimePopParserPlugin_);
     pluginManager_.AddPlugin(realTimeInstrParserPlugin_);
 }
@@ -185,7 +185,7 @@ void RealTimeInstrParser::Merge(std::map<std::string, std::shared_ptr<Profiling:
     auto threadNum = (dateCenterMap.size() < poolSize) ? dateCenterMap.size() : poolSize;
     Profiling::Parse::PluginManager pluginManager(threadNum);
     for (auto& iter : dateCenterMap) {
-        SimDataParserConfig dataParserConfig {iter.first, context_.parseCoreId, context_.enableResourceConflictRatio};
+        SimDataParserConfig dataParserConfig {iter.first, context_.parseCoreId, context_.enableResourceConflictRatio, context_.metricsConfig.overHead};
         pluginManager.AddPlugin<Profiling::Parse::RealTimeInstrMergeParser>(*iter.second, dataParserConfig);
     }
     std::vector<PluginErrorCode> res;

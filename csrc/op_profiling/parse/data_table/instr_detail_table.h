@@ -34,15 +34,17 @@ public:
     static constexpr uint32_t START_TICK = 0;
     static constexpr uint32_t END_TICK = 1;
     static constexpr uint32_t REAL_STALL_CYC = 2;
-    static constexpr uint32_t END_OF_STRING_TYPE = 3; // string type end
-    static constexpr uint32_t GPR_COUNT = 4;
-    static constexpr uint32_t PROCESS_BYTES = 5;
-    static constexpr uint32_t UB_READ_CONFLICT = 6;
-    static constexpr uint32_t UB_WRITE_CONFLICT = 7;
-    static constexpr uint32_t END_OF_INT_TYPE = 8; // int type end
-    static constexpr uint32_t VEC_UTILIZATION = 9;
-    static constexpr uint32_t END_OF_FLOAT_TYPE = 10; // float type end
-    static constexpr uint32_t MERGE_INFO = 11;       // row
+    static constexpr uint32_t ICACHE_CYC = 3;
+    static constexpr uint32_t CCU_CYC = 4;
+    static constexpr uint32_t END_OF_UINT64_TYPE = 5; // string type end
+    static constexpr uint32_t GPR_COUNT = 6;
+    static constexpr uint32_t PROCESS_BYTES = 7;
+    static constexpr uint32_t UB_READ_CONFLICT = 8;
+    static constexpr uint32_t UB_WRITE_CONFLICT = 9;
+    static constexpr uint32_t END_OF_INT_TYPE = 10; // int type end
+    static constexpr uint32_t VEC_UTILIZATION = 11;
+    static constexpr uint32_t END_OF_FLOAT_TYPE = 12; // float type end
+    static constexpr uint32_t MERGE_INFO = 13;       // row
     // Column Index End
     explicit InstrDetailTable(std::vector<MergeInfo>& data);
     ~InstrDetailTable() = default;
@@ -112,27 +114,27 @@ public:
     }
 private:
     template<typename T>
-    typename std::enable_if<std::is_base_of<std::string, T>::value, std::shared_ptr<std::vector<std::string>>>::type
+    typename std::enable_if<std::is_same<T, uint64_t>::value, std::shared_ptr<std::vector<uint64_t>>>::type
     GetColumn(uint32_t columnIndex) const
     {
-        if (columnIndex >= stringDataVec_.size()) {
+        if (columnIndex >= uint64DataVec_.size()) {
             return nullptr;
         }
-        std::shared_ptr<std::vector<std::string>> column = stringDataVec_[columnIndex];
+        std::shared_ptr<std::vector<uint64_t>> column = uint64DataVec_[columnIndex];
         if (column->empty()) {
-            column->resize(tableSize_);
+            columnIndex >= ICACHE_CYC ? column->resize(tableSize_, UINT64_MAX) : column->resize(tableSize_, 0);
         }
         return column;
     }
 
     template<typename T>
-    typename std::enable_if<std::is_integral<T>::value, std::shared_ptr<std::vector<int>>>::type
+    typename std::enable_if<std::is_same<T, int>::value, std::shared_ptr<std::vector<int>>>::type
     GetColumn(uint32_t columnIndex) const
     {
-        if (columnIndex <= END_OF_STRING_TYPE || columnIndex - (END_OF_STRING_TYPE + 1) >= intDataVec_.size()) {
+        if (columnIndex <= END_OF_UINT64_TYPE || columnIndex - (END_OF_UINT64_TYPE + 1) >= intDataVec_.size()) {
             return nullptr;
         }
-        std::shared_ptr<std::vector<int>> column = intDataVec_[columnIndex - (END_OF_STRING_TYPE + 1)];
+        std::shared_ptr<std::vector<int>> column = intDataVec_[columnIndex - (END_OF_UINT64_TYPE + 1)];
         if (column->empty()) {
             column->resize(tableSize_);
             std::fill(column->begin(), column->end(), -1);
@@ -165,7 +167,7 @@ private:
         return mergeInfo_;
     }
 private:
-    std::vector<std::shared_ptr<std::vector<std::string>>> stringDataVec_;
+    std::vector<std::shared_ptr<std::vector<uint64_t>>> uint64DataVec_;
     std::vector<std::shared_ptr<std::vector<int>>> intDataVec_;
     std::vector<std::shared_ptr<std::vector<float>>> floatDataVec_;
     std::shared_ptr<std::vector<MergeInfo>> mergeInfo_;

@@ -30,14 +30,14 @@ namespace Parse {
 class SimDataParserConfig {
 public:
     explicit SimDataParserConfig(std::string dumpDir, CoreNameAndPreFixPair  coreInfo,
-        const std::set<int> &parseCoreId, bool enableResourceConflictRatio,
+        const std::set<int> &parseCoreId, bool enableResourceConflictRatio, bool enableOverhead,
         ChipProductType chipType = ChipProductType::ASCEND910B_SERIES)
         : parseCoreId_(parseCoreId), enableResourceConflictRatio_(enableResourceConflictRatio), chipType_(chipType),
-        coreName_(coreInfo.first), dumpDir_(std::move(dumpDir)), coreInfo_(std::move(coreInfo)) {}
+        coreName_(coreInfo.first), dumpDir_(std::move(dumpDir)), coreInfo_(std::move(coreInfo)), enableOverhead_(enableOverhead) {}
 
     explicit SimDataParserConfig(std::string coreName, const std::set<int> &parseCoreId,
-        bool enableResourceConflictRatio, ChipProductType chipType = ChipProductType::ASCEND910B_SERIES)
-        : parseCoreId_(parseCoreId), enableResourceConflictRatio_(enableResourceConflictRatio), chipType_(chipType),
+        bool enableResourceConflictRatio, bool enableOverhead, ChipProductType chipType = ChipProductType::ASCEND910B_SERIES)
+        : parseCoreId_(parseCoreId), enableResourceConflictRatio_(enableResourceConflictRatio), enableOverhead_(enableOverhead), chipType_(chipType),
         coreName_(std::move(coreName)) {}
 
     ChipProductType GetChipType() const
@@ -70,6 +70,11 @@ public:
     bool GetEnableResourceConflictRatio() const
     {
         return enableResourceConflictRatio_;
+    }
+
+    bool GetEnableOverhead() const
+    {
+        return enableOverhead_;
     }
 
     const CoreNameAndPreFixPair& GetCoreInfo() const
@@ -123,6 +128,7 @@ public:
 private:
     std::set<int> parseCoreId_;
     bool enableResourceConflictRatio_ = true;
+    bool enableOverhead_ = false;
     ChipProductType chipType_;
     std::string coreName_;
     // dump parser only

@@ -87,6 +87,7 @@ bool ParseMetricBool(std::string const &metric, ProfMetricsAbilityConfig &value)
         {std::string(MsprofMetrics::MEMORYDETAIL), std::ref(value.isMemoryDetail)},
         {std::string(MsprofMetrics::PCSAMPLING), std::ref(value.pcSamplingEnable)},
         {std::string(MsprofMetrics::PIPETIMELINE), std::ref(value.timelineEnable)},
+        {std::string(MsprofMetrics::OVERHEAD), std::ref(value.overHead)},
     };
     if (metricMap.count(metric) == 0) {
         return false;

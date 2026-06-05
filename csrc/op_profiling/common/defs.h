@@ -119,6 +119,7 @@ struct DvciCacheLog {
     uint32_t size;
     uint32_t type;
     uint8_t last;
+    char opType[32];
 };
 
 struct DvcInstrLog {
@@ -128,6 +129,13 @@ struct DvcInstrLog {
     uint32_t subCoreId;
     char decodeDescr[200];
     char execDescr[200];
+};
+
+struct DvcCcuLog {
+    uint64_t time;
+    uint64_t pc;
+    uint32_t coreId;
+    uint32_t subCoreId;
 };
 
 const std::map<ChipType, ChipProductType> CHIP_ARCHITECTURE_TO_PRODUCT_SERIES{
@@ -161,7 +169,7 @@ constexpr char const *TLV_DATA = "lrm.bin";
 /// 上板动态插桩输出件
 constexpr char const *MEMORY_CHART_BIN = "MemoryChart.bin";
 
-/// 上板 profiling 数据输出目录
+/// profiling aic-metric输入参数
 struct MsprofMetrics {
     static constexpr char const *PIPE_UTILIZATION = "pipeutilization";
     static constexpr char const *ARITHMETIC_UTILIZATION = "arithmeticutilization";
@@ -181,6 +189,7 @@ struct MsprofMetrics {
     static constexpr char const *SOURCE = "source";
     static constexpr char const *MEMORYDETAIL = "memorydetail";
     static constexpr char const *PMSAMPLING = "pmsampling";
+    static constexpr char const *OVERHEAD = "overhead";
 };
 
 const std::map<const char*, const char*> METRICS_CSV_MAP {

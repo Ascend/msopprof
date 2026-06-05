@@ -41,9 +41,18 @@ public:
         RegisterChip({ChipProductType::ALL_PRODUCT_TYPE});
     }
 private:
-    void ParseLine(const std::string &line);
+    void ParseCache(const std::string &line);
+    void ParseScalar(const std::string &line);
     std::vector<MergeInfo> cacheInstr_;
     std::map<std::string, uint64_t> iCacheRuleNamePos_ = {{"tick", 1}, {"pc", 2}, {"detail", 3}};
+    std::map<std::string, uint64_t> scalarRuleNamePos_ = {{"tick", 1}, {"pc", 2}};
+    std::map<ChipProductType, int> chipGap_ = {
+        {ChipProductType::ASCEND910B_SERIES,    4},
+        {ChipProductType::ASCEND910_93_SERIES,  4}
+    };
+    int gap_ = -1;
+    scalarHeadCache scalarInstrMap_;
+    std::regex scalarMatchPattern_ = std::regex("\\[info\\] ([0-9]+): lookup_tag is fetch req addr:(0x[0-9a-f]+)");
     // 默认按照310P规则进行解析
     std::regex instrMatchPattern_;
     std::string suffix_;

@@ -78,9 +78,34 @@ ICacheParser::ICacheParser(DataCenter &dataCenter, SimDataParserConfig& config) 
         suffix_ = ICacheSuffix.at(productSeries);
         fileName_ = coreInfo + ICacheFile.at(productSeries);
     }
+    auto iter = chipGap_.find(productSeries);
+    if (iter != chipGap_.end()) {
+        gap_ = iter->second;
+    }
 }
 
-void ICacheParser::ParseLine(const std::string &line)
+
+void ICacheParser::ParseScalar(const std::string &line)
+{
+    if (gap_ == -1) {
+        return;
+    }
+    std::smatch lineMatch;
+    if (std::regex_search(line, lineMatch, scalarMatchPattern_)) {
+        uint64_t tick;
+        uint64_t pc;
+        std::istringstream iss1(lineMatch[scalarRuleNamePos_["tick"]].str());
+        std::istringstream iss2(lineMatch[scalarRuleNamePos_["pc"]].str());
+        if ((iss1 >> tick) && (iss2 >> std::hex >> pc)) {
+            // 1个cache的pc实际指向4个指令的的scalar头开销时间，每条指令之间间隔gap_
+            for (auto i = 0 ; i < 4; i++) {
+                scalarInstrMap_[pc + i * gap_].insert(tick);
+            }
+        }
+    }
+}
+
+void ICacheParser::ParseCache(const std::string &line)
 {
     std::smatch lineMatch;
     bool res = std::regex_match(line, lineMatch, instrMatchPattern_);
@@ -129,7 +154,10 @@ PluginErrorCode ICacheParser::Entry()
             continue;
         }
         for (const auto &line : fileLines) {
-            ParseLine(line);
+            ParseCache(line);
+            if (dataParserConfig_.GetEnableOverhead()) {
+                ParseScalar(line);
+            }
         }
     }
     if (cacheInstr_.empty() && filterOk) {
@@ -139,6 +167,12 @@ PluginErrorCode ICacheParser::Entry()
     if (cacheDetailTable != nullptr && !dataCenter_.DataTableRegister(cacheDetailTable)) {
         LogWarn("Failed to register cache table");
         return PluginErrorCode::NONBLOCKING_ERROR;
+    }
+    if (!scalarInstrMap_.empty()) {
+        auto scalarTable = Utility::MakeShared<scalarHeadCache>(scalarInstrMap_);
+        if(scalarTable != nullptr && !dataCenter_.DataTableRegister(scalarTable)) {
+            LogWarn("Failed to register icache scalar table");
+        }
     }
     return PluginErrorCode::SUCCESS;
 }

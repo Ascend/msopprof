@@ -34,10 +34,10 @@ SimDataParserConfig GetSimDataConfig (const ChipProductType &type) {
     CoreNameAndPreFixPair coreNamePair310P {"core0", "core0."};
     std::set<int> parseIds = {0};
     if (type == ChipProductType::ASCEND310P1) {
-        SimDataParserConfig config {dumpPath310P, coreNamePair310P, parseIds, false, type };
+        SimDataParserConfig config {dumpPath310P, coreNamePair310P, parseIds, false, true, type };
         return config;
     }
-    SimDataParserConfig config {dumpPath910B, coreNamePair910B, parseIds, false, type};
+    SimDataParserConfig config {dumpPath910B, coreNamePair910B, parseIds, false, true, type};
     return config;
 };
 

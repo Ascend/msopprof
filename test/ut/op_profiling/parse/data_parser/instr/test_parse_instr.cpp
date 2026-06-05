@@ -33,17 +33,17 @@ using namespace Profiling::Parse;
 using namespace Utility;
 using namespace Profiling;
 
-SimDataParserConfig GetSimConfig (const ChipProductType &type, bool showSetWait) {
+SimDataParserConfig GetSimConfig (const ChipProductType &type, bool overhead) {
     std::string dumpPath910B = "test/ut/resources/dump/910B";
     std::string dumpPath91095 = "test/ut/resources/dump/91095";
     CoreNameAndPreFixPair coreNamePair910B {"core0.veccore0", "core0.veccore0."};
     CoreNameAndPreFixPair coreNamePair91095 {"core0.veccore0", "core0.veccore0."};
     std::set<int> parseIds = {0};
     if (type == ChipProductType::ASCEND950PR_9599) {
-        SimDataParserConfig config {dumpPath91095, coreNamePair91095, parseIds, showSetWait, type };
+        SimDataParserConfig config {dumpPath91095, coreNamePair91095, parseIds, true, overhead, type };
         return config;
     }
-    SimDataParserConfig config {dumpPath910B, coreNamePair910B, parseIds, showSetWait, type};
+    SimDataParserConfig config {dumpPath910B, coreNamePair910B, parseIds, true, overhead, type};
     return config;
 };
 /**
@@ -112,7 +112,7 @@ TEST(AllPraseProcess, test_AllPraseProcess_should_return_ture_when_parse_ok) {
 TEST(AllPraseProcess, test_GetPruneSize_return_0) {
     GlobalMockObject::verify();
     DataCenter dataCenter;
-    SimDataParserConfig config {"core0", {}, false};
+    SimDataParserConfig config {"core0", {}, false, false};
     InstrParser instrParser(dataCenter, config);
     std::vector<PoppedInstrParseInfo> instrPoppedVec;
     std::vector<InstrParseInfo> instrVec;
@@ -123,7 +123,7 @@ TEST(AllPraseProcess, test_GetPruneSize_return_0) {
 TEST(AllPraseProcess, test_GetPruneSize_more_instr_return_1) {
     GlobalMockObject::verify();
     DataCenter dataCenter;
-    SimDataParserConfig config {"core0", {}, false};
+    SimDataParserConfig config {"core0", {}, false, false};
     InstrParser instrParser(dataCenter, config);
 
     PoppedInstrParseInfo poppedInstrParseInfo;
@@ -139,7 +139,7 @@ TEST(AllPraseProcess, test_GetPruneSize_more_instr_return_1) {
 TEST(AllPraseProcess, test_GetPruneSize_more_pop_return_1) {
     GlobalMockObject::verify();
     DataCenter dataCenter;
-    SimDataParserConfig config {"core0", {}, false};
+    SimDataParserConfig config {"core0", {}, false, false};
     InstrParser instrParser(dataCenter, config);
 
     PoppedInstrParseInfo poppedInstrParseInfo;
@@ -155,7 +155,7 @@ TEST(AllPraseProcess, test_GetPruneSize_more_pop_return_1) {
 TEST(AllPraseProcess, test_parse_real_time_pop) {
     GlobalMockObject::verify();
     DataCenter dataCenter;
-    SimDataParserConfig config {"core0", {}, false};
+    SimDataParserConfig config {"core0", {}, false, false};
     PopLogParser popParser(config);
 
     PoppedInstrParseInfo poppedInstrParseInfo;
@@ -186,7 +186,7 @@ TEST(AllPraseProcess, test_parse_real_time_is_skip_set_log_expect_true) {
             {1},false, ChipProductType::ASCEND910B1, metricsConfig
     };
     RealTimeInstrParser parser(context);
-    SimDataParserConfig config {"core0", {}, false};
+    SimDataParserConfig config {"core0", {}, false, false};
     PopLogParser popParser(config);
     popParser.coreId_ = 0;
     // add parsers for test core name
@@ -219,7 +219,7 @@ TEST(AllPraseProcess, test_parse_real_time_set_instr_and_instr_pop_log_expect_fa
     // check branch which get core name failed
     parser.dataCenter_.DataStreamRegister<InstrParseInfoForRealTime>();
     parser.dataCenter_.DataStreamRegister<PoppedInstrParseInfoForRealTime>();
-    SimDataParserConfig config {"test", {}, false};
+    SimDataParserConfig config {"test", {}, false, false};
     PopLogParser popParser(config);
     parser.realTimePopParserPlugin_->popLogParsers_.insert({"test", popParser});
     parser.SetInstrLog(parserInfo);
@@ -246,7 +246,7 @@ TEST(AllPraseProcess, test_parse_real_time_set_instr_and_instr_pop_log_expect_su
 
     parser.dataCenter_.DataStreamRegister<InstrParseInfoForRealTime>();
     parser.dataCenter_.DataStreamRegister<PoppedInstrParseInfoForRealTime>();
-    SimDataParserConfig config {"core0", {}, false};
+    SimDataParserConfig config {"core0", {}, false, false};
     PopLogParser popParser(config);
     popParser.coreId_ = 0;
     // add parsers for test core name

@@ -53,6 +53,8 @@ private:
     uint32_t tableSize_;
     std::vector<MergeInfo> cacheInstr_;
 };
+
+using scalarHeadCache = std::map<uint64_t, std::set<uint64_t>>;
 }
 }
 #endif // MSOPT_CACHEDETAILTABLE_H

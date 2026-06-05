@@ -58,7 +58,8 @@ public:
     SubcoreTimelineVisualizer(DataCenter &dataCenter, SimVisualizerConfig &config)
         : SimDataVisualizer(dataCenter, config), pc2code_(config.GetPc2Code())
     {
-        if (GetProductSeriesType(config.GetChipType()) == ChipProductType::ASCEND310P_SERIES) {
+        auto chipTypeSerious = GetProductSeriesType(config.GetChipType());
+        if (chipTypeSerious == ChipProductType::ASCEND310P_SERIES) {
             // 310P series
             waitFlagName_ = Profiling::WAIT_EVENT;
             setFlagName_ = Profiling::SET_EVENT;
@@ -103,6 +104,8 @@ private:
     void CollectSIMTEvents(std::map<int, std::vector<MergeInfo>> &instrsGroup,
                            std::vector<nlohmann::json> &coreJsonList);
     bool WriteSepJson(const std::string &filePath, std::vector<nlohmann::json> &coreJsonList) const;
+    bool AddScalarHeadEvents(const MergeInfo &instr, const std::string &groupId, const XEvent &event,
+        std::vector<nlohmann::json> &json) const;
 
     std::string waitFlagName_;
     std::string setFlagName_;

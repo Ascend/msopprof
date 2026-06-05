@@ -36,7 +36,8 @@ public:
     CoreTimeLineVisualizer(DataCenter &dataCenter, SimVisualizerConfig &config)
         : SimDataVisualizer(dataCenter, config), pc2code_(config.GetPc2Code())
     {
-        if (GetProductSeriesType(config.GetChipType()) == ChipProductType::ASCEND310P_SERIES) {
+        auto chipTypeSerious = GetProductSeriesType(config.GetChipType());
+        if (chipTypeSerious == ChipProductType::ASCEND310P_SERIES) {
             // 310P series
             waitFlagName_ = Profiling::WAIT_EVENT;
             setFlagName_ = Profiling::SET_EVENT;
@@ -66,13 +67,15 @@ private:
     void GetFlowEvents(SetWaitFlag &begin, SetWaitFlag &end, std::string &id,
                        std::vector<nlohmann::json> &coreJson) const;
     void CollectUserMarkEvents(const std::string &coreName, const SimData &data, std::vector<nlohmann::json> &coreJson);
-    Event GenerateEvent(const MergeInfo &instr, EventArgs &evtArgs, int startCycle, int durationCycle,
-        const std::string &coreName) const;
+    void GenerateEvent(const MergeInfo &instr, const EventArgs &evtArgs,
+        const std::string &coreName, const std::string &groupId, std::vector<nlohmann::json> &json) const;
     void WriteFile(const std::string &filePath);
     void CollectLaneOrderEvents(const std::string &coreName, std::vector<MergeInfo> &instrs,
         std::vector<nlohmann::json> &coreJson);
     void AddCoreNameOrder(const std::string &coreName);
     uint32_t ExtraNumAfterKey(const std::string &str, const std::string &key);
+    bool AddScalarHeadEvents(const MergeInfo &instr, const std::string &groupId, const Event &event, std::vector<nlohmann::json> &json) const;
+    bool AddScalarHeadEvents(const SetWaitFlag &flag, const std::string &groupId, std::vector<nlohmann::json> &json) const;
     std::string waitFlagName_;
     std::string setFlagName_;
     std::mutex timeLineLock_;

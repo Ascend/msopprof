@@ -94,7 +94,7 @@ void ApiData::FileDtypeStats(nlohmann::json &apiJson)
     apiJson["Files Dtype"] = fileDtypeJson;
 }
 
-void ApiData::InstrDtypeStats(nlohmann::json &apiJson, bool hasStallCyc)
+void ApiData::InstrDtypeStats(nlohmann::json &apiJson, bool hasStallCyc, bool hasScalarCyc)
 {
     struct InstructionsDtype instructionsDtype;
     nlohmann::json instrJson;
@@ -112,12 +112,17 @@ void ApiData::InstrDtypeStats(nlohmann::json &apiJson, bool hasStallCyc)
     if (hasStallCyc) {
         instrJson["RealStallCycles"] = instructionsDtype.realStallCyc;
     }
+    if (hasScalarCyc) {
+        instrJson["ICacheCycles"] = instructionsDtype.iCacheCyc;
+        instrJson["CcuCycles"] = instructionsDtype.ccuCyc;
+        instrJson["ScalarCycles"] = instructionsDtype.scalarCyc;
+    }
     nlohmann::json instrDTypeJson;
     instrDTypeJson["Instructions"] = instrJson;
     apiJson["Instructions Dtype"] = instrDTypeJson;
 }
 
-void InstrInfo::ToJson(nlohmann::json &instrDetails, bool hasStallCyc) const
+void InstrInfo::ToJson(nlohmann::json &instrDetails, bool hasStallCyc, bool hasScalarCyc) const
 {
     instrDetails["Address"] = this->addr;
     instrDetails["AscendC Inner Code"] = this->cceCode;
@@ -127,6 +132,11 @@ void InstrInfo::ToJson(nlohmann::json &instrDetails, bool hasStallCyc) const
     instrDetails["Cycles"] = this->cycles;
     if (hasStallCyc) {
         instrDetails["RealStallCycles"] = this->realStallCyc;
+    }
+    if (hasScalarCyc) {
+        instrDetails["ICacheCycles"] = this->iCacheCyc;
+        instrDetails["CcuCycles"] = this->ccuCyc;
+        instrDetails["ScalarCycles"] = this->scalarCyc;
     }
     instrDetails["GPR Count"] = this->gprCount;
     instrDetails["Process Bytes"] = this->processBytes;
@@ -140,14 +150,14 @@ bool ApiData::InstrStats(CodeInstrData &codeInstrData, const std::string &output
     nlohmann::json apiInstrJson; // for bin file writing
     apiInstrJson["Cores"] = codeInstrData.cores;
     vector<nlohmann::json> instrJsonList;
-    InstrDtypeStats(apiInstrJson, codeInstrData.hasStallCyc);
+    InstrDtypeStats(apiInstrJson, codeInstrData.hasStallCyc, codeInstrData.hasScalarCyc);
     if (codeInstrData.instrs.empty()) {
         LogError("Instr info list is empty");
         return false;
     }
     for (const InstrInfo &instrInfo: codeInstrData.instrs) {
         nlohmann::json instrDetails;
-        instrInfo.ToJson(instrDetails, codeInstrData.hasStallCyc);
+        instrInfo.ToJson(instrDetails, codeInstrData.hasStallCyc, codeInstrData.hasScalarCyc);
         instrDetails["Source"] = CanonicalizeInstrSource(instrDetails["Source"]);
         instrJsonList.emplace_back(instrDetails);
     }

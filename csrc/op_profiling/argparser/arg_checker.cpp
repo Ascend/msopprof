@@ -80,6 +80,8 @@ const AicMetricsSupportMap SIMULATOR_AIC_METRICS_SUPPORT_MAP{
     {std::string(Common::MsprofMetrics::PMSAMPLING),              {ChipProductType::ASCEND910B_SERIES,
                                                                    ChipProductType::ASCEND910_93_SERIES,
                                                                    ChipProductType::ASCEND950_SERIES}},
+    {std::string(Common::MsprofMetrics::OVERHEAD),              {ChipProductType::ASCEND910B_SERIES,
+                                                                   ChipProductType::ASCEND910_93_SERIES}},
 };
 
 ArgChecker::ArgChecker(const std::string &runMode)

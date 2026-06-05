@@ -38,7 +38,7 @@ using namespace Profiling;
 SimDataParserConfig GetSimConfig ()
 {
     std::set<int> parseIds = {0};
-    SimDataParserConfig config {"core0.cubecore0", {}, true};
+    SimDataParserConfig config {"core0.cubecore0", {}, true, false};
     return config;
 };
 /**
