@@ -17,6 +17,8 @@
 #include "warp_timeline_visualize.h"
 
 #include <algorithm>
+#include <set>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 #include "securec.h"
@@ -33,7 +35,54 @@ namespace {
 constexpr uint32_t CORE_TYPE_VEC0 = 0U;
 constexpr uint32_t CORE_TYPE_VEC1 = 1U;
 constexpr uint32_t CORE_TYPE_CUBE0 = 2U;
+constexpr uint32_t VECTOR_CORE_TYPE_COUNT = CORE_TYPE_CUBE0;
 constexpr int64_t DEFAULT_AICORE_FREQ = 1650; // MHz
+
+bool IsVectorCore(uint32_t coreType) { return coreType < VECTOR_CORE_TYPE_COUNT; }
+
+void NormalizeTraceEventStart(std::vector<nlohmann::json> &traceEvents, double alignStartTs) {
+    if (traceEvents.empty()) {
+        return;
+    }
+    std::unordered_map<std::string, double> minTsByPid;
+    for (const auto &event : traceEvents) {
+        std::string pid = event["pid"].get<std::string>();
+        double ts = event["ts"].get<double>();
+        auto iter = minTsByPid.find(pid);
+        if (iter == minTsByPid.end()) {
+            minTsByPid.emplace(pid, ts);
+        } else {
+            iter->second = std::min(iter->second, ts);
+        }
+    }
+    for (auto &event : traceEvents) {
+        std::string pid = event["pid"].get<std::string>();
+        event["ts"] = event["ts"].get<double>() - minTsByPid[pid] + alignStartTs;
+    }
+}
+
+void AppendWarpSortMetadata(std::vector<nlohmann::json> &traceEvents) {
+    std::set<std::pair<std::string, uint32_t>> sortedWarpIds;
+    for (const auto &event : traceEvents) {
+        if (!event.contains("pid") || !event.contains("args") || !event["args"].contains("warp_id")) {
+            continue;
+        }
+        sortedWarpIds.emplace(event["pid"].get<std::string>(), event["args"]["warp_id"].get<uint32_t>());
+    }
+
+    for (const auto &warpKey : sortedWarpIds) {
+        const std::string &pid = warpKey.first;
+        uint32_t warpId = warpKey.second;
+        std::string tid = "Warp " + std::to_string(warpId);
+        nlohmann::json sortItem;
+        sortItem["ph"] = "M";
+        sortItem["name"] = "thread_sort_index";
+        sortItem["pid"] = pid;
+        sortItem["tid"] = tid;
+        sortItem["args"]["sort_index"] = warpId;
+        traceEvents.emplace_back(std::move(sortItem));
+    }
+}
 
 std::string GetWarpTimelinePid(uint32_t coreId, uint32_t coreType)
 {
@@ -52,7 +101,7 @@ std::string GetWarpTimelinePid(uint32_t coreId, uint32_t coreType)
             subCoreName = "unknowncore" + std::to_string(coreType);
             break;
     }
-    return "core" + std::to_string(coreId) + "." + subCoreName + ".warp";
+    return "warp.core" + std::to_string(coreId) + "." + subCoreName;
 }
 }
 
@@ -75,6 +124,10 @@ void WarpTimelineVisualize::AppendBlockEvents(const char *blockData, uint32_t bl
     }
     if (header.magicWords != DBI_RECORD_MAGIC_WORDS) {
         return;
+    }
+    if (!IsVectorCore(header.coreType)) {
+        LogDebug("Unexpected warp timeline record on non-vector core. blockId:%u coreId:%u coreType:%u", blockId,
+            header.coreId, header.coreType);
     }
 
     uint32_t warpCount = std::min(header.warpCount, WARP_NUM_PER_BLOCK);
@@ -100,8 +153,7 @@ void WarpTimelineVisualize::AppendBlockEvents(const char *blockData, uint32_t bl
     }
 }
 
-bool WarpTimelineVisualize::TimelineToJson(const std::string &outputPath)
-{
+bool WarpTimelineVisualize::TimelineToJson(const std::string &outputPath, double alignStartTs) {
     timelineJson_ = nlohmann::json::object();
 
     std::vector<char> binData;
@@ -124,6 +176,8 @@ bool WarpTimelineVisualize::TimelineToJson(const std::string &outputPath)
         LogDebug("No valid warp timeline records found.");
         return false;
     }
+    NormalizeTraceEventStart(traceEvents, alignStartTs);
+    AppendWarpSortMetadata(traceEvents);
 
     timelineJson_["profilingType"] = "op";
     timelineJson_["displayTimeUnit"] = "ns";

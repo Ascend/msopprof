@@ -42,6 +42,8 @@ using namespace std;
 namespace {
 constexpr int64_t TEST_AICORE_FREQ = 1000;
 constexpr uint32_t TEST_CORE_TYPE_VEC0 = 0U;
+constexpr uint32_t TEST_CORE_TYPE_VEC1 = 1U;
+constexpr uint32_t TEST_CORE_TYPE_CUBE0 = 2U;
 
 class ScopedAicoreFreqMock {
 public:
@@ -61,7 +63,7 @@ private:
 };
 
 void WriteWarpTimelineBin(const std::string &outputPath, const std::vector<std::pair<uint64_t, uint64_t>> &warpTimes,
-                          uint32_t coreId = 0, uint32_t coreType = TEST_CORE_TYPE_VEC0) {
+                          uint32_t coreId = 0, uint32_t coreType = TEST_CORE_TYPE_VEC0, bool append = false) {
     const std::string dumpPath = JoinPath({outputPath, "dump"});
     ASSERT_TRUE(MkdirRecusively(dumpPath));
 
@@ -76,7 +78,7 @@ void WriteWarpTimelineBin(const std::string &outputPath, const std::vector<std::
     }
 
     const std::string warpBinPath = JoinPath({dumpPath, WARP_TIMELINE});
-    std::ofstream output(warpBinPath, std::ios::binary | std::ios::trunc);
+    std::ofstream output(warpBinPath, std::ios::binary | (append ? std::ios::app : std::ios::trunc));
     ASSERT_TRUE(output.is_open());
     output.write(reinterpret_cast<const char *>(&blockRecords), sizeof(blockRecords));
     ASSERT_TRUE(output.good());
@@ -905,15 +907,148 @@ TEST(WarpTimelineVisualize, timeline_to_json_generates_warp_trace_only_in_memory
     nlohmann::json traceJson = warpTimelineVisualize.GetTimelineJson();
     ASSERT_TRUE(traceJson.contains("traceEvents"));
     ASSERT_TRUE(traceJson["traceEvents"].is_array());
-    ASSERT_EQ(traceJson["traceEvents"].size(), 1);
+    ASSERT_EQ(traceJson["traceEvents"].size(), 2);
     EXPECT_EQ(traceJson["traceEvents"][0]["name"], "Warp_0");
-    EXPECT_EQ(traceJson["traceEvents"][0]["pid"], "core0.veccore0.warp");
+    EXPECT_EQ(traceJson["traceEvents"][0]["pid"], "warp.core0.veccore0");
     EXPECT_EQ(traceJson["traceEvents"][0]["tid"], "Warp 0");
-    EXPECT_DOUBLE_EQ(traceJson["traceEvents"][0]["ts"].get<double>(), 0.1);
+    EXPECT_DOUBLE_EQ(traceJson["traceEvents"][0]["ts"].get<double>(), 0.0);
     EXPECT_DOUBLE_EQ(traceJson["traceEvents"][0]["dur"].get<double>(), 0.06);
     EXPECT_EQ(traceJson["traceEvents"][0]["args"]["core_id"], 0);
     EXPECT_EQ(traceJson["traceEvents"][0]["args"]["core_type"], TEST_CORE_TYPE_VEC0);
+    EXPECT_EQ(traceJson["traceEvents"][1]["name"], "thread_sort_index");
+    EXPECT_EQ(traceJson["traceEvents"][1]["args"]["sort_index"], 0);
     EXPECT_FALSE(IsExist(JoinPath({outputPath, "warp_timeline_trace.json"})));
+
+    std::experimental::filesystem::remove_all(testDir);
+    GlobalMockObject::verify();
+}
+
+/**
+ * |  用例集  | WarpTimelineVisualize
+ * | 测试函数 | WarpTimelineVisualize::TimelineToJson
+ * |  用例名  | timeline_to_json_sorts_warp_threads_by_numeric_id
+ * | 用例描述 | 测试warp timeline按warp数字序号排序显示
+ */
+TEST(WarpTimelineVisualize, timeline_to_json_sorts_warp_threads_by_numeric_id) {
+    GlobalMockObject::verify();
+    const std::string testDir = "test/ut/resources/op_profiling/warp_timeline_visualize_sort";
+    std::experimental::filesystem::remove_all(testDir);
+    const std::string outputPath = JoinPath({testDir, "device0/add/0"});
+    std::vector<std::pair<uint64_t, uint64_t>> warpTimes(11, {0, 0});
+    warpTimes[0] = {100, 160};
+    warpTimes[1] = {110, 170};
+    warpTimes[10] = {120, 180};
+    WriteWarpTimelineBin(outputPath, warpTimes);
+    ScopedAicoreFreqMock freqMock;
+
+    WarpTimelineVisualize warpTimelineVisualize;
+    ASSERT_TRUE(warpTimelineVisualize.TimelineToJson(outputPath));
+
+    nlohmann::json traceJson = warpTimelineVisualize.GetTimelineJson();
+    ASSERT_EQ(traceJson["traceEvents"].size(), 6);
+    EXPECT_EQ(traceJson["traceEvents"][3]["name"], "thread_sort_index");
+    EXPECT_EQ(traceJson["traceEvents"][3]["tid"], "Warp 0");
+    EXPECT_EQ(traceJson["traceEvents"][3]["args"]["sort_index"], 0);
+    EXPECT_EQ(traceJson["traceEvents"][4]["name"], "thread_sort_index");
+    EXPECT_EQ(traceJson["traceEvents"][4]["tid"], "Warp 1");
+    EXPECT_EQ(traceJson["traceEvents"][4]["args"]["sort_index"], 1);
+    EXPECT_EQ(traceJson["traceEvents"][5]["name"], "thread_sort_index");
+    EXPECT_EQ(traceJson["traceEvents"][5]["tid"], "Warp 10");
+    EXPECT_EQ(traceJson["traceEvents"][5]["args"]["sort_index"], 10);
+
+    std::experimental::filesystem::remove_all(testDir);
+    GlobalMockObject::verify();
+}
+
+/**
+ * |  用例集  | WarpTimelineVisualize
+ * | 测试函数 | WarpTimelineVisualize::TimelineToJson
+ * |  用例名  | timeline_to_json_normalizes_each_core_warps_to_min_start
+ * | 用例描述 | 测试warp timeline按core分别对齐到统一起点
+ */
+TEST(WarpTimelineVisualize, timeline_to_json_normalizes_each_core_warps_to_min_start) {
+    GlobalMockObject::verify();
+    const std::string testDir = "test/ut/resources/op_profiling/warp_timeline_visualize_min";
+    std::experimental::filesystem::remove_all(testDir);
+    const std::string outputPath = JoinPath({testDir, "device0/add/0"});
+    WriteWarpTimelineBin(outputPath, {{300, 360}, {340, 380}}, 0, TEST_CORE_TYPE_VEC0);
+    WriteWarpTimelineBin(outputPath, {{100, 180}}, 0, TEST_CORE_TYPE_VEC1, true);
+    ScopedAicoreFreqMock freqMock;
+
+    WarpTimelineVisualize warpTimelineVisualize;
+    ASSERT_TRUE(warpTimelineVisualize.TimelineToJson(outputPath));
+
+    nlohmann::json traceJson = warpTimelineVisualize.GetTimelineJson();
+    ASSERT_EQ(traceJson["traceEvents"].size(), 6);
+    EXPECT_DOUBLE_EQ(traceJson["traceEvents"][0]["ts"].get<double>(), 0.0);
+    EXPECT_DOUBLE_EQ(traceJson["traceEvents"][0]["dur"].get<double>(), 0.06);
+    EXPECT_EQ(traceJson["traceEvents"][0]["pid"], "warp.core0.veccore0");
+    EXPECT_NEAR(traceJson["traceEvents"][1]["ts"].get<double>(), 0.04, 1e-9);
+    EXPECT_DOUBLE_EQ(traceJson["traceEvents"][1]["dur"].get<double>(), 0.04);
+    EXPECT_EQ(traceJson["traceEvents"][1]["pid"], "warp.core0.veccore0");
+    EXPECT_DOUBLE_EQ(traceJson["traceEvents"][2]["ts"].get<double>(), 0.0);
+    EXPECT_DOUBLE_EQ(traceJson["traceEvents"][2]["dur"].get<double>(), 0.08);
+    EXPECT_EQ(traceJson["traceEvents"][2]["pid"], "warp.core0.veccore1");
+
+    std::experimental::filesystem::remove_all(testDir);
+    GlobalMockObject::verify();
+}
+
+/**
+ * |  用例集  | WarpTimelineVisualize
+ * | 测试函数 | WarpTimelineVisualize::TimelineToJson
+ * |  用例名  | timeline_to_json_aligns_warp_start_to_external_trace_min
+ * | 用例描述 | 测试warp timeline使用外部trace最小起点做对齐
+ */
+TEST(WarpTimelineVisualize, timeline_to_json_aligns_warp_start_to_external_trace_min) {
+    GlobalMockObject::verify();
+    const std::string testDir = "test/ut/resources/op_profiling/warp_timeline_visualize_external_min";
+    std::experimental::filesystem::remove_all(testDir);
+    const std::string outputPath = JoinPath({testDir, "device0/add/0"});
+    WriteWarpTimelineBin(outputPath, {{300, 360}}, 0, TEST_CORE_TYPE_VEC0);
+    WriteWarpTimelineBin(outputPath, {{100, 180}}, 0, TEST_CORE_TYPE_VEC1, true);
+    ScopedAicoreFreqMock freqMock;
+
+    WarpTimelineVisualize warpTimelineVisualize;
+    ASSERT_TRUE(warpTimelineVisualize.TimelineToJson(outputPath, 7.5));
+
+    nlohmann::json traceJson = warpTimelineVisualize.GetTimelineJson();
+    ASSERT_EQ(traceJson["traceEvents"].size(), 4);
+    EXPECT_NEAR(traceJson["traceEvents"][0]["ts"].get<double>(), 7.5, 1e-9);
+    EXPECT_NEAR(traceJson["traceEvents"][1]["ts"].get<double>(), 7.5, 1e-9);
+
+    std::experimental::filesystem::remove_all(testDir);
+    GlobalMockObject::verify();
+}
+
+/**
+ * |  用例集  | WarpTimelineVisualize
+ * | 测试函数 | WarpTimelineVisualize::TimelineToJson
+ * |  用例名  | timeline_to_json_reports_unexpected_cube_warp_records
+ * | 用例描述 | 测试warp timeline不静默过滤异常cube记录
+ */
+TEST(WarpTimelineVisualize, timeline_to_json_reports_unexpected_cube_warp_records) {
+    GlobalMockObject::verify();
+    const std::string testDir = "test/ut/resources/op_profiling/warp_timeline_visualize_cube";
+    std::experimental::filesystem::remove_all(testDir);
+    const std::string outputPath = JoinPath({testDir, "device0/add/0"});
+    WriteWarpTimelineBin(outputPath, {{300, 360}}, 0, TEST_CORE_TYPE_CUBE0);
+    WriteWarpTimelineBin(outputPath, {{100, 160}}, 0, TEST_CORE_TYPE_VEC0, true);
+    ScopedAicoreFreqMock freqMock;
+
+    WarpTimelineVisualize warpTimelineVisualize;
+    ASSERT_TRUE(warpTimelineVisualize.TimelineToJson(outputPath));
+
+    nlohmann::json traceJson = warpTimelineVisualize.GetTimelineJson();
+    ASSERT_EQ(traceJson["traceEvents"].size(), 4);
+    EXPECT_EQ(traceJson["traceEvents"][0]["pid"], "warp.core0.cubecore0");
+    EXPECT_DOUBLE_EQ(traceJson["traceEvents"][0]["ts"].get<double>(), 0.0);
+    EXPECT_DOUBLE_EQ(traceJson["traceEvents"][0]["dur"].get<double>(), 0.06);
+    EXPECT_EQ(traceJson["traceEvents"][0]["args"]["core_type"], TEST_CORE_TYPE_CUBE0);
+    EXPECT_EQ(traceJson["traceEvents"][1]["pid"], "warp.core0.veccore0");
+    EXPECT_DOUBLE_EQ(traceJson["traceEvents"][1]["ts"].get<double>(), 0.0);
+    EXPECT_DOUBLE_EQ(traceJson["traceEvents"][1]["dur"].get<double>(), 0.06);
+    EXPECT_EQ(traceJson["traceEvents"][1]["args"]["core_type"], TEST_CORE_TYPE_VEC0);
 
     std::experimental::filesystem::remove_all(testDir);
     GlobalMockObject::verify();

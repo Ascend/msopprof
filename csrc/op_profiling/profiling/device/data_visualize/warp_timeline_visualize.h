@@ -26,7 +26,7 @@
 namespace Visualize {
 class WarpTimelineVisualize {
 public:
-    bool TimelineToJson(const std::string &outputPath);
+    bool TimelineToJson(const std::string &outputPath, double alignStartTs = 0.0);
     nlohmann::json GetTimelineJson() const { return timelineJson_; }
 
 private:

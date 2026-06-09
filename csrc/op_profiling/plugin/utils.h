@@ -297,8 +297,9 @@ AICORE_FUNC_HEAD bool GetWarpBasicInfo(
     constexpr uint32_t warpThreadNum = 32U;
 #if defined(__CCE_IS_AICORE__) && __CCE_IS_AICORE__ == 1
 #if defined(__NPU_ARCH__) && (__NPU_ARCH__ == 3101 || __NPU_ARCH__ == 3510) && defined(__DAV_VEC__)
-    blockIdx = GetBlockIdx();
-    threadId = GetThreadId();
+    if (!TryGetBlockIdx(blockIdx) || !TryGetThreadId(threadId)) {
+        return false;
+    }
 #else
     return false;
 #endif

@@ -31,6 +31,25 @@ bool HasTraceEvents(const nlohmann::json &traceJson) {
     return traceJson.contains("traceEvents") && traceJson["traceEvents"].is_array() &&
         !traceJson["traceEvents"].empty();
 }
+
+double GetTraceMinTs(const nlohmann::json &traceJson) {
+    if (!HasTraceEvents(traceJson)) {
+        return 0.0;
+    }
+    bool hasTs = false;
+    double minTs = 0.0;
+    for (const auto &event : traceJson["traceEvents"]) {
+        if (!event.contains("ts") || !event["ts"].is_number()) {
+            continue;
+        }
+        double ts = event["ts"].get<double>();
+        if (!hasTs || ts < minTs) {
+            minTs = ts;
+            hasTs = true;
+        }
+    }
+    return hasTs ? minTs : 0.0;
+}
 }
 
 void DataVisualize::GenerateVisualizeData(Parse::DataCenter &dataCenter, const std::string &outputPath,
@@ -94,8 +113,9 @@ void DataVisualize::GenerateAllVisualizeData(Profiling::Parse::DataCenter &dataC
     } else if (timelineParser_->TimelineToJson(outputPath)) {
         traceJson = timelineParser_->GetTimelineJson();
     }
+    // warp timeline 要放在最后插入，会取 traceJson 中的最小时间戳作为对齐时间戳
     WarpTimelineVisualize warpTimelineVisualize;
-    if (warpTimelineVisualize.TimelineToJson(outputPath)) {
+    if (warpTimelineVisualize.TimelineToJson(outputPath, GetTraceMinTs(traceJson))) {
         MergeTraceJson(traceJson, warpTimelineVisualize.GetTimelineJson());
     }
     if (HasTraceEvents(traceJson)) {
