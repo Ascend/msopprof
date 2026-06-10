@@ -28,7 +28,7 @@ The following scenarios are supported. For details, see [Collecting Profile Data
 > Refer to <a href="https://gitcode.com/Ascend/msot/blob/master/docs/en/quick_start/get_chip_soc_type.md" target="_blank">Chip SoC Type Acquisition Method</a> to obtain the chip type, and use it as the value of the `--soc-version` parameter.
 
 - Kernel launch operator development: kernel launch
-    - In the kernel launch scenario, for details, see [Kernel Launch Operator Development](<>) in the *Ascend C Operator Development Guide*.
+    - In the kernel launch scenario, for details, see [Kernel Launch Operator Development](https://www.hiascend.com/document/detail/en/canncommercial/850/opdevg/Ascendcopdevg/atlas_ascendc_10_0056.html) in the *Ascend C Operator Development Guide*.
     - In the kernel launch scenario, configure the prerequisites and then run the following command:
 
         ```shell
@@ -50,7 +50,7 @@ The following scenarios are supported. For details, see [Collecting Profile Data
             ```
 
 - Project-based operator development: single-operator API calling
-    - In the single-operator API execution scenario, see the **Project-based Operator Development** > [Single-Operator API Execution](<>) in the *Ascend C Operator Development Guide*.
+    - In the single-operator API execution scenario, see the **Project-based Operator Development** > [Single-Operator API Execution](https://www.hiascend.com/document/detail/en/canncommercial/850/opdevg/Ascendcopdevg/atlas_ascendc_10_0070.html) in the *Ascend C Operator Development Guide*.
     - In the single-operator API execution scenario, configure the prerequisites and then run the following command:
 
         ```shell
@@ -58,7 +58,7 @@ The following scenarios are supported. For details, see [Collecting Profile Data
         ```
 
 - AI framework operator adaptation: PyTorch framework
-    - When msOpProf is used for simulated tuning of the operators in the PyTorch script on <term>Atlas inference products</term>, only the Kernels-based operator package calling mode is supported. Refer to the content related to Kernels operator package installation in the [Installing CANN](<>) of the *CANN Software Installation Guide*. Install the binary Kernels operator package, and modify the script entry file (such as main`.py`) by adding the bold information below `import torch_npu` to ensure that the operators in the Kernels operator package are used.
+    - When msOpProf is used for simulated tuning of the operators in the PyTorch script on <term>Atlas inference products</term>, only the Kernels-based operator package calling mode is supported. Refer to the content related to Kernels operator package installation in the [Installing CANN](https://www.hiascend.com/document/detail/en/canncommercial/850/softwareinst) of the *CANN Software Installation Guide*. Install the binary Kernels operator package, and modify the script entry file (such as main`.py`) by adding the bold information below `import torch_npu` to ensure that the operators in the Kernels operator package are used.
 
         ```python
         import torch
@@ -67,7 +67,7 @@ The following scenarios are supported. For details, see [Collecting Profile Data
         ......
         ```
 
-    - In the single-operator calling scenario through the PyTorch framework, for details, see the OpPlugin in [Ascend-developed Plugins](<>) of the *Ascend Extension for PyTorch Suite and Third-party Library Support List*.
+    - In the single-operator calling scenario through the PyTorch framework, for details, see the OpPlugin in [Ascend-developed Plugins](https://www.hiascend.com/document/detail/en/Pytorch/720/modthirdparty/modparts/thirdpart_0009.html) of the *Ascend Extension for PyTorch Suite and Third-party Library Support List*.
     - When the PyTorch framework is used to call a single-operator, configure the prerequisites and then run the following command:
 
         ```shell

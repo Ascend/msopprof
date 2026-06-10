@@ -8,15 +8,7 @@
 
 ## 2. 开发环境准备
 
-- 硬件环境请参见《[昇腾产品形态说明](https://www.hiascend.com/document/detail/zh/AscendFAQ/ProduTech/productform/hardwaredesc_0001.html)》。
-
-- 请按照以下文档进行环境配置：《[算子工具开发环境安装指导](https://gitcode.com/Ascend/msot/blob/master/docs/zh/common/dev_env_setup.md)》。
-
-- 编译工具CMake版本应大于或等于3.20.2，小于或等于3.31.10。
- 
-- 安装Python库的numpy依赖，执行```pip install numpy```安装。
-
-- 生成run包依赖pigz，一般系统自带，执行```pigz --version```确认是否已安装。
+请按照以下文档进行环境配置：[《算子工具开发环境安装指导》](https://gitcode.com/Ascend/msot/blob/master/docs/zh/common/dev_env_setup.md)。
 
 ## 3. 编译打包
 
@@ -135,5 +127,5 @@ rm -rf build_ut
 
 有可能执行 cmake 时用了 `cmake ..`，cmake 命令说明如下：   
 
-- `cmake ..`：只编译本工程，make install 会把东西装到 output/，但不会调用 makeself，所以不会生成 Ascend-mindstudio-sanitizer-xxx.run。
+- `cmake ..`：只编译本工程，make install 会把东西装到 output/，但不会调用 makeself，所以不会生成 mindstudio-opprof-xxx.run。
 - `cmake ../cmake`：用的是 cmake/CMakeLists.txt 的「超级构建」，会先编译+安装，再执行 parser.py + makeself，在 output/ 里生成 .run 包。

@@ -50,7 +50,7 @@ echo 2 > /proc/sys/kernel/randomize_va_space
 
 ## Vulnerability Security Statement 
 
-For details, see [MindStudio Vulnerability Handling Mechanism Description] (./vulnerability_handling_procedure.md).
+For details, see [MindStudio Vulnerability Handling Mechanism Description](./vulnerability_handling_procedure.md).
 
 ## Data security
 

@@ -105,15 +105,13 @@ bash $HOME/Ascend/share/info/mindstudio-opprof/script/uninstall.sh # For custom 
 
 The upgrade process essentially involves uninstalling the old version and installing the new version, which is the same as the overwrite installation method described in Section [2.3.2 Installation](#232-installation).
 
-> [!NOTE]NOTE 
-> By default, the upgrade targets the `mindstudio-opprof` directory in `$HOME/Ascend`. If the previous version is installed to a custom path, use the `--install-path` option, for example, `./mindstudio-opprof_<version>_<arch>.run  --install-path=./xxx --run`, where `xxx` is the previous installation directory.
-
-## Upgrade
- 
 To replace an existing mindstudio-opprof package with the newly built .run package, run the following command:
- 
+
 ```shell
 ./mindstudio-opprof_<version>_<arch>.run --run 
-```  
+```
 
 During the process, you will be prompted "do you want to overwrite current installation? [y/n]." Enter `y` to proceed with the automatic upgrade.
+
+> [!NOTE]NOTE 
+> By default, the upgrade targets the `mindstudio-opprof` directory in `$HOME/Ascend`. If the previous version is installed to a custom path, use the `--install-path` option, for example, `./mindstudio-opprof_<version>_<arch>.run  --install-path=./xxx --run`, where `xxx` is the previous installation directory.
