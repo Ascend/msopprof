@@ -50,5 +50,6 @@
         <file value="libprofplugin_instrprofstart.so"/>
         <file value="libprofplugin_memorychart.so"/>
         <file value="libprofplugin_operandrecord.so"/>
+        <file value="libprofplugin_warptimeline.so"/>
     </file_info>
 </config>
