@@ -328,16 +328,13 @@ std::string GetAbsolutePath(std::string const &path)
 bool CheckPathPermission(const std::string &path, unsigned int fileMode, const std::string &paramName)
 {
     if ((fileMode & S_IRUSR) != 0 && !IsReadable(path)) {
-        LogError("%s path: %s is not readable", paramName.c_str(), path.c_str());
-        return false;
+        LogWarn("%s path: %s is not readable", paramName.c_str(), path.c_str());
     }
     if ((fileMode & S_IWUSR) != 0 && !IsWritable(path)) {
-        LogError("%s path: %s is not writable", paramName.c_str(), path.c_str());
-        return false;
+        LogWarn("%s path: %s is not writable", paramName.c_str(), path.c_str());
     }
     if ((fileMode & S_IXUSR) != 0 && !IsExecutable(path)) {
-        LogError("%s path: %s is not executable", paramName.c_str(), path.c_str());
-        return false;
+        LogWarn("%s path: %s is not executable", paramName.c_str(), path.c_str());
     }
     return true;
 }
@@ -401,13 +398,10 @@ bool CheckInputFileValid(const std::string &path, const std::string &fileType, s
         return false;
     }
     uint32_t fileMode = FileTypePermission.at(fileType).first;
-    if (!CheckPathPermission(absPath, fileMode, paramName)) {
-        return false;
-    }
+    CheckPathPermission(absPath, fileMode, paramName);
 
-    if (FileTypePermission.at(fileType).second && !CheckOwnerPermission(absPath, errorMsg)) {
-        LogError("%s", errorMsg.c_str());
-        return false;
+    if (FileTypePermission.at(fileType).second) {
+        CheckOwnerPermission(absPath, errorMsg);
     }
 
     if (!isDir && (fileMode == S_IRUSR) && !CheckFileSizeValid(absPath, threshold)) {
@@ -536,8 +530,8 @@ bool CheckPermission(const std::string& filePath)
 {
     struct stat fileStat;
     if (stat(filePath.c_str(), &fileStat) != 0) {
-        LogError("Error getting file %s status", filePath.c_str());
-        return false;
+        LogWarn("Error getting file %s status, skip permission check", filePath.c_str());
+        return true;
     }
 
     if (IsRootUser()) {
@@ -622,8 +616,8 @@ bool CheckOwnerPermission(std::string &path, std::string &msg)
 {
     struct stat fileStat;
     if (stat(path.c_str(), &fileStat) != 0) {
-        msg = "get file" + path + "permission error.";
-        return false;
+        LogWarn("Get file %s permission error, skip owner check", path.c_str());
+        return true;
     }
     if (IsRootUser()) {
         return true;

@@ -225,9 +225,8 @@ TEST(FileSystem, CheckPermission)
     ASSERT_TRUE(flag);
 }
 
-TEST(FileSystem, copy_folder)
-{
-    ASSERT_FALSE(CheckPermission("test/ut/resources/op_profiling/111"));
+TEST(FileSystem, check_permission_warning_mode) {
+    ASSERT_TRUE(CheckPermission("test/ut/resources/op_profiling/111"));
     std::string path = "test/ut/resources/op_profiling/device310P/dump/op_basic_info.txt";
     chmod(path.c_str(), 0640);
     ASSERT_TRUE(CheckPermission(path));

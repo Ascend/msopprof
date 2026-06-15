@@ -18,6 +18,7 @@
 #define __MSOPPROF_COMMON_DEFS_H__
 
 #include <cstdint>
+#include <linux/limits.h>
 #include <map>
 #include <vector>
 #include <string>

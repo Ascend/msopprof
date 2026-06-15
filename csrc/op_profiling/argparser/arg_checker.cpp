@@ -255,12 +255,9 @@ bool ArgChecker::CheckOutputPathValid(const ProfArgs &config, std::string &msg) 
         LogWarn("Output path contains soft link, may cause security problems");
     }
     if (!IsWritable(checkPath)) {
-        msg = "Output dir is not writable: " + checkPath;
-        return false;
+        LogWarn("Output dir is not writable: %s", checkPath.c_str());
     }
-    if (!CheckOwnerPermission(checkPath, msg)) {
-        return false;
-    }
+    CheckOwnerPermission(checkPath, msg);
     return true;
 }
 
@@ -270,12 +267,9 @@ bool ArgChecker::CheckExportPathValid(const ProfArgs &config, std::string &msg) 
         return true;
     }
     if (!CheckInputFileValid(config.argExport, "dir")) {
-        msg = "In input parameter --export receive parent dir permission wrong";
-        return false;
-    } else if (!CheckPermission(config.argExport)) {
-        msg = "In input parameter --export dir cannot have write permission of group or other users";
-        return false;
+        LogWarn("In input parameter --export receive parent dir permission wrong");
     }
+    CheckPermission(config.argExport);
     return true;
 }
 

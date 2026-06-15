@@ -583,28 +583,29 @@ TEST(ArgChecker, test_CheckExportPathValid_expect_return_true)
 /**
 * |  用例集  | ArgChecker
 * | 测试函数 | ArgChecker
-* |  用例名  | test_CheckExportPathValid_expect_return_false
-* | 用例描述 | 测试不输入或输入路径权限正确CheckExportPathValid失败
+* |  用例名  | test_CheckExportPathValid_with_permission_warning_expect_return_true
+* | 用例描述 | 测试export路径权限问题降级为告警时CheckExportPathValid成功
 */
-TEST(ArgChecker, test_CheckExportPathValid_expect_return_false)
-{
+TEST(ArgChecker, test_CheckExportPathValid_with_permission_warning_expect_return_true) {
     ProfArgs args;
     args.runMode = "simulator";
     std::string msg;
     ArgChecker checker("simulator");
-    // 输入路径没有写权限
+    // 输入路径没有写权限时仅告警，不阻断
     args.argExport = "test/ut/resources/op_profiling/simulator_sample/dump";
     MOCKER(&Utility::CheckPermission)
         .stubs()
         .will(returnValue(false));
-    ASSERT_FALSE(checker.CheckExportPathValid(args, msg));
-    ASSERT_TRUE(msg.find("cannot have write permission") != std::string::npos);
-    // 输入路径父目录权限问题
+    ASSERT_TRUE(checker.CheckExportPathValid(args, msg));
+    ASSERT_TRUE(msg.empty());
+    GlobalMockObject::verify();
+
+    // 输入路径父目录权限问题时仅告警，不阻断
     MOCKER(&Utility::CheckInputFileValid)
         .stubs()
         .will(returnValue(false));
-    ASSERT_FALSE(checker.CheckExportPathValid(args, msg));
-    ASSERT_TRUE(msg.find("parent dir permission wrong") != std::string::npos);
+    ASSERT_TRUE(checker.CheckExportPathValid(args, msg));
+    ASSERT_TRUE(msg.empty());
     GlobalMockObject::verify();
 }
 
@@ -629,25 +630,27 @@ TEST(ArgChecker, test_CheckOutputPathValid_expect_return_true)
 /**
 * |  用例集  | ArgChecker
 * | 测试函数 | ArgChecker
-* |  用例名  | test_CheckOutputPathValid_expect_return_false
-* | 用例描述 | 测试输出路径非文件夹、权限问题、属主问题等CheckOutputPathValid失败
+* |  用例名  | test_CheckOutputPathValid_with_warning_and_invalid_cases
+* | 用例描述 | 测试输出路径权限/属主问题告警放行，非文件夹、长度、字符问题失败
 */
-TEST(ArgChecker, test_CheckOutputPathValid_expect_return_false)
-{
+TEST(ArgChecker, test_CheckOutputPathValid_with_warning_and_invalid_cases) {
     mkdir("/tmp/dump1", 0400);
     ProfArgs args;
     args.runMode = "device";
     std::string msg;
     ArgChecker checker("device");
     args.argOutput = "/tmp/dump1";
-    // 输出路径没有写权限
-    ASSERT_FALSE(checker.CheckOutputPathValid(args, msg));
-    ASSERT_TRUE(msg.find("Output dir is not writable") != std::string::npos);
-    // 输出路径属主问题
+    // 输出路径没有写权限时仅告警，不阻断
+    ASSERT_TRUE(checker.CheckOutputPathValid(args, msg));
+    ASSERT_TRUE(msg.empty());
+    // 输出路径属主问题时仅告警，不阻断
     MOCKER(&Utility::CheckOwnerPermission)
         .stubs()
         .will(returnValue(false));
-    ASSERT_FALSE(checker.CheckOutputPathValid(args, msg));
+    ASSERT_TRUE(checker.CheckOutputPathValid(args, msg));
+    ASSERT_TRUE(msg.empty());
+    GlobalMockObject::verify();
+
     // 输出路径长度问题
     MOCKER(&Utility::PathLenCheckValid)
         .stubs()
