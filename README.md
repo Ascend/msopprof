@@ -3,7 +3,12 @@
 <div align="center">
 <p><b><span style="font-size:24px;">昇腾 AI 算子调优工具</span></b></p>
 
-[![License](https://badgen.net/badge/快速入门/QuickStart/blue)](./docs/zh/quick_start/msopprof_quick_start.md) [![License](https://badgen.net/badge/AI问答/DeepWiki/blue)](https://deepwiki.com/mindstudio-docs/master) [![License](https://badgen.net/badge/AI问答/ZRead/blue)](https://zread.ai/mindstudio-docs/master) [![License](https://badgen.net/badge/精确搜索/ReadTheDocs/blue)](https://mindstudio-operator-tools-docs.readthedocs.io/zh-cn/latest/) [![License](https://badgen.net/badge/昇腾社区/Community/blue)](https://www.hiascend.com/cn/developer/software/mindstudio) [![License](https://badgen.net/badge/报告问题/Issues/blue)](https://gitcode.com/Ascend/msopprof/issues) 
+ [![License](https://badgen.net/badge/快速入门/QuickStart/blue)](./docs/zh/quick_start/msopprof_quick_start.md)
+ [![License](https://badgen.net/badge/精确搜索/ReadTheDocs/blue)](https://mindstudio-operator-tools-docs.readthedocs.io/zh-cn/latest/)
+ [![License](https://badgen.net/badge/AI问答/DeepWiki/blue)](https://deepwiki.com/mindstudio-docs/master)
+ [![License](https://badgen.net/badge/AI问答/ZRead/blue)](https://zread.ai/mindstudio-docs/master)
+ [![License](https://badgen.net/badge/昇腾社区/Community/blue)](https://www.hiascend.com/cn/developer/software/mindstudio)
+ [![License](https://badgen.net/badge/报告问题/Issues/blue)](https://gitcode.com/Ascend/msopprof/issues)
 
 </div>
 
@@ -11,7 +16,7 @@
 
 <span style="font-size:14px;">
 
-🔹 **[2025.12.31]**：MindStudio Ops Profiler 项目全面开源
+🔹 **[2025-12-31]**：MindStudio Ops Profiler 项目全面开源
 
 </span>
 
@@ -70,7 +75,7 @@ msOpProf通过一些典型案例帮助您理解并使用工具，具体案例请
 
 ## 🤝 建议与交流
 
-欢迎大家为社区做贡献。如果有任何疑问或建议，请提交 [Issues](https://gitcode.com/Ascend/mskpp/issues)，我们会尽快回复。感谢您的支持。
+欢迎大家为社区做贡献。如果有任何疑问或建议，请提交 [Issues](https://gitcode.com/Ascend/msopprof/issues)，我们会尽快回复。感谢您的支持。
 
 |                                                                            即时互动（微信群）                                                                             |                                                                                  官方资讯（公众号）                                                                                   | 深度支持（助手/论坛）                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 |:------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|

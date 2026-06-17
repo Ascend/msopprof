@@ -2,8 +2,8 @@
 
 ## 环境约束
 
-- msOpProf工具的使用依赖CANN包中的msopprof可执行文件，该文件中的接口使用和msopprof一致，该文件为CANN包自带，无需单独安装。
-- 如果要使用MindStudio Insight工具查看msOpProf工具输出的文件时，需要单独安装MindStudio Insight软件包，安装步骤可参见[MindStudio Insight安装指南](https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/user_guide/mindstudio_insight_install_guide.md)。
+- msOpProf工具的使用依赖CANN包中的msopprof可执行文件，该文件中的接口使用和msprof op一致，该文件为CANN包自带，无需单独安装。
+- 如果要使用MindStudio Insight工具查看msOpProf工具输出的文件时，需要单独安装MindStudio Insight软件包，安装步骤可参见[MindStudio Insight安装指南](https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/install_guide/mindstudio_insight_install_guide.md)。
 
 ## 运行约束
 
@@ -21,7 +21,7 @@
 - 用户需自行保证可执行文件或用户程序（*application*）执行的安全性。
   - 建议限制对可执行文件或用户程序（*application*）的操作权限，避免提权风险。
   - 不建议进行高危操作（删除文件、删除目录、修改密码及提权命令等），避免安全风险。
-- 工具运行过程中涉及从LD_LIBRARY_PATH加载so，用户在使用前需要需要确保LD_LIBRARY_PATH环境变量内容安全可信，指向路径不涉及软链接，且权限及属主符合安全预期，无法被第三方篡改，否则有任意代码注入风险。
+- 工具运行过程中涉及从LD_LIBRARY_PATH加载so，用户在使用前需要确保LD_LIBRARY_PATH环境变量内容安全可信，指向路径不涉及软链接，且权限及属主符合安全预期，无法被第三方篡改，否则有任意代码注入风险。
 
 ## 通用
 

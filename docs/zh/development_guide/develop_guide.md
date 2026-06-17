@@ -42,7 +42,7 @@ python download_dependencies.py
 ```shell
 mkdir build
 cd build
-cmake ../cmake   # 如果只做编译，不打run包，这里需要执行的是cmake ..
+cmake ../cmake   # 当前命令构建编译的同时会打包生成.run文件；若仅编译不打包，请执行cmake ..
 make -j$(nproc)  # -j 是并行编译的 job 数量，可自行指定；nproc 不可用时请手动填数字（例如 -j8）。
 ```
 
