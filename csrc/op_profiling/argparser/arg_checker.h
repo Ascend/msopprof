@@ -52,6 +52,8 @@ private:
                       const AicMetricsSupportMap &supports, std::string &msg) const;
     bool CheckDump(const Common::ProfArgs &config, std::string &msg) const;
     bool CheckInstrTimelinePipe(const Common::ProfArgs &config, std::string &msg) const;
+    bool CheckDeviceChipSupport(
+        const std::string &argName, const std::vector<ChipProductType> &supportTypes, std::string &msg) const;
 
 private:
     std::vector<CheckFunc> checkers_;

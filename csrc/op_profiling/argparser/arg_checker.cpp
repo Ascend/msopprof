@@ -86,6 +86,23 @@ const AicMetricsSupportMap SIMULATOR_AIC_METRICS_SUPPORT_MAP{
                                                                    ChipProductType::ASCEND910_93_SERIES}},
 };
 
+bool ArgChecker::CheckDeviceChipSupport(
+    const std::string &argName, const std::vector<ChipProductType> &supportTypes, std::string &msg) const {
+    ChipType chipType = Common::HalHelper::Instance().GetPlatformType();
+    auto iter = CHIP_ARCHITECTURE_TO_PRODUCT_SERIES.find(chipType);
+    if (iter == CHIP_ARCHITECTURE_TO_PRODUCT_SERIES.end()) {
+        msg = "chiptype " + std::to_string(static_cast<int>(chipType)) + " not support.";
+        return false;
+    }
+    for (const auto &supportType : supportTypes) {
+        if (IsChipSeriesTypeValid(iter->second, supportType)) {
+            return true;
+        }
+    }
+    msg = "Unexpected argument " + argName + ", maybe in wrong soc platform";
+    return false;
+}
+
 ArgChecker::ArgChecker(const std::string &runMode)
 {
     checkers_.emplace_back(&ArgChecker::CheckRunModeValid);
@@ -383,6 +400,23 @@ bool ArgChecker::CheckDump(const Common::ProfArgs &config, std::string &msg) con
         msg = "--dump should be on/off";
         return false;
     }
+    if (config.runMode == "device" && config.argDump == "on") {
+        return CheckDeviceChipSupport(
+            "--dump", {ChipProductType::ASCEND910B_SERIES, ChipProductType::ASCEND910_93_SERIES}, msg);
+    }
+    if (config.runMode == "simulator" && config.argDump == "on") {
+        std::string socVersion = config.argSocVersion;
+        if (socVersion.empty() && !GetSocVersionFromEnvVar(socVersion)) {
+            socVersion = "Ascend910B1";
+        }
+        ChipProductType productType = GetProductTypeBySocVersion(socVersion);
+        if (IsChipSeriesTypeValid(productType, ChipProductType::ASCEND910B_SERIES) ||
+            IsChipSeriesTypeValid(productType, ChipProductType::ASCEND910_93_SERIES)) {
+            return true;
+        }
+        msg = "Unexpected argument --dump, maybe in wrong soc platform";
+        return false;
+    }
     return true;
 }
 
@@ -491,6 +525,10 @@ bool ArgChecker::CheckCoreId(const Common::ProfArgs &config, std::string &msg) c
                   " and each core id should be an integer which within [0, 49].";
             return false;
         }
+    }
+    if (config.runMode == "device") {
+        return CheckDeviceChipSupport(
+            "--core-id", {ChipProductType::ASCEND910B_SERIES, ChipProductType::ASCEND910_93_SERIES}, msg);
     }
     return true;
 }

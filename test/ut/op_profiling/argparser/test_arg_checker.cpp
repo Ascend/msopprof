@@ -484,9 +484,10 @@ TEST(ArgChecker, args_with_core_id_expect_failed)
 
 TEST(ArgChecker, args_with_core_id_expect_success)
 {
-    ArgChecker checker("");
+    ArgChecker checker("simulator");
     Common::ProfArgs args;
     std::string msg;
+    args.runMode = "simulator";
     // test empty input
     args.argCoreId = "";
     ASSERT_TRUE(checker.CheckCoreId(args, msg));
@@ -839,6 +840,26 @@ TEST(ArgChecker, test_CheckDump_expect_return_false)
 /**
 * |  用例集  | ArgChecker
 * | 测试函数 | CheckDump
+* |  用例名  | test_CheckDump_device_unsupported_soc_expect_return_false
+* | 用例描述 | 测试device模式下950不支持--dump参数
+*/
+TEST(ArgChecker, test_CheckDump_device_unsupported_soc_expect_return_false) {
+    ArgChecker checker("device");
+    Common::ProfArgs args;
+    std::string msg;
+    args.runMode = "device";
+    args.argDump = "on";
+    MOCKER(&Common::HalHelper::GetPlatformType).stubs().will(returnValue(Common::ChipType::ASCEND950));
+    ASSERT_FALSE(checker.CheckDump(args, msg));
+    ASSERT_TRUE(msg.find("wrong soc platform") != std::string::npos);
+    args.argDump = "off";
+    ASSERT_TRUE(checker.CheckDump(args, msg));
+    GlobalMockObject::verify();
+}
+
+/**
+* |  用例集  | ArgChecker
+* | 测试函数 | CheckDump
 * |  用例名  | test_CheckDump_expect_return_true
 * | 用例描述 | 测试输入on/off CheckDump均成功
 */
@@ -848,6 +869,7 @@ TEST(ArgChecker, test_CheckDump_expect_return_true)
     Common::ProfArgs args;
     std::string msg;
     args.runMode = "simulator";
+    args.argSocVersion = "Ascend910B1";
     args.argDump = "on";
     ASSERT_TRUE(checker.CheckDump(args, msg));
     args.argDump = "off";
