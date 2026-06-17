@@ -70,6 +70,7 @@ const AicMetricsSupportMap DEVICE_AIC_METRICS_SUPPORT_MAP{
                                                                    ChipProductType::ASCEND910_93_SERIES,
                                                                    ChipProductType::ASCEND950_SERIES}},
     {std::string(Common::MsprofMetrics::PIPE_TIMELINE),           {ChipProductType::ASCEND950_SERIES}},
+    {std::string(Common::MsprofMetrics::INSTR_TIMELINE),          {ChipProductType::ASCEND950_SERIES}},
     {std::string(Common::MsprofMetrics::PCSAMPLING),              {ChipProductType::ASCEND950_SERIES}},
 };
 // 仿真模式下支持的AIC指标，key是指标名称，value是支持的产品类型列表
@@ -82,7 +83,7 @@ const AicMetricsSupportMap SIMULATOR_AIC_METRICS_SUPPORT_MAP{
     {std::string(Common::MsprofMetrics::PMSAMPLING),              {ChipProductType::ASCEND910B_SERIES,
                                                                    ChipProductType::ASCEND910_93_SERIES,
                                                                    ChipProductType::ASCEND950_SERIES}},
-    {std::string(Common::MsprofMetrics::OVERHEAD),              {ChipProductType::ASCEND910B_SERIES,
+    {std::string(Common::MsprofMetrics::OVERHEAD),                {ChipProductType::ASCEND910B_SERIES,
                                                                    ChipProductType::ASCEND910_93_SERIES}},
 };
 
@@ -565,7 +566,7 @@ bool ArgChecker::CheckInstrTimelinePipe(const Common::ProfArgs &config, std::str
     Utility::SplitString(config.argInstrTimelinePipe, '|', pipeSet);
     for (const auto &pipe : pipeSet) {
         if (!DfxPipe::IsValidDfxPipe(pipe)) {
-            msg = "--instr-timeline-pipe only support pipes in [cube,fixp,vector,mte1,mte2,mte3].";
+            msg = "--instr-timeline-pipe only support pipes in [cube fixp vector mte1 mte2 mte3] and separated by '|'.";
             return false;
         }
     }

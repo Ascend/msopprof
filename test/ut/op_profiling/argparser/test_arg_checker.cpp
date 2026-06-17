@@ -926,5 +926,5 @@ TEST(ArgChecker, test_CheckInstrTimelinePipe_expect_return_false)
     args.argInstrTimelinePipe = "simd|simt";
     args.argAicMetrics.instrTimelineEnable = true;
     ASSERT_FALSE(checker.CheckInstrTimelinePipe(args, msg));
-    ASSERT_TRUE(msg.find("only support pipes in [cube,fixp,vector,mte1,mte2,mte3]") != std::string::npos);
+    ASSERT_TRUE(msg.find("only support pipes in [cube fixp vector mte1 mte2 mte3]") != std::string::npos);
 }

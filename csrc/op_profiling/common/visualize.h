@@ -86,7 +86,12 @@ struct VISUALIZE_COLOR_NAME {
     static constexpr char const *AMETHYST_PURPLE = "head_dump_object_type";
     static constexpr char const *SKY_BLUE = "cq_build_attempt_passed";
 };
-
+const std::vector<std::string> TOTAL_CNAME_MAP = {
+    std::string(VISUALIZE_COLOR_NAME::GRASS_GREEN), std::string(VISUALIZE_COLOR_NAME::GREEN), std::string(VISUALIZE_COLOR_NAME::PINK),
+    std::string(VISUALIZE_COLOR_NAME::YELLOW), std::string(VISUALIZE_COLOR_NAME::PURPLE), std::string(VISUALIZE_COLOR_NAME::BLUE),
+    std::string(VISUALIZE_COLOR_NAME::ORANGE), std::string(VISUALIZE_COLOR_NAME::CYAN), std::string(VISUALIZE_COLOR_NAME::RED),
+    std::string(VISUALIZE_COLOR_NAME::VIVID_BLUE), std::string(VISUALIZE_COLOR_NAME::AMETHYST_PURPLE), std::string(VISUALIZE_COLOR_NAME::SKY_BLUE),
+};
 /*
  * Visualize class writes string to `${outputPath}/visualize_data.bin` in append mode.
  * A user-defined data header is added to form a visualize_data.bin.

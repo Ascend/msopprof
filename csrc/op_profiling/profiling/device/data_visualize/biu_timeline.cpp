@@ -20,7 +20,7 @@
 #include "filesystem.h"
 #include "common/defs.h"
 #include "common/hal_helper.h"
-
+#include "common/visualize.h"
 
 using namespace Utility;
 
@@ -33,6 +33,7 @@ bool BiuTimeline::TimelineToJson(const std::string &outputPath)
         aicoreFreq = FREQ_DEFAULT;
     }
     outputPath_ = outputPath;
+    ParseDfxMapInfo();
     if (!ParseBiuTimeStamps()) {
         return false;
     }
@@ -41,7 +42,7 @@ bool BiuTimeline::TimelineToJson(const std::string &outputPath)
         for (const auto& timeline : channelVec) {
             nlohmann::json singleJson;
             singleJson["name"] = timeline.lineName;
-            singleJson["cname"] = cnames_[timeline.pipeName];
+            singleJson["cname"] = timeline.cName.empty() ? cnames_[timeline.pipeName] : timeline.cName;
             singleJson["ph"] = "X";
             singleJson["ts"] = static_cast<float>(timeline.start) / aicoreFreq;
             singleJson["dur"] = static_cast<float>(timeline.duration) / aicoreFreq;
@@ -54,6 +55,7 @@ bool BiuTimeline::TimelineToJson(const std::string &outputPath)
         }
     }
     if (traceEvents.empty()) {
+        LogDebug("Biu timeline is empty.");
         return false;
     }
     PrintMissData();
@@ -219,63 +221,83 @@ void InstrBiuTimeline::ParseDfxRegion(uint16_t dfxRegionId, uint32_t channelId, 
     if (((dfxRegionId >> 9) & 0x3) != 0x3) {
         return;
     }
-    bool isStart = ((dfxRegionId >> 11) & 0x1) == 0; // dfx-region指令级打点11位:0-start，1-end
-    uint16_t realId = dfxRegionId & 0x1ff; // 0~8位作为真正匹配id
-    std::tuple<const std::string, uint32_t, uint16_t> key = {pipe, channelId, realId};
-    if (isStart) {
+    // 指令起始
+    std::tuple<const std::string, uint32_t, uint16_t> key = {pipe, channelId, dfxRegionId};
+    auto it = startCache_.find(key);
+    if (it == startCache_.end()) {
         startCache_[key] = channelCycleMap_[channelId];
         return;
     }
-    auto it = startCache_.find(key);
-    if (it == startCache_.end()) {
-        LogDebug("dfx end point [%d] miss start point, channelId [%lu], pipe [%s]", dfxRegionId, channelId, pipe.c_str());
-        return;
-    }
+    // 指令结束
     uint64_t startCycle = it->second;
     if (startCycle < channelCycleMap_[channelId]) {
-        uint16_t startId = realId | 0x600; // 9-10位填充1
-        std::string instrName = "MarkStamp" + std::to_string(startId);
+        std::string instrName = "Instr" + std::to_string(dfxRegionId);
+        std::string cName = "";
         std::map<std::string, std::string> args = {};
-        auto infoIt = dfxRegionInfoMap_.find({pipe, realId});
+        auto infoIt = dfxRegionInfoMap_.find({pipe, dfxRegionId});
         if (infoIt != dfxRegionInfoMap_.end()) {
-            // 待补充调用栈解析
             auto dfxRegionInfo = infoIt->second;
             instrName = dfxRegionInfo.InstrName;
-            args["PC"] = NumToHexString(dfxRegionInfo.pc, 8);
+            cName = TOTAL_CNAME_MAP[GetInstrNameId(instrName) % TOTAL_CNAME_MAP.size()];
+            args["pc_addr"] = NumToHexString(dfxRegionInfo.pc, 8);
+            std::string codeAcc;
+            if (pc2code_.Find(dfxRegionInfo.pc)) {
+                codeAcc =
+                    accumulate(pc2code_[dfxRegionInfo.pc].begin(), pc2code_[dfxRegionInfo.pc].end(), std::string(),
+                        [](std::string acc, const std::string &s) { return acc.empty() ? s : acc + "\n" + s; });
+                args["code"] = codeAcc;
+            } else {
+                args["code"] = "";
+            }
         }
-        timelineVec_[channelId].emplace_back(BiuTimelineInfo(pipe, coreName, instrName, startCycle, channelCycleMap_[channelId] - startCycle, args));
+        timelineVec_[channelId].emplace_back(BiuTimelineInfo(pipe, coreName, instrName, startCycle, channelCycleMap_[channelId] - startCycle, cName, args));
         startCache_.erase(it);
     }
 }
 
 void InstrBiuTimeline::PrintMissData() {
     PrintPipeIdFull();
+    // 按channel和pipe聚合打印未配对的dfx region
+    std::map<std::pair<std::string, uint32_t>, std::vector<std::string>> groupedMissData;
     for (const auto& start : startCache_) {
         auto key = start.first;
-        uint16_t startId = std::get<2>(key) | 0x600; // 9-10位填充1
-        LogDebug("dfx start point [%d] miss end point, channelId [%lu], pipe [%s]", startId, std::get<1>(key), std::get<0>(key).c_str());
+        std::string dfxRegionIdStr = std::to_string(std::get<2>(key));
+        groupedMissData[{std::get<0>(key), std::get<1>(key)}].emplace_back(dfxRegionIdStr);
+    }
+    for (const auto &data : groupedMissData) {
+        auto dfxRegionIds = data.second;
+        if (dfxRegionIds.empty()) {
+            continue;
+        }
+        size_t total = dfxRegionIds.size();
+        for (size_t i = 0; i < total; i += missBatchSize_) {
+            size_t endIdx = std::min(i + missBatchSize_, total);
+            std::string regionStr = Join(dfxRegionIds.begin() + i, dfxRegionIds.begin() + endIdx, ",");
+            LogDebug("dfx point [%s] miss, channelId [%u], pipe [%s]", regionStr.c_str(), data.first.second,
+                data.first.first.c_str());
+        }
     }
 }
 
 void InstrBiuTimeline::PrintPipeIdFull() {
-    // dfx-region id达到512以上的pipe，提示给用户
+    // dfx-region id达到1024以上的pipe，提示给用户
     std::string dfxLogPath = JoinPath({outputPath_, "dump", "dfx_tune.log"});
     std::ifstream file(dfxLogPath);
     if (!file.is_open()) {
-        LogError("Failed to open file %s", dfxLogPath.c_str());
+        LogWarn("Failed to open file %s", dfxLogPath.c_str());
         return;
     }
     std::set<std::string> fullPipes;
-    std::regex pattern(R"(\[pipe=([a-zA-Z0-9]+)\])");
     std::string line;
     std::smatch match;
     size_t lineCount = 0;
+    static const std::regex pattern(R"(\[pipe=([a-zA-Z0-9]{4,6})\])");
     while (std::getline(file, line)) {
         if (lineCount >= UINT64_MAX) {
             break;
         }
         lineCount++;
-        if (line.find("TUNE-ERROR:all dfx ids consumed") == std::string::npos) {
+        if (line.find("TUNE-ERROR: all dfx ids consumed") == std::string::npos) {
             continue;
         }
         if (std::regex_search(line, match, pattern) && Common::DfxPipe::IsValidDfxPipe(match[1].str())) {
@@ -283,12 +305,64 @@ void InstrBiuTimeline::PrintPipeIdFull() {
         }
     }
     file.close();
-    RemoveAll(dfxLogPath);
+    if (Utility::Log::GetLog().GetLogLv() > Utility::LogLv::DEBUG) {
+        RemoveAll(dfxLogPath);
+    }
     if (fullPipes.empty()) {
         LogDebug("InstrTimeline dfx id is enough.");
     } else {
-        LogWarn("InstrTimeline of pipes[%s] is incomplete because these pipes have more than 512 instructions.",
+        LogWarn("InstrTimeline of pipes[%s] is incomplete because these pipes have more than 1024 instructions.",
             Join(fullPipes.begin(), fullPipes.end(), ", ").c_str());
+    }
+}
+
+void InstrBiuTimeline::ParseDfxMapInfo() {
+    // 解析region_id、pipe、偏移地址、指令名称等信息
+    std::string dumpPath = JoinPath({outputPath_, "dump"});
+    std::string dfxMapPath = JoinPath({dumpPath, "dfx_region_map.txt"});
+    std::ifstream file(dfxMapPath);
+    if (!file.is_open()) {
+        LogWarn("Failed to open file %s", dfxMapPath.c_str());
+        return;
+    }
+
+    std::smatch match;
+    std::string line;
+    size_t lineCount = 0;
+    std::set<uint64_t> pcSet = {};
+    Profiling::ParsePcCode pc2Code(dumpPath, pcSet);
+    uint64_t startPc = pc2Code.GetStartPc();
+    static const std::regex dfxInfoPattern(
+        R"(region_id=(\d{1,4}),pipe=([a-zA-Z0-9]{4,6}),.*?,pc=(0[xX][a-fA-F0-9]{1,8}),opcode=([a-zA-Z0-9_-]+))");
+    while (std::getline(file, line)) {
+        if (lineCount >= UINT64_MAX) {
+            break;
+        }
+        lineCount++;
+        if (!std::regex_search(line, match, dfxInfoPattern)) {
+            continue;
+        }
+        uint16_t regionId;
+        StringToNum<uint16_t>(match[1].str(), regionId);
+        if (!Common::DfxPipe::IsValidDfxPipe(match[2].str())) {
+            continue;
+        }
+        std::string pipe = Utility::ToUpper(match[2].str());
+        uint64_t offsetPc = 0;
+        StoullConverter(match[3].str(), offsetPc, RADIX_16);
+        DfxRegionInfo info;
+        info.pc = pc2Code.AddStartPc2Offset(startPc, offsetPc);
+        info.InstrName = match[4].str();
+        dfxRegionInfoMap_[{pipe, regionId}] = info;
+        pcSet.insert(info.pc);
+    }
+
+    file.close();
+    pc2Code.SetPcSet(pcSet);
+    pc2Code.Parse();
+    pc2code_ = pc2Code.GetPc2Code();
+    if (Utility::Log::GetLog().GetLogLv() > Utility::LogLv::DEBUG) {
+        RemoveAll(dfxMapPath);
     }
 }
 }

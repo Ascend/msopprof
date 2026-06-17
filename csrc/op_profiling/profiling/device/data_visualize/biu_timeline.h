@@ -20,7 +20,7 @@
 #include <vector>
 #include <unordered_map>
 #include "json.hpp"
-
+#include "parse/data_parser/parser_utils/parse_pc_code.h"
 
 namespace Visualize {
 constexpr int FREQ_DEFAULT = 1650;                          // MHz
@@ -41,11 +41,12 @@ constexpr char const *VECTOR_CORE_1 = "veccore1";
 
 struct BiuTimelineInfo {
     BiuTimelineInfo() = default;
-    BiuTimelineInfo(const std::string &pipe, const std::string &core, const std::string &line, uint64_t st, uint64_t dur, std::map<std::string, std::string> args={})
-        : pipeName(pipe), coreName(core), lineName(line), start(st), duration(dur), args(args) {}
+    BiuTimelineInfo(const std::string &pipe, const std::string &core, const std::string &line, uint64_t st, uint64_t dur, const std::string &cName="", std::map<std::string, std::string> args={})
+        : pipeName(pipe), coreName(core), lineName(line), start(st), duration(dur), cName(cName), args(args) {}
     std::string pipeName;
     std::string coreName;
     std::string lineName;
+    std::string cName;
     uint64_t start = 0;
     uint64_t duration = 0;
     std::map<std::string, std::string> args;
@@ -82,6 +83,7 @@ protected:
     virtual void ParsePipeState(uint16_t pipeMask, uint32_t channelId, const std::string &coreName) {};
     virtual void ParseDfxRegion(uint16_t dfxRegionId, uint32_t channelId, const std::string &coreName, const std::string &pipe) {};
     virtual void PrintMissData() {};
+    virtual void ParseDfxMapInfo() {};
     void UpdateEndMarks(uint16_t dfxRegionId, uint32_t channelId);
     // 各个通道当前cycle{channelId, totalCycle}
     std::unordered_map<uint32_t, uint64_t> channelCycleMap_;
@@ -119,10 +121,22 @@ private:
     void ParseDfxRegion(uint16_t dfxRegionId, uint32_t channelId, const std::string &coreName, const std::string &pipe) override;
     void PrintMissData() override;
     void PrintPipeIdFull();
-    // 指令打点起始数据 Key: {pipeName, channelId, dfxRealId}, Value: startCycle
+    void ParseDfxMapInfo() override;
+    // 指令打点起始数据 Key: {pipeName, channelId, dfxRegionId}, Value: startCycle
     std::map<std::tuple<const std::string, uint32_t, uint16_t>, uint64_t> startCache_;
-    // 编译器提供dfx打点详细信息 Key: {pipeName, dfxStartId}, Value: DfxRegionInfo
+    // 编译器提供dfx打点详细信息 Key: {pipeName, dfxRegionId}, Value: DfxRegionInfo
     std::map<std::pair<std::string, uint16_t>, DfxRegionInfo> dfxRegionInfoMap_ = {};
+    const size_t missBatchSize_ = 160; // 防止日志过长
+    Profiling::Pc2CodeMap pc2code_;
+    std::unordered_map<std::string, size_t> instrName2Id_;
+    size_t instrNameNextId_ = 0;
+    inline size_t GetInstrNameId(const std::string& instr) {
+        auto it = instrName2Id_.find(instr);
+        if (it != instrName2Id_.end()) {
+            return it->second;
+        }
+        return instrName2Id_[instr] = instrNameNextId_++;
+    }
 };
 }
 #endif // BIU_TIMELINE_H

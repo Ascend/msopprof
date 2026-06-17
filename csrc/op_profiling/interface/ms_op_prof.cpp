@@ -78,6 +78,7 @@ ArgParser BuildDeviceArgParser(ProfArgs &args)
     argParser.Add(Option<std::string>('\0', "warm-up", "STRING", args.argWarmUp));
     argParser.Add(Option<std::string>('\0', "dump", "STRING", args.argDump));
     argParser.Add(Option<std::string>('\0', "core-id", "STRING", args.argCoreId));
+    argParser.Add(Option<std::string>('\0', "instr-timeline-pipe", "STRING", args.argInstrTimelinePipe));
     return argParser;
 }
 
@@ -152,20 +153,22 @@ void PrintDeviceHelp(ChipType chipType)
         << "Options:" << std::endl
         << "   --version / -v                       <Optional> Version message." << std::endl
         << "   --help / -h                          <Optional> Help message." << std::endl
-        << "   --config                             <Optional> Json file for op config path" << std::endl
-        << "   --application                        <Optional> Executable file path" << std::endl
-        << "   --output                             <Optional> Output path" << std::endl
+        << "   --config                             <Optional> Json file for op config path." << std::endl
+        << "   --application                        <Optional> Executable file path." << std::endl
+        << "   --output                             <Optional> Output path." << std::endl
         << "   --aic-metrics=ability1,ability2,...  <Optional> Enable collection capability of ArithmeticUtilization "
            "/ MemoryUB / Memory / MemoryL0 / L2Cache / PipeUtilization" << std::endl
-        << "                                                   / ResourceConflictRatio / BasicInfo / Roofline ";
+        << "                                                   / ResourceConflictRatio / Default / BasicInfo / Roofline ";
     if (chipType == Common::ChipType::ASCEND910B) {
-        std::cout << "/ Occupancy / TimelineDetail / KernelScale / Source / MemoryDetail ";
+        std::cout << "/ Occupancy / TimelineDetail / KernelScale / Source / MemoryDetail." << std::endl;
     }
     if (chipType == Common::ChipType::ASCEND950) {
-        std::cout << "/ Occupancy / KernelScale / PipeTimeline / Source / PCSampling / MemoryDetail ";
+        std::cout << "/ Occupancy / KernelScale / Source / PCSampling / MemoryDetail" << std::endl
+                  << "                                                   / PipeTimeline / InstrTimeline." << std::endl
+                  << "   --instr-timeline-pipe                <Optional> Specify the pipe for instr timeline, "
+ 	                 "only effective when --aic-metrics=InstrTimeline." << std::endl;
     }
     std::cout
-        << "/ Default. " << std::endl
         << "   --kernel-name                        <Optional> Specify the kernel name to profile."
         << " It's not effective in config mode." << std::endl
         << "   --launch-count                       <Optional> Number of kernel that can be collected,"
@@ -190,7 +193,7 @@ void PrintDeviceHelp(ChipType chipType)
         << " The default value is 5, range in [0, 500]." << std::endl;
     if (chipType == Common::ChipType::ASCEND910B) {
         std::cout << "   --dump                               <Optional> Enable or disable dump flushed to disk mode, "
-           "only effective when --aic-metrics=TimelineDetail" << std::endl;
+           "only effective when --aic-metrics=TimelineDetail." << std::endl;
         std::cout << "   --core-id                            <Optional> Specify the id of cores to be parsed, "
                      "only effective when --aic-metrics=TimelineDetail and only effective in simulation products."
                      << std::endl;

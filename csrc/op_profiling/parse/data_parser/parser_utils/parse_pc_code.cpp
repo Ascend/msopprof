@@ -145,16 +145,16 @@ uint64_t ParsePcCode::GetStartPcFromTxt() const
     return startPc;
 }
 
-uint64_t ParsePcCode::GetStartPc() const
-{
-    uint64_t startPc = GetStartPcFromTxt();
-    if (startPc != UINT64_MAX) {
-        return startPc;
+uint64_t ParsePcCode::GetStartPc() {
+    if (startPcCached_) {
+        return startPc_;
     }
-    if (!pcSet_.empty()) {
-        return *pcSet_.begin();
+    startPc_ = GetStartPcFromTxt();
+    if (startPc_ == UINT64_MAX && !pcSet_.empty()) {
+        startPc_ = *pcSet_.begin();
     }
-    return startPc;
+    startPcCached_ = true;
+    return startPc_;
 }
 
 void ParsePcCode::GetAllPc(const string &start, const string &size)
@@ -236,7 +236,7 @@ bool ParsePcCode::GetPcSetByKernelName(const std::string &kernelName)
         LogDebug("Failed to get kernel name %s", kernelName.c_str());
         return false;
     }
-    
+
     return true;
 }
 }

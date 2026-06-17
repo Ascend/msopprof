@@ -54,7 +54,7 @@ protected:
         biuPerfInfo4.biuInfo = 0xa60f;
         BiuPerfInfo biuPerfInfo5;
         biuPerfInfo5.cycles = 50;
-        biuPerfInfo5.biuInfo = 0xae0f;
+        biuPerfInfo5.biuInfo = 0xa60f;
         BiuPerfInfo biuPerfInfo6;
         biuPerfInfo6.cycles = 60;
         biuPerfInfo6.biuInfo = 0x060d;
@@ -142,7 +142,7 @@ TEST_F(BiuTimelineTest, test_ParseSingleBiuTimeStamps_pipe_timeline_success)
     ASSERT_EQ(timelineVec[2].duration, 1);
     ASSERT_EQ(timelineVec[3].pipeName, "FIXP");
     ASSERT_EQ(timelineVec[3].coreName, "core0.veccore0");
-    ASSERT_EQ(timelineVec[3].lineName, "MarkStamp3599");
+    ASSERT_EQ(timelineVec[3].lineName, "MarkStamp1551");
     ASSERT_EQ(timelineVec[3].start, 150);
     ASSERT_EQ(timelineVec[3].duration, 1);
     ASSERT_EQ(timelineVec[4].pipeName, "SCALAR");
@@ -178,7 +178,7 @@ TEST_F(BiuTimelineTest, test_ParseSingleBiuTimeStamps_instr_timeline_success)
     ASSERT_EQ(timelineVec.size(), 1);
     ASSERT_EQ(timelineVec[0].pipeName, "FIXP");
     ASSERT_EQ(timelineVec[0].coreName, "core0.veccore0");
-    ASSERT_EQ(timelineVec[0].lineName, "MarkStamp1551");
+    ASSERT_EQ(timelineVec[0].lineName, "Instr1551");
     ASSERT_EQ(timelineVec[0].start, 100);
     ASSERT_EQ(timelineVec[0].duration, 50);
 }
@@ -187,22 +187,22 @@ TEST_F(BiuTimelineTest, test_ParseSingleBiuTimeStamps_instr_timeline_success)
 /* | 用例集 | BiuTimelineTest
 /* |测试函数| InstrBiuTimeline::PrintPipeIdFull()
 /* | 用例名 | test_PrintPipeIdFull_parse_log_success
-/* |用例描述| 测试PrintPipeIdFull，解析tune日志正常，id达到512以上的pipe日志提示
+/* |用例描述| 测试PrintPipeIdFull，解析tune日志正常，id达到1024以上的pipe日志提示
 */
 TEST_F(BiuTimelineTest, test_PrintPipeIdFull_parse_log_success)
 {
     ofstream file("test/ut/resources/dump/dfx_tune.log");
     ASSERT_TRUE(file.is_open());
-    file << "TUNE-ERROR:all dfx ids consumed[pipe=mte2]" << endl;
-    file << "TUNE-ERROR:all dfx ids consumed[pipe=mte3]" << endl;
-    file << "TUNE-ERROR:all dfx ids consumed[pipe=cube]" << endl;
+    file << "TUNE-ERROR: all dfx ids consumed[pipe=mte2]" << endl;
+    file << "TUNE-ERROR: all dfx ids consumed[pipe=mte3]" << endl;
+    file << "TUNE-ERROR: all dfx ids consumed[pipe=cube]" << endl;
     file.close();
     InstrBiuTimeline instrBiuTimeline;
     instrBiuTimeline.outputPath_ = "test/ut/resources";
     testing::internal::CaptureStdout();
     instrBiuTimeline.PrintPipeIdFull();
     std::string capture = testing::internal::GetCapturedStdout();
-    EXPECT_NE(capture.find("InstrTimeline of pipes[cube, mte2, mte3] is incomplete because these pipes have more than 512 instructions."), std::string::npos);
+    EXPECT_NE(capture.find("InstrTimeline of pipes[cube, mte2, mte3] is incomplete because these pipes have more than 1024 instructions."), std::string::npos);
 }
 
 /**
@@ -287,4 +287,72 @@ TEST_F(BiuTimelineTest, test_UpdateEndMarks_full_sequence)
         ASSERT_EQ(biuTimeline.channelEndMarkMap_[1].nextExpectedIdx, i + 1);
     }
     ASSERT_EQ(biuTimeline.channelEndMarkMap_[1].nextExpectedIdx, 8);
+}
+
+/**
+/* | 用例集 | BiuTimelineTest
+/* |测试函数| InstrBiuTimeline::ParseDfxMapInfo()
+/* | 用例名 | test_ParseDfxMapInfo_file_not_exist
+/* |用例描述| 测试ParseDfxMapInfo，文件不存在时直接返回
+*/
+TEST_F(BiuTimelineTest, test_ParseDfxMapInfo_file_not_exist)
+{
+    InstrBiuTimeline instrBiuTimeline;
+    instrBiuTimeline.outputPath_ = "test/ut/resources/nonexistent_path";
+    instrBiuTimeline.ParseDfxMapInfo();
+    ASSERT_TRUE(instrBiuTimeline.dfxRegionInfoMap_.empty());
+}
+
+/**
+/* | 用例集 | BiuTimelineTest
+/* |测试函数| InstrBiuTimeline::ParseDfxMapInfo()
+/* | 用例名 | test_ParseDfxMapInfo_parse_success
+/* |用例描述| 测试ParseDfxMapInfo，解析dfx_region_map.txt成功
+*/
+TEST_F(BiuTimelineTest, test_ParseDfxMapInfo_parse_success)
+{
+    std::string mapFileStr = "test/ut/resources/dump/dfx_region_map.txt";
+    ofstream mapFile(mapFileStr);
+    ASSERT_TRUE(mapFile.is_open());
+    mapFile << "region_id=100,pipe=FIXP,some_info,pc=0x1000,opcode=add_op" << endl;
+    mapFile << "region_id=200,pipe=cube,some_info,pc=0x2000,opcode=mul_op" << endl;
+    mapFile << "region_id=300,pipe=invalid,some_info,pc=0x3000,opcode=sub_op" << endl;
+    mapFile << "invalid_line" << endl;
+    mapFile.close();
+    std::string pcStartFileStr = "test/ut/resources/dump/pc_start_addr.txt";
+    ofstream pcStartFile(pcStartFileStr);
+    ASSERT_TRUE(pcStartFile.is_open());
+    pcStartFile << "0x10000" << endl;
+    pcStartFile.close();
+
+    InstrBiuTimeline instrBiuTimeline;
+    instrBiuTimeline.outputPath_ = "test/ut/resources";
+    instrBiuTimeline.ParseDfxMapInfo();
+    ASSERT_EQ(instrBiuTimeline.dfxRegionInfoMap_.size(), 2);
+    ASSERT_EQ(instrBiuTimeline.dfxRegionInfoMap_.count({"FIXP", 100}), 1);
+    ASSERT_EQ(instrBiuTimeline.dfxRegionInfoMap_.count({"CUBE", 200}), 1);
+    ASSERT_EQ(instrBiuTimeline.dfxRegionInfoMap_[std::make_pair("FIXP", 100)].InstrName, "add_op");
+    ASSERT_EQ(instrBiuTimeline.dfxRegionInfoMap_[std::make_pair("CUBE", 200)].InstrName, "mul_op");
+    ASSERT_EQ(instrBiuTimeline.dfxRegionInfoMap_[std::make_pair("FIXP", 100)].pc, 0x11000);
+    ASSERT_EQ(instrBiuTimeline.dfxRegionInfoMap_[std::make_pair("CUBE", 200)].pc, 0x12000);
+    RemoveAll(mapFileStr);
+    RemoveAll(pcStartFileStr);
+}
+
+/**
+/* | 用例集 | BiuTimelineTest
+/* |测试函数| InstrBiuTimeline::GetInstrNameId()
+/* | 用例名 | test_GetInstrNameId_multiple_unique
+/* |用例描述| 测试GetInstrNameId，多个不同名称分配不同id
+*/
+TEST_F(BiuTimelineTest, test_GetInstrNameId_multiple_unique)
+{
+    InstrBiuTimeline instrBiuTimeline;
+    for (size_t i = 0; i < 10; i++) {
+        std::string name = "instr_" + std::to_string(i);
+        size_t id = instrBiuTimeline.GetInstrNameId(name);
+        ASSERT_EQ(id, i);
+    }
+    ASSERT_EQ(instrBiuTimeline.GetInstrNameId("instr_9"), 9);
+    ASSERT_EQ(instrBiuTimeline.instrName2Id_.size(), 10);
 }

@@ -37,19 +37,22 @@ public:
     void SetPcSet(const std::set<uint64_t> &pcSet) { pcSet_ = pcSet; }
     bool GetPcSetByKernelName(const std::string &kernelName);
     bool Parse();
-    uint64_t GetStartPc() const;
+    uint64_t GetStartPc();
     Pc2CodeMap GetPc2Code() const { return pc2code_; }
+    uint64_t AddStartPc2Offset(uint64_t startPC, uint64_t offset) const;
+
 private:
     uint64_t GetStartPcFromTxt() const;
     void GetAllPc(const std::string &start, const std::string &size);
     void GenPc2CodeBySymbol(const std::vector<Symbol> &symbols, uint64_t pc);
-    bool GenPc2Code(const std::vector<Offset2Line>& addr2Lines, uint64_t startPc);
-    uint64_t AddStartPc2Offset(uint64_t startPC, uint64_t offset) const;
+    bool GenPc2Code(const std::vector<Offset2Line> &addr2Lines, uint64_t startPc);
     std::vector<std::string> GetPcOffset(uint64_t startPc);
     std::vector<std::string> Int2Hex(const std::set<uint64_t> &inSet) const;
     std::string dumpPath_;
     std::set<uint64_t> pcSet_;
     Pc2CodeMap pc2code_;
+    uint64_t startPc_{UINT64_MAX};
+    bool startPcCached_{false};
     bool isGetPcOffsetByKernelName_ {false};
 };
 }
