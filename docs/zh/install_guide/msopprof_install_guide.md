@@ -33,7 +33,7 @@
 - 克隆本仓库
 
     ```sh
-    git clone https://gitcode.com/Ascend/msopprof.git
+    git clone https://gitcode.com/Ascend/msopprof.git -b 26.0.0
     ```
 
 - 构建打包
@@ -91,7 +91,17 @@ export PATH=$ASCEND_HOME_PATH/bin:$PATH
 export LD_LIBRARY_PATH=$ASCEND_HOME_PATH/lib64:$LD_LIBRARY_PATH
 ```
 
-## 3. 卸载
+## 3. 验证安装
+
+安装完成后，执行以下命令验证工具是否安装成功：
+
+```shell
+msopprof --help
+```
+
+若输出不报错，且能显示帮助信息，则表明安装成功。
+
+## 4. 卸载
 
 可通过如下步骤卸载：
 
@@ -120,6 +130,8 @@ export LD_LIBRARY_PATH=$ASCEND_HOME_PATH/lib64:$LD_LIBRARY_PATH
    Successfully uninstalled 1 tool ({tools_name})
    ```
 
-## 4. 升级
+## 5. 升级
 
 升级即“先卸后装”。直接执行安装命令，工具将自动卸载旧版本，并引导您完成覆盖安装。
+
+可通过`msopprof --version`命令查看当前环境的版本信息，再选择需要升级的版本。升级版本时需要关注版本配套关系，请参见《[版本说明](https://gitcode.com/Ascend/release-management/blob/master/MindStudio/26.0.0/release_notes.md)》。
