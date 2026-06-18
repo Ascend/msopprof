@@ -21,6 +21,7 @@
 #include "common/defs.h"
 #include "common/hal_helper.h"
 #include "common/visualize.h"
+#include "ustring.h"
 
 using namespace Utility;
 
@@ -239,7 +240,7 @@ void InstrBiuTimeline::ParseDfxRegion(uint16_t dfxRegionId, uint32_t channelId, 
             auto dfxRegionInfo = infoIt->second;
             instrName = dfxRegionInfo.InstrName;
             cName = TOTAL_CNAME_MAP[GetInstrNameId(instrName) % TOTAL_CNAME_MAP.size()];
-            args["pc_addr"] = NumToHexString(dfxRegionInfo.pc, 8);
+            args["pc_addr"] = NumToHexString(dfxRegionInfo.pc, ADDR_SIZE);
             std::string codeAcc;
             if (pc2code_.Find(dfxRegionInfo.pc)) {
                 codeAcc =

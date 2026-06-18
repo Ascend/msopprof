@@ -29,6 +29,7 @@
 namespace Utility {
 constexpr int32_t RADIX_10 = 10;
 constexpr int32_t RADIX_16 = 16;
+constexpr uint8_t ADDR_SIZE = 8;
 
 template<typename Iterator>
 inline std::string Join(Iterator beg, Iterator end, std::string const &sep = " ")

@@ -35,7 +35,8 @@ namespace Profiling {
 class DeviceDataParse : public DataParse {
 public:
     DeviceDataParse(Common::ChipType chipType, Common::PmuEventsId pmuEventsId,
-        Common::ProfMetricsAbilityConfig metrics, const std::string &kernelNameFilter = "");
+        Common::ProfMetricsAbilityConfig metrics, const std::string &kernelNameFilter = "",
+        const std::string &customDotJson = "");
     bool Execute(std::string dataPath) override;
 
 private:
@@ -75,6 +76,7 @@ private:
     Common::ChipType chipType_;
     ChipProductType chipProductType_;
     Common::PmuEventsId pmuEventsId_;
+    std::string customDotJson_;
     // range replay duration map: map<pair<streamId, taskId>, vector<char>>
     std::map<std::pair<uint16_t, uint16_t>, std::vector<char>> rangeReplayDurBinMap_;
 };

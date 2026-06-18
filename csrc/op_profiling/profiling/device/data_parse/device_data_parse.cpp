@@ -29,8 +29,8 @@ using namespace std;
 
 namespace Profiling {
 DeviceDataParse::DeviceDataParse(Common::ChipType chipType, PmuEventsId pmuEventsId, ProfMetricsAbilityConfig metrics,
-    const std::string &kernelNameFilter)
-    : DataParse(std::move(metrics), kernelNameFilter), chipType_(chipType), pmuEventsId_(pmuEventsId) {
+    const std::string &kernelNameFilter, const std::string &customDotJson)
+    : DataParse(std::move(metrics), kernelNameFilter), chipType_(chipType), pmuEventsId_(pmuEventsId), customDotJson_(customDotJson) {
     // register different profiling data handler
     chipInfoMap_ = {{ChipType::ASCEND950, {MetricHeaderForA5, Common::AIC_EVENTS_FOR_A5,
                         Common::AIV_EVENTS_FOR_A5}},
@@ -143,8 +143,9 @@ unique_ptr<RoofLine> &GetRoofLineObj(unique_ptr<DataHandler> &handler, shared_pt
 }
 
 unique_ptr<Visualize::TimelineParser> &GetTimelineObj(unique_ptr<DataHandler> &handler,
-                                                           shared_ptr<OpBasicInfo> &opBasicInfoObj,
-                                                           shared_ptr<BasicPmu> &basicPmuObj)
+                                                      shared_ptr<OpBasicInfo> &opBasicInfoObj,
+                                                      shared_ptr<BasicPmu> &basicPmuObj,
+                                                      const std::string &customDotJson)
 {
     static unique_ptr<Visualize::TimelineParser> parserPtr;
     if (handler == nullptr || opBasicInfoObj == nullptr || basicPmuObj == nullptr) {
@@ -159,7 +160,7 @@ unique_ptr<Visualize::TimelineParser> &GetTimelineObj(unique_ptr<DataHandler> &h
         handler->GetMinLcclTimeCyc(), opBasicInfoObj, basicPmuObj);
     } else {
         parserPtr = Utility::MakeUnique<Visualize::AicoreTimelineParser>(
-        handler->GetMinTimeCyc(), opBasicInfoObj, basicPmuObj);
+        handler->GetMinTimeCyc(), opBasicInfoObj, basicPmuObj, customDotJson);
     }
     return parserPtr;
 }
@@ -212,7 +213,7 @@ bool DeviceDataParse::ParseExactKernelData(const string &path, const string &ker
     auto &storageAccessObj = GetStorageAccessObj(chipType_, opBasicInfoObj, basicPmuObj, pmuCalculatorObj);
     auto &occupancyObj = GetOccupancyObj(chipType_, opBasicInfoObj, basicPmuObj);
     auto &roofLineObj = GetRoofLineObj(handler, opBasicInfoObj, basicPmuObj, pmuCalculatorObj);
-    auto &timelineObj = GetTimelineObj(handler, opBasicInfoObj, basicPmuObj);
+    auto &timelineObj = GetTimelineObj(handler, opBasicInfoObj, basicPmuObj, customDotJson_);
     auto &biuTimelineObj = GetBiuTimelineObj(metrics_);
     auto cachelineHeatMapObj = GetCachelineHeatMapObj(handler);
     if (!storageAccessObj || !occupancyObj || !roofLineObj || !timelineObj || !biuTimelineObj || !cachelineHeatMapObj) {

@@ -27,15 +27,14 @@ std::vector<std::vector<std::string>> MergeAddrRange(const std::set<uint64_t> &a
     if (addrSet.empty()) {
         return {};
     }
-    const uint8_t addrSize{8U};
     std::vector<std::vector<std::string>> addrRange{};
     std::vector<uint64_t> pcList(addrSet.begin(), addrSet.end());
     if (UINT64_MAX - startPc < pcList[0]) {
         Utility::LogDebug("Add overflow, can not add startPc");
         return {};
     }
-    std::vector<std::string> pcListTemp = {Utility::NumToHexString(pcList[0] + startPc, addrSize),
-                                           Utility::NumToHexString(pcList[0] + startPc, addrSize)};
+    std::vector<std::string> pcListTemp = {Utility::NumToHexString(pcList[0] + startPc, ADDR_SIZE),
+                                           Utility::NumToHexString(pcList[0] + startPc, ADDR_SIZE)};
     addrRange.emplace_back(pcListTemp);
     for (size_t i = 1; i < pcList.size(); i++) {
         uint64_t pc = pcList[i];
@@ -51,9 +50,9 @@ std::vector<std::vector<std::string>> MergeAddrRange(const std::set<uint64_t> &a
             return {};
         }
         if (pc - pcCurMax <= PC_ADDR_ESS_GAP) {
-            addrRange.back()[1] = Utility::NumToHexString(pc, addrSize);
+            addrRange.back()[1] = Utility::NumToHexString(pc, ADDR_SIZE);
         } else {
-            pcListTemp = {Utility::NumToHexString(pc, addrSize), Utility::NumToHexString(pc, addrSize)};
+            pcListTemp = {Utility::NumToHexString(pc, ADDR_SIZE), Utility::NumToHexString(pc, ADDR_SIZE)};
             addrRange.emplace_back(pcListTemp);
         }
     }

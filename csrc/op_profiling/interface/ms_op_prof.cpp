@@ -78,6 +78,7 @@ ArgParser BuildDeviceArgParser(ProfArgs &args)
     argParser.Add(Option<std::string>('\0', "warm-up", "STRING", args.argWarmUp));
     argParser.Add(Option<std::string>('\0', "dump", "STRING", args.argDump));
     argParser.Add(Option<std::string>('\0', "core-id", "STRING", args.argCoreId));
+    argParser.Add(Option<std::string>('\0', "custom-input", "ConfigPath", args.argCustomInput));
     argParser.Add(Option<std::string>('\0', "instr-timeline-pipe", "STRING", args.argInstrTimelinePipe));
     return argParser;
 }
@@ -198,6 +199,7 @@ void PrintDeviceHelp(ChipType chipType)
                      "only effective when --aic-metrics=TimelineDetail and only effective in simulation products."
                      << std::endl;
     }
+    std::cout << "   --custom-input                       <Optional> Json file for op custom input." << std::endl;
 }
 
 void PrintSimulatorHelp(void)
@@ -234,7 +236,9 @@ void PrintSimulatorHelp(void)
 
 void PrintErrorMsg(std::string const &msg)
 {
-    LogError("%s", msg.c_str());
+    if (!msg.empty()) {
+        LogError("%s", msg.c_str());
+    }
     LogInfo("Use msprof op --help or msprof op simulator --help for more details");
 }
 

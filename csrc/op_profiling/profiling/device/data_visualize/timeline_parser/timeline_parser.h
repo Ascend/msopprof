@@ -28,6 +28,7 @@
 #include "profapi/profapi.h"
 #include "profiling/simulator/data_parse/sim_defs.h"
 #include "common/hal_helper.h"
+#include "common/visualize.h"
 namespace Visualize {
 using json = nlohmann::json;
 
@@ -42,7 +43,6 @@ constexpr uint16_t A5_VEC_END_RANGE_TWO = 107;
 constexpr uint32_t TIME_STAMP_START = 0xffff;
 constexpr char const *AIC_BLOCK = "AIC BLOCK";
 constexpr char const *AIV_BLOCK = "AIV BLOCK";
-
 
 struct JsonEvent {
     inline void ToJson(nlohmann::json &jsonData) const
@@ -85,7 +85,7 @@ public:
         }
     virtual bool TimelineToJson(const std::string &outputPath) = 0;
     void AddAicoreDuration(uint64_t startTime);
-    void ProcessAicoreBlockDur();
+    void ProcessAicoreBlockDur(bool enableTimeDetail = true);
     nlohmann::json GetTimelineJson() { return timelineJson_; }
     ChipProductType GetChipTypeSeries() { return chipType_; }
     float GetRunTime(uint64_t freq, int64_t cycles);

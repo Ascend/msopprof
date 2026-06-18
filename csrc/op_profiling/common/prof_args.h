@@ -139,6 +139,7 @@ struct ProfArgs {
     std::string argTimeout;
     std::string argDump {"off"};
     std::string argInstrTimelinePipe{};
+    std::string argCustomInput;
     std::vector<std::string> cmd { };
     OpRunner::KernelConfig kernelConfig;
 };

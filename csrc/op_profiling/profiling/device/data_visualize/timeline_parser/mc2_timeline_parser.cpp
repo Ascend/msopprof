@@ -23,7 +23,6 @@
 #include "number_operation.h"
 #include "ustring.h"
 #include "common/hal_helper.h"
-#include "common/visualize.h"
 #include "profiling/op_prof_data_parse.h"
 #include "parse/data_parser/parser_utils/parse_pc_code.h"
 
@@ -32,7 +31,6 @@ using namespace std;
 
 namespace Visualize {
 constexpr uint64_t B_TO_GB = 1024 * 1024 * 1024;
-constexpr uint16_t COLORNUM = 9; // total 9 color in cnames
 constexpr uint16_t MSPROF_REPORT_AICPU_LEVEL = 6000;
 constexpr uint16_t MSPROF_REPORT_AICPU_MC2_EXECUTE_COMM_TIME = 4; // communication time
 constexpr uint16_t MSPROF_REPORT_AICPU_MC2_BATCH_HCCL_INFO = 13;  // hccl task info
@@ -65,10 +63,59 @@ struct HcclTask {
     static constexpr char const *INVALID_TYPE = "INVALID_TYPE";
 };
 
-const vector<string> HCCL_CNAME_MAP = {
-    string(VISUALIZE_COLOR_NAME::GRASS_GREEN), string(VISUALIZE_COLOR_NAME::GREEN),  string(VISUALIZE_COLOR_NAME::PINK),
-    string(VISUALIZE_COLOR_NAME::YELLOW),      string(VISUALIZE_COLOR_NAME::PURPLE), string(VISUALIZE_COLOR_NAME::BLUE),
-    string(VISUALIZE_COLOR_NAME::ORANGE),      string(VISUALIZE_COLOR_NAME::CYAN),   string(VISUALIZE_COLOR_NAME::RED)
+struct AiCoreDot {
+    static constexpr char const *INIT = "INIT";
+    static constexpr char const *COMMIT = "COMMIT";
+    static constexpr char const *WAIT = "WAIT";
+    static constexpr char const *QUERY = "QUERY";
+    static constexpr char const *FINALIZE = "FINALIZE";
+    static constexpr char const *GROUP_SYNC = "GROUP_SYNC";
+    static constexpr char const *GET_WIN_IN = "GET_WINDOW_IN";
+    static constexpr char const *GET_WIN_OUT = "GET_WINDOW_OUT";
+    static constexpr char const *GET_RANK_ID = "GET_RANK_ID";
+    static constexpr char const *GET_RANK_DIM = "GET_RANK_DIM";
+    static constexpr char const *SET_CCTILING = "SET_CCTILING";
+    static constexpr char const *ALL_REDUCE = "ALL_REDUCE_PREPARE";
+    static constexpr char const *ALL_GATHER = "ALL_GATHER_PREPARE";
+    static constexpr char const *REDUCE_SCATTER = "REDUCE_SCATTER_PREPARE";
+    static constexpr char const *ALL_TO_ALL = "ALL_TO_ALL_PREPARE";
+    static constexpr char const *ALL_TO_ALL_V = "ALL_TO_ALL_V_PREPARE";
+};
+
+const std::map<uint32_t, std::string> AICORE_DOT_MAP = {
+    // start都是偶数，end都是奇数（start+1）
+    {0x1000, std::string(AiCoreDot::INIT)},
+    {0x1001, std::string(AiCoreDot::INIT)},
+    {0x1010, std::string(AiCoreDot::COMMIT)},
+    {0x1011, std::string(AiCoreDot::COMMIT)},
+    {0x1020, std::string(AiCoreDot::WAIT)},
+    {0x1021, std::string(AiCoreDot::WAIT)},
+    {0x1030, std::string(AiCoreDot::QUERY)},
+    {0x1031, std::string(AiCoreDot::QUERY)},
+    {0x1040, std::string(AiCoreDot::FINALIZE)},
+    {0x1041, std::string(AiCoreDot::FINALIZE)},
+    {0x1050, std::string(AiCoreDot::GROUP_SYNC)},
+    {0x1051, std::string(AiCoreDot::GROUP_SYNC)},
+    {0x1060, std::string(AiCoreDot::GET_WIN_IN)},
+    {0x1061, std::string(AiCoreDot::GET_WIN_IN)},
+    {0x1062, std::string(AiCoreDot::GET_WIN_OUT)},
+    {0x1063, std::string(AiCoreDot::GET_WIN_OUT)},
+    {0x1064, std::string(AiCoreDot::GET_RANK_ID)},
+    {0x1065, std::string(AiCoreDot::GET_RANK_ID)},
+    {0x1066, std::string(AiCoreDot::GET_RANK_DIM)},
+    {0x1067, std::string(AiCoreDot::GET_RANK_DIM)},
+    {0x1068, std::string(AiCoreDot::SET_CCTILING)},
+    {0x1069, std::string(AiCoreDot::SET_CCTILING)},
+    {0x1100, std::string(AiCoreDot::ALL_REDUCE)},
+    {0x1101, std::string(AiCoreDot::ALL_REDUCE)},
+    {0x1110, std::string(AiCoreDot::ALL_GATHER)},
+    {0x1111, std::string(AiCoreDot::ALL_GATHER)},
+    {0x1120, std::string(AiCoreDot::REDUCE_SCATTER)},
+    {0x1121, std::string(AiCoreDot::REDUCE_SCATTER)},
+    {0x1130, std::string(AiCoreDot::ALL_TO_ALL)},
+    {0x1131, std::string(AiCoreDot::ALL_TO_ALL)},
+    {0x1140, std::string(AiCoreDot::ALL_TO_ALL_V)},
+    {0x1141, std::string(AiCoreDot::ALL_TO_ALL_V)}
 };
 
 const map<string, string> AICORE_CNAME_MAP = {
@@ -315,9 +362,7 @@ json MC2TimelineParser::BuildAicoreDot(const OperationInfo& info, const string& 
     resultItem["tid"] = info.blockId;
     resultItem["ts"] = static_cast<float>(SafeSub(info.startSyscyc, minSysCyc_, location, false)) / aicpuFreq_
         * TIME_CONVERSION;
-    std::stringstream ss;
-    ss << std::hex << info.startCurPc;
-    resultItem["args"]["pc_addr"] = "0x" + ss.str();
+    resultItem["args"]["pc_addr"] = NumToHexString(info.startCurPc, ADDR_SIZE);
     if (pc2code_.Find(info.startCurPc)) {
         codeAcc = accumulate(pc2code_[info.startCurPc].begin(),
                              pc2code_[info.startCurPc].end(),
@@ -514,7 +559,7 @@ void MC2TimelineParser::ProcessHcclData()
         }
         JsonEvent event = {
             taskTypeStr,
-            HCCL_CNAME_MAP[taskType % COLORNUM],
+            TOTAL_CNAME_MAP[taskType % TOTAL_CNAME_MAP.size()],
             "X",
             HCCL_PID,
             HCCL_TID + to_string(streamId),

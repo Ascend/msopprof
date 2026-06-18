@@ -293,3 +293,22 @@ TEST(StoullConverter, test_StollConverter_expect_return_false)
     // 非法字符
     ASSERT_FALSE(StoullConverter("G1", num, RADIX_16));
 }
+
+/**
+ * |  用例集  | NumToHexString
+ * | 测试函数 | NumToHexString
+ * |  用例名  | test_NumToHexString_expect_correct_format
+ * | 用例描述 | 测试NumToHexString转换为正确十六进制字符串
+ */
+TEST(NumToHexString, test_NumToHexString_expect_correct_format)
+{
+    // 测试无前导零填充
+    auto result = NumToHexString(255);
+    EXPECT_EQ(result, "0xff");
+    // 测试前导零填充
+    result = NumToHexString(0xff, 8);
+    EXPECT_EQ(result, "0x000000ff");
+    // 测试size小于实际位数时不截断
+    result = NumToHexString(UINT64_MAX);
+    EXPECT_EQ(result, "0xffffffffffffffff");
+}

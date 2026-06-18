@@ -40,8 +40,9 @@ struct OperationInfo {
 
 class AicoreTimelineParser : public TimelineParser {
 public:
-    AicoreTimelineParser(uint64_t minTimeCyc, std::shared_ptr<OpBasicInfo> &opBasicInfoObj, std::shared_ptr<BasicPmu> &basicPmuObj)
-        : TimelineParser(minTimeCyc, opBasicInfoObj, basicPmuObj)
+    AicoreTimelineParser(uint64_t minTimeCyc, std::shared_ptr<OpBasicInfo> &opBasicInfoObj, std::shared_ptr<BasicPmu> &basicPmuObj,
+                         const std::string &customDotJson = "")
+        : TimelineParser(minTimeCyc, opBasicInfoObj, basicPmuObj), customDotJson_(customDotJson)
         {
             for (const auto &pair: basicPmuObj->GetTotalPmuData()) {
                 if (pair.second.blockType == Common::OpType::VECTOR) {
@@ -59,8 +60,14 @@ public:
 private:
     ChipProductType chipSeries_;
     void GetTimeStampType(std::vector<MsprofAicTimeStampInfo> &infos, std::vector<MsprofAicTimeStampInfoUpdate> &aicoreTimeStamps);
+    void ParseCustomDotJson();
+    void ParseDescIdDisplay(const nlohmann::json &descIdDisplayJson);
     uint32_t aicBlocKNum_ = 0;
     uint32_t aivBlockNum_ = 0;
+    std::string customDotJson_;
+    static std::map<uint64_t, std::string> descIdDisplay_;
+    static bool enableBlockTime_;
+    static bool descIdDisplayCached_;
     std::map<std::tuple<uint32_t, uint32_t, std::string>, std::vector<OperationInfo>> timeStampInfo_;
 };
 

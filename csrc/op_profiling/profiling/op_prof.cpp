@@ -63,6 +63,7 @@ OpProf::OpProf(const Common::ProfArgs &args)
     cmd_ = args.cmd;
     output_ = args.argOutput;
     config_ = args.argConfig;
+    customDotJson_ = args.argCustomInput;
     kernelConfig_ = args.kernelConfig;
     if (args.argDump != "on") {
         ChipProductType chipType = GetChipType(args);

@@ -81,7 +81,6 @@ struct VISUALIZE_COLOR_NAME {
     static constexpr char const *ORANGE = "startup";
     static constexpr char const *CYAN = "background_memory_dump";
     static constexpr char const *RED = "rail_response";
-    // add three color names
     static constexpr char const *VIVID_BLUE = "thread_state_uninterruptible";
     static constexpr char const *AMETHYST_PURPLE = "head_dump_object_type";
     static constexpr char const *SKY_BLUE = "cq_build_attempt_passed";

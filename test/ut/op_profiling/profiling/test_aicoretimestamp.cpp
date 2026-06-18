@@ -34,6 +34,7 @@
 #include "common/defs.h"
 #include "filesystem.h"
 #include "json_parser.h"
+#include "json_defs.h"
 #include "cmd_execute.h"
 
 using namespace Utility;
@@ -55,7 +56,7 @@ shared_ptr<Visualize::BasicPmu> &GetbasicPmuObj(const std::string &type)
         basicPmuPtr->totalPmuData_ = {
             {{0, "cube0"}, {{}, 10000000, "cube", {0, 1000}}},
             {{0, "vector0"}, {{}, 2000000, "vector", {0, 1000}}},
-            {{0, "vector1"}, {{}, 2000000, "vector", {0, 1000}}}, 
+            {{0, "vector1"}, {{}, 2000000, "vector", {0, 1000}}},
         };
     } else if (type == "vector") {
         basicPmuPtr->totalPmuData_ = {
@@ -144,4 +145,85 @@ TEST(AicoreTimelineParser, test_GetTimeStampType_should_return_true)
     ASSERT_STREQ(timeStamps[3].type.c_str(), "AIV BLOCK");
     ASSERT_STREQ(timeStamps[4].type.c_str(), "AIV BLOCK");
     ASSERT_STREQ(timeStamps[5].type.c_str(), "AIV BLOCK");
+}
+
+/**
+ * |  用例集  | AicoreTimelineParser
+ * | 测试函数 | ParseCustomDotJson
+ * |  用例名  | test_ParseCustomDotJson_with_empty_path_expect_no_change
+ * | 用例描述 | 测试空路径时不修改enableBlockTime_和descIdDisplay_
+ */
+TEST(AicoreTimelineParser, test_ParseCustomDotJson_with_empty_path_expect_no_change)
+{
+    AicoreTimelineParser::descIdDisplay_.clear();
+    AicoreTimelineParser::descIdDisplayCached_ = false;
+    AicoreTimelineParser parser(0, GetOpBasicInfoObj(), GetbasicPmuObj("vector"), "");
+    parser.ParseCustomDotJson();
+    EXPECT_TRUE(parser.enableBlockTime_);
+    EXPECT_EQ(parser.descIdDisplay_.size(), 0);
+}
+
+/**
+ * |  用例集  | AicoreTimelineParser
+ * | 测试函数 | ParseDescIdDisplay
+ * |  用例名  | test_ParseDescIdDisplay_with_valid_input_expect_success
+ * | 用例描述 | 测试descIdDisplay解析十进制和十六进制key正确
+ */
+TEST(AicoreTimelineParser, test_ParseDescIdDisplay_with_valid_input_expect_success)
+{
+    AicoreTimelineParser::descIdDisplay_.clear();
+    AicoreTimelineParser::descIdDisplayCached_ = false;
+    nlohmann::json descIdJson;
+    descIdJson["65536"] = "NOP";
+    descIdJson["0x10"] = "LOAD";
+    descIdJson["0x10001"] = "STORE";
+    descIdJson["0X10002"] = "COMPUTE";
+    AicoreTimelineParser parser(0, GetOpBasicInfoObj(), GetbasicPmuObj("vector"), "mock_path.json");
+    parser.ParseDescIdDisplay(descIdJson);
+    EXPECT_EQ(parser.descIdDisplay_.size(), 4);
+    EXPECT_EQ(parser.descIdDisplay_[65536], "NOP");
+    EXPECT_EQ(parser.descIdDisplay_[16], "LOAD");
+    EXPECT_EQ(parser.descIdDisplay_[65537], "STORE");
+    EXPECT_EQ(parser.descIdDisplay_[65538], "COMPUTE");
+}
+
+/**
+ * |  用例集  | AicoreTimelineParser
+ * | 测试函数 | ParseDescIdDisplay
+ * |  用例名  | test_ParseDescIdDisplay_with_invalid_key_expect_skip_invalid
+ * | 用例描述 | 测试无效key时跳过该条目继续解析
+ */
+TEST(AicoreTimelineParser, test_ParseDescIdDisplay_with_invalid_key_expect_skip_invalid)
+{
+    AicoreTimelineParser::descIdDisplay_.clear();
+    AicoreTimelineParser::descIdDisplayCached_ = false;
+    nlohmann::json descIdJson;
+    descIdJson["abc"] = "INVALID_KEY";
+    descIdJson["0x"] = "EMPTY_HEX";
+    descIdJson["1"] = "VALID_NUM";
+    AicoreTimelineParser parser(0, GetOpBasicInfoObj(), GetbasicPmuObj("vector"), "");
+    parser.ParseDescIdDisplay(descIdJson);
+    EXPECT_EQ(parser.descIdDisplay_.size(), 1);
+    EXPECT_EQ(parser.descIdDisplay_[1], "VALID_NUM");
+}
+
+/**
+ * |  用例集  | AicoreTimelineParser
+ * | 测试函数 | ParseDescIdDisplay
+ * |  用例名  | test_ParseDescIdDisplay_with_invalid_value_expect_skip_invalid
+ * | 用例描述 | 测试无效value时跳过该条目继续解析
+ */
+TEST(AicoreTimelineParser, test_ParseDescIdDisplay_with_invalid_value_expect_skip_invalid)
+{
+    AicoreTimelineParser::descIdDisplay_.clear();
+    AicoreTimelineParser::descIdDisplayCached_ = false;
+    nlohmann::json descIdJson;
+    descIdJson["0"] = "VALID_VALUE";
+    descIdJson["1"] = 123;
+    descIdJson["2"] = "invalid@chars!";
+    descIdJson["3"] = std::string(65, 'a');
+    AicoreTimelineParser parser(0, GetOpBasicInfoObj(), GetbasicPmuObj("vector"), "");
+    parser.ParseDescIdDisplay(descIdJson);
+    EXPECT_EQ(parser.descIdDisplay_.size(), 1);
+    EXPECT_EQ(parser.descIdDisplay_[0], "VALID_VALUE");
 }

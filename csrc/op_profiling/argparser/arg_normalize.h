@@ -32,6 +32,7 @@ private:
     bool NormalizeOutput(Common::ProfArgs &config, std::string &msg) const;
     bool NormalizeExport(Common::ProfArgs &config, std::string &msg) const;
     bool NormalizeConfig(Common::ProfArgs &config, std::string &msg) const;
+    bool NormalizeCustomInput(Common::ProfArgs &config, std::string &msg) const;
     bool NormalizeOptionPath(std::string &configOpt, std::string &msg, std::string msgOption) const;
 
     std::vector<NormalizeFunc> normalizeFunc_;

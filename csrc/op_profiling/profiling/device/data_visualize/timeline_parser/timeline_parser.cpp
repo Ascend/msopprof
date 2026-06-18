@@ -52,7 +52,7 @@ void TimelineParser::AddAicoreDuration(uint64_t startTime)
         LogDebug("Faile to calculate ai_core duration.");
         return;
     }
-    float duration =  opBasicInfoObj_->GetDuration(); 
+    float duration =  opBasicInfoObj_->GetDuration();
     JsonEvent event = {
         "AI_CORE", string(VISUALIZE_COLOR_NAME::GRASS_GREEN), "X", "AI CORE", "AI_CORE",
         static_cast<float>(SafeSub(startTime, minSysCyc_, "Aicore Dur", false)) / aicpuFreq_ * TIME_CONVERSION,
@@ -63,7 +63,7 @@ void TimelineParser::AddAicoreDuration(uint64_t startTime)
     timelineJson_.emplace_back(jsonData);
 }
 
-void TimelineParser::ProcessAicoreBlockDur()
+void TimelineParser::ProcessAicoreBlockDur(bool enableTimeDetail)
 {
     std::set<uint16_t> aicDotBlockIds;
     std::set<uint16_t> aivDotBlockIds;
@@ -97,14 +97,23 @@ void TimelineParser::ProcessAicoreBlockDur()
             }
             blockDuration_[{recordType, dots}] = timeVec[i];
             resultItem["cname"] = cName;
-            resultItem["dur"] = GetRunTime(aicpuFreq_, SafeSub(timeVec[i].second, timeVec[i].first, location, false));
-            resultItem["name"] = recordType + std::to_string(dots);
             resultItem["ph"] = "X";
             resultItem["pid"] = recordType;
             resultItem["tid"] = dots;
-            resultItem["ts"] = GetRunTime(aicpuFreq_, SafeSub(timeVec[i].first, minSysCyc_, location, false));
-            timelineJson_.push_back(resultItem);
-
+            if (enableTimeDetail) {
+                resultItem["name"] = recordType + std::to_string(dots);
+                resultItem["ts"] = GetRunTime(aicpuFreq_, SafeSub(timeVec[i].first, minSysCyc_, location, false));
+                resultItem["dur"] = GetRunTime(aicpuFreq_, SafeSub(timeVec[i].second, timeVec[i].first, location, false));
+                timelineJson_.push_back(resultItem);
+            } else {
+                resultItem["dur"] = 0;
+                resultItem["name"] = recordType + std::to_string(dots) + " START";
+                resultItem["ts"] = GetRunTime(aicpuFreq_, SafeSub(timeVec[i].first, minSysCyc_, location, false));
+                timelineJson_.push_back(resultItem);
+                resultItem["name"] = recordType + std::to_string(dots) + " END";
+                resultItem["ts"] = GetRunTime(aicpuFreq_, SafeSub(timeVec[i].second, minSysCyc_, location, false));
+                timelineJson_.push_back(resultItem);
+            }
         }
     }
     SortTimelineByIds(aicDotBlockIds, aivDotBlockIds);

@@ -683,13 +683,13 @@ TEST(ArgChecker, test_CheckOutputPathValid_with_warning_and_invalid_cases) {
 TEST(ArgChecker, test_ArgChecker_size_expect_return_true)
 {
     ArgChecker checker1("device");
-    ASSERT_TRUE(checker1.checkers_.size() == 15);
+    ASSERT_TRUE(checker1.checkers_.size() == 16);
 
     ArgChecker checker2("simulator");
     ASSERT_TRUE(checker2.checkers_.size() == 13);
 
     ArgChecker checker3("");
-    ASSERT_TRUE(checker3.checkers_.size() == 15);
+    ASSERT_TRUE(checker3.checkers_.size() == 16);
     GlobalMockObject::verify();
 }
 
@@ -927,4 +927,44 @@ TEST(ArgChecker, test_CheckInstrTimelinePipe_expect_return_false)
     args.argAicMetrics.instrTimelineEnable = true;
     ASSERT_FALSE(checker.CheckInstrTimelinePipe(args, msg));
     ASSERT_TRUE(msg.find("only support pipes in [cube fixp vector mte1 mte2 mte3]") != std::string::npos);
+}
+
+/**
+* |  用例集 | ArgChecker
+* | 测试函数 | CheckCustomInput
+* |  用例名  | test_CheckCustomInput_expect_return_true
+* | 用例描述 | 测试custom-input参数返回true
+*/
+TEST(ArgChecker, test_CheckCustomInput_expect_return_true)
+{
+    ArgChecker checker("device");
+    Common::ProfArgs args;
+    std::string msg;
+    args.argCustomInput = "";
+    ASSERT_TRUE(checker.CheckCustomInput(args, msg));
+    args.argCustomInput = "test/ut/resources/config_json/test_custom_input.json";
+    MOCKER(&Utility::CheckInputFileValid)
+        .stubs()
+        .will(returnValue(true));
+    ASSERT_TRUE(checker.CheckCustomInput(args, msg));
+    GlobalMockObject::verify();
+}
+
+/**
+* |  用例集 | ArgChecker
+* | 测试函数 | CheckCustomInput
+* |  用例名  | test_CheckCustomInput_expect_return_false
+* | 用例描述 | 测试无效文件时CheckCustomInput返回false
+*/
+TEST(ArgChecker, test_CheckCustomInput_expect_return_false)
+{
+    ArgChecker checker("device");
+    Common::ProfArgs args;
+    std::string msg;
+    args.argCustomInput = "test/ut/resources/config_json/not_exist.json";
+    MOCKER(&Utility::CheckInputFileValid)
+        .stubs()
+        .will(returnValue(false));
+    ASSERT_FALSE(checker.CheckCustomInput(args, msg));
+    GlobalMockObject::verify();
 }

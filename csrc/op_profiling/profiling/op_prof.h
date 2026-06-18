@@ -47,6 +47,7 @@ public:
     std::vector<std::string> cmd_;
     std::string output_;
     std::string config_;
+    std::string customDotJson_;
     OpRunner::KernelConfig kernelConfig_;
 };
 

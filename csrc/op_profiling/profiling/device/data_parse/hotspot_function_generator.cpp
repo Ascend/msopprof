@@ -33,7 +33,6 @@ using namespace Utility;
 namespace Profiling {
 
 static constexpr uint64_t INSTR_SIZE = 4;
-static constexpr uint64_t ADDR_SIZE = 8;
 static constexpr float PERCENTAGE = 100;
 static constexpr int PC_SAMPLING_DATA_LEN = 16;
 static constexpr int PC_SAMPLING_DATA_STATUS_OFFSET = 3;

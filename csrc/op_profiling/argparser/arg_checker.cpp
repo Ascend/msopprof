@@ -126,6 +126,7 @@ ArgChecker::ArgChecker(const std::string &runMode)
         checkers_.emplace_back(&ArgChecker::CheckReplayMode);
         checkers_.emplace_back(&ArgChecker::CheckWarmUp);
         checkers_.emplace_back(&ArgChecker::CheckInstrTimelinePipe);
+        checkers_.emplace_back(&ArgChecker::CheckCustomInput);
     }
 }
 
@@ -569,6 +570,17 @@ bool ArgChecker::CheckInstrTimelinePipe(const Common::ProfArgs &config, std::str
             msg = "--instr-timeline-pipe only support pipes in [cube fixp vector mte1 mte2 mte3] and separated by '|'.";
             return false;
         }
+    }
+    return true;
+}
+
+bool ArgChecker::CheckCustomInput(const Common::ProfArgs &config, std::string &msg) const
+{
+    if (config.argCustomInput.empty()) {
+        return true;
+    }
+    if (!CheckInputFileValid(config.argCustomInput, "json", MAX_JSON_FILE_SIZE, "custom-input")) {
+        return false;
     }
     return true;
 }

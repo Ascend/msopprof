@@ -28,6 +28,7 @@ ArgNormalize::ArgNormalize(void)
     normalizeFunc_.emplace_back(&ArgNormalize::NormalizeOutput);
     normalizeFunc_.emplace_back(&ArgNormalize::NormalizeExport);
     normalizeFunc_.emplace_back(&ArgNormalize::NormalizeConfig);
+    normalizeFunc_.emplace_back(&ArgNormalize::NormalizeCustomInput);
 }
 
 bool ArgNormalize::Normalize(Common::ProfArgs &config, std::string &msg) const
@@ -104,6 +105,14 @@ bool ArgNormalize::NormalizeConfig(Common::ProfArgs &config, std::string &msg) c
         return true;
     }
     return NormalizeOptionPath(config.argConfig, msg, "config");
+}
+
+bool ArgNormalize::NormalizeCustomInput(Common::ProfArgs &config, std::string &msg) const
+{
+    if (config.argCustomInput.empty()) {
+        return true;
+    }
+    return NormalizeOptionPath(config.argCustomInput, msg, "custom-input");
 }
 
 bool ArgNormalize::NormalizeOptionPath(std::string &configOpt, std::string &msg, std::string msgOption) const
