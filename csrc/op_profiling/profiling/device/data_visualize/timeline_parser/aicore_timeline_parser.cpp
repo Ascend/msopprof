@@ -162,7 +162,9 @@ void AicoreTimelineParser::ProcessAicoreData(const std::vector<MsprofAicTimeStam
             resultItem["args"]["name"] = std::get<1>(infos.first);
             resultItem["ts"] = GetRunTime(aicpuFreq_, dot.startSyscyc - minSysCyc_);
             resultItem["dur"] = GetRunTime(aicpuFreq_, dot.endSyscyc - dot.startSyscyc);
-
+            std::stringstream ss;
+            ss << std::hex << dot.startCurPc;
+            resultItem["args"]["pc_addr"] = "0x" + ss.str();
             if (pc2code_.Find(dot.startCurPc)) {
                 codeAcc = accumulate(pc2code_[dot.startCurPc].begin(),
                                     pc2code_[dot.startCurPc].end(),
@@ -171,10 +173,8 @@ void AicoreTimelineParser::ProcessAicoreData(const std::vector<MsprofAicTimeStam
                                         return acc.empty() ? s : acc + "\n" + s;
                                     });
                 resultItem["args"]["code"] = codeAcc;
-                resultItem["args"]["pc_addr"] = dot.startCurPc;
             } else {
                 resultItem["args"]["code"] = "";
-                resultItem["args"]["pc_addr"] = "";
             }
             timelineJson_.push_back(resultItem);
         }

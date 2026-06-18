@@ -230,9 +230,8 @@ bool SubcoreTimelineVisualizer::AddScalarHeadEvents(const MergeInfo &instr, cons
         return false;
     }
     int durationCycle = instr.ccuTick - instr.icacheTick;
-    XEvent scalarEvent = {"cache_time", "X", event.pid, event.tid,
-        GetMicrosecond(chipType_, instr.icacheTick, -1),
-        GetMicrosecond(chipType_, durationCycle, -1), event.cName, event.args};
+    XEvent scalarEvent = {"cache_time", "X", event.pid, event.tid, GetMicrosecond(chipType_, instr.icacheTick),
+        GetMicrosecond(chipType_, durationCycle), event.cName, event.args};
 
     nlohmann::json jsonData;
     scalarEvent.ToJson(jsonData);
@@ -240,9 +239,8 @@ bool SubcoreTimelineVisualizer::AddScalarHeadEvents(const MergeInfo &instr, cons
     json.emplace_back(jsonData);
 
     durationCycle = instr.startTick - instr.ccuTick;
-    XEvent ccuEvent = {"ccu_time", "X", event.pid, event.tid,
-        GetMicrosecond(chipType_, instr.ccuTick, -1),
-        GetMicrosecond(chipType_, durationCycle, -1), event.cName, event.args};
+    XEvent ccuEvent = {"ccu_time", "X", event.pid, event.tid, GetMicrosecond(chipType_, instr.ccuTick),
+        GetMicrosecond(chipType_, durationCycle), event.cName, event.args};
 
     ccuEvent.ToJson(jsonData);
     jsonData["group_id"] = groupId;
@@ -272,8 +270,8 @@ void SubcoreTimelineVisualizer::CollectEvents(const std::map<int, std::vector<Me
             // get x event instr info
             uint64_t startCycle = tmpInstr.startTick;
             uint64_t durationCycle = tmpInstr.endTick - tmpInstr.startTick;
-            XEvent xEvent = {tmpInstr.name, "X", pidMap_[tmpInstr.pipe], tid, GetMicrosecond(chipType_, startCycle, -1),
-                GetMicrosecond(chipType_, durationCycle, -1), GetCNameByPipe(tmpInstr.pipe), {}};
+            XEvent xEvent = {tmpInstr.name, "X", pidMap_[tmpInstr.pipe], tid, GetMicrosecond(chipType_, startCycle),
+                GetMicrosecond(chipType_, durationCycle), GetCNameByPipe(tmpInstr.pipe), {}};
             EventArgs evtArgs = {GetPc2String(tmpInstr.pc), Utility::Join(codeStack.begin(), codeStack.end(), "\n"),
                 tmpInstr.detail};
             xEvent.args["pc_addr"] = evtArgs.pcAddr;
@@ -286,14 +284,14 @@ void SubcoreTimelineVisualizer::CollectEvents(const std::map<int, std::vector<Me
             // storage all set_flag and wait_flag
             if (tmpInstr.name == setFlagName_) {
                 // not round here for precision of flow event
-                xEvent.ts = GetMicrosecond(chipType_, tmpInstr.endTick - 1, FLOW_AND_EVENT_ROUND_PARAM);
-                xEvent.dur = GetMicrosecond(chipType_, 1, FLOW_AND_EVENT_ROUND_PARAM);
+                xEvent.ts = GetMicrosecond(chipType_, tmpInstr.endTick - 1);
+                xEvent.dur = GetMicrosecond(chipType_, 1);
                 xEvent.cName = GetCNameByPipe(setFlagName_);
                 setFlagRecord[tmpInstr.detail].emplace_back(xEvent);
             }
             if (tmpInstr.name == waitFlagName_) {
-                xEvent.ts = GetMicrosecond(chipType_, startCycle, FLOW_AND_EVENT_ROUND_PARAM);
-                xEvent.dur = GetMicrosecond(chipType_, durationCycle, FLOW_AND_EVENT_ROUND_PARAM);
+                xEvent.ts = GetMicrosecond(chipType_, startCycle);
+                xEvent.dur = GetMicrosecond(chipType_, durationCycle);
                 xEvent.cName = GetCNameByPipe(waitFlagName_);
                 waitFlagRecord[tmpInstr.detail].emplace_back(xEvent);
             }

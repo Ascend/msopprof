@@ -307,7 +307,6 @@ void DeviceDataParse::CopyTimeStamp(const std::string &filePath) const
             for (const auto &res : results) {
                 CopyFile(timeStampPath, res);
             }
-            RemoveAll(timeStampPath);
         }
     }
 }

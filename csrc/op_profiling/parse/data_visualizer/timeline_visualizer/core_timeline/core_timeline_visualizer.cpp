@@ -281,15 +281,13 @@ void CoreTimeLineVisualizer::AddFlag(const SetWaitFlag &flag, const std::string 
         startCycle = flag.instr.endTick - 1;
     }
     FlagEvent flagBeginEvent = {flag.instr.name, GetCNameByPipe(flag.instr.name), "B",
-                                GetMicrosecond(chipType_, startCycle, FLOW_AND_EVENT_ROUND_PARAM),
-                                flag.coreName, flag.instr.pipe, {}, id};
+        GetMicrosecond(chipType_, startCycle), flag.coreName, flag.instr.pipe, {}, id};
     flagBeginEvent.args["pc_addr"] = flag.evtArgs.pcAddr;
     flagBeginEvent.args["code"] = flag.evtArgs.code;
     flagBeginEvent.args["detail"] = flag.evtArgs.detail;
 
     FlagEvent flagEndEvent = {flag.instr.name, GetCNameByPipe(flag.instr.name), "E",
-                              GetMicrosecond(chipType_, flag.instr.endTick, FLOW_AND_EVENT_ROUND_PARAM),
-                              flag.coreName, flag.instr.pipe, {}, id};
+        GetMicrosecond(chipType_, flag.instr.endTick), flag.coreName, flag.instr.pipe, {}, id};
     nlohmann::json setFlagBeginJson;
     nlohmann::json setFlagEndJson;
     flagBeginEvent.ToJson(setFlagBeginJson);
@@ -312,8 +310,8 @@ void CoreTimeLineVisualizer::GetFlowEvents(SetWaitFlag &begin, SetWaitFlag &end,
     cat = flowStartTid + "To" + flowEndTid;
 
     // Get begin and end flow event
-    float beginTime = GetMicrosecond(chipType_, begin.instr.endTick, FLOW_AND_EVENT_ROUND_PARAM);
-    float endTime = GetMicrosecond(chipType_, end.instr.endTick, FLOW_AND_EVENT_ROUND_PARAM);
+    float beginTime = GetMicrosecond(chipType_, begin.instr.endTick);
+    float endTime = GetMicrosecond(chipType_, end.instr.endTick);
     FlowEvent event4FlowBegin = {"flow", id, "s", beginTime, begin.coreName, flowStartTid, cat};
     FlowEvent event4FlowEnd = {"flow", id, "t", endTime, end.coreName, flowEndTid, cat};
 
@@ -332,8 +330,8 @@ bool CoreTimeLineVisualizer::AddScalarHeadEvents(
     }
     int durationCycle = flag.instr.ccuTick - flag.instr.icacheTick;
     Event scalarEvent = {"cache_time", GetCNameByPipe(flag.instr.name), "X",
-        GetMicrosecond(chipType_, flag.instr.icacheTick, -1), GetMicrosecond(chipType_, durationCycle, -1),
-        flag.coreName, flag.instr.pipe, {}};
+        GetMicrosecond(chipType_, flag.instr.icacheTick), GetMicrosecond(chipType_, durationCycle), flag.coreName,
+        flag.instr.pipe, {}};
     scalarEvent.args["pc_addr"] = flag.evtArgs.pcAddr;
     scalarEvent.args["code"] = flag.evtArgs.code;
     scalarEvent.args["detail"] = flag.evtArgs.detail;
@@ -344,9 +342,8 @@ bool CoreTimeLineVisualizer::AddScalarHeadEvents(
     json.emplace_back(jsonData);
 
     durationCycle = flag.instr.startTick - flag.instr.ccuTick;
-    Event ccuEvent = {"ccu_time", GetCNameByPipe(flag.instr.name), "X",
-        GetMicrosecond(chipType_, flag.instr.ccuTick, -1), GetMicrosecond(chipType_, durationCycle, -1), flag.coreName,
-        flag.instr.pipe, {}};
+    Event ccuEvent = {"ccu_time", GetCNameByPipe(flag.instr.name), "X", GetMicrosecond(chipType_, flag.instr.ccuTick),
+        GetMicrosecond(chipType_, durationCycle), flag.coreName, flag.instr.pipe, {}};
     ccuEvent.args["pc_addr"] = flag.evtArgs.pcAddr;
     ccuEvent.args["code"] = flag.evtArgs.code;
     ccuEvent.args["detail"] = flag.evtArgs.detail;
@@ -363,8 +360,8 @@ bool CoreTimeLineVisualizer::AddScalarHeadEvents(
         return false;
     }
     int durationCycle = instr.ccuTick - instr.icacheTick;
-    Event scalarEvent = {"cache_time", event.cName, "X", GetMicrosecond(chipType_, instr.icacheTick, -1),
-        GetMicrosecond(chipType_, durationCycle, -1), event.pid, event.tid, {}};
+    Event scalarEvent = {"cache_time", event.cName, "X", GetMicrosecond(chipType_, instr.icacheTick),
+        GetMicrosecond(chipType_, durationCycle), event.pid, event.tid, {}};
     scalarEvent.args = event.args;
     nlohmann::json jsonData;
     scalarEvent.ToJson(jsonData);
@@ -372,8 +369,8 @@ bool CoreTimeLineVisualizer::AddScalarHeadEvents(
     json.emplace_back(jsonData);
 
     durationCycle = instr.startTick - instr.ccuTick;
-    Event ccuEvent = {"ccu_time", event.cName, "X", GetMicrosecond(chipType_, instr.ccuTick, -1),
-        GetMicrosecond(chipType_, durationCycle, -1), event.pid, event.tid, {}};
+    Event ccuEvent = {"ccu_time", event.cName, "X", GetMicrosecond(chipType_, instr.ccuTick),
+        GetMicrosecond(chipType_, durationCycle), event.pid, event.tid, {}};
     ccuEvent.args = event.args;
     ccuEvent.ToJson(jsonData);
     jsonData["group_id"] = groupId;
@@ -389,8 +386,8 @@ void CoreTimeLineVisualizer::GenerateEvent(const MergeInfo &instr, const EventAr
         startCycle = instr.endTick >= 1 ? instr.endTick - 1 : 0;
         durationCycle = 1;
     }
-    Event event = {instr.name, "", "X", GetMicrosecond(chipType_, startCycle, -1),
-        GetMicrosecond(chipType_, durationCycle, -1), coreName, instr.pipe, {}};
+    Event event = {instr.name, "", "X", GetMicrosecond(chipType_, startCycle), GetMicrosecond(chipType_, durationCycle),
+        coreName, instr.pipe, {}};
     if (instr.warpId != DEFAULT_INT_VALUE && instr.schId != DEFAULT_INT_VALUE) {
         event.tid = "WARP_" + std::to_string(instr.warpId);
         event.cName = GetCNameByInstrName(instr.name);

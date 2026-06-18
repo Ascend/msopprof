@@ -27,8 +27,6 @@
 namespace Profiling {
 namespace Parse {
 
-constexpr int16_t FLOW_AND_EVENT_ROUND_PARAM = -1; // not round for precision of flow event
-
 struct Event {
     inline void ToJson(nlohmann::json &jsonData) const
     {

@@ -142,13 +142,13 @@ bool ArgChecker::CheckMetrics(const std::vector<std::string> &metricsVec, const 
     };
     for (const auto &metric : metricsVec) {
         if (supports.find(metric) == supports.end()) {
-            msg = "Unexpected argument --aic-metrics=" + metric + ", maybe in wrong run mode";
+            msg = "Unexpected argument in --aic-metrics, maybe in wrong run mode";
             return false;
         }
         if (isSupport(metric)) {
             continue;
         }
-        msg = "Unexpected argument --aic-metrics=" + metric + ", maybe in wrong soc platform";
+        msg = "Unexpected argument in --aic-metrics, maybe in wrong soc platform";
         return false;
     }
     return true;

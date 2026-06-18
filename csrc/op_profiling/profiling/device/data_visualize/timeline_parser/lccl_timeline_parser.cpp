@@ -61,8 +61,10 @@ nlohmann::json LcclTimelineParser::AddAicoreApiDot(const LcclInfo& info) const
                * TIME_CONVERSION;
     event.dur = static_cast<float>(SafeSub(info.endSyscyc, info.startSyscyc, location, false)) / aicpuFreq_
                 * TIME_CONVERSION;
+    std::stringstream ss;
+    ss << std::hex << info.curPc;
     event.args = {
-        {"curPc", info.curPc},
+        {"curPc", "0x" + ss.str()},
         {"operationType", to_string(info.operationType)},
         {"rsv", to_string(info.rsv)},
     };

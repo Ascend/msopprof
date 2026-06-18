@@ -236,7 +236,8 @@ bool SymbolizerParser::Symbolizer()
     pool.Stop();
     Utility::LogInfo("Extract %d relations from kernel", relations_.load());
     if (offset2Lines_.empty()) {
-        Utility::LogWarn("Kernel missed debug_line information. If you need code call stack, please recompile kernel with -g option");
+        Utility::LogWarn("Failed to parse pc to code , maybe kernel missed debug_line information. If you need code "
+                         "call stack, please recompile kernel with -g option");
         return false;
     }
     return true;

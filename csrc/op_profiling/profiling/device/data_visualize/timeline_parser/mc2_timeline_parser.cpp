@@ -315,7 +315,9 @@ json MC2TimelineParser::BuildAicoreDot(const OperationInfo& info, const string& 
     resultItem["tid"] = info.blockId;
     resultItem["ts"] = static_cast<float>(SafeSub(info.startSyscyc, minSysCyc_, location, false)) / aicpuFreq_
         * TIME_CONVERSION;
-
+    std::stringstream ss;
+    ss << std::hex << info.startCurPc;
+    resultItem["args"]["pc_addr"] = "0x" + ss.str();
     if (pc2code_.Find(info.startCurPc)) {
         codeAcc = accumulate(pc2code_[info.startCurPc].begin(),
                              pc2code_[info.startCurPc].end(),
@@ -324,10 +326,8 @@ json MC2TimelineParser::BuildAicoreDot(const OperationInfo& info, const string& 
                                  return acc.empty() ? s : acc + "\n" + s;
                              });
         resultItem["args"]["code"] = codeAcc;
-        resultItem["args"]["pc_addr"] = info.startCurPc;
     } else {
         resultItem["args"]["code"] = "";
-        resultItem["args"]["pc_addr"] = "";
     }
     return resultItem;
 }

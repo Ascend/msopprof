@@ -358,9 +358,11 @@ void InstrBiuTimeline::ParseDfxMapInfo() {
     }
 
     file.close();
-    pc2Code.SetPcSet(pcSet);
-    pc2Code.Parse();
-    pc2code_ = pc2Code.GetPc2Code();
+    if (!pcSet.empty()) {
+        pc2Code.SetPcSet(pcSet);
+        pc2Code.Parse();
+        pc2code_ = pc2Code.GetPc2Code();
+    }
     if (Utility::Log::GetLog().GetLogLv() > Utility::LogLv::DEBUG) {
         RemoveAll(dfxMapPath);
     }
