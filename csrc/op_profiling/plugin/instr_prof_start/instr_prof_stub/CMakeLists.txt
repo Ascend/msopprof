@@ -101,7 +101,7 @@ add_custom_command(
     COMMENT "Link libprofplugin_instrprofstart.so"
     DEPENDS msbit instrprofstart_dynamic_bind_${LAST_AICORE_ARCH}.o
     COMMAND g++ -shared -fPIC -Wl,-z,relro,-z,now -s -o libprofplugin_instrprofstart.so
-    instrprofstart_dynamic_bind_${LAST_AICORE_ARCH}.o -lstdc++ $<TARGET_FILE:msbit>
+    instrprofstart_dynamic_bind_${LAST_AICORE_ARCH}.o -static-libstdc++ $<TARGET_FILE:msbit>
 )
 # property ALL is necessary for making libprofplugin_instrprofstart.so built
 add_custom_target(profplugin_instrprofstart ALL DEPENDS libprofplugin_instrprofstart.so)

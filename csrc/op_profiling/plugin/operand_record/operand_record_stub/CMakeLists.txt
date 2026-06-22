@@ -16,7 +16,7 @@ set(CCE_AICORE_ARCH_LIST
     "dav-c310-cube"
 )
 
-message(STATUS "msopprof dynamic binary insturction probes built for: ${CCE_AICORE_ARCH_LIST}")
+message(STATUS "msopprof dynamic binary instruction probes built for: ${CCE_AICORE_ARCH_LIST}")
 
 file(GLOB_RECURSE DYNAMIC_PROBES_FILES *.cpp)
 
@@ -104,7 +104,7 @@ add_custom_command(
     COMMENT "Link libprofplugin_operandrecord.so"
     DEPENDS msbit dynamic_bind_operand_${LAST_AICORE_ARCH}.o
     COMMAND g++ -shared -fPIC -Wl,-z,relro,-z,now -s -o libprofplugin_operandrecord.so
-    dynamic_bind_operand_${LAST_AICORE_ARCH}.o -lstdc++ $<TARGET_FILE:msbit>
+    dynamic_bind_operand_${LAST_AICORE_ARCH}.o -static-libstdc++ $<TARGET_FILE:msbit>
 )
 # property ALL is necessary for making libprofplugin_operandrecord.so built
 add_custom_target(profplugin_operandrecord ALL DEPENDS libprofplugin_operandrecord.so)

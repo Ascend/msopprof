@@ -103,7 +103,7 @@ add_custom_command(
     COMMENT "Link libprofplugin_instrprofend.so"
     DEPENDS msbit instrprofend_dynamic_bind_${LAST_AICORE_ARCH}.o
     COMMAND g++ -shared -fPIC -Wl,-z,relro,-z,now -s -o libprofplugin_instrprofend.so
-    instrprofend_dynamic_bind_${LAST_AICORE_ARCH}.o -lstdc++ $<TARGET_FILE:msbit>
+    instrprofend_dynamic_bind_${LAST_AICORE_ARCH}.o -static-libstdc++ $<TARGET_FILE:msbit>
 )
 # property ALL is necessary for making libprofplugin_instrprofend.so built
 add_custom_target(profplugin_instrprofend ALL DEPENDS libprofplugin_instrprofend.so)

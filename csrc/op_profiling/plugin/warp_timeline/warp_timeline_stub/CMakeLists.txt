@@ -94,7 +94,7 @@ add_custom_command(
     COMMENT "Link libprofplugin_warptimeline.so"
     DEPENDS msbit dynamic_bind_warptimeline_${LAST_AICORE_ARCH}.o
     COMMAND g++ -shared -fPIC -Wl,-z,relro,-z,now -s -o libprofplugin_warptimeline.so
-    dynamic_bind_warptimeline_${LAST_AICORE_ARCH}.o -lstdc++ $<TARGET_FILE:msbit>
+    dynamic_bind_warptimeline_${LAST_AICORE_ARCH}.o -static-libstdc++ $<TARGET_FILE:msbit>
 )
 
 add_custom_target(profplugin_warptimeline ALL DEPENDS libprofplugin_warptimeline.so)

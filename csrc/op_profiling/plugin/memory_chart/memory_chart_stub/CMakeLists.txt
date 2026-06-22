@@ -19,7 +19,7 @@ set(CCE_AICORE_ARCH_LIST
     "dav-c310-cube"
 )
 
-message(STATUS "msopprof dynamic binary insturction probes built for: ${CCE_AICORE_ARCH_LIST}")
+message(STATUS "msopprof dynamic binary instruction probes built for: ${CCE_AICORE_ARCH_LIST}")
 
 file(GLOB_RECURSE DYNAMIC_PROBES_FILES *.cpp)
 
@@ -104,7 +104,7 @@ add_custom_command(
     COMMENT "Link libprofplugin_memorychart.so"
     DEPENDS msbit dynamic_bind_memory_${LAST_AICORE_ARCH}.o
     COMMAND g++ -shared -fPIC -Wl,-z,relro,-z,now -s -o libprofplugin_memorychart.so
-    dynamic_bind_memory_${LAST_AICORE_ARCH}.o -lstdc++ $<TARGET_FILE:msbit>
+    dynamic_bind_memory_${LAST_AICORE_ARCH}.o -static-libstdc++ $<TARGET_FILE:msbit>
 )
 # property ALL is necessary for making libprofplugin_memorychart.so built
 add_custom_target(profplugin_memorychart ALL DEPENDS libprofplugin_memorychart.so)
