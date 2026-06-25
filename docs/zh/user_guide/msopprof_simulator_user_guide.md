@@ -293,7 +293,7 @@ msOpProf工具协助用户定位算子内存、算子代码以及算子指令的
         core_ostd_num           = 2             # 2 early end  1 normal mode
     ```
 
-- Atlas 350 加速卡使用msProf工具进行算子仿真调优时，需将config.json文件中的flush_level参数修改为info级，也就是将文件中的"flush_level": 3修改为"flush_level" : 2。config.json文件的路径为${INSTALL_DIR}/tools/simulator/Ascendxxxyy/lib/config.json。
+- Ascend 950 系列产品使用msProf工具进行算子仿真调优时，需将config.json文件中的flush_level参数修改为info级，也就是将文件中的"flush_level": 3修改为"flush_level" : 2。config.json文件的路径为${INSTALL_DIR}/tools/simulator/Ascendxxxyy/lib/config.json。
 
 **启动工具**
 
@@ -525,7 +525,7 @@ trace.json文件可分别通过Chrome浏览器和MindStudio Insight展示，visu
 
     **表 1**  msopprof simulator热点图的功能介绍<a id="simulator热点图的功能介绍"></a>
 
-    |列名|<term>Atlas A2 训练系列产品/Atlas A2 推理系列产品</term>|<term>Atlas A3 训练系列产品/Atlas A3 推理系列产品</term>|<term>Atlas 推理系列产品</term>|Atlas 350 加速卡|说明|
+    |列名|Atlas A2 训练系列产品/Atlas A2 推理系列产品|Atlas A3 训练系列产品/Atlas A3 推理系列产品|Atlas 推理系列产品|Ascend 950 系列产品|说明|
     |------|-------|-------|-------|--------|--------|
     |源码|支持|支持|支持|支持|-|
     |指令PC地址|支持|支持|支持|支持|-|
