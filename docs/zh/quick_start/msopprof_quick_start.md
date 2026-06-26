@@ -115,7 +115,7 @@ msopprof simulator --soc-version=Ascendxxxyy --output=./msopprof_output_sim ./ex
 
 ##### 2.3.4.1 安装 MindStudio Insight
 
-请参考<a href="https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/user_guide/mindstudio_insight_install_guide.md" target="_blank">《MindStudio Insight工具文档》</a>安装 Insight 工具。
+请参考<a href="https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/install_guide/mindstudio_insight_install_guide.md" target="_blank">《MindStudio Insight工具文档》</a>安装 Insight 工具。
 
 ##### 2.3.4.2 用 MindStudio Insight 查看
 

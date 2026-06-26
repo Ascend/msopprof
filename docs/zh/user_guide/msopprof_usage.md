@@ -91,7 +91,7 @@ Kernel直调场景，详细信息可参考《Ascend C算子开发指南》中“
 
 **操作步骤**
 
-1. 基于[样例工程说明](https://gitcode.com/cann/asc-devkit/blob/master/examples/01_simd_cpp_api/02_features/00_compilation/custom_op/README.md)，完成自定义算子的编译、打包及部署。
+1. 基于[样例工程说明](https://gitcode.com/cann/asc-devkit/blob/9.0.0/examples/01_simd_cpp_api/02_features/00_compilation/custom_op/README.md)，完成自定义算子的编译、打包及部署。
 
     ```shell
     mkdir -p build && cd build
@@ -99,7 +99,7 @@ Kernel直调场景，详细信息可参考《Ascend C算子开发指南》中“
     ./custom_opp_*.run
     ```
 
-2. 基于[aclnn单算子API调用样例](https://gitcode.com/cann/asc-devkit/blob/master/examples/01_simd_cpp_api/02_features/01_invocation/aclnn_invocation/README.md)，构建算子可执行文件。编译完成后，在工程目录下生成可执行文件execute_add_op，该文件可运行在昇腾设备和仿真器上。
+2. 基于[aclnn单算子API调用样例](https://gitcode.com/cann/asc-devkit/blob/9.0.0/examples/01_simd_cpp_api/02_features/01_invocation/aclnn_invocation/README.md)，构建算子可执行文件。编译完成后，在工程目录下生成可执行文件execute_add_op，该文件可运行在昇腾设备和仿真器上。
 
     ```shell
     mkdir -p build; cd build
