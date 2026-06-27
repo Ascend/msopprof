@@ -678,7 +678,7 @@ struct MsprofAicpuHcclTaskInfo {
 | --aic-metrics              | 使能算子性能指标的采集能力和算子采集能力指标                         | 上板仿真字段含义不一样                                                                                                             | 上板、仿真 |
 | --kill                     | 用户程序将会在采集完--launch-count设置的算子数量后，自动停止程序     | 选项包括开启（on）和关闭（off）                                                                                                    | 上板、仿真 |
 | --mstx                     | 算子调优组件是否使能用户代码程序中使用的mstx API                     | 取值范围为on、off                                                                                                                  | 上板、仿真 |
-| --mstx-include             | 仅使能用户指定mstx API                                               | 不可单独配置，需要与--mstx配合使用，仅支持message为A-Z a-z 0-9 _这些字符，使用"|"进行拼接                                         | 上板、仿真 |
+| --mstx-include             | 仅使能用户指定mstx API                                               | 不可单独配置，需要与--mstx配合使用，仅支持message为A-Z a-z 0-9 _这些字符，使用"\|"进行拼接                                         | 上板、仿真 |
 | --replay-mode              | 算子数据采集的重放模式，可配置为kernel或application                  | 取值为kernel或application                                                                                                          | 上板       |
 | --warm-up                  | 指定预热次数                                                         | 默认值为5，取值范围为[0,500]                                                                                                       | 上板       |
 | --output                   | 收集到的性能数据的存放路径，默认在当前目录下保存性能数据             | 需确保群组和其他组的用户不具备--output指定输出路径的上一级目录的写入权限。同时，需要确保--output指定目录的上一级目录属主为当前用户 | 上板、仿真 |
@@ -983,7 +983,7 @@ DBITask类提供动态插桩的主要功能，调用流程如下：调用DBITask
 1、算子调优组件拉起MC2算子程序，在算子主程序执行之前，首先调用profapi.so中的MsprofRegisterCallBack接口，基础组件需要劫持该接口注册调优开关回调函数，使能MC2 AiCore任务及通信Task任务的上报。
 2、通信Task任务通过调用profapi.so中的MsprofReportAdditionalInfo接口上报，工具需要劫持并保存通信Task流水的bin文件。
 3、进行算子核函数的重放，在每次重放开始和结束时需要保证每张卡上的线程同步。在最后一次重放时，记录包含HCCL流水及AICPU任务流水的bin文件。
-4、在算子核函数重放之后，AICore任务流水通过调用profapi.so中的MsprofReportAddtionalInfo接口上报，工具需要劫持并保存AICore任务流水的bin文件。
+4、在算子核函数重放之后，AICore任务流水通过调用profapi.so中的MsprofReportAdditionalInfo接口上报，工具需要劫持并保存AICore任务流水的bin文件。
 
 #### 5.1.2 解析模块
 

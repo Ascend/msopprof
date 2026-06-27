@@ -135,5 +135,5 @@ rm -rf build_ut
 
 有可能执行 cmake 时用了 `cmake ..`，cmake 命令说明如下：   
 
-- `cmake ..`：只编译本工程，make install 会把东西装到 output/，但不会调用 makeself，所以不会生成 Ascend-mindstudio-sanitizer-xxx.run。
+- `cmake ..`：只编译本工程，make install 会把东西装到 output/，但不会调用 makeself，所以不会生成 Ascend-mindstudio-opprof-xxx.run。
 - `cmake ../cmake`：用的是 cmake/CMakeLists.txt 的「超级构建」，会先编译+安装，再执行 parser.py + makeself，在 output/ 里生成 .run 包。

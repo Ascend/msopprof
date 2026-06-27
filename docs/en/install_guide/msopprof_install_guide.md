@@ -1,3 +1,4 @@
+
 # **MindStudio Ops Profiler Installation Guide**
 
 <br>
@@ -101,14 +102,14 @@ If the .run package has been deleted, run the following command to uninstall the
 bash $HOME/Ascend/share/info/mindstudio-opprof/script/uninstall.sh # For custom installation paths, run "bash ./xxx/share/info/mindstudio-opprof/script/uninstall.sh".
 ```
 
-#### 2.3.4 Upgrade
+#### 2.3.5 Upgrade
 
 The upgrade process essentially involves uninstalling the old version and installing the new version, which is the same as the overwrite installation method described in Section [2.3.2 Installation](#232-installation).
 
 > [!NOTE]NOTE 
 > By default, the upgrade targets the `mindstudio-opprof` directory in `$HOME/Ascend`. If the previous version is installed to a custom path, use the `--install-path` option, for example, `./mindstudio-opprof_<version>_<arch>.run  --install-path=./xxx --run`, where `xxx` is the previous installation directory.
 
-## Upgrade
+## 3. Upgrade
  
 To replace an existing mindstudio-opprof package with the newly built .run package, run the following command:
  

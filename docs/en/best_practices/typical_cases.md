@@ -25,7 +25,7 @@ The procedures for collecting profile data are basically the same for kernel lau
 
 **Procedure**
 
-1. Prepare for operator compilation according to the sample project description and by referring to **Kernel Launch Operator Development** > [Kernel Launch](<>) in the *Ascend C Operator Development Guide*.
+1. Prepare for operator compilation according to the sample project description and by referring to **Kernel Launch Operator Development** > [Kernel Launch](https://www.hiascend.com/document/detail/en/canncommercial/800/opdevg/Ascendcopdevg/atlas_ascendc_10_0052.html) in the *Ascend C Operator Development Guide*.
 2. Build a single-operator executable file.
 
     Take the Add operator as an example. In the `${git_clone_path}/samples/operator/ascendc/0_introduction/3_add_kernellaunch/AddKernelInvocationNeo` directory of the sample project, run the following commands to build the executable file.
@@ -80,7 +80,7 @@ This section demonstrates how to use the instruction pipeline charts of the msOp
 
 3. Enable the double buffer mechanism of Ascend C operators to improve the MTE2 transfer efficiency.
 
-    For example, in the sample operator kernel function, you can enable double buffering by changing the second parameter (`BUFFER_NUM`) of `InitBuffer` in `TPipe` from 1 to 2. For details about `InitBuffer`, see **Base API** > **Memory Management and Synchronization Control** > **TPipe** > [InitBuffer](<>) in the *Ascend C Operator Development API*.
+    For example, in the sample operator kernel function, you can enable double buffering by changing the second parameter (`BUFFER_NUM`) of `InitBuffer` in `TPipe` from 1 to 2. For details about `InitBuffer`, see **Base API** > **Memory Management and Synchronization Control** > **TPipe** > [InitBuffer](https://www.hiascend.com/document/detail/en/canncommercial/800/apiref/ascendcopapi/atlasascendc_api_07_0110.html) in the *Ascend C Operator Development API*.
 
     ```shell
     constexpr int32_t BUFFER_NUM = 2;        # tensor num for each queue
@@ -101,7 +101,7 @@ This section demonstrates how to use the instruction pipeline charts of the msOp
 
 This section shows how to use msOpProf to tune an MC2 operator on the board and generate a communication and computing pipeline chart.
 
-This example uses AscendCL single-operator call as an example. For other call scenarios, see the [*Ascend C Operator Development Guide*](<>).
+This example uses AscendCL single-operator call as an example. For other call scenarios, see the [*Ascend C Operator Development Guide*](https://www.hiascend.com/document/detail/en/canncommercial/800/opdevg/Ascendcopdevg/atlas_ascendc_10_0001.html).
 
 **Preparations**
 
@@ -110,7 +110,7 @@ This example uses AscendCL single-operator call as an example. For other call sc
 
 **Procedure**
 
-1. Compile and deploy the operator by referring to [Operator Compilation and Deployment](<>).
+1. Compile and deploy the operator by referring to [Compiling and Deploying Operators](https://www.hiascend.com/document/detail/en/mindstudio/830/optools/Operatordevelopmenttools/atlasopdev_16_0024.html).
     1. Add the following compilation options to the `CMakeLists.txt` file in the `op_kernel` directory of the operator build file to enable the AIC instrumentation and code line mapping functions of the MC2 operator.
 
         ```shell
@@ -129,7 +129,7 @@ This example uses AscendCL single-operator call as an example. For other call sc
     msprof op --output=$HOME/projects/output $HOME/projects/MyApp blockdim 1   # "--output" is an optional parameter, "$HOME/projects/MyApp" is the application, and "blockdim 1" is an optional parameter of the application.
     ```
 
-3. The following directory structure and profile data files are generated. For details, see the [*msopprof User Guide*] (../user_guide/msopprof_user_guide.md).
+3. The following directory structure and profile data files are generated. For details, see the [*msopprof User Guide*](../user_guide/msopprof_user_guide.md).
 4. Import the `trace.json` or `visualize_data.bin` file into MindStudio Insight for visual presentation. For details, see [Computing Memory Heatmap](../user_guide/msopprof_user_guide.md#computing-memory-heatmap), [Communication and Computing Pipeline chart](../user_guide/msopprof_user_guide.md#communication-and-computing-pipeline-chart), and [Roofline Bottleneck Analysis diagram](../user_guide/msopprof_user_guide.md#roofline-bottleneck-analysis-chart) in the msopprof User Guide.
 
 ## Performing Range-Level Replay with mstx APIs
