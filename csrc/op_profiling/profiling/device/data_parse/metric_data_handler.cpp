@@ -552,7 +552,7 @@ void DataHandlerOf910B::ParseProfBin(const std::vector<char> &binData, const siz
                                      const ProfBinInfo &binInfo)
 {
     blockIdCoreIdPairVec_.clear();
-    for (size_t i = 0; i < fileSize; i = i + FFTS_LENGTH) {
+    for (size_t i = 0; i + FFTS_LENGTH <= fileSize; i = i + FFTS_LENGTH) {
         vector<char> splitBinData{&binData[i], &binData[i] + FFTS_LENGTH};
         FftsBlockBean fftsBlockBean(ChipProductType::ASCEND910B_SERIES, splitBinData);
         SplitBlockPmuData blockData = fftsBlockBean.GetBlockData(binInfo.aicEvents, binInfo.aivEvents);
@@ -621,7 +621,7 @@ void DataHandlerOf910B::ParseDurationBin(const std::string &outputPath, const st
                                          const size_t &fileSize, uint64_t &startTime, uint64_t &endTime)
 {
     uint64_t aicpuStartTime = UINT64_MAX;
-    for (size_t i = 0; i < fileSize; i = i + ACSQ_LENGTH) {  // 这里的start和end存的是aicore的起止时间
+    for (size_t i = 0; i + ACSQ_LENGTH <= fileSize; i = i + ACSQ_LENGTH) { // 这里的start和end存的是aicore的起止时间
         vector<char> splitBinData{&binData[i], &binData[i] + ACSQ_LENGTH};
         AcsqBean acsqBean(ChipProductType::ASCEND910B_SERIES, splitBinData);
         uint16_t taskType = acsqBean.GetTaskType();
@@ -770,7 +770,7 @@ void DataHandlerOf910B::ParseMemoryChartData(const std::string &outputPath,
 void DataHandlerOf310P::ParseProfBin(const std::vector<char> &binData, const size_t &fileSize,
                                      const ProfBinInfo &binInfo)
 {
-    for (size_t i = 0; i < fileSize; i = i + AICORE_LENGTH) {
+    for (size_t i = 0; i + AICORE_LENGTH <= fileSize; i = i + AICORE_LENGTH) {
         vector<char> splitBinData{&binData[i], &binData[i] + AICORE_LENGTH};
         AiCoreBean aiCoreBean(splitBinData);
         SplitBlockPmuData blockData = aiCoreBean.GetAiCoreData(binInfo.aicEvents);
@@ -781,7 +781,7 @@ void DataHandlerOf310P::ParseProfBin(const std::vector<char> &binData, const siz
 void DataHandlerOf310P::ParseDurationBin(const std::string &outputPath, const std::vector<char> &binData,
                                          const size_t &fileSize, uint64_t &startTime, uint64_t &endTime)
 {
-    for (size_t i = 0; i < fileSize; i = i + HWTS_LENGTH) {
+    for (size_t i = 0; i + HWTS_LENGTH <= fileSize; i = i + HWTS_LENGTH) {
         vector<char> splitBinData{&binData[i], &binData[i] + HWTS_LENGTH};
         HwtsBean hwtsBean(splitBinData);
         Common::TimeType timeType = hwtsBean.GetTimeType();
@@ -1032,7 +1032,7 @@ void DataHandlerOf91095::ParseProfBin(const std::vector<char> &binData, const si
     const ProfBinInfo &binInfo)
 {
     blockIdCoreIdPairVec_.clear();
-    for (size_t i = 0; i < fileSize; i = i + FFTS_LENGTH) {
+    for (size_t i = 0; i + FFTS_LENGTH <= fileSize; i = i + FFTS_LENGTH) {
         vector<char> splitBinData{&binData[i], &binData[i] + FFTS_LENGTH};
         FftsBlockBean fftsBlockBean(ChipProductType::ASCEND950_SERIES, splitBinData);
         if (fftsBlockBean.GetFuncType() != FUNC_TYPE_BLOCK_PMU) {
@@ -1054,7 +1054,8 @@ void DataHandlerOf91095::ParseProfBin(const std::vector<char> &binData, const si
 void DataHandlerOf91095::ParseDurationBin(const std::string &outputPath, const std::vector<char> &binData,
     const size_t &fileSize, uint64_t &startTime, uint64_t &endTime)
 {
-    for (size_t i = 0; i < fileSize; i = i + ACSQ_LENGTH_A5) {  // 这里的start和end存的是aicore的起止时间
+    for (size_t i = 0; i + ACSQ_LENGTH_A5 <= fileSize;
+         i = i + ACSQ_LENGTH_A5) { // 这里的start和end存的是aicore的起止时间
         vector<char> splitBinData{&binData[i], &binData[i] + ACSQ_LENGTH_A5};
         AcsqBean acsqBean(ChipProductType::ASCEND950_SERIES, splitBinData);
         SqeType taskType = static_cast<SqeType>(acsqBean.GetTaskType());

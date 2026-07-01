@@ -20,6 +20,7 @@ import logging
 import multiprocessing
 import os
 import shutil
+import re
 import subprocess
 import sys
 import traceback
@@ -74,8 +75,10 @@ class BuildManager:
             self.parsed_arguments.whl_version = self.parsed_arguments.version
 
         if self.parsed_arguments.build_version != None:
-            logging.info("--build-version: %s", self.parsed_arguments.build_version)
-            self._execute_command(["sed", "-i", f"s/^Version=.*/Version={self.parsed_arguments.build_version}/", "./package/conf/version.info"])
+            version_file = self.project_root / "package" / "conf" / "version.info"
+            content = version_file.read_text()
+            content = re.sub(r'^Version=.*', f'Version={self.parsed_arguments.build_version}', content, flags=re.MULTILINE)
+            version_file.write_text(content)
 
     def _execute_command(self, command_sequence, timeout_seconds=36000, cwd=None):
         logging.info("Running: %s", " ".join(command_sequence))

@@ -410,16 +410,9 @@ std::vector<CaseConfig> ParseRunConfigJson(const std::string &jsonFile,
     std::string jsonParentPath = absPath;
     std::string errorMsg;
     RollbackPath(jsonParentPath, 1);
-    if (!CheckOwnerPermission(jsonParentPath, errorMsg)) {
-        LogError("%s", errorMsg.c_str());
-        return configs;
-    }
-    if (!CheckPermission(jsonParentPath)) {
-        return configs;
-    }
-    if (!CheckPermission(jsonFile)) {
-        return configs;
-    }
+    CheckOwnerPermission(jsonParentPath, errorMsg);
+    CheckPermission(jsonParentPath);
+    CheckPermission(jsonFile);
     if (!GetJsonData(jsonFile, jsonData)) {
         return configs;
     }

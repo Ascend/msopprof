@@ -413,8 +413,8 @@ bool DeviceDataParse::CheckKernelFiles(const std::string &path, vector<std::stri
     for (const std::string &fileName : fileNames) {
         std ::string dumpFilePath = Utility::JoinPath({path, fileName});
         if (IsDir(dumpFilePath)) { continue; }
-        if (!Utility::CheckInputFileValid(dumpFilePath, "bin", INPUT_BINARY_FILE_MAX_SIZE) ||
-            !Utility::CheckPermission(dumpFilePath)) {
+        Utility::CheckPermission(dumpFilePath);
+        if (!Utility::CheckInputFileValid(dumpFilePath, "bin", INPUT_BINARY_FILE_MAX_SIZE)) {
             errorMsg = "file in dir is invalid: " + dumpFilePath;
             return false;
         }

@@ -50,6 +50,7 @@ public:
     std::string ProcessKernelEvent(const std::shared_ptr<Packet>& packPtr, size_t clientId);
     std::string ProcessCtrl(const std::shared_ptr<Packet>& packPtr, size_t clientId);
     void SetProfConfig(const Common::ProfConfig &profConfig);
+
 private:
     // map<deviceid_, Process>
     std::map<int32_t, std::shared_ptr<DeviceProcess>> processMap_;
