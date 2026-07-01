@@ -225,17 +225,6 @@ TEST(FileSystem, CheckPermission)
     ASSERT_TRUE(flag);
 }
 
-TEST(FileSystem, check_permission_warning_mode) {
-    ASSERT_TRUE(CheckPermission("test/ut/resources/op_profiling/111"));
-    std::string path = "test/ut/resources/op_profiling/device310P/dump/op_basic_info.txt";
-    chmod(path.c_str(), 0640);
-    ASSERT_TRUE(CheckPermission(path));
-    if (!IsRootUser()) {
-        chmod(path.c_str(), 0660);
-        ASSERT_TRUE(CheckPermission(path));
-    }
-}
-
 /**
  * |  用例集  | FileSystem
  * | 测试函数 | GetFileSuffix
@@ -261,47 +250,6 @@ TEST(FileSystem, test_GetFileSuffix_without_dot_seperator_expect_success)
     std::string file = "core0dump";
     std::string resSuffix;
     ASSERT_FALSE(GetFileSuffix(file, resSuffix));
-}
-
-/**
- * |  用例集  | FileSystem
- * | 测试函数 | CheckOwnerPermission,CheckPermission
- * |  用例名  | test_root_user_permission_file_expect_success
- * | 用例描述 | root用户不做任何权限类限制（属主、读写、others权限），只做基础校验，如文件存在性等。
- */
-TEST(FileSystem, test_root_user_permission_file_expect_success)
-{
-    GlobalMockObject::verify();
-    std::string msg;
-    std::string path{"test/ut/resources/op_profiling/simulator_sample/dump/core0.veccore0.instr_log.dump"};
-    __uid_t root = 0;
-    MOCKER(getuid)
-        .stubs()
-        .will(returnValue(root));
-    ASSERT_TRUE(CheckOwnerPermission(path, msg));
-    ASSERT_TRUE(CheckPermission(path));
-    GlobalMockObject::verify();
-}
-
-/**
- * |  用例集  | FileSystem
- * | 测试函数 | CheckOwnerPermission,CheckPermission
- * |  用例名  | test_root_user_permission_dir_expect_success
- * | 用例描述 | root用户不做任何权限类限制（属主、读写、others权限），只做基础校验，如文件存在性等。
- */
-TEST(FileSystem, test_root_user_permission_dir_expect_success)
-{
-    GlobalMockObject::verify();
-    std::string msg;
-    std::string path{"test/ut/resources/op_profiling/simulator_sample/dump"};
-
-    __uid_t root = 0;
-    MOCKER(getuid)
-        .stubs()
-        .will(returnValue(root));
-    ASSERT_TRUE(CheckOwnerPermission(path, msg));
-    ASSERT_TRUE(CheckPermission(path));
-    GlobalMockObject::verify();
 }
 
 /**

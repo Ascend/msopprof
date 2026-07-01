@@ -594,9 +594,6 @@ TEST(ArgChecker, test_CheckExportPathValid_with_permission_warning_expect_return
     ArgChecker checker("simulator");
     // 输入路径没有写权限时仅告警，不阻断
     args.argExport = "test/ut/resources/op_profiling/simulator_sample/dump";
-    MOCKER(&Utility::CheckPermission)
-        .stubs()
-        .will(returnValue(false));
     ASSERT_TRUE(checker.CheckExportPathValid(args, msg));
     ASSERT_TRUE(msg.empty());
     GlobalMockObject::verify();
@@ -644,10 +641,6 @@ TEST(ArgChecker, test_CheckOutputPathValid_with_warning_and_invalid_cases) {
     // 输出路径没有写权限时仅告警，不阻断
     ASSERT_TRUE(checker.CheckOutputPathValid(args, msg));
     ASSERT_TRUE(msg.empty());
-    // 输出路径属主问题时仅告警，不阻断
-    MOCKER(&Utility::CheckOwnerPermission)
-        .stubs()
-        .will(returnValue(false));
     ASSERT_TRUE(checker.CheckOutputPathValid(args, msg));
     ASSERT_TRUE(msg.empty());
     GlobalMockObject::verify();
@@ -935,17 +928,14 @@ TEST(ArgChecker, test_CheckInstrTimelinePipe_expect_return_false)
 * |  用例名  | test_CheckCustomInput_expect_return_true
 * | 用例描述 | 测试custom-input参数返回true
 */
-TEST(ArgChecker, test_CheckCustomInput_expect_return_true)
-{
+TEST(ArgChecker, test_CheckCustomInput_expect_return_true) {
     ArgChecker checker("device");
     Common::ProfArgs args;
     std::string msg;
     args.argCustomInput = "";
     ASSERT_TRUE(checker.CheckCustomInput(args, msg));
     args.argCustomInput = "test/ut/resources/config_json/test_custom_input.json";
-    MOCKER(&Utility::CheckInputFileValid)
-        .stubs()
-        .will(returnValue(true));
+    MOCKER(&Utility::CheckInputFileValid).stubs().will(returnValue(true));
     ASSERT_TRUE(checker.CheckCustomInput(args, msg));
     GlobalMockObject::verify();
 }
@@ -956,15 +946,12 @@ TEST(ArgChecker, test_CheckCustomInput_expect_return_true)
 * |  用例名  | test_CheckCustomInput_expect_return_false
 * | 用例描述 | 测试无效文件时CheckCustomInput返回false
 */
-TEST(ArgChecker, test_CheckCustomInput_expect_return_false)
-{
+TEST(ArgChecker, test_CheckCustomInput_expect_return_false) {
     ArgChecker checker("device");
     Common::ProfArgs args;
     std::string msg;
     args.argCustomInput = "test/ut/resources/config_json/not_exist.json";
-    MOCKER(&Utility::CheckInputFileValid)
-        .stubs()
-        .will(returnValue(false));
+    MOCKER(&Utility::CheckInputFileValid).stubs().will(returnValue(false));
     ASSERT_FALSE(checker.CheckCustomInput(args, msg));
     GlobalMockObject::verify();
 }

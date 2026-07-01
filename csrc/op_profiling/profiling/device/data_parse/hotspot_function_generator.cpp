@@ -335,7 +335,7 @@ void HotSpotFunctionGenerator::ReadPcSamplingData(const std::string &filePath)
     std::vector<char> totalBin(fileSize);
     size_t headSize = sizeof(Visualize::InstrProfHeadInfo);
     size_t structSize = headSize + Visualize::DATA_BUFFER_SIZE;
-    if (!ReadBinaryFile(filePath, totalBin)) {
+    if (!ReadBinFileByMultiStruct(filePath, fileSize, structSize, totalBin)) {
         LogWarn("File %s failed to be read.", filePath.c_str());
         return;
     }

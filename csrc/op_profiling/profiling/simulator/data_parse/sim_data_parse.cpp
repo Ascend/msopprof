@@ -292,15 +292,14 @@ bool SimDataParse::CheckKernelFiles(const std::string &path, std::vector<std::st
     std::regex kernelPattern = std::regex(Common::AICORE_KERNEL_NAME);
     for (const std::string &fileName : fileNames) {
         std ::string dumpFilePath = Utility::JoinPath({path, fileName});
+        Utility::CheckPermission(dumpFilePath);
         if (std::regex_match(fileName, dumpPattern) &&
-            (!Utility::CheckInputFileValid(dumpFilePath, "dump", INPUT_DUMP_FILE_MAX_SIZE) ||
-             !Utility::CheckPermission(dumpFilePath))) {
-            errorMsg = "dump file permission check failed, " + dumpFilePath;
+            (!Utility::CheckInputFileValid(dumpFilePath, "dump", INPUT_DUMP_FILE_MAX_SIZE))) {
+            errorMsg = "dump file is invalid, please check " + dumpFilePath;
             return false;
         } else if (std::regex_match(fileName, kernelPattern) &&
-                   (!Utility::CheckInputFileValid(dumpFilePath, "bin", INPUT_BINARY_FILE_MAX_SIZE) ||
-                    !Utility::CheckPermission(dumpFilePath))) {
-            errorMsg = "kernel file permission check failed, " + dumpFilePath;
+            (!Utility::CheckInputFileValid(dumpFilePath, "bin", INPUT_BINARY_FILE_MAX_SIZE))) {
+            errorMsg = "kernel file is invalid, please check " + dumpFilePath;
             return false;
         }
     }

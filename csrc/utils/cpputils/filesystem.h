@@ -291,11 +291,11 @@ bool Mkdir(std::string const &path, mode_t mode = DIR_DEFAULT_MODE, bool ignoreE
 bool CheckFolder(const std::string &path, std::string &errorMsg, bool ignoreEmpty = false,
     const std::function<bool(const std::string&, std::vector<std::string>&, std::string&)>& fileChecker = nullptr);
 bool IsSoftLinkRecursively(const std::string &path);
-bool CheckPermission(const std::string& filePath);
+void CheckPermission(const std::string& filePath);
 uint64_t GetSystemAvailableMemory();
 std::string FindExecutableCommand(const std::string &command);
 bool PathLenCheckValid(const std::string &checkPath);
-bool CheckOwnerPermission(std::string &path, std::string &msg);
+void CheckOwnerPermission(std::string &path, std::string &msg);
 bool RollbackPath(std::string &path, uint32_t rollNum);
 std::time_t GenerateTimeStamp(std::string& str, TimeAccuracy acc = TimeAccuracy::SECOND);
 void ReadFileByMMap(const std::string &fileName, std::vector<std::string> &fileLine);

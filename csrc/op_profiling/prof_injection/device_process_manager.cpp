@@ -19,6 +19,7 @@
 #include "log.h"
 #include "smart_pointer.h"
 namespace ProfStub {
+
 std::string DeviceProcessManager::ProcessKernelEvent(const std::shared_ptr<Packet>& packPtr, size_t clientId)
 {
     if (packPtr == nullptr) {
@@ -66,8 +67,7 @@ std::string DeviceProcessManager::ProcessCtrl(const std::shared_ptr<Packet> &pac
     return Communication::Serialize<ProcessCtrl::Rsp>(rep);
 }
 
-bool DeviceProcessManager::CheckKernel(const std::string &kernelName)
-{
+bool DeviceProcessManager::CheckKernel(const std::string &kernelName) {
     if (kernelNameSet_.empty()) {
         return true;
     }

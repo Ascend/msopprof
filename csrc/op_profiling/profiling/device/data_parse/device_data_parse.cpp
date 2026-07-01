@@ -30,7 +30,8 @@ using namespace std;
 namespace Profiling {
 DeviceDataParse::DeviceDataParse(Common::ChipType chipType, PmuEventsId pmuEventsId, ProfMetricsAbilityConfig metrics,
     const std::string &kernelNameFilter, const std::string &customDotJson)
-    : DataParse(std::move(metrics), kernelNameFilter), chipType_(chipType), pmuEventsId_(pmuEventsId), customDotJson_(customDotJson) {
+    : DataParse(std::move(metrics), kernelNameFilter), chipType_(chipType), pmuEventsId_(pmuEventsId),
+      customDotJson_(customDotJson) {
     // register different profiling data handler
     chipInfoMap_ = {{ChipType::ASCEND950, {MetricHeaderForA5, Common::AIC_EVENTS_FOR_A5,
                         Common::AIV_EVENTS_FOR_A5}},
@@ -143,10 +144,7 @@ unique_ptr<RoofLine> &GetRoofLineObj(unique_ptr<DataHandler> &handler, shared_pt
 }
 
 unique_ptr<Visualize::TimelineParser> &GetTimelineObj(unique_ptr<DataHandler> &handler,
-                                                      shared_ptr<OpBasicInfo> &opBasicInfoObj,
-                                                      shared_ptr<BasicPmu> &basicPmuObj,
-                                                      const std::string &customDotJson)
-{
+    shared_ptr<OpBasicInfo> &opBasicInfoObj, shared_ptr<BasicPmu> &basicPmuObj, const std::string &customDotJson) {
     static unique_ptr<Visualize::TimelineParser> parserPtr;
     if (handler == nullptr || opBasicInfoObj == nullptr || basicPmuObj == nullptr) {
         LogWarn("Get MC2 timeline failed because of nullptr");
@@ -160,7 +158,7 @@ unique_ptr<Visualize::TimelineParser> &GetTimelineObj(unique_ptr<DataHandler> &h
         handler->GetMinLcclTimeCyc(), opBasicInfoObj, basicPmuObj);
     } else {
         parserPtr = Utility::MakeUnique<Visualize::AicoreTimelineParser>(
-        handler->GetMinTimeCyc(), opBasicInfoObj, basicPmuObj, customDotJson);
+            handler->GetMinTimeCyc(), opBasicInfoObj, basicPmuObj, customDotJson);
     }
     return parserPtr;
 }
@@ -413,8 +411,8 @@ bool DeviceDataParse::CheckKernelFiles(const std::string &path, vector<std::stri
     for (const std::string &fileName : fileNames) {
         std ::string dumpFilePath = Utility::JoinPath({path, fileName});
         if (IsDir(dumpFilePath)) { continue; }
-        if (!Utility::CheckInputFileValid(dumpFilePath, "bin", INPUT_BINARY_FILE_MAX_SIZE) ||
-            !Utility::CheckPermission(dumpFilePath)) {
+        Utility::CheckPermission(dumpFilePath);
+        if (!Utility::CheckInputFileValid(dumpFilePath, "bin", INPUT_BINARY_FILE_MAX_SIZE)) {
             errorMsg = "file in dir is invalid: " + dumpFilePath;
             return false;
         }

@@ -183,7 +183,9 @@ bool MkdirRecusively(std::string const &path, mode_t mode)
         }
         if (mkdir(current.c_str(), mode) < 0) {
             std::string msg;
-            if (IsDir(current) && CheckPermission(current) && CheckOwnerPermission(current, msg)) {
+            CheckPermission(current);
+            CheckOwnerPermission(current, msg);
+            if (IsDir(current)) {
                 LogWarn("Mkdir dir %s failed, dir already exist, msg : %s", current.c_str(), msg.c_str());
                 continue;
             }
@@ -325,8 +327,7 @@ std::string GetAbsolutePath(std::string const &path)
 ///                   S_IRUSR--set: need read permission, unset: don't confirm read permission
 ///                   S_IWUSR--set: need write permission, unset: don't confirm write permission
 ///                   S_IXUSR--set: need execute permission, unset: don't confirm execute permission
-bool CheckPathPermission(const std::string &path, unsigned int fileMode, const std::string &paramName)
-{
+void CheckPathPermission(const std::string &path, unsigned int fileMode, const std::string &paramName) {
     if ((fileMode & S_IRUSR) != 0 && !IsReadable(path)) {
         LogWarn("%s path: %s is not readable", paramName.c_str(), path.c_str());
     }
@@ -336,7 +337,6 @@ bool CheckPathPermission(const std::string &path, unsigned int fileMode, const s
     if ((fileMode & S_IXUSR) != 0 && !IsExecutable(path)) {
         LogWarn("%s path: %s is not executable", paramName.c_str(), path.c_str());
     }
-    return true;
 }
 
 bool IsSoftLink(const std::string &path)
@@ -526,16 +526,15 @@ bool CheckFolder(const std::string &path, std::string &errorMsg, bool ignoreEmpt
     return true;
 }
 
-bool CheckPermission(const std::string& filePath)
-{
+void CheckPermission(const std::string &filePath) {
     struct stat fileStat;
     if (stat(filePath.c_str(), &fileStat) != 0) {
         LogWarn("Error getting file %s status, skip permission check", filePath.c_str());
-        return true;
+        return;
     }
 
     if (IsRootUser()) {
-        return true;
+        return;
     }
 
     // 读取权限位
@@ -545,7 +544,6 @@ bool CheckPermission(const std::string& filePath)
         LogWarn("The current file %s is not recommended to be writable by group or other users",
             filePath.c_str());
     }
-    return true;
 }
 
 uint64_t GetSystemAvailableMemory()
@@ -612,24 +610,22 @@ bool PathLenCheckValid(const std::string &checkPath)
     return true;
 }
 
-bool CheckOwnerPermission(std::string &path, std::string &msg)
-{
+void CheckOwnerPermission(std::string &path, std::string &msg) {
     struct stat fileStat;
     if (stat(path.c_str(), &fileStat) != 0) {
         LogWarn("Get file %s permission error, skip owner check", path.c_str());
-        return true;
+        return;
     }
     if (IsRootUser()) {
-        return true;
+        return;
     }
     if ((fileStat.st_mode & (S_IWOTH | S_IWGRP)) != 0) {
         LogWarn("%s is not recommended to be writable by group or other users", path.c_str());
     }
     if (fileStat.st_uid == 0 || fileStat.st_uid == static_cast<uint32_t>(getuid())) {
-        return true;
+        return;
     }
     LogWarn("%s is not owned by the current user, which may cause security problems", path.c_str());
-    return true;
 }
 
 bool RollbackPath(std::string &path, uint32_t rollNum)
