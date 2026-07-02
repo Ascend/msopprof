@@ -77,7 +77,8 @@ AICORE_FUNC_HEAD uint64_t GetBlockIdx()
     return get_block_idx() * get_subblockdim() + get_subblockid();
 #elif defined(__NPU_ARCH__) && (__NPU_ARCH__ == 3101 || __NPU_ARCH__ == 3510)
 #if defined(__DAV_VEC__) && defined(SIMT_MODE) // c310-simt
-    return __cce_simt::get_block_idx();
+    using namespace __cce_simt;
+    return get_block_idx();
 #else
     int64_t coreId = get_coreid();
     if ((coreId >= C310_A5_DEVICE_VEC_PHYS_SMALL_BOUND_CORE_START_IDS &&
