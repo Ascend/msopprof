@@ -14,7 +14,7 @@ The procedures for collecting profile data are basically the same for kernel lau
 
     > [!NOTE]NOTE
     > 
-    > - This sample project does not support <term>Atlas A3 training products</term>.
+    > - This sample project does not support Atlas A3 training products.
     > - When downloading the code sample, run the following command to specify the branch version:
     > 
     >    ```shell
@@ -148,7 +148,7 @@ Prepare the operator project and add mstx extended APIs to the operator code to 
 > - The number of operators that can be collected in each replay range is limited by the number of operator block dims in [OpBasicInfo (Basic Operator Information)](../user_guide/msopprof_performance_data.md#opbasicinfo-basic-operator-information). It is recommended that the number be less than or equal to 50.
 > - This function cannot be enabled together with `--aic-metrics=MemoryDetail`, `--aic-metrics=TimelineDetail`, or `--aic-metrics=Source`. You are advised not to enable this function together with `--kill=on` because it may result in missing operator data.
 > - During range-level replay, the `SynchronizeStream` operator may fail to be executed. You are advised to execute the operator after the `mstxRangeEnd` API call ends.
-> - This function applies only to <term>Atlas A3 training products, Atlas A3 inference products</term>, <term>Atlas A2 training products, and A2 inference products</term>.
+> - This function applies only to Atlas A3 training products, Atlas A3 inference products, Atlas A2 training products, and A2 inference products.
 
 **Precautions**
 
@@ -217,7 +217,7 @@ mstx.range_end(range2_id)
 
     2. The tool executes range-level replay for "range1" and "range2" sequentially, generating tuning data for `Sub`, `Mul`, `Div`, `Abs`, and `Add` operators. The L2 cache information during each replay is retained, but the L2 cache information during two replays is independent of each other. However, because "range2" and "range3 overlap, only the first range takes effect, and "range3" is invalid. For details about the profile files, see [Table 2 msopprof files](../user_guide/msopprof_user_guide.md#usage-description).
 
-        ```tex
+        ```text
         OPPROF_{timestamp}_XXX
         ├── Abs_XXX // Abs_XXX is the name of the collected operator.
         │   └── 0

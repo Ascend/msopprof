@@ -72,16 +72,16 @@ For example, the JSON configuration file is named **add\_test.json**. Developers
 |mode|Test mode.<br> - Onboard: **onboard**<br> - Performance simulation: **ca**|string|Yes|
 |device_id|ID of the AI processor used for running. The default value is **0**.|int|No|
 |tiling_key|Tiling key of the current dynamic operator.|uint64|No|
-|magic|Operator type.<br> - Cube operator: **RT_DEV_BINARY_MAGIC_ELF_AICUBE**<br> - Vector operator: **RT_DEV_BINARY_MAGIC_ELF_AIVEC**<br> - Mixed fusion operator: **RT_DEV_BINARY_MAGIC_ELF** (only for <term>Atlas A3 training products, Atlas A3 inference products</term>, <term>Atlas A2 training products, and Atlas A2 inference products</term>)|string|Yes|
+|magic|Operator type.<br> - Cube operator: **RT_DEV_BINARY_MAGIC_ELF_AICUBE**<br> - Vector operator: **RT_DEV_BINARY_MAGIC_ELF_AIVEC**<br> - Mixed fusion operator: **RT_DEV_BINARY_MAGIC_ELF** (only for Atlas A3 training products, Atlas A3 inference products, Atlas A2 training products, and Atlas A2 inference products)|string|Yes|
 |test_cases|Test data. This can be a list, with each element containing a test case. For details, see [**Table 2** test_cases parameters](#test_cases_parameters).|list|Yes|
 
 > [!NOTE]NOTE
 > 
-> - The **tiling\_key** parameter applies only to dynamic operators.
-> - For <term>Atlas inference products</term>, the **magic** parameter must be set to **RT\_DEV\_BINARY\_MAGIC\_ELF**.
-> - For operator on-board or simulation tuning, only one case can be configured for the **test\_cases** parameter.
+> - The **tiling_key** parameter applies only to dynamic operators.
+> - For Atlas inference products, the **magic** parameter must be set to **RT_DEV_BINARY_MAGIC_ELF**.
+> - For operator on-board or simulation tuning, only one case can be configured for the **test_cases** parameter.
 
-Table 2 test\_cases parameters<a id="test_cases_parameters"></a>
+Table 2 test_cases parameters<a id="test_cases_parameters"></a>
 
 <table><thead align="left"><tr id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_row1958882429"><th class="cellrowborder" colspan="3" valign="top" id="mcps1.2.7.1.1"><p id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_p1859148144216">Parameter</p>
 </th>
@@ -281,12 +281,12 @@ MindStudio provides the mstx profiling API, which enables users to embed custom 
 
 - msOpProf allows users to use the **mstx** API to tune specific operators, customize the start time and end time of the code segment or specified key functions, identify key functions or computing APIs, and quickly demarcate performance issues.
 - The mstx API is disabled by default. If the mstx API is called in the application, the mstx instrumentation function is enabled based on the actual application scenario. For example, the **--mstx=on** flag enables mstx APIs within the user program, while **--mstx-include** can be used to target specific mstx APIs. For detailed usage, refer to the **--mstx** and **--mstx-include** parameters in the "Command Reference" sections of the [*msopprof User Guide*](./msopprof_user_guide.md#command-reference) and the [*msopprof Simulator Mode User Guide*](./msopprof_simulator_user_guide.md#command-reference).
-- The mstx API can be used via library files or header files. An implementation example can be found at this [link](https://gitee.com/ascend/samples/tree/master/operator/ascendc/0_introduction/1_add_frameworklaunch/AclNNInvocation):
+- The mstx API can be used via library files or header files. An implementation example can be found at this [sample](https://gitee.com/ascend/samples/tree/master/operator/ascendc/0_introduction/1_add_frameworklaunch/AclNNInvocation):
 
     > [!NOTE]NOTE
     > 
-    > - This sample project does not support <term>Atlas A3 training products</term>.
-    > - Replace $**\{INSTALL\_DIR\}** with the file storage path after CANN is installed. For example, if the installation is performed by the **root** user, the default file storage path is **/usr/local/Ascend/cann**.
+    > - This sample project does not support Atlas A3 training products.
+    > - Replace $**{INSTALL_DIR}** with the file storage path after CANN is installed. For example, if the installation is performed by the **root** user, the default file storage path is **/usr/local/Ascend/cann**.
 
     - Add the `libms_tools_ext.so` library file located at `${INSTALL_DIR}/lib64/libms_tools_ext.so` to the `CMakeLists.txt` file at `${git_clone_path}/samples/operator/ascendc/0_introduction/1_add_frameworklaunch/AclNNInvocation/src/CMakeLists.txt`.
 
