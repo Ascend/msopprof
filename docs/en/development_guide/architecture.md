@@ -504,7 +504,7 @@ The plugin records original interface information on the device and stores it in
 ![image](./architecture_figures/f02a02a67847d793c2ca85ddeebd034b_971x438.png)
 
 **a.** Records are grouped by block, with each block recording its own data. The first 8 bytes of each block indicate the total number of records, with each additional record incrementing the count by 1, followed by *n* memory records.
-**b.** To ensure successful writing to GM, each block requires 512 bytes of padding.
+**b.** To ensure successful writing to GM, each block requires 512Bytes of padding.
 **c.** A maximum of 100 blocks of data can be stored.
 Note: The `set_nd_para` bit is set for some special interfaces, such as `copy_matrix_cc_to_gm_f32`. Before calling `copy_matrix_cc_to_gm_f32`, a user calls `set_nd_para` to set the pre-information. All subsequent calls to `copy_matrix_cc_to_gm_f32` will use this pre-information. The logic here is to reserve the `nd_para` position. Once the user calls the `set_nd_para` interface, the information is recorded. If the interface is called again, the information is updated.
 
@@ -748,7 +748,7 @@ Currently, only GM-related instructions are parsed, focusing on BRIF (GM read) a
 1. Locate the BRIF/BWIF instruction and its transfer type, `req_id`, and `instr_id`.
 2. Find the last occurrence of the `req_id`, record its tick time, and regard it as a data transfer event at `floor(t)`.
 3. If `instr_id` corresponds to L1WIF/UBWIF instead of BR/BW, record L1/UB as the other end of the transfer.
-   By identifying the SRC/DST, data volume, and timestamp of transfer events, bandwidth is calculated at 1 µs intervals for GM<->L1, GM<->UB, and GM<->others within (t-1, t]. This results in six bandwidth charts.
+   By identifying the SRC/DST, data volume, and timestamp of transfer events, bandwidth is calculated at 1µs intervals for GM<->L1, GM<->UB, and GM<->others within (t-1, t]. This results in six bandwidth charts.
 
 ### 4.5 Security Design
 
@@ -902,7 +902,7 @@ Pay attention to file permissions, memory usage, and execution time during on-bo
 
 ##### 5.1.1.3 Interaction Model Design
 
-##### 5.1.1.3.1 On-board Profiling
+###### 5.1.1.3.1 On-board Profiling
 
 **Hijacking logic**
 The main hijacked functions (runtime interfaces corresponding to `aclrt` interfaces) are listed.
@@ -935,7 +935,7 @@ Currently, there are kernel-level replay, application-level replay, and range-le
    
    ![image](./architecture_figures/cee27f22cc2250ad3a5581dd027d64ec_705x586.png)
 
-##### 5.1.1.3.1 Simulation Collection
+###### 5.1.1.3.2 Simulation Collection
 
 **Hijacking logic**
 
@@ -995,7 +995,7 @@ Ensure that the permissions of the files written to the drive comply with securi
 
 ##### 5.1.2.3 Interaction Model Design
 
-##### 5.1.2.3.1 On-board
+###### 5.1.2.3.1 Simulation
 
 **Simulation code hot spot map**
 
@@ -1019,7 +1019,7 @@ MC2 operators run on multiple cards. Therefore, the artifacts collected by the b
 4. Parse HCCL marking information based on the STARS data in `duration.bin`. This part of the pipeline chart is partitioned as a whole by `streamID`, which can be obtained from the data details.
 5. Parse communication task marking information. This part of the pipeline chart is partitioned as a whole by `planeID`, which can be obtained from the data details.
 
-##### 5.1.2.3.2 On-board
+###### 5.1.2.3.2 On-board
 
 **Real-time parsing**
 
@@ -1074,7 +1074,7 @@ Avoid multi-thread competition and read/write conflicts.
 
 ![image](./architecture_figures/c8f24f9a8445ecaa4bf74839170d83a0_1105x705.png)
 
-##### 6. Code Directory Structure
+## 6. Code Directory Structure
 
 ```text
 ├── cmake                              # Project build directory

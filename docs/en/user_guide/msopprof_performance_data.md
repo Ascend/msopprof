@@ -4,7 +4,7 @@
 
 `ArithmeticUtilization.csv` stores the cycle ratio data of Cube and Vector instructions. You are advised to optimize the operator logic to reduce redundant computing instructions. For details, see the field description in the following table.
 
-**<term>Atlas A3 training products, Atlas A3 inference products</term>, <term>Atlas A2 training products, and Atlas A2 inference products</term>**
+**Atlas A3 training products, Atlas A3 inference products, Atlas A2 training products, and Atlas A2 inference products**
 
 **Figure 1** ArithmeticUtilization.csv file 
 ![](../figures/ArithmeticUtilization-csv-file.png "ArithmeticUtilization.csv file")
@@ -36,7 +36,7 @@ The key fields are as follows.
 |aiv_vec_misc_ratio|Ratio of cycles taken to execute Vector misc instructions to the total cycles.|
 |aiv_vec_fops|Floating-point operations (**fops** in the field name) of the Vector type, indicating the computing workload. This field can be used to measure the complexity of an algorithm or model.|
 
-**<term>Atlas inference products</term>**
+**Atlas inference products**
 
 **Figure 2** ArithmeticUtilization.csv file 
 ![](../figures/ArithmeticUtilization-csv-file-4.png "ArithmeticUtilization.csv file-4")
@@ -62,7 +62,7 @@ The key fields are as follows.
 |aic_vec_misc_ratio|Ratio of cycles taken to execute Vector misc instructions to the total cycles.|
 |aic_vec_fops|Floating-point operations (**fops** in the field name) of the Vector type, indicating the computing workload. This field can be used to measure the complexity of an algorithm or model.|
 
-**<term>Ascend 950 products</term>**
+**Ascend 950 products**
 
 **Figure 3** ArithmeticUtilization.csv file 
 ![](../figures/ArithmeticUtilization-csv-file-5.png "ArithmeticUtilization.csv file-5")
@@ -94,7 +94,7 @@ The key fields are as follows.
 
 The L2 cache hit rate data is saved in the `L2Cache.csv` file, which affects the memory transfer engine (MTE2). You are advised to properly plan the data transfer logic to increase the hit rate. For details, see the field description in the following table.
 
-**<term>Atlas A3 training products, Atlas A3 inference products</term>, <term>Atlas A2 training products, and Atlas A2 inference products</term>**
+**Atlas A3 training products, Atlas A3 inference products, Atlas A2 training products, and Atlas A2 inference products**
 
 **Figure 1** L2Cache.csv file 
 ![](../figures/L2Cache-csv-file.png "L2Cache.csv file")
@@ -119,7 +119,7 @@ The key fields are as follows.
 |ai*_read_hit_rate(%)|Read cache hit rate.|
 |ai*_total_hit_rate(%)|Read/Write cache hit rate.|
 
-**<term>Atlas inference products</term>**
+**Atlas inference products**
 
 **Figure 2** L2Cache.csv file 
 ![](../figures/L2Cache-csv-file-6.png "L2Cache.csv file-6")
@@ -132,7 +132,7 @@ The key fields are as follows.
 |---|---|
 |aic_l2_cache_hit_rate(%)|Ratio of the number of times that memory access requests hit L2 to the total number of memory access requests.|
 
-**<term>Ascend 950 products</term>**
+**Ascend 950 products**
 
 **Figure 3** L2Cache.csv file 
 ![](../figures/L2Cache-csv-file.png "L2Cache.csv file")
@@ -159,7 +159,7 @@ The key fields are as follows.
 | ai*_write_close_hit    | Number of write close cache hits.                                               |
 | ai*_write_close_miss   | Number of write close cache misses.                                               |
 | ai*_write_close_victim | Number of write close cache evictions.                                               |
-| ai*_write_far_hit      | Number of read far cache hits.                                                 |
+| ai*_write_far_hit      | Number of write far cache hits.                                                 |
 | ai*_write_far_miss     | Number of write far cache misses.                                                 |
 | ai*_write_far_victim   | Number of write far cache evictions.                                                 |
 | ai*_write_hit_rate(%)  | Write cache hit rate.                                                       |
@@ -168,9 +168,9 @@ The key fields are as follows.
 
 The memory read/write bandwidth rate data collected from the UB, L1, L2, and main memory is saved in `Memory.csv`. For details, see the field description in the following table.
 
-The unit is GB/s, indicating that 1 GB data is transmitted per second.
+The unit is GB/s, indicating that 1GB data is transmitted per second.
 
-**<term>Atlas A3 training products, Atlas A3 inference products</term>, <term>Atlas A2 training products, and Atlas A2 inference products</term>**
+**Atlas A3 training products, Atlas A3 inference products, Atlas A2 training products, and Atlas A2 inference products**
 
 **Figure 1** Memory.csv file 
 ![](../figures/Memory-csv-file.png "Memory.csv file")
@@ -214,7 +214,7 @@ The key fields are as follows.
 |GM_to_UB_bw_usage_rate(%)|Bandwidth usage of the channel from GM to UB.|
 |UB_to_GM_bw_usage_rate(%)|Bandwidth usage of the channel from UB to GM.|
 
-**<term>Atlas inference products</term>**
+**Atlas inference products**
 
 **Figure 2** Memory.csv file 
 ![](../figures/Memory-csv-file-7.png "Memory.csv file-7")
@@ -240,7 +240,7 @@ The key fields are as follows.
 |aic_mte3_instructions|Number of MTE3 instructions.|
 |aic_mte3_ratio|Ratio of cycles taken to execute MTE3 instructions to the total cycles.|
 
-**<term>Ascend 950 products</term>**
+**Ascend 950 products**
 
 **Figure 3** Memory.csv file 
 ![](../figures/Memory-csv-file-8.png "Memory.csv file-8")
@@ -284,9 +284,9 @@ The key fields are as follows.
 
 `MemoryL0.csv` stores the collected L0A, L0B, and L0C memory read/write bandwidth rate data. For details, see the field description in the following table.
 
-The unit is GB/s, indicating that 1 GB data is transmitted per second.
+The unit is GB/s, indicating that 1GB data is transmitted per second.
 
-**<term>Atlas A3 training products, Atlas A3 inference products</term>, <term>Atlas A2 training products, Atlas A2 inference products</term>, and <term>Ascend 950 products</term>**
+**Atlas A3 training products, Atlas A3 inference products, Atlas A2 training products, Atlas A2 inference products, and Ascend 950 products**
 
 **Figure 1** MemoryL0.csv file 
 ![](../figures/MemoryL0-csv-file.png "MemoryL0.csv file")
@@ -310,7 +310,7 @@ The key fields are as follows.
 |aic_l0c_read_bw_cube(GB/s)|Bandwidth of data read from the L0C unit by Cube corresponding to the total cycles, in GB/s.|
 |aic_l0c_write_bw_cube(GB/s)|Bandwidth of data written to the L0C unit by Cube corresponding to the total cycles, in GB/s.|
 
-**<term>Atlas inference products</term>**
+**Atlas inference products**
 
 **Figure 2** MemoryL0.csv file 
 ![](../figures/MemoryL0-csv-file-9.png "MemoryL0.csv file-9")
@@ -336,9 +336,9 @@ The key fields are as follows.
 
 `MemoryUB.csv` stores the collected MTE, Vector, and Scalar UB read/write bandwidth rate data. For details, see the field description in the following table.
 
-The unit is GB/s, indicating that 1 GB data is transmitted per second.
+The unit is GB/s, indicating that 1GB data is transmitted per second.
 
-**<term>Atlas A3 training products, Atlas A3 inference products</term>, <term>Atlas A2 training products, and Atlas A2 inference products</term>**
+**Atlas A3 training products, Atlas A3 inference products, Atlas A2 training products, and Atlas A2 inference products**
 
 **Figure 1** MemoryUB.csv file 
 ![](../figures/MemoryUB-csv-file.png "MemoryUB.csv file")
@@ -360,7 +360,7 @@ The key fields are as follows.
 |aiv_ub_read_bw_scalar(GB/s)|Bandwidth of data read from UB by Scalar corresponding to the total cycles, in GB/s.|
 |aiv_ub_write_bw_scalar(GB/s)|Bandwidth of data written to UB by Scalar corresponding to the total cycles, in GB/s.|
 
-**<term>Atlas inference products</term>**
+**Atlas inference products**
 
 **Figure 2** MemoryUB.csv file 
 ![](../figures/MemoryUB-csv-file-10.png "MemoryUB.csv file-10")
@@ -378,7 +378,7 @@ The key fields are as follows.
 |aic_ub_read_bw_scalar(GB/s)|Bandwidth of data read from UB by Scalar corresponding to the total cycles, in GB/s.|
 |aic_ub_write_bw_scalar(GB/s)|Bandwidth of data written to UB by Scalar corresponding to the total cycles, in GB/s.|
 
-**<term>Ascend 950 products</term>**
+**Ascend 950 products**
 
 **Figure 3** MemoryUB.csv file 
 ![](../figures/MemoryUB-csv-file-11.png "MemoryUB.csv file-11")
@@ -429,10 +429,10 @@ The time consumption and percentage data of compute units and MTEs are collected
 
 > [!NOTE]NOTE
 > 
-> - The unit is GB/s, indicating that 1 GB data is transmitted per second.
+> - The unit is GB/s, indicating that 1GB data is transmitted per second.
 > - In the table, `total cycle` used for each ratio refers to the number of cycles on the Cube core or Vector core. `ai*` is a collective term for `aic` (Cube) and `aiv` (Vector).
 
-**<term>Atlas A3 training products, Atlas A3 inference products</term>, <term>Atlas A2 training products, and Atlas A2 inference products</term>**
+**Atlas A3 training products, Atlas A3 inference products, Atlas A2 training products, and Atlas A2 inference products**
 
 **Figure 1** PipeUtilization.csv file 
 
@@ -483,7 +483,7 @@ The key fields are as follows.
 |aic_mte1_active_bw(GB/s)|Active bandwidth of MTE1 in the Cube unit corresponding to the active cycles, specifically involving L1-to-L0A and L1-to-L0B channels. For Atlas A3 training products, Atlas A3 inference products, Atlas A2 training products, and Atlas A2 inference products, this is only displayed when dynamic instrumentation is enabled (when `--aic-metrics=MemoryDetail` is set).|
 |aic_mte2_active_bw(GB/s)|Active bandwidth of MTE2 in the Cube unit corresponding to the active cycles, specifically involving GM-to-L1, GM-to-L0A, and GM-to-L0B channels. For Atlas A3 training products, Atlas A3 inference products, Atlas A2 training products, and Atlas A2 inference products, this is only displayed when dynamic instrumentation is enabled (when `--aic-metrics=MemoryDetail` is set).|
 
-**<term>Atlas inference products</term>**
+**Atlas inference products**
 
 **Figure 2** PipeUtilization.csv file 
 ![](../figures/PipeUtilization-csv-file-12.png "PipeUtilization.csv file-12")
@@ -510,7 +510,7 @@ The key fields are as follows.
 |aic_vec_time(us)|Time taken to execute Vector instructions.|
 |aic_vec_ratio|Ratio of cycles taken to execute Vector instructions to the total cycles.|
 
-**<term>Ascend 950 products</term>**
+**Ascend 950 products**
 
 **Figure 3** PipeUtilization.csv file 
 ![](../figures/PipeUtilization-csv-file.png "PipeUtilization.csv file")
@@ -557,7 +557,7 @@ A bank group is a group of banks in the UB. Each bank group contains multiple ba
 
 For details, see the field description in the following table.
 
-**<term>Atlas A3 training products, Atlas A3 inference products</term>, <term>Atlas A2 training products, and Atlas A2 inference products</term>**
+**Atlas A3 training products, Atlas A3 inference products, Atlas A2 training products, and Atlas A2 inference products**
 
 **Figure 1** ResourceConflictRatio.csv file 
 ![](../figures/ResourceConflictRatio-csv-file.png "ResourceConflictRatio.csv file")
@@ -585,7 +585,7 @@ The key fields are as follows.
 |ai*_mte2_wait_ratio|Ratio of cycles in which MTE2 is blocked to the total cycles of instructions.|
 |ai*_mte3_wait_ratio|Ratio of cycles in which MTE3 is blocked to the total cycles of instructions.|
 
-**<term>Atlas inference products</term>**
+**Atlas inference products**
 
 **Figure 2** ResourceConflictRatio.csv file 
 ![](../figures/ResourceConflictRatio-csv-file-13.png "ResourceConflictRatio.csv file-13")
@@ -612,7 +612,7 @@ The key fields are as follows.
 > [!NOTE]NOTE 
 > `aic` in the preceding table refers to the AI core.
 
-**<term>Ascend 950 products</term>**
+**Ascend 950 products**
 
 **Figure 3** ResourceConflictRatio.csv file 
 ![](../figures/ResourceConflictRatio-csv-file-14.png "ResourceConflictRatio.csv file-14")

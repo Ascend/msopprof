@@ -71,7 +71,7 @@ This section demonstrates how to use the instruction pipeline charts of the msOp
 
 **Procedure**
 
-1. Import the `visualize_data.bin` file obtained from the operator simulation profile to MindStudio Insight by referring to the [msOpProf Simulator User Guide](../user_guide/msopprof_simulator_user_guide.md). For details, see [Importing Profile Data](https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/user_guide/basic_operations.md#%E5%AF%BC%E5%85%A5%E6%95%B0%E6%8D%AE) in the *MindStudio Insight User Guide*. <a id="import-data"></a>
+1. Import the `visualize_data.bin` file obtained from the operator simulation profile to MindStudio Insight by referring to the [msOpProf Simulator User Guide](../user_guide/msopprof_simulator_user_guide.md). For details, see [Importing Profile Data](https://gitcode.com/Ascend/msinsight/blob/26.0.0/docs/zh/user_guide/basic_operations.md#%E5%AF%BC%E5%85%A5%E6%95%B0%E6%8D%AE) in the *MindStudio Insight User Guide*. <a id="import-data"></a>
 2. View the operator instruction pipeline chart.
 
     It can be found that the MTE2 pipeline does not execute the transfer instruction during VADD computation, making it the performance bottleneck of the operator. To optimize operator performance, the transfer efficiency of the MTE2 pipeline needs to be improved.

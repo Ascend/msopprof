@@ -10,7 +10,7 @@
   - You are advised to restrict the operation permission on executable files or applications to avoid privilege escalation risks.
   - Avoid high-risk operations (such as deleting files, deleting directories, changing passwords, and running privilege escalation commands) to prevent security risks.
 
-- To use the MindStudio Insight tool to view files output by msOpProf, you need to install the MindStudio Insight software package separately. For installation steps, see the [*MindStudio Insight Installation Guide*](https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/user_guide/mindstudio_insight_install_guide.md).
+- To use the MindStudio Insight tool to view files output by msOpProf, you need to install the MindStudio Insight software package separately. For installation steps, see the [*MindStudio Insight Installation Guide*](https://gitcode.com/Ascend/msinsight/blob/26.0.0/docs/en/user_guide/mindstudio_insight_install_guide.md).
 
 - You are advised to collect profile data within 5 minutes and ensure that the set memory size is greater than 20 GB (for example, `docker run --memory=20g container_name`).
 

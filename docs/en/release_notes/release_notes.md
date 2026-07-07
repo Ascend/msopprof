@@ -76,7 +76,7 @@ This issue is the first official release. The following features are added:
 
 msOpProf mode:
 
-1. Computing memory heatmap: Displays basic operator information, comput workload analysis data, and memory workload analysis data by resource, allowing developers to identify resource bottlenecks from a comprehensive perspective.
+1. Computing memory heatmap: Displays basic operator information, compute workload analysis data, and memory workload analysis data by resource, allowing developers to identify resource bottlenecks from a comprehensive perspective.
 2. Roofline bottleneck analysis chart: Builds a processor performance model, which can be used to quickly evaluate the theoretical performance limit of an operator, allowing developers to quickly identify bottlenecks.
 3. Communication and computing pipeline chart (for MC2 operators): Allows developers to intuitively see operator running status and instruction time consumption, which helps identify operator bottlenecks. Performance annotation is supported through Ascend C APIs to collect actual execution time of code on operator blocks, used for analysis and optimization of communication and compute operators performance.
 4. Pipeline chart: Allows developers to intuitively see the running status of each pipeline.
