@@ -160,28 +160,24 @@ void PrintDeviceHelp(ChipType chipType)
         << "      --output=<PATH>                       Output path." << std::endl
         << "                                              PATH:default \"./\"" << std::endl
         << "      --aic-metrics=<TYPE>                  Enable collection ability type:" << std::endl
-        << "                                              TYPE:ArithmeticUtilization | MemoryUB | Memory |" << std::endl
-        << "                                                | MemoryL0 | L2Cache | PipeUtilization |" << std::endl
-        << "                                                | ResourceConflictRatio | BasicInfo | Roofline |";
+        << "                                              TYPE:ArithmeticUtilization | MemoryUB | Memory | MemoryL0 | L2Cache |" << std::endl
+        << "                                                | PipeUtilization | ResourceConflictRatio | BasicInfo | Roofline |" << std::endl;
     if (chipType == Common::ChipType::ASCEND910B) {
-        std::cout << std::endl
-                  << "                                                | Occupancy | TimelineDetail | KernelScale | Source | MemoryDetail |";
+        std::cout << "                                                | Occupancy | TimelineDetail | KernelScale | Source | MemoryDetail |" << std::endl;
     }
     if (chipType == Common::ChipType::ASCEND950) {
-        std::cout << std::endl
-                  << "                                                | Occupancy | KernelScale | Source |" << std::endl
-                  << "                                                | PCSampling | MemoryDetail | PipeTimeline | InstrTimeline |";
+        std::cout << "                                                | Occupancy | TimelineDetail | KernelScale | Source | MemoryDetail |" << std::endl
+                  << "                                                | PCSampling | PipeTimeline | InstrTimeline |" << std::endl;
     }
-    std::cout << std::endl
-        << "      --kernel-name=<NAME>                  Specify the kernel name to profile." << std::endl
-        << "                                              Not effective in config mode." << std::endl
-        << "      --launch-count=<LIMIT>                Number of kernel that can be collected." << std::endl
-        << "                                              LIMIT:1-5000, default: 1" << std::endl
-        << "      --launch-skip-before-match=<SKIP>     Set the number of kernel launch to skip" << std::endl
-        << "                                              before starting to analyze the kernel." << std::endl
-        << "                                              SKIP:0-1000, default: 0" << std::endl
-        << "      --replay-mode=<MODE>                  Data collection replay mode." << std::endl
-        << "                                              MODE:application|kernel";
+    std::cout << "      --kernel-name=<NAME>                  Specify the kernel name to profile." << std::endl
+              << "                                              Not effective in config mode." << std::endl
+              << "      --launch-count=<LIMIT>                Number of kernel that can be collected." << std::endl
+              << "                                              LIMIT:1-5000, default: 1" << std::endl
+              << "      --launch-skip-before-match=<SKIP>     Set the number of kernel launch to skip" << std::endl
+              << "                                              before starting to analyze the kernel." << std::endl
+              << "                                              SKIP:0-1000, default: 0" << std::endl
+              << "      --replay-mode=<MODE>                  Data collection replay mode." << std::endl
+              << "                                              MODE:application|kernel";
     if (chipType == Common::ChipType::ASCEND910B || chipType == Common::ChipType::ASCEND950) {
         std::cout << "|range";
     }
