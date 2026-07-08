@@ -152,54 +152,60 @@ void PrintDeviceHelp(ChipType chipType)
         << "msopprof (MindStudio Profiler For Operator) is part of MindStudio Operator-dev Tools." << std::endl
         << "Used for Ascend C operator profiling by running on the board." << "\n" << std::endl
         << "Options:" << std::endl
-        << "   --version / -v                       <Optional> Version message." << std::endl
-        << "   --help / -h                          <Optional> Help message." << std::endl
-        << "   --config                             <Optional> Json file for op config path." << std::endl
-        << "   --application                        <Optional> Executable file path." << std::endl
-        << "   --output                             <Optional> Output path." << std::endl
-        << "   --aic-metrics=ability1,ability2,...  <Optional> Enable collection capability of ArithmeticUtilization "
-           "/ MemoryUB / Memory / MemoryL0 / L2Cache / PipeUtilization" << std::endl
-        << "                                                   / ResourceConflictRatio / Default / BasicInfo / Roofline ";
+        << std::endl
+        << "  -v, --version                             Show version information." << std::endl
+        << "  -h, --help                                Show help message." << std::endl
+        << "      --config=<FILE>                       Json file for op config path." << std::endl
+        << "      --application=<FILE>                  Executable file path." << std::endl
+        << "      --output=<PATH>                       Output path." << std::endl
+        << "                                              PATH:default \"./\"" << std::endl
+        << "      --aic-metrics=<TYPE>                  Enable collection ability type:" << std::endl
+        << "                                              TYPE:ArithmeticUtilization | MemoryUB | Memory |" << std::endl
+        << "                                                | MemoryL0 | L2Cache | PipeUtilization |" << std::endl
+        << "                                                | ResourceConflictRatio | BasicInfo | Roofline |";
     if (chipType == Common::ChipType::ASCEND910B) {
-        std::cout << "/ Occupancy / TimelineDetail / KernelScale / Source / MemoryDetail." << std::endl;
+        std::cout << std::endl
+                  << "                                                | Occupancy | TimelineDetail | KernelScale | Source | MemoryDetail |";
     }
     if (chipType == Common::ChipType::ASCEND950) {
-        std::cout << "/ Occupancy / KernelScale / Source / PCSampling / MemoryDetail" << std::endl
-                  << "                                                   / PipeTimeline / InstrTimeline." << std::endl
-                  << "   --instr-timeline-pipe                <Optional> Specify the pipe for instr timeline, "
- 	                 "only effective when --aic-metrics=InstrTimeline." << std::endl;
+        std::cout << std::endl
+                  << "                                                | Occupancy | KernelScale | Source |" << std::endl
+                  << "                                                | PCSampling | MemoryDetail | PipeTimeline | InstrTimeline |";
     }
-    std::cout
-        << "   --kernel-name                        <Optional> Specify the kernel name to profile."
-        << " It's not effective in config mode." << std::endl
-        << "   --launch-count                       <Optional> Number of kernel that can be collected,"
-        << " number in [1, 5000]." << std::endl
-        << "   --launch-skip-before-match           <Optional> Set the number of kernel launch that you want to"
-        << " skip before " << std::endl
-        << "                                                   starting to analyze the kernel,"
-        << " number in [0, 1000]. " << std::endl
-        << "   --replay-mode                        <Optional> Data collection replay Mode, select application / kernel";
+    std::cout << std::endl
+        << "      --kernel-name=<NAME>                  Specify the kernel name to profile." << std::endl
+        << "                                              Not effective in config mode." << std::endl
+        << "      --launch-count=<LIMIT>                Number of kernel that can be collected." << std::endl
+        << "                                              LIMIT:1-5000, default: 1" << std::endl
+        << "      --launch-skip-before-match=<SKIP>     Set the number of kernel launch to skip" << std::endl
+        << "                                              before starting to analyze the kernel." << std::endl
+        << "                                              SKIP:0-1000, default: 0" << std::endl
+        << "      --replay-mode=<MODE>                  Data collection replay mode." << std::endl
+        << "                                              MODE:application|kernel";
     if (chipType == Common::ChipType::ASCEND910B || chipType == Common::ChipType::ASCEND950) {
-        std::cout << " / range";
+        std::cout << "|range";
     }
-    std::cout << ", the default value is kernel." << std::endl
-        << "   --kill                               <Optional> Kill op process when the number of kernel reaches"
-           " launch-count," << std::endl
-        << "                                                   select on / off, the default value is off." << std::endl
-        << "   --mstx                               <Optional> Enable mstx api or not, select on / off,"
-        << " the default value is off." << std::endl
-        << "   --mstx-include                       <Optional> Specify the mstx range for msprof op to be collected."
-        << std::endl
-        << "   --warm-up                            <Optional> Set the number of warm up times."
-        << " The default value is 5, range in [0, 500]." << std::endl;
+    std::cout << ", default: kernel" << std::endl
+        << "      --kill=<SWITCH>                       Kill op process when the number of kernel reaches launch-count." << std::endl
+        << "                                              SWITCH:on|off, default: off" << std::endl
+        << "      --mstx=<SWITCH>                       Enable mstx API or not." << std::endl
+        << "                                              SWITCH:on|off, default: off" << std::endl
+        << "      --mstx-include=<RANGE>                Specify the mstx range for msprof op to be collected." << std::endl
+        << "      --warm-up=<TIMES>                     Set the number of warm up times." << std::endl
+        << "                                              TIMES:0-500, default: 5" << std::endl;
+    if (chipType == Common::ChipType::ASCEND950) {
+        std::cout << "      --instr-timeline-pipe=<PIPE>          Specify the pipe for instr timeline." << std::endl
+                  << "                                              Only effective when --aic-metrics=<INSTRTIMELINE>." << std::endl;
+    }
     if (chipType == Common::ChipType::ASCEND910B) {
-        std::cout << "   --dump                               <Optional> Enable or disable dump flushed to disk mode, "
-           "only effective when --aic-metrics=TimelineDetail." << std::endl;
-        std::cout << "   --core-id                            <Optional> Specify the id of cores to be parsed, "
-                     "only effective when --aic-metrics=TimelineDetail and only effective in simulation products."
-                     << std::endl;
+        std::cout << "      --dump=<SWITCH>                       Enable or disable dump flushed to disk mode. Only effective when" << std::endl
+                  << "                                              --aic-metrics=<TIMELINEDETAIL>." << std::endl
+                  << "                                              SWITCH:on|off, default: off" << std::endl
+                  << "      --core-id=<ID>                        Specify the id of cores to be parsed." << std::endl
+                  << "                                              Only effective when --aic-metrics=<TIMELINEDETAIL> and only" << std::endl
+                  << "                                              effective in simulation products." << std::endl;
     }
-    std::cout << "   --custom-input                       <Optional> Json file for op custom input." << std::endl;
+    std::cout << "      --custom-input=<FILE>                 Json file for op custom input." << std::endl;
 }
 
 void PrintSimulatorHelp(void)
@@ -208,30 +214,32 @@ void PrintSimulatorHelp(void)
         << "msopprof (MindStudio Profiler For Operator) is part of MindStudio Operator-dev Tools." << std::endl
         << "Used for Ascend C operator profiling by running on the simulator." << "\n" << std::endl
         << "Options:" << std::endl
-        << "   --version / -v                     <Optional> Version message." << std::endl
-        << "   --help / -h                        <Optional> Help message." << std::endl
-        << "   --config                           <Optional> Json file for op config path" << std::endl
-        << "   --application                      <Optional> Executable file path" << std::endl
-        << "   --export                           <Optional> Specify the dump data path for parsing" << std::endl
-        << "   --output                           <Optional> Output path" << std::endl
-        << "   --kernel-name                      <Optional> Specify the kernel name to profile."
-        << " It's not effective in config mode." << std::endl
-        << "   --aic-metrics=metric1,metric2,...  <Optional> Enable PipeUtilization / ResourceConflictRatio / "
-            "PMSampling / Overhead metrics. PipeUtilization is required" << std::endl
-        << "   --launch-count                     <Optional> Number of kernel that can be collected,"
-        << " number in [1, 5000]." << std::endl
-        << "   --mstx                             <Optional> Enable mstx api or not, select on / off,"
-        << " the default value is off." << std::endl
-        << "   --mstx-include                     <Optional> Specify the mstx range for msprof op to be collected."
         << std::endl
-        << "   --soc-version                      <Optional> Specify a simulator in ascend toolkit."
-        << " It's not effective in config mode." << std::endl
-        << "   --core-id                          <Optional> Specify the id of cores to be parsed." << std::endl
-        << "   --timeout                          <Optional> Set the timeout minutes for application runs,"
-           " range in [1, 2880]."
-        << std::endl
-        << "   --dump                             <Optional> Enable or disable dump flushed to disk mode, "
-           "This parameter is valid only for A2/A3." << std::endl;
+        << "  -v, --version                             Show version information." << std::endl
+        << "  -h, --help                                Show help message." << std::endl
+        << "      --config=<FILE>                       Json file for op config path." << std::endl
+        << "      --application=<FILE>                  Executable file path." << std::endl
+        << "      --export=<PATH>                       Specify the dump data path for parsing." << std::endl
+        << "      --output=<PATH>                       Output path." << std::endl
+        << "                                              PATH:default \"./\"" << std::endl
+        << "      --kernel-name=<NAME>                  Specify the kernel name to profile." << std::endl
+        << "                                              Not effective in config mode." << std::endl
+        << "      --launch-count=<LIMIT>                Number of kernel that can be collected." << std::endl
+        << "                                              LIMIT:1-5000, default: 1" << std::endl
+        << "      --aic-metrics=<TYPE>                  Enable collection ability type:" << std::endl
+        << "                                              TYPE:PipeUtilization | ResourceConflictRatio |" << std::endl
+        << "                                                | PMSampling | Overhead |" << std::endl
+        << "                                              PipeUtilization is required." << std::endl
+        << "      --mstx=<SWITCH>                       Enable mstx API or not." << std::endl
+        << "                                              SWITCH:on|off, default: off" << std::endl
+        << "      --mstx-include=<RANGE>                Specify the mstx range for msprof op to be collected." << std::endl
+        << "      --soc-version=<VERSION>               Specify a simulator in ascend toolkit. Not effective in config mode." << std::endl
+        << "      --core-id=<ID>                        Specify the id of cores to be parsed." << std::endl
+        << "      --timeout=<MINUTES>                   Set the timeout minutes for application runs." << std::endl
+        << "                                              MINUTES:1-2880" << std::endl
+        << "      --dump=<SWITCH>                       Enable or disable dump flushed to disk mode." << std::endl
+        << "                                              SWITCH:on|off, default: off" << std::endl
+        << "                                              This parameter is valid only for A2/A3." << std::endl;
 }
 
 void PrintErrorMsg(std::string const &msg)
