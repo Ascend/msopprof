@@ -55,8 +55,10 @@ nlohmann::json LcclTimelineParser::AddAicoreApiDot(const LcclInfo& info) const
     event.name = LOG_ID_MAP.at(info.logId);
     event.cName = API_CNAME_MAP.at(event.name);
     event.ph = "X";
-    event.pid = GetAicoreTimeLinePid(info.blockId);
-    event.tid = to_string(info.blockId);
+    std::string pid = GetAicoreTimeLinePid(info.blockId);
+    auto [core, _] = GetGroupName(pid, static_cast<uint16_t>(info.blockId));
+    event.pid = BLOCK;
+    event.tid = core;
     event.ts = static_cast<float>(SafeSub(info.startSyscyc, minSysCyc_, location, false)) / aicpuFreq_
                * TIME_CONVERSION;
     event.dur = static_cast<float>(SafeSub(info.endSyscyc, info.startSyscyc, location, false)) / aicpuFreq_

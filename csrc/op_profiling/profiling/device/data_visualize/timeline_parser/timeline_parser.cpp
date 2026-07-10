@@ -65,6 +65,9 @@ void TimelineParser::AddAicoreDuration(uint64_t startTime)
 
 void TimelineParser::ProcessAicoreBlockDur(bool enableTimeDetail)
 {
+    // 默认按照cube类型初始化，1个core里面只有1个子cube core
+    subCoreCubeNum_ = 1;
+    subCoreVecNum_ = 0;
     std::set<uint16_t> aicDotBlockIds;
     std::set<uint16_t> aivDotBlockIds;
     std::string opType = opBasicInfoObj_->GetOpType();
@@ -82,6 +85,13 @@ void TimelineParser::ProcessAicoreBlockDur(bool enableTimeDetail)
         uint16_t blockIndex = pair.first;
         auto timeVec = pair.second;
         uint16_t subBlockNum = timeVec.size();
+        if (opType == Common::OpType::MIX) {
+            subCoreVecNum_ = subBlockNum - 1;
+        }
+        if (opType == Common::OpType::VECTOR) {
+            subCoreCubeNum_ = 0;
+            subCoreVecNum_ = subBlockNum;
+        }
         for (uint16_t i = 0; i < subBlockNum; i++) {
             json resultItem;
             if (opType == Common::OpType::MIX) {
@@ -98,10 +108,11 @@ void TimelineParser::ProcessAicoreBlockDur(bool enableTimeDetail)
             blockDuration_[{recordType, dots}] = timeVec[i];
             resultItem["cname"] = cName;
             resultItem["ph"] = "X";
-            resultItem["pid"] = recordType;
-            resultItem["tid"] = dots;
+            auto [core, name] = GetGroupName(recordType, dots);
+            resultItem["pid"] = BLOCK;
+            resultItem["tid"] = core;
             if (enableTimeDetail) {
-                resultItem["name"] = recordType + std::to_string(dots);
+                resultItem["name"] = name;
                 resultItem["ts"] = GetRunTime(aicpuFreq_, SafeSub(timeVec[i].first, minSysCyc_, location, false));
                 resultItem["dur"] = GetRunTime(aicpuFreq_, SafeSub(timeVec[i].second, timeVec[i].first, location, false));
                 timelineJson_.push_back(resultItem);
@@ -116,31 +127,33 @@ void TimelineParser::ProcessAicoreBlockDur(bool enableTimeDetail)
             }
         }
     }
-    SortTimelineByIds(aicDotBlockIds, aivDotBlockIds);
+    SortTimelineByIds(blockSystemTimes_.size());
 }
 
-void TimelineParser::SortTimelineByIds(const std::set<uint16_t> &aicDotBlockIds, const std::set<uint16_t> &aivDotBlockIds)
-{
-    // sort aicore timeline
-    auto OrderDotsId = [this] (const std::string &type, const std::set<uint16_t> &dots) {
-        for (const auto &dotBlockId: dots) {
-                json nameItem;
-                nameItem["ph"] = "M";
-                nameItem["name"] = "thread_name";
-                nameItem["pid"] = type;
-                nameItem["tid"] = dotBlockId;
-                nameItem["args"]["name"] = type + std::to_string(dotBlockId);
-                timelineJson_.push_back(nameItem);
-                json sortItem;
-                sortItem["ph"] = "M";
-                sortItem["name"] = "thread_sort_index";
-                sortItem["pid"] = type;
-                sortItem["tid"] = dotBlockId;
-                sortItem["args"]["sort_index"] = dotBlockId;
-                timelineJson_.push_back(sortItem);
+void TimelineParser::SortTimelineByIds(uint32_t coreNums) {
+    int order = 1;
+    for (uint16_t coreIdx = 0; coreIdx < coreNums; coreIdx++) {
+        std::string pid = std::string("core") + std::to_string(coreIdx);
+        for (uint16_t c = 0; c < subCoreCubeNum_; c++) {
+            std::string tid = std::string("cubecore0");
+            json nameItem;
+            nameItem["ph"] = "M";
+            nameItem["name"] = "thread_sort_index";
+            nameItem["pid"] = BLOCK;
+            nameItem["tid"] = "core" + std::to_string(coreIdx) + "." + tid;
+            nameItem["args"]["sort_index"] = order++;
+            timelineJson_.push_back(nameItem);
         }
-    };
-    OrderDotsId(AIC_BLOCK, aicDotBlockIds);
-    OrderDotsId(AIV_BLOCK, aivDotBlockIds);
+        for (uint16_t v = 0; v < subCoreVecNum_; v++) {
+            std::string tid = std::string("veccore") + std::to_string(v);
+            json nameItem;
+            nameItem["ph"] = "M";
+            nameItem["name"] = "thread_sort_index";
+            nameItem["pid"] = BLOCK;
+            nameItem["tid"] = "core" + std::to_string(coreIdx) + "." + tid;
+            nameItem["args"]["sort_index"] = order++;
+            timelineJson_.push_back(nameItem);
+        }
+    }
 }
 }

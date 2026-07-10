@@ -71,14 +71,6 @@ private:
     std::map<std::tuple<uint32_t, uint32_t, std::string>, std::vector<OperationInfo>> timeStampInfo_;
 };
 
-inline std::string GetAicoreBlockName(uint16_t dotBlockId)
-{
-    if (dotBlockId >= CUBE_BLOCK_START_INDEX) {
-        return "AIC_BLOCK" + std::to_string(dotBlockId - CUBE_BLOCK_START_INDEX);
-    }
-    return "AIV_BLOCK" + std::to_string(dotBlockId);
-}
-
 inline std::string GetAicoreTimeLinePid(uint16_t dotBlockId)
 {
     return (dotBlockId >= CUBE_BLOCK_START_INDEX) ? "AIC BLOCK" : "AIV BLOCK";

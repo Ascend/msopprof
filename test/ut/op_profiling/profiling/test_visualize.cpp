@@ -1133,7 +1133,7 @@ TEST(LcclTimelineParser, test_lccl_process_data_correct)
     LcclDumpLogInfo info4 = {2, 0, 48117105579999};
     vector<LcclDumpLogInfo> aicoreTimeStamps = {info1, info2, info3, info4};
     parser.ProcessAicoreData(aicoreTimeStamps);
-    EXPECT_EQ(parser.timelineJson_.size(), 8);
+    EXPECT_EQ(parser.timelineJson_.size(), 9);
 }
 
 /**

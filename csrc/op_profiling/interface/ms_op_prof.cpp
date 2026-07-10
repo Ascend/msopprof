@@ -148,20 +148,24 @@ void PrintVersion()
 
 void PrintDeviceHelp(ChipType chipType)
 {
-    std::cout
-        << "msopprof (MindStudio Profiler For Operator) is part of MindStudio Operator-dev Tools." << std::endl
-        << "Used for Ascend C operator profiling by running on the board." << "\n" << std::endl
-        << "Options:" << std::endl
-        << std::endl
-        << "  -v, --version                             Show version information." << std::endl
-        << "  -h, --help                                Show help message." << std::endl
-        << "      --config=<FILE>                       Json file for op config path." << std::endl
-        << "      --application=<FILE>                  Executable file path." << std::endl
-        << "      --output=<PATH>                       Output path." << std::endl
-        << "                                              PATH:default \"./\"" << std::endl
-        << "      --aic-metrics=<TYPE>                  Enable collection ability type:" << std::endl
-        << "                                              TYPE:ArithmeticUtilization | MemoryUB | Memory | MemoryL0 | L2Cache |" << std::endl
-        << "                                                | PipeUtilization | ResourceConflictRatio | BasicInfo | Roofline |" << std::endl;
+    std::cout << "msopprof (MindStudio Profiler For Operator) is part of MindStudio Operator-dev Tools." << std::endl
+              << "Used for Ascend C operator profiling by running on the board." << "\n"
+              << std::endl
+              << "Options:" << std::endl
+              << std::endl
+              << "  -v, --version                             Show version information." << std::endl
+              << "  -h, --help                                Show help message." << std::endl
+              << "      --config=<FILE>                       Json file for op config path." << std::endl
+              << "      --application=<FILE>                  Executable file path." << std::endl
+              << "      --output=<PATH>                       Output path." << std::endl
+              << "                                              PATH:default \"./\"" << std::endl
+              << "      --aic-metrics=<TYPE>                  Enable collection ability type:" << std::endl
+              << "                                              TYPE:ArithmeticUtilization | MemoryUB | Memory | "
+                 "MemoryL0 | L2Cache |"
+              << std::endl
+              << "                                                | PipeUtilization | ResourceConflictRatio | Default "
+                 "| BasicInfo | Roofline |"
+              << std::endl;
     if (chipType == Common::ChipType::ASCEND910B) {
         std::cout << "                                                | Occupancy | TimelineDetail | KernelScale | Source | MemoryDetail |" << std::endl;
     }
