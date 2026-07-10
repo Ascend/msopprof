@@ -43,6 +43,7 @@ constexpr uint16_t A5_VEC_END_RANGE_TWO = 107;
 constexpr uint32_t TIME_STAMP_START = 0xffff;
 constexpr char const *AIC_BLOCK = "AIC BLOCK";
 constexpr char const *AIV_BLOCK = "AIV BLOCK";
+constexpr char const *BLOCK = "BLOCK";
 
 struct JsonEvent {
     inline void ToJson(nlohmann::json &jsonData) const
@@ -82,6 +83,7 @@ public:
                 Utility::LogWarn("Get task scheduler frequency failed. Use default value instead");
                 aicpuFreq_ = FREQ;
             }
+            opType_ = opBasicInfoObj_->GetOpType();
         }
     virtual bool TimelineToJson(const std::string &outputPath) = 0;
     void AddAicoreDuration(uint64_t startTime);
@@ -126,8 +128,43 @@ public:
     std::string outputPath_;
     nlohmann::json timelineJson_;
     int64_t aicpuFreq_ = 0;
+    uint16_t subCoreVecNum_ = 0;
+    uint16_t subCoreCubeNum_ = 0;
+
+    // 第一个值是在那个core上，第二个值记录属于cube还是vector
+    std::pair<std::string, std::string> GetGroupName(const std::string &type, uint16_t blockId) const {
+        std::string value;
+        if (opType_ == Common::OpType::CUBE) {
+            value = std::string("core") + std::to_string(blockId) + std::string(".cubecore0");
+            return {value, "cube time"};
+        }
+        if (opType_ == Common::OpType::VECTOR) {
+            if (subCoreVecNum_ == 0) {
+                Utility::LogError("Failed to get subCoreVecNum_");
+                return {"NA", "NA"};
+            }
+            int coreId = blockId / subCoreVecNum_;
+            int subCoreId = blockId % subCoreVecNum_;
+            value = std::string("core") + std::to_string(coreId) + std::string(".veccore") + std::to_string(subCoreId);
+            return {value, "vector time"};
+        }
+        if (type == AIC_BLOCK) {
+            value = std::string("core") + std::to_string(blockId) + std::string(".cubecore0");
+            return {value, "cube time"};
+        }
+        if (subCoreVecNum_ == 0) {
+            Utility::LogError("Failed to get subCoreVecNum_");
+            return {"NA", "NA"};
+        }
+        uint16_t coreId = blockId / subCoreVecNum_;
+        uint16_t subCoreId = blockId % subCoreVecNum_;
+        value = std::string("core") + std::to_string(coreId) + std::string(".veccore") + std::to_string(subCoreId);
+        return {value, "vector time"};
+    }
+
 private :
-    void SortTimelineByIds(const std::set<uint16_t> &aicDotBlockIds, const std::set<uint16_t> &aivDotBlockIds);
+    void SortTimelineByIds(uint32_t coreNums);
+    std::string opType_;
     BlockSystemTimeType blockSystemTimes_;
     ChipProductType chipType_;
     std::shared_ptr<OpBasicInfo> &opBasicInfoObj_;

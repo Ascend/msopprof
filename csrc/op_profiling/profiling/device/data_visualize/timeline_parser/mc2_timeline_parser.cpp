@@ -358,8 +358,9 @@ json MC2TimelineParser::BuildAicoreDot(const OperationInfo& info, const string& 
         * TIME_CONVERSION;
     resultItem["name"] = operationType;
     resultItem["ph"] = "X";
-    resultItem["pid"] = info.type;
-    resultItem["tid"] = info.blockId;
+    auto [core, _] = GetGroupName(info.type, static_cast<uint16_t>(info.blockId));
+    resultItem["pid"] = BLOCK;
+    resultItem["tid"] = core;
     resultItem["ts"] = static_cast<float>(SafeSub(info.startSyscyc, minSysCyc_, location, false)) / aicpuFreq_
         * TIME_CONVERSION;
     resultItem["args"]["pc_addr"] = NumToHexString(info.startCurPc, ADDR_SIZE);

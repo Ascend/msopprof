@@ -18,8 +18,6 @@
 #include <regex>
 #include "common/visualize.h"
 #include "common/hal_helper.h"
-#include "filesystem.h"
-#include "ustring.h"
 
 namespace Visualize {
 using namespace Utility;
@@ -178,8 +176,9 @@ void AicoreTimelineParser::ProcessAicoreData(const std::vector<MsprofAicTimeStam
                 displayName = descIdDisplay_[descId];
             }
             resultItem["name"] = displayName;
-            resultItem["pid"] = pid;
-            resultItem["tid"] = blockId;
+            auto [core, _] = GetGroupName(pid, static_cast<uint16_t>(blockId));
+            resultItem["pid"] = BLOCK;
+            resultItem["tid"] = core;
             resultItem["args"]["name"] = displayName;
             resultItem["ts"] = GetRunTime(aicpuFreq_, dot.startSyscyc - minSysCyc_);
             resultItem["dur"] = GetRunTime(aicpuFreq_, dot.endSyscyc - dot.startSyscyc);
