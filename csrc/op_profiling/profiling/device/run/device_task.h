@@ -41,11 +41,16 @@ public:
                                                             Path::MSOPPROF_INJECTION_LIB_PATH_FROM_MSOPPROF});
         auto* profConfig = dynamic_cast<OpDeviceProf *>(&config);
         if (profConfig->aicMetrics_.isDeviceToSimulator) {
-            simSocVersion = RuntimeHelper::Instance().GetSocVersion();
+            auto realSocVersion = RuntimeHelper::Instance().GetSocVersion();
+            simSocVersion = realSocVersion;
+            if (Utility::StartsWith(simSocVersion, "Ascend950") &&
+                SOC_STRING_TO_CHIP_PRODUCT.find(simSocVersion) != SOC_STRING_TO_CHIP_PRODUCT.end()) {
+                simSocVersion = "dav_3510";
+            }
             std::string ascendHomePath;
             Utility::GetAscendHomePath(ascendHomePath);
             env["LD_LIBRARY_PATH"] = Utility::JoinPath({ascendHomePath, "tools/simulator", simSocVersion, "lib"});
-            auto it = SOC_STRING_TO_CHIP_PRODUCT.find(simSocVersion);
+            auto it = SOC_STRING_TO_CHIP_PRODUCT.find(realSocVersion);
             auto chipType = (it == SOC_STRING_TO_CHIP_PRODUCT.end()) ?
                 ChipProductType::UNKNOWN_PRODUCT_TYPE : it->second;
             if (!profConfig->dump_) {
