@@ -9,11 +9,11 @@ msOpProf 工具用于采集和分析运行在昇腾 AI 处理器上的算子的�
 
 ### 1.1 建议
 
-本章节以您已完成《[算子开发工具快速入门](https://gitcode.com/Ascend/msot/blob/master/docs/zh/quick_start/op_tool_quick_start.md)》的全流程操作为前提；若尚未体验，建议先完成该指南以获得更佳的学习效果。
+本章节以您已完成《[算子开发工具快速入门](https://gitcode.com/Ascend/msot/blob/26.1.0/docs/zh/quick_start/op_tool_quick_start.md)》的全流程操作为前提；若尚未体验，建议先完成该指南以获得更佳的学习效果。
 
 ### 1.2 环境准备
 
-请严格按照《[昇腾 AI 算子开发工具链学习环境安装指南](https://gitcode.com/Ascend/msot/blob/master/docs/zh/quick_start/installation_guide.md)》完成环境安装与工作区配置。
+请严格按照《[昇腾 AI 算子开发工具链学习环境安装指南](https://gitcode.com/Ascend/msot/blob/26.1.0/docs/zh/quick_start/installation_guide.md)》完成环境安装与工作区配置。
 即使您已具备类似环境，也需按该指南重新执行一遍，以确保所有依赖组件、环境变量等完整且一致。
 
 ## 2. 操作步骤
@@ -32,7 +32,7 @@ python3 -c "import numpy, sympy, scipy, attrs, psutil, decorator; from packaging
 
 ### 2.2 【前提】算子工程准备完成
 
-按照<a href="https://gitcode.com/Ascend/msot/blob/master/docs/zh/quick_start/op_tool_quick_start.md" target="_blank">《昇腾算子开发工具链快速入门》</a>中的指导，完成 2.1 节和 2.3 节。
+按照<a href="https://gitcode.com/Ascend/msot/blob/26.1.0/docs/zh/quick_start/op_tool_quick_start.md" target="_blank">《昇腾算子开发工具链快速入门》</a>中的指导，完成 2.1 节和 2.3 节。
 
 ### 2.3 【调优】分析算子性能（msOpProf）
 
@@ -42,7 +42,7 @@ python3 -c "import numpy, sympy, scipy, attrs, psutil, decorator; from packaging
 
 **1. 修改编译选项**
 
-在 Kernel 侧 CMakeLists.txt 首行插入一行配置，开启调试信息：
+在 Kernel 侧 CMakeLists.txt 首行插入如下配置，开启调试信息：
 
 ```shell
 # 进入对应目录进行文件备份
@@ -84,12 +84,12 @@ msopprof --output=./msopprof_output_npu ./execute_add_op
 > 参数 `--soc-version` 的值可通过执行以下命令获取：`python3 -c "import acl; print(acl.get_soc_name())"`。
 
 ```shell
-msopprof simulator --soc-version=Ascendxxxyy --output=./msopprof_output_sim ./execute_add_op
+msopprof simulator --soc-version={Ascendxxxyy} --output=./msopprof_output_sim ./execute_add_op
 ```
 
 #### 2.3.3 查看性能数据结果
 
-工具在指定 `--output` 目录下生成 .csv 和 .bin 格式的结果文件，若输出没有报错，则认为执行成功：
+工具在指定 `--output` 目录下生成 .csv 和 .bin 格式的结果文件，生成的目录结构请参见[目录结构参考](../user_guide/msopprof_simulator_user_guide.md#目录结构参考)，若输出没有报错，则认为执行成功：
 
 **csv 文件**   
 例如，MemoryUB.csv 文件打开后可以看到如下信息：
@@ -115,12 +115,12 @@ msopprof simulator --soc-version=Ascendxxxyy --output=./msopprof_output_sim ./ex
 
 ##### 2.3.4.1 安装 MindStudio Insight
 
-请参考<a href="https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/install_guide/mindstudio_insight_install_guide.md" target="_blank">《MindStudio Insight工具文档》</a>安装 Insight 工具。
+请参考<a href="https://gitcode.com/Ascend/msinsight/blob/26.1.0/docs/zh/install_guide/mindstudio_insight_install_guide.md" target="_blank">《MindStudio Insight工具文档》</a>安装 Insight 工具。
 
 ##### 2.3.4.2 用 MindStudio Insight 查看
 
 安装后是单机程序，简单操作如下：点击左上角 Import Data，将 visualize_data.bin 导入，然后打开 Details 页面，即可看到很多详细图表。
-详细操作及图表具体含义请参考<a href="https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/user_guide/basic_operations.md" target="_blank">《MindStudio Insight工具文档》</a>学习。
+详细操作及图表具体含义请参考<a href="https://gitcode.com/Ascend/msinsight/blob/26.1.0/docs/zh/user_guide/basic_operations.md" target="_blank">《MindStudio Insight工具文档》</a>学习。
 
 #### 2.3.5 恢复被修改的文件
 

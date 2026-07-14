@@ -169,7 +169,7 @@
 <td class="cellrowborder" valign="top" width="22.832283228322833%" headers="mcps1.2.7.1.1 "><p id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_p6828121843">-</p>
 </td>
 <td class="cellrowborder" valign="top" width="36.22362236223623%" headers="mcps1.2.7.1.2 "><p id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_p324215055915">输入数据bin文件的路径。</p>
-<ul id="ul1083781334916"><li>当<span class="parmvalue" id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_parmvalue47675439188">“param_type”</span>为input时必须输入data_path或value_range，且data_path优先级更高。</li><li>若json文件的"data_path"字段为空，需将json文件中设置为"data_path":"null"。json文件具体内容请参见<a href="#json配置文件说明">json配置文件说明</a>。</li></ul>
+<ul id="ul1083781334916"><li>当<span class="parmvalue" id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_parmvalue47675439188">“param_type”</span>为input时必须输入data_path或value_range，且data_path优先级更高。</li><li>若json文件的"data_path"字段为空，需将json文件中的"data_path"设置为"data_path":"null"。json文件具体内容请参见<a href="#json配置文件说明">json配置文件说明</a>。</li></ul>
 </td>
 <td class="cellrowborder" valign="top" width="10.09100910091009%" headers="mcps1.2.7.1.3 "><p id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_p135676171515">string</p>
 </td>
@@ -300,6 +300,7 @@ mstx接口是MindStudio提供的一个性能分析接口，它允许用户在应
         target_link_libraries( 
             ...
             dl
+            ${INSTALL_DIR}/lib64/libms_tools_ext.so
         )
         ```
 

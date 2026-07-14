@@ -91,7 +91,7 @@ For details about the single-operator API invocation scenario, see the **Project
 
 **Procedure**
 
-1. Based on the [sample project description](https://gitcode.com/cann/asc-devkit/blob/master/examples/01_simd_cpp_api/02_features/00_compilation/custom_op/README.md), compile, package, and deploy the custom operator.
+1. Based on the [sample project description](https://gitcode.com/cann/asc-devkit/blob/9.0.0/examples/01_simd_cpp_api/02_features/00_compilation/custom_op/README.md), compile, package, and deploy the custom operator.
 
     ```shell
     mkdir -p build && cd build
@@ -99,7 +99,7 @@ For details about the single-operator API invocation scenario, see the **Project
     ./custom_opp_*.run
     ```
 
-2. Based on the [aclnn single-operator API invocation sample](https://gitcode.com/cann/asc-devkit/blob/master/examples/01_simd_cpp_api/02_features/01_invocation/aclnn_invocation/README.md), build the operator executable file. After the compilation is complete, the executable file `execute_add_op` is generated in the project directory. This file can run on both Ascend devices and the simulator.
+2. Based on the [aclnn single-operator API invocation sample](https://gitcode.com/cann/asc-devkit/blob/9.0.0/examples/01_simd_cpp_api/02_features/01_invocation/aclnn_invocation/README.md), build the operator executable file. After the compilation is complete, the executable file `execute_add_op` is generated in the project directory. This file can run on both Ascend devices and the simulator.
 
     ```shell
     mkdir -p build; cd build

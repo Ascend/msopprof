@@ -109,7 +109,7 @@ The aforementioned .bin file can be opened using the MindStudio Insight tool to 
 
 ##### 2.3.4.1 Installing MindStudio Insight
 
-Refer to the <a href="https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/user_guide/mindstudio_insight_install_guide.md" target="_blank">MindStudio Insight Tool Documentation</a> to install the tool.
+Refer to the <a href="https://gitcode.com/Ascend/msinsight/blob/master/docs/en/user_guide/mindstudio_insight_install_guide.md" target="_blank">MindStudio Insight Tool Documentation</a> to install the tool.
 
 ##### 2.3.4.2 Viewing with MindStudio Insight
 

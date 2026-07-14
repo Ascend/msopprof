@@ -10,7 +10,7 @@ Kernel直调场景，详细信息可参考《Ascend C算子开发指南》中“
 
 **前期准备**
 
-- 单击[Add样例](https://gitcode.com/cann/asc-devkit/tree/master/examples/01_simd_cpp_api/00_introduction/01_vector/basic_api_tque_add)获取样例工程，以Add向量加法算子为例。
+- 单击[Add样例](https://gitcode.com/cann/asc-devkit/tree/9.0.0/examples/01_simd_cpp_api/00_introduction/01_add/basic_api_tque_add)获取样例工程，以Add向量加法算子为例。
 
     ```shell
     git clone https://gitcode.com/cann/asc-devkit.git -b 9.0.0
@@ -31,7 +31,7 @@ Kernel直调场景，详细信息可参考《Ascend C算子开发指南》中“
     > 
     > 本示例中可执行文件的名称（add）仅为示例，具体以当前工程中用户实际编译的脚本为准。
 
-2. 使用如下命令完成msopprof上板性能数据和精细化调优数据的采集，也可参考[msopprof模式命令](https://gitcode.com/Ascend/msopprof/blob/master/docs/zh/user_guide/msopprof_user_guide.md#命令参考)指定其他命令参数。
+2. 使用如下命令完成msopprof上板性能数据和精细化调优数据的采集，也可参考[msopprof模式命令](https://gitcode.com/Ascend/msopprof/blob/26.1.0/docs/zh/user_guide/msopprof_user_guide.md#命令参考)指定其他命令参数。
 
     ```shell
     msprof op add
@@ -54,7 +54,7 @@ Kernel直调场景，详细信息可参考《Ascend C算子开发指南》中“
     )
     ```
 
-4. 使用如下命令完成msopprof simulator性能数据、流水图和热点图数据的采集，也可参考[msopprof simulator模式命令](https://gitcode.com/Ascend/msopprof/blob/master/docs/zh/user_guide/msopprof_simulator_user_guide.md#命令参考)指定其他命令参数。
+4. 使用如下命令完成msopprof simulator性能数据、流水图和热点图数据的采集，也可参考[msopprof simulator模式命令](https://gitcode.com/Ascend/msopprof/blob/26.1.0/docs/zh/user_guide/msopprof_simulator_user_guide.md#命令参考)指定其他命令参数。
 
     > [!NOTE]说明
     > 参数 `--soc-version` 的值可通过执行以下命令获取：`python3 -c "import acl; print(acl.get_soc_name())"`。
@@ -69,7 +69,7 @@ Kernel直调场景，详细信息可参考《Ascend C算子开发指南》中“
     [INFO] Profiling running finished. All task success.
     ```
 
-6. 分别查看算子上板和仿真的性能数据，可将采集得到的visualize\_data.bin文件导入MindStudio Insight，具体导入操作请参考《MindStudio Insight用户指南》的“[导入性能数据](https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/user_guide/basic_operations.md#导入数据)”章节。<a id="导入数据"></a>
+6. 分别查看算子上板和仿真的性能数据，可将采集得到的visualize\_data.bin文件导入MindStudio Insight，具体导入操作请参考《MindStudio Insight用户指南》的“[导入性能数据](https://gitcode.com/Ascend/msinsight/blob/26.1.0/docs/zh/user_guide/basic_operations.md#导入数据)”章节。<a id="导入数据"></a>
 
     > [!NOTE] 说明
     > 
@@ -125,9 +125,9 @@ Kernel直调场景，详细信息可参考《Ascend C算子开发指南》中“
 
 **概述**
 
-通过PyTorch框架进行单算子调用的场景，详细信息可参考《Ascend Extension for PyTorch 套件与三方库支持清单》中“[昇腾自研插件](https://www.hiascend.com/document/detail/zh/Pytorch/720/modthirdparty/modparts/thirdpart_0009.html)”章节中OpPlugin插件。
+通过PyTorch框架进行单算子调用的场景，详细信息可参考《PyTorchNPU 套件与三方库支持清单》中“[昇腾自研插件](https://gitcode.com/Ascend/docs/blob/master/FrameworkPTAdapter/26.0.0/zh/supported_suites_and_third_party_libraries/supported_suites_and_third_party_libraries.md)”章节中OpPlugin插件。
 
-PyTorch框架算子调用场景下，进行性能数据采集的操作步骤与[采集triton算子场景](https://gitcode.com/Ascend/msopprof/blob/master/docs/zh/user_guide/msopprof_usage.md#采集triton算子的性能数据)基本一致。
+PyTorch框架算子调用场景下，进行性能数据采集的操作步骤与[采集triton算子场景](https://gitcode.com/Ascend/msopprof/blob/26.1.0/docs/zh/user_guide/msopprof_usage.md#采集triton算子的性能数据)基本一致。
 
 ## 采集triton算子的性能数据
 

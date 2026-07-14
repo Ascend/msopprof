@@ -33,7 +33,7 @@
 - 克隆本仓库
 
     ```sh
-    git clone https://gitcode.com/Ascend/msopprof.git
+    git clone https://gitcode.com/Ascend/msopprof.git -b 26.1.0
     ```
 
 - 构建打包

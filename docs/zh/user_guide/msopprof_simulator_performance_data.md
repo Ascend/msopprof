@@ -85,7 +85,7 @@ OPPROF_{timestamp}_XXX
 
 ![](../figures/msopprof-simulator源码界面.png "算子代码热点图")
 
-关于MindStudio Insight的导入操作，请参见《MindStudio Insight用户指南》的"[导入性能数据](https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/user_guide/basic_operations.md#%E5%AF%BC%E5%85%A5%E6%95%B0%E6%8D%AE)"章节。
+关于MindStudio Insight的导入操作，请参见《MindStudio Insight用户指南》的"[导入性能数据](https://gitcode.com/Ascend/msinsight/blob/26.1.0/docs/zh/user_guide/basic_operations.md#%E5%AF%BC%E5%85%A5%E6%95%B0%E6%8D%AE)"章节。
 
 ---
 
