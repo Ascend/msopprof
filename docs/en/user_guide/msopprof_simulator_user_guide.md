@@ -21,62 +21,13 @@ msOpProf demonstrates single-operator tuning capabilities such as instruction pi
 
 **Scenarios**
 
-The following scenarios are supported. For details, see [Collecting Profile Data of Ascend C Operators](../best_practices/typical_cases.md#collecting-profile-data-of-ascend-c-operators) and [Collecting Profile Data of MC2 Operators](../best_practices/typical_cases.md#collecting-profile-data-of-mc2-operators).
-
-> [!NOTE]NOTE
-> 
-> Refer to <a href="https://gitcode.com/Ascend/msot/blob/master/docs/en/quick_start/get_chip_soc_type.md" target="_blank">Chip SoC Type Acquisition Method</a> to obtain the chip type, and use it as the value of the `--soc-version` parameter.
-
-- Kernel launch operator development: kernel launch
-    - In the kernel launch scenario, for details, see [Kernel Launch Operator Development](https://www.hiascend.com/document/detail/en/canncommercial/850/opdevg/Ascendcopdevg/atlas_ascendc_10_0056.html) in the *Ascend C Operator Development Guide*.
-    - In the kernel launch scenario, configure the prerequisites and then run the following command:
-
-        ```shell
-        msprof op simulator --soc-version=Ascendxxxyy ./main # main indicates the name of the user operator program, including the program name of the operator to be tuned. xxxyy indicates the type of the processor used by the user.
-        ```
-
-    - If you need to perform simulation-based tuning on an operator that runs on the board without recompilation, perform the following steps:
-        - Create a soft link named `libruntime.so` pointing to `libruntime_camodel.so` in any directory.
-
-            ```shell
-            ln -s /{simulator_path}/lib/libruntime_camodel.so /{so_path}/libruntime.so  
-             # For example, if the CANN package is installed in the default path of the root user, simulator_path is /usr/local/Ascend/cann/tools/simulator/Ascendxxxyy.
-            ```
-
-        - Add the parent directory of the created soft link to the environment variable `LD_LIBRARY_PATH`.
-
-            ```shell
-            export LD_LIBRARY_PATH={so_path}:$LD_LIBRARY_PATH
-            ```
-
-- Project-based operator development: single-operator API calling
-    - In the single-operator API execution scenario, see the **Project-based Operator Development** > [Single-Operator API Execution](https://www.hiascend.com/document/detail/en/canncommercial/850/opdevg/Ascendcopdevg/atlas_ascendc_10_0070.html) in the *Ascend C Operator Development Guide*.
-    - In the single-operator API execution scenario, configure the prerequisites and then run the following command:
-
-        ```shell
-        msprof op simulator --soc-version=Ascendxxxyy ./main # main indicates the name of the user operator program, including the program name of the operator to be tuned. xxxyy indicates the type of the processor used by the user.
-        ```
-
-- AI framework operator adaptation: PyTorch framework
-    - When msOpProf is used for simulated tuning of the operators in the PyTorch script on <term>Atlas inference products</term>, only the Kernels-based operator package calling mode is supported. Refer to the content related to Kernels operator package installation in the [Installing CANN](https://www.hiascend.com/document/detail/en/canncommercial/850/softwareinst) of the *CANN Software Installation Guide*. Install the binary Kernels operator package, and modify the script entry file (such as main`.py`) by adding the bold information below `import torch_npu` to ensure that the operators in the Kernels operator package are used.
-
-        ```python
-        import torch
-        import torch_npu
-        torch_npu.npu.set_compile_mode(jit_compile=False)
-        ......
-        ```
-
-    - In the single-operator calling scenario through the PyTorch framework, for details, see the OpPlugin in [Ascend-developed Plugins](https://www.hiascend.com/document/detail/en/Pytorch/720/modthirdparty/modparts/thirdpart_0009.html) of the *Ascend Extension for PyTorch Suite and Third-party Library Support List*.
-    - When the PyTorch framework is used to call a single-operator, configure the prerequisites and then run the following command:
-
-        ```shell
-        msprof op simulator --soc-version=Ascendxxxyy python a.py   # a.py indicates the name of the user operator program, including the program name of the operator to be tuned. xxxyy indicates the type of the processor used by the user.
-        ```
-
-- Triton operator development: Triton operator calling
-    - Install and configure Triton and the Triton-Ascend plug-in. For details, see [Triton Ascend](https://gitcode.com/Ascend/triton-ascend/blob/main/README.md).
-    - The Triton operator calling scenario does not apply to <term>Atlas inference products</term>.
+| Invocation Scenario | Reference Section |
+| --- | --- |
+| Kernel Direct Invocation Scenario | [Kernel Direct Invocation](./msopprof_usage.md#collecting-performance-data-of-kernel-launch-ascend-c-operators) |
+| Single Operator API Invocation Scenario | [Single Operator API Invocation](./msopprof_usage.md#collecting-performance-data-of-single-operator-api-calls) |
+| PyTorch Framework Operator Integration | [PyTorch Framework Operator Invocation](./msopprof_usage.md#collecting-performance-data-of-pytorch-framework-operators) |
+| Triton-Ascend Operator | [Triton Operator Invocation](./msopprof_usage.md#collecting-performance-data-of-triton-operators) |
+| catlass Operator | [catlass Operator Invocation](./msopprof_usage.md#collecting-performance-data-of-catlass-operators) |
 
 ## Preparations
 
@@ -85,7 +36,7 @@ The following scenarios are supported. For details, see [Collecting Profile Data
 Configure related environment variables by referring to the [MindStudio Ops Profiler Installation Guide](../install_guide/msopprof_install_guide.md).
 
 - To use MindStudio Insight for viewing, install the MindStudio Insight software package separately. For download links, see the [MindStudio Insight Installation Guide](https://gitcode.com/Ascend/msinsight/blob/master/docs/en/user_guide/mindstudio_insight_install_guide.md).
-- For <term>Atlas A2 training products/Atlas A2 inference products</term>, if you want to use the [template library](https://gitcode.com/cann/catlass/blob/master/scripts/build.sh) for simulation, add the `--simulator` option to the compilation script to compile the operator in simulator mode. For details, see this [link](https://gitcode.com/cann/docs/1_Practice/evaluation_tools/performance_tools.md).
+- For Atlas A2 training products/Atlas A2 inference products, if you want to use the [template library](https://gitcode.com/cann/catlass/blob/master/scripts/build.sh) for simulation, add the `--simulator` option to the compilation script to compile the operator in simulator mode. For details, see this [sample](https://gitcode.com/cann/docs/1_Practice/evaluation_tools/performance_tools.md).
 
     ```shell
     bash scripts/build.sh --simulator 00_basic_matmul
@@ -128,7 +79,7 @@ msprof op simulator --soc-version=Ascendxxxyy --output=/home/projects/output /ho
 </thead>
 <tbody><tr id="zh-cn_topic_0000002016036877_row01114348338"><td class="cellrowborder" valign="top" width="25.232523252325233%" headers="mcps1.2.4.1.1 "><p id="zh-cn_topic_0000002016036877_p41111934143316">--application</p>
 </td>
-<td class="cellrowborder" valign="top" width="63.02630263026302%" headers="mcps1.2.4.1.2 "><p id="zh-cn_topic_0000002016036877_p1411115342333">Specifies th e executable file to profile. You are advised to use <code>msprof op simulator <span>--soc-version=Ascendxxxyy</span> [<em id="zh-cn_topic_0000002016036877_i188155416131">msopprof  simulator parameters</em>] ./app</code>, where <code>xxxyy</code> indicates the processor type and <code>./app</code> is a user-specified executable file path. If no path is provided, the current directory is used.</p>
+<td class="cellrowborder" valign="top" width="63.02630263026302%" headers="mcps1.2.4.1.2 "><p id="zh-cn_topic_0000002016036877_p1411115342333">Specifies the executable file to profile. You are advised to use <code>msprof op simulator <span>--soc-version=Ascendxxxyy</span> [<em id="zh-cn_topic_0000002016036877_i188155416131">msopprof  simulator parameters</em>] ./app</code>, where <code>xxxyy</code> indicates the processor type and <code>./app</code> is a user-specified executable file path. If no path is provided, the current directory is used.</p>
 <p id="p3606523135915"> When using <code>./app</code>, add msopprof simulator parameters before <code>./app</code> to ensure that the related functions take effect.</p>
 <p id="p12488132815597">Currently, this command is compatible with <code>./app [arguments]</code>. In the future, it will be changed to <code>./app [arguments]</code>.</p>
 </td>
@@ -139,7 +90,7 @@ msprof op simulator --soc-version=Ascendxxxyy --output=/home/projects/output /ho
 </td>
 <td class="cellrowborder" valign="top" headers="mcps1.2.4.1.2 "><p id="zh-cn_topic_0000002016036877_p011233417332"><span>Specifies the absolute or relative path of the binary file </span><code id="zh-cn_topic_0000002016036877_b695415337500">*.o</code><span> generated after operator compilation</span>. <span>For details, see </span><a href="./extended_functions.md#json-configuration-file-description">JSON Configuration File Description</a><span>.</span></p>
 <p id="zh-cn_topic_0000002016036877_p1611218349332">Before operator tuning, you can obtain the operator binary <code id="zh-cn_topic_0000002016036877_b1845814318519"><span>*.</span>o</code> file in either of the following ways:</p>
-<ul id="zh-cn_topic_0000002016036877_ul81131345339"><li>Refer to <strong>Modifying and Executing One-Click Compilation and Execution Script</strong> in <strong>Kernel Launch Operator Development</strong> &gt; <a href="https://www.hiascend.com/document/detail/zh/canncommercial/83RC1/opdevg/Ascendcopdevg/atlas_ascendc_10_0052.html" target="_blank" rel="noopener noreferrer"><strong>Kernel Launch</strong></a> of the <span id="zh-cn_topic_0000002016036877_ph20112143419334"><em>Ascend C Operator Development Guide</em></span> to obtain the NPU executable file, and then manually extract the <span></span>.o file from the executable file.</li><li>Refer to <a href="https://www.hiascend.com/document/detail/zh/mindstudio/82RC1/ODtools/Operatordevelopmenttools/atlasopdev_16_0024.html" target="_blank" rel="noopener noreferrer">Operator Compilation and Deployment</a>. The <strong id="zh-cn_topic_0000002016036877_b17819952105016">.o</strong> file is automatically generated during operator compilation.</li></ul>
+<ul id="zh-cn_topic_0000002016036877_ul81131345339"><li>Refer to <strong>Modifying and Executing One-Click Compilation and Execution Script</strong> in <strong>Kernel Launch Operator Development</strong> &gt; <a href="https://www.hiascend.com/document/detail/en/canncommercial/850/opdevg/Ascendcopdevg/atlas_ascendc_10_0063.html" target="_blank" rel="noopener noreferrer"><strong>Kernel Launch</strong></a> of the <span id="zh-cn_topic_0000002016036877_ph20112143419334"><em>Ascend C Operator Development Guide</em></span> to obtain the NPU executable file, and then manually extract the <span></span>.o file from the executable file.</li><li>Refer to <a href="https://gitcode.com/Ascend/msopgen/blob/master/docs/en/user_guide/msopgen_user_guide.md#building-and-deploying-an-operator" target="_blank" rel="noopener noreferrer">Operator Compilation and Deployment</a>. The <strong id="zh-cn_topic_0000002016036877_b17819952105016">.o</strong> file is automatically generated during operator compilation.</li></ul>
 <p id="p811246204">Ensure that users in the group and other groups do not have the write permission on the JSON file specified by <code>--config</code> and its parent directory. In addition, ensure that the owner of the parent directory of the JSON file is the current user.</p>
 <div class="p" id="p20157517201"> You need to use the <code>LD_LIBRARY_PATH</code> environment variable to set the simulator type. <pre class="screen" id="screen011316904">export LD_LIBRARY_PATH=${INSTALL_DIR}/tools/simulator/Ascendxxxyy/lib:$LD_LIBRARY_PATH // xxxyy indicates the type of the processor used by the user.</pre>
 </div>
@@ -156,7 +107,7 @@ msprof op simulator --soc-version=Ascendxxxyy --output=/home/projects/output /ho
 </td>
 <td class="cellrowborder" valign="top" width="63.02630263026302%" headers="mcps1.2.4.1.2 "><p id="zh-cn_topic_0000002016036877_p144881915145316">Specifies the operator name to collect. Fuzzy matching using operator name prefixes is supported. If this option is not specified, only data of the first operator scheduled during program running is collected.</p>
 <p id="p1096710195115">Note:</p>
-<ul id="zh-cn_topic_0000002016036877_ul1548815153532"><li>This option must be used with <code>--application</code>. The value can contain a maximum of 1,024 characters, restricted to <strong id="zh-cn_topic_0000002016036877_b098232112217">letters, digits, and underscores (_)</strong>. </li><li>If multiple operators need to be collected, use vertical bars (|) to combine them. For example, <code>--kernel-name="add|abs"</code> indicates that operators whose prefixes are <code>add</code> and <code>abs</code> are collected. The number of operators collected is determined by the value of <code>--launch-count</code>. </li><li>Wildcards (<code>*</code>) can be used match strings of any length.</li></ul>
+<ul id="zh-cn_topic_0000002016036877_ul1548815153532"><li>This option must be used with <code>--application</code>. The value can contain a maximum of 1,024 characters, restricted to <strong id="zh-cn_topic_0000002016036877_b098232112217">letters, digits, and underscores (_)</strong>. </li><li>If multiple operators need to be collected, use vertical bars (|) to combine them. For example, <code>--kernel-name="add|abs"</code> indicates that operators whose prefixes are <code>add</code> and <code>abs</code> are collected. The number of operators collected is determined by the value of <code>--launch-count</code>. </li><li>Wildcards (<code>*</code>) can be used to match strings of any length.</li></ul>
 </td>
 <td class="cellrowborder" valign="top" width="11.741174117411742%" headers="mcps1.2.4.1.3 "><p id="zh-cn_topic_0000002016036877_p14113143410333">No</p>
 </td>
@@ -171,7 +122,7 @@ msprof op simulator --soc-version=Ascendxxxyy --output=/home/projects/output /ho
 <tr id="zh-cn_topic_0000002016036877_row11115934143315"><td class="cellrowborder" valign="top" width="25.232523252325233%" headers="mcps1.2.4.1.1 "><p id="zh-cn_topic_0000002016036877_p611493416337">--aic-metrics</p>
 </td>
 <td class="cellrowborder" valign="top" width="63.02630263026302%" headers="mcps1.2.4.1.2 "><div class="p" id="zh-cn_topic_0000002016036877_p217535311423">Enables operator performance metric collection. The following performance metrics can be collected. <ul id="zh-cn_topic_0000002016036877_ul17160143219116"><li><code>PipeUtilization</code> (collected by default): computing and transfer instruction pipelines. <p id="p1253172210219">When <code>--aic-metrics=PipeUtilization</code> is configured, <code>ResourceConflictRatio</code> is disabled. That is, only the instruction pipeline is displayed, and the details of synchronization event instructions are not included.</p>
-</li><li><code>ResourceConflictRatio</code> (collected by default): displays details about synchronization event instructions. <ul id="ul12706651330"><li><span id="zh-cn_topic_0000002016036877_zh-cn_topic_0000001740005657_ph38331631115919">For <term id="term5706951931">Atlas A3 training products</term>, <term id="term770615512314">Atlas A3 inference products</term></span>, <span id="zh-cn_topic_0000002016036877_ph9610350151414"><term id="term18706155236">Atlas A2 training products</term>, and <term id="term5706551037">Atlas A2 inference products</term></span>, <code>SET_FLAG</code> and <code>WAIT_FLAG</code> instructions are displayed. </li><li><span id="zh-cn_topic_0000002016036877_ph12187735121517">For <term id="term1670618515315">Atlas inference products</term></span>, <code>set_event</code> and <code>wait_event</code> instruction are displayed.</li></ul>
+</li><li><code>ResourceConflictRatio</code> (collected by default): displays details about synchronization event instructions. <ul id="ul12706651330"><li><span id="zh-cn_topic_0000002016036877_zh-cn_topic_0000001740005657_ph38331631115919">For Atlas A3 training products, Atlas A3 inference products</span>, <span id="zh-cn_topic_0000002016036877_ph9610350151414">Atlas A2 training products, and Atlas A2 inference products</span>, <code>SET_FLAG</code> and <code>WAIT_FLAG</code> instructions are displayed. </li><li><span id="zh-cn_topic_0000002016036877_ph12187735121517">For Atlas inference products</span>, <code>set_event</code> and <code>wait_event</code> instruction are displayed.</li></ul>
 </li></ul>
 </div>
 <ul id="zh-cn_topic_0000002016036877_ul21140347333"><li><code>PMSampling</code>: enables and visualizes the memory channel throughput waveform, for example, <code>--aic-metrics=PMSampling</code>. For details, see <a href="#memory-channel-throughput-waveform-chart">Memory Channel Throughput Waveform Chart</a> <ul id="zh-cn_topic_0000002016036877_ul536462164812"><li><code>--core-id</code> does not take effect for the <code>PMSampling</code> parameter. <code>PMSampling</code> parses all cores. </li><li>This feature is disabled by default.</li></ul>
@@ -192,7 +143,7 @@ msprof op simulator --soc-version=Ascendxxxyy --output=/home/projects/output /ho
 </tr>
 <tr id="zh-cn_topic_0000002016036877_row1776724510349"><td class="cellrowborder" valign="top" width="25.232523252325233%" headers="mcps1.2.4.1.1 "><p id="zh-cn_topic_0000002016036877_p18767164517348">--timeout</p>
 </td>
-<td class="cellrowborder" valign="top" width="63.02630263026302%" headers="mcps1.2.4.1.2 "><p id="zh-cn_topic_0000002016036877_p146394291703"> This parameter is applicable to operators with a large amount of data and repetitive computation. Running such operators to completion takes significant time, but partial pipeline data provides sufficient information. Set <code>--timeout</code> to reduce running duration and capture necessary pipeline information. The implementation is as follows:</span></p>
+<td class="cellrowborder" valign="top" width="63.02630263026302%" headers="mcps1.2.4.1.2 "><p id="zh-cn_topic_0000002016036877_p146394291703"> This parameter is applicable to operators with a large amount of data and repetitive computation. Running such operators to completion takes significant time, but partial pipeline data provides sufficient information. Set <code>--timeout</code> to reduce running duration and capture necessary pipeline information. The implementation is as follows:</p>
 <ul id="zh-cn_topic_0000002016036877_ul12129256185219"><li>When simulation duration reaches the <code>--timeout</code> value, <span>msOpProf</span> terminates the simulation process and begins parsing. Only the simulated data is analyzed. At the same time, <span>msOpProf</span> displays: <pre class="code_wrap" codetype="ColdFusion" id="zh-cn_topic_0000002016036877_screen104875352479">[INFO]  The timeout has reached and the application will be forcibly killed.</pre>
 </li><li>If the process completes normally before reaching the timeout, the simulation ends and parsing proceeds.</li></ul>
 <p id="zh-cn_topic_0000002016036877_p05905923811">The value is an integer ranging from 1 to 2880, in minutes. An example is as follows:</p>
@@ -208,7 +159,7 @@ msprof op simulator --soc-version=Ascendxxxyy --output=/home/projects/output /ho
 <p id="zh-cn_topic_0000002016036877_p18115834193315">When <code>--mstx=on</code> is set, the operator tuning tool enables the mstx API used in the user program.</p>
 <p id="zh-cn_topic_0000002016036877_p151157346336">For example:</p>
 <pre class="code_wrap" id="zh-cn_topic_0000002016036877_screen811523463318">msprof op simulator --soc-version=Ascendxxxyy --mstx=on ./add_custom <span>// </span>xxxyy indicates the type of the processor used by the user.</pre>
-<p id="zh-cn_topic_0000002016036877_p1776694422415"></p>The <code>mstxRangeStartA</code> and <code>mstxRangeEnd</code> interfaces in the mstx API are supported, allowing for the enabling of operator tuning in specified ranges. For details about parameters, see the <span id="zh-cn_topic_0000002016036877_ph2878123711242"><a href="https://www.hiascend.com/document/detail/zh/mindstudio/82RC1/API/mstxAPIReference/atlasopdev_16_0117.html" target="_blank" rel="noopener noreferrer">mstxRangeStartA</a></span> and <span id="zh-cn_topic_0000002016036877_ph137651944162412"><a href="https://www.hiascend.com/document/detail/zh/mindstudio/82RC1/API/mstxAPIReference/atlasopdev_16_0118.html" target="_blank" rel="noopener noreferrer">mstxRangeEnd</a></span> interfaces in the <span id="zh-cn_topic_0000002016036877_ph1583812516245"><em>MindStudio mstx API Reference</em></span>.
+<p id="zh-cn_topic_0000002016036877_p1776694422415"></p>The <code>mstxRangeStartA</code> and <code>mstxRangeEnd</code> interfaces in the mstx API are supported, allowing for the enabling of operator tuning in specified ranges. For details about parameters, see the <span id="zh-cn_topic_0000002016036877_ph2878123711242"><a href="https://gitcode.com/Ascend/mstx/blob/master/docs/en/api_reference/Common/mstxRangeStartA.md" target="_blank" rel="noopener noreferrer">mstxRangeStartA</a></span> and <span id="zh-cn_topic_0000002016036877_ph137651944162412"><a href="https://gitcode.com/Ascend/mstx/blob/master/docs/en/api_reference/Common/mstxRangeEnd.md" target="_blank" rel="noopener noreferrer">mstxRangeEnd</a></span> interfaces in the <span id="zh-cn_topic_0000002016036877_ph1583812516245"><em>MindStudio mstx API Reference</em></span>.
 </td>
 <td class="cellrowborder" valign="top" width="11.741174117411742%" headers="mcps1.2.4.1.3 "><p id="zh-cn_topic_0000002016036877_p131151034163318">No</p>
 </td>
@@ -249,7 +200,7 @@ msprof op simulator --soc-version=Ascendxxxyy --output=/home/projects/output /ho
 <td class="cellrowborder" valign="top" width="63.02630263026302%" headers="mcps1.2.4.1.2 "><p id="zh-cn_topic_0000002016036877_p18606195017712">Specifies whether to generate the dump file of the simulator.</p>
 <p id="zh-cn_topic_0000002016036877_p3562736122116">The value can be <code>on</code> or <code>off</code>. The default value is <code>off</code>, indicating that the simulator dump file is not generated.</p>
 <p id="p195771271259">Note:</p>
-<ul id="ul537191457"><li>This parameter is valid only for <span id="zh-cn_topic_0000002016036877_ph8606165015710"><term id="zh-cn_topic_0000002016036877_zh-cn_topic_0000001312391781_term11962195213215">Atlas A2 training products</term>, <term id="zh-cn_topic_0000002016036877_zh-cn_topic_0000001312391781_term184716139811">Atlas A2 inference products</term></span>, <span id="zh-cn_topic_0000002016036877_ph96063504712"><term id="zh-cn_topic_0000002016036877_zh-cn_topic_0000001312391781_term1253731311225">Atlas A3 training products</term>, and <term id="zh-cn_topic_0000002016036877_zh-cn_topic_0000001312391781_term131434243115">Atlas A3 inference products</term></span>. For <span id="zh-cn_topic_0000002016036877_zh-cn_topic_0000001740005657_ph548418373598"><term id="zh-cn_topic_0000002016036877_zh-cn_topic_0000001312391781_term4363218112215">Atlas inference products</term></span>, this parameter does not take effect. The dump files are saved to drives as usual. </li><li>This parameter applies only to the single-process scenario and does not support the scenario where two operators run at the same time.</li></ul>
+<ul id="ul537191457"><li>This parameter is valid only for <span id="zh-cn_topic_0000002016036877_ph8606165015710">Atlas A2 training products, Atlas A2 inference products</span>, <span id="zh-cn_topic_0000002016036877_ph96063504712">Atlas A3 training products, and Atlas A3 inference products</span>. For <span id="zh-cn_topic_0000002016036877_zh-cn_topic_0000001740005657_ph548418373598">Atlas inference products</span>, this parameter does not take effect. The dump files are saved to drives as usual. </li><li>This parameter applies only to the single-process scenario and does not support the scenario where two operators run at the same time.</li></ul>
 </td>
 <td class="cellrowborder" valign="top" width="11.741174117411742%" headers="mcps1.2.4.1.3 "><p id="zh-cn_topic_0000002016036877_p182411240125415">No</p>
 </td>
@@ -301,7 +252,7 @@ msOpProf assists in identifying exceptions in the operator memory, code, and ins
         add_ops_compile_options(ALL OPTIONS -g)
         ```
 
-    - For a project created by referring to the complete example, for example, the sample [here](https://gitee.com/ascend/samples/tree/master/operator/ascendc/0_introduction/3_add_kernellaunch/AddKernelInvocationNeo), add the following code to the `cmake/npu_lib.cmake` file in the sample project directory.
+    - For a project created by referring to the complete example, for example, the [sample](https://gitee.com/ascend/samples/tree/master/operator/ascendc/0_introduction/3_add_kernellaunch/AddKernelInvocationNeo), add the following code to the `cmake/npu_lib.cmake` file in the sample project directory.
 
         >[!NOTE]NOTE
         > 

@@ -42,7 +42,7 @@ python3 -c "import numpy, sympy, scipy, attrs, psutil, decorator; from packaging
 
 **1. 修改编译选项**
 
-在 Kernel 侧 CMakeLists.txt 首行插入一行配置，开启调试信息：
+在 Kernel 侧 CMakeLists.txt 首行插入如下配置，开启调试信息：
 
 ```shell
 # 进入对应目录进行文件备份
@@ -84,12 +84,12 @@ msopprof --output=./msopprof_output_npu ./execute_add_op
 > 参数 `--soc-version` 的值可通过执行以下命令获取：`python3 -c "import acl; print(acl.get_soc_name())"`。
 
 ```shell
-msopprof simulator --soc-version=Ascendxxxyy --output=./msopprof_output_sim ./execute_add_op
+msopprof simulator --soc-version={Ascendxxxyy} --output=./msopprof_output_sim ./execute_add_op
 ```
 
 #### 2.3.3 查看性能数据结果
 
-工具在指定 `--output` 目录下生成 .csv 和 .bin 格式的结果文件，若输出没有报错，则认为执行成功：
+工具在指定 `--output` 目录下生成 .csv 和 .bin 格式的结果文件，生成的目录结构请参见[目录结构参考](../user_guide/msopprof_simulator_user_guide.md#目录结构参考)，若输出没有报错，则认为执行成功：
 
 **csv 文件**   
 例如，MemoryUB.csv 文件打开后可以看到如下信息：

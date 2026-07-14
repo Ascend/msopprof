@@ -281,7 +281,7 @@ MindStudio provides the mstx profiling API, which enables users to embed custom 
 
 - msOpProf allows users to use the **mstx** API to tune specific operators, customize the start time and end time of the code segment or specified key functions, identify key functions or computing APIs, and quickly demarcate performance issues.
 - The mstx API is disabled by default. If the mstx API is called in the application, the mstx instrumentation function is enabled based on the actual application scenario. For example, the **--mstx=on** flag enables mstx APIs within the user program, while **--mstx-include** can be used to target specific mstx APIs. For detailed usage, refer to the **--mstx** and **--mstx-include** parameters in the "Command Reference" sections of the [*msopprof User Guide*](./msopprof_user_guide.md#command-reference) and the [*msopprof Simulator Mode User Guide*](./msopprof_simulator_user_guide.md#command-reference).
-- The mstx API can be used via library files or header files. An implementation example can be found at this [link](https://gitee.com/ascend/samples/tree/master/operator/ascendc/0_introduction/1_add_frameworklaunch/AclNNInvocation):
+- The mstx API can be used via library files or header files. An implementation example can be found at this [sample](https://gitee.com/ascend/samples/tree/master/operator/ascendc/0_introduction/1_add_frameworklaunch/AclNNInvocation):
 
     > [!NOTE]NOTE
     > 

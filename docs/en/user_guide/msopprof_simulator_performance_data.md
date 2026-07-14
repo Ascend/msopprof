@@ -24,6 +24,7 @@ OPPROF_{timestamp}_XXX
 ```
 
 > **NOTE:**
+> 
 > - Directories are organized in the format `core*.veccore*` (Vector Core) or `core*.cubecore*` (Cube Core) to store data for each compute unit.
 > - In multi-operator scenarios, CSV file names include a timestamp suffix, for example, `core*_code_exe_20240429111143146.csv`.
 > - In single-operator scenarios, `visualize_data.bin` and the summary `trace.json` are located in the root of the `simulator/` directory.
@@ -104,6 +105,7 @@ The `trace.json` files are the raw data files for simulation instruction pipelin
 - **MindStudio Insight**: Import `trace.json` into MindStudio Insight for visual presentation, including instruction pipeline timing and the execution status of each PIPE.
 
 > **NOTE:**
+> 
 > - The per-core `trace.json` file displays the instruction pipeline for that specific core only.
 > - The summary `trace.json` file displays the aggregated instruction pipeline for all cores.
 > - If you only need to focus on the performance of specific operators, call the `TRACE_START` and `TRACE_STOP` APIs within a single core and add `-DASCENDC_TRACE_ON` to the compilation configuration file to generate pipeline chart information for the specified range. For details about these APIs, see the [Operator Debugging APIs](https://www.hiascend.com/document/detail/en/canncommercial/850/API/ascendcopapi/atlasascendc_api_07_1212.html) in the *Ascend C Operator Development API*.

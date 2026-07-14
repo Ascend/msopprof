@@ -10,7 +10,7 @@ Kernel直调场景，详细信息可参考《Ascend C算子开发指南》中“
 
 **前期准备**
 
-- 单击[Add样例](https://gitcode.com/cann/asc-devkit/tree/master/examples/01_simd_cpp_api/00_introduction/01_vector/basic_api_tque_add)获取样例工程，以Add向量加法算子为例。
+- 单击[Add样例](https://gitcode.com/cann/asc-devkit/tree/9.0.0/examples/01_simd_cpp_api/00_introduction/01_add/basic_api_tque_add)获取样例工程，以Add向量加法算子为例。
 
     ```shell
     git clone https://gitcode.com/cann/asc-devkit.git -b 9.0.0
@@ -125,7 +125,7 @@ Kernel直调场景，详细信息可参考《Ascend C算子开发指南》中“
 
 **概述**
 
-通过PyTorch框架进行单算子调用的场景，详细信息可参考《Ascend Extension for PyTorch 套件与三方库支持清单》中“[昇腾自研插件](https://www.hiascend.com/document/detail/zh/Pytorch/720/modthirdparty/modparts/thirdpart_0009.html)”章节中OpPlugin插件。
+通过PyTorch框架进行单算子调用的场景，详细信息可参考《PyTorchNPU 套件与三方库支持清单》中“[昇腾自研插件](https://gitcode.com/Ascend/docs/blob/master/FrameworkPTAdapter/26.0.0/zh/supported_suites_and_third_party_libraries/supported_suites_and_third_party_libraries.md)”章节中OpPlugin插件。
 
 PyTorch框架算子调用场景下，进行性能数据采集的操作步骤与[采集triton算子场景](https://gitcode.com/Ascend/msopprof/blob/master/docs/zh/user_guide/msopprof_usage.md#采集triton算子的性能数据)基本一致。
 
