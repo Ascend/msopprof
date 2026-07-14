@@ -125,7 +125,7 @@ For more details on single operator API call scenarios, refer to the **Engineeri
 
 **Overview**
 
-For scenarios involving single operator invocation through the PyTorch framework, refer to the `OpPlugin` plugin in the *Ascend Extension for PyTorch Suite and Third-party Library Support List* chapter "[Ascend-developed Plugins](https://www.hiascend.com/document/detail/zh/Pytorch/720/modthirdparty/modparts/thirdpart_0009.html)".
+For scenarios involving single operator invocation through the PyTorch framework, refer to the `OpPlugin` plugin in the *Ascend Extension for PyTorch Suite and Third-party Library Support List* chapter "[Ascend-developed Plugins](https://gitcode.com/Ascend/docs/blob/master/FrameworkPTAdapter/26.0.0/en/supported_suites_and_third_party_libraries/supported_suites_and_third_party_libraries.md)".
 
 In PyTorch framework operator invocation scenarios, the procedure for collecting profile data is essentially the same as that for the [Triton operator collection scenario](#collecting-profile-data-of-triton-operators).
 
