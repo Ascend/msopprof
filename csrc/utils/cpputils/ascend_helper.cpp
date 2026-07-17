@@ -19,6 +19,8 @@
 #include <algorithm>
 #include <cstdlib>
 #include <unistd.h>
+#include <cstdio>
+#include <cctype>
 
 #include "filesystem.h"
 #include "log.h"
@@ -129,6 +131,39 @@ bool GetSocVersionFromEnvVar(std::string &socVersion)
         }
     }
     return false;
+}
+
+// Query the local device soc version by invoking python3's acl binding, without linking
+// against any CANN library at compile time.
+bool GetSocVersionFromAcl(std::string &socVersion)
+{
+    // Fixed command with no user input, so there is no command injection risk.
+    FILE *pipe = popen("python3 -c \"import acl; print(acl.get_soc_name())\" 2>/dev/null", "r");
+    if (pipe == nullptr) {
+        LogDebug("Failed to execute python3 acl.get_soc_name() to detect soc version");
+        return false;
+    }
+
+    constexpr size_t bufSize = 256UL;
+    char buffer[bufSize] = {0};
+    std::string output;
+    while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
+        output = buffer;
+    }
+    int ret = pclose(pipe);
+
+    // Trim trailing newline/whitespace.
+    while (!output.empty() && std::isspace(static_cast<unsigned char>(output.back()))) {
+        output.pop_back();
+    }
+
+    if (ret != 0 || output.empty()) {
+        LogDebug("python3 acl.get_soc_name() failed or returned empty output");
+        return false;
+    }
+
+    socVersion = output;
+    return true;
 }
 
 // Get the absolute path of so form  LD_LIBRARY_PATH

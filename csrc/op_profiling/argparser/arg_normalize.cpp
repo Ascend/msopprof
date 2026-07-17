@@ -19,6 +19,8 @@
 #include "utils.h"
 #include "filesystem.h"
 
+#include "ascend_helper.h"
+
 namespace Parser {
 ArgNormalize::ArgNormalize(void)
 {
@@ -28,6 +30,7 @@ ArgNormalize::ArgNormalize(void)
     normalizeFunc_.emplace_back(&ArgNormalize::NormalizeOutput);
     normalizeFunc_.emplace_back(&ArgNormalize::NormalizeExport);
     normalizeFunc_.emplace_back(&ArgNormalize::NormalizeConfig);
+    normalizeFunc_.emplace_back(&ArgNormalize::NormalizeSocVersion);
 }
 
 bool ArgNormalize::Normalize(Common::ProfArgs &config, std::string &msg) const
@@ -105,6 +108,32 @@ bool ArgNormalize::NormalizeConfig(Common::ProfArgs &config, std::string &msg) c
     }
     return NormalizeOptionPath(config.argConfig, msg, "config");
 }
+
+bool ArgNormalize::NormalizeSocVersion(Common::ProfArgs &config, std::string &msg) const
+{
+    (void)msg;
+    // 仅在仿真模式且用户未显式指定 --soc-version 时自动探测；config 模式下 --soc-version 无效，跳过。
+    if (config.runMode != "simulator" || !config.argSocVersion.empty() || !config.argConfig.empty()) {
+        return true;
+    }
+    // 已能从 LD_LIBRARY_PATH 推断出 soc 时保持原有行为，不覆盖。
+    std::string socFromEnv;
+    if (Utility::GetSocVersionFromEnvVar(socFromEnv)) {
+        return true;
+    }
+    // 未指定 --soc-version 时，通过 python3 acl.get_soc_name() 获取 soc 类型。
+    std::string socVersion;
+    if (Utility::GetSocVersionFromAcl(socVersion)) {
+        Utility::LogInfo("--soc-version is not specified, using soc version [%s] detected by ACL.",
+                         socVersion.c_str());
+        config.argSocVersion = socVersion;
+    } else {
+        Utility::LogWarn("--soc-version is not specified and failed to detect soc version via ACL, "
+                         "please specify --soc-version manually.");
+    }
+    return true;
+}
+
 
 bool ArgNormalize::NormalizeOptionPath(std::string &configOpt, std::string &msg, std::string msgOption) const
 {

@@ -26,6 +26,7 @@ bool GetAscendHomePath(std::string &ascendHomePath);
 bool GetSimulators(std::vector<std::string> &simulators);
 std::string GetMsopprofPath();
 bool GetSocVersionFromEnvVar(std::string &socVersion);
+bool GetSocVersionFromAcl(std::string &socVersion);
 std::string GetSoFromEnvVar(const std::string &soName);
 }  // namespace Utility
 
