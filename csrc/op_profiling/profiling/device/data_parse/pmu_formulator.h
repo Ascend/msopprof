@@ -66,7 +66,7 @@ const std::map<std::string, CalInfo> FormulaFor910B = {
     {"aiv_read_hit_rate(%)", {{1284, 1286, 1287, 1288, 1290, 1291}, {}, FuncType::READ_HIT_RATE}},
     {"aiv_total_hit_rate(%)", {{1280, 1282, 1283, 1284, 1286, 1287, 1288, 1290, 1291}, {}, FuncType::TOTAL_HIT_RATE}},
 
-    {"aic_l1_read_bw(GB/s)", {{49}, {256, 8}, FuncType::BANDWIDTH}},
+    {"aic_l1_read_bw(GB/s)", {{49}, {128, 8}, FuncType::BANDWIDTH}},
     {"aic_l1_write_bw(GB/s)", {{50}, {256, 8}, FuncType::BANDWIDTH}},
     {"aic_main_mem_read_bw(GB/s)", {{1293, 1294}, {128, 8}, FuncType::READ_MAIN_MEMORY_BANDWIDTH}},
     {"aic_main_mem_write_bw(GB/s)", {{1292}, {128, 8}, FuncType::BANDWIDTH}},
@@ -153,7 +153,6 @@ const std::map<std::string, CalInfo> FormulaFor910B = {
     {"aic_scalar_wait_id13_time(us)", {{1785}, {}, FuncType::PIPE_TIME}},
     {"aic_scalar_wait_id14_time(us)", {{1786}, {}, FuncType::PIPE_TIME}},
     {"aic_scalar_wait_id15_time(us)", {{1787}, {}, FuncType::PIPE_TIME}},
-
 
     {"aiv_vec_time(us)", {{8}, {}, FuncType::PIPE_TIME}},
     {"aiv_scalar_time(us)", {{9}, {}, FuncType::PIPE_TIME}},
