@@ -623,7 +623,7 @@ MindStudio Insight具体操作和详细字段解释请参考《MindStudio Insigh
 
 trace.json文件可分别通过Chrome浏览器和MindStudio Insight展示，visualize_data.bin文件仅可通过MindStudio Insight展示。
 
-通过AscendC API进行性能打点具体用法请参照《Ascend C算子开发接口》中的“调试接口>上板打印>[PrintTimeStamp](https://www.hiascend.com/document/detail/zh/canncommercial/850/API/ascendcopapi/atlasascendc_api_07_00002.html)”章节。该功能可结合`--custom-input`参数，将PrintTimeStamp的descid在通算流水图上映射成自定义字符串进行展示。json示例文件参考如下<a id="json示例文件"></a>，字段详情请参见下表：
+通过AscendC API进行性能打点具体用法请参照《Ascend C算子开发接口》中的“调试接口>上板打印>[PrintTimeStamp](https://www.hiascend.com/document/detail/zh/canncommercial/850/API/ascendcopapi/atlasascendc_api_07_00002.html)”章节。该功能可结合`--custom-input`参数，将PrintTimeStamp的descid在通算流水图上映射成自定义字符串进行展示。未开启参数`--custom-input`展示图可参见[通算流水图-2](#通算流水图-2)，开启后展示图可参见[通算流水图-3](#通算流水图-3)。json示例文件参考如下<a id="json示例文件"></a>，字段详情请参见下表：
 
 ```json
 {
@@ -655,8 +655,6 @@ trace.json文件可分别通过Chrome浏览器和MindStudio Insight展示，visu
     |AI CORE|算子在AI CORE上的整体运行情况。|支持|支持|不支持|
     |AI CPU|算子在AI CPU上的整体运行情况。|支持|不支持|不支持|
     |TURN|算子在AI CPU上不同通信轮次的流水。|支持|不支持|不支持|
-    |AIC BLOCK|算子在AI CORE各Cube核上的整体运行情况和关键接口调用情况。|支持|支持|支持|
-    |AIV BLOCK|算子在AI CORE各Vector核上的整体运行情况和关键接口调用情况。|支持|支持|支持|
     |HCCL|通过HCCL通信的算子在多卡间的集合通信流水。|支持|不支持|不支持|
     |HCCL TASK|通过HCCL通信的算子在多卡间的集合通信任务执行流水。|支持|不支持|不支持|
     |AscendC API|展示用户通过AscendC API在每个block上的运行耗时情况|支持|不支持|支持|
@@ -665,10 +663,18 @@ trace.json文件可分别通过Chrome浏览器和MindStudio Insight展示，visu
 
     将生成的trace.json文件或visualize\_data.bin文件可导入MindStudio Insight进行可视化呈现。
 
-    **图 11**  通算流水图
+    **图 11-1**  通算流水图-1
 
-    ![](../figures/1-1.png)
+    ![](../figures/msopprof-1.png)
 
+    **图 11-2**  通算流水图-2 <a id="通算流水图-2"></a>
+
+    ![](../figures/msopprof-2.png)
+
+    **图 11-3**  通算流水图-3 <a id="通算流水图-3"></a>
+
+    ![](../figures/msopprof-3.png)
+    
     - 展示算子在AI CPU和AI CORE的耗时掩盖情况，用于评估通算融合算子的性能。
     - 展示算子在AI CPU上的不同通信轮次的流水。
     - 展示算子在各BLOCK上的运行时间及关键接口调用流水。
