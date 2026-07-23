@@ -17,7 +17,7 @@
 
 3. 对于MTE2搬运效率的提升有多种方式，此处以开启Ascend C算子的double buffer机制为例。
 
-    算子核函数中，可通过将TPipe中InitBuffer的第二个参数（BUFFER\_NUM）值从1修改为2，开启double buffer，InitBuffer的使用可参考《Ascend C算子开发接口》中的“基础API \> 内存管理与同步控制 \> TPipe \>  [InitBuffer](https://www.hiascend.com/document/detail/zh/canncommercial/83RC1/API/ascendcopapi/atlasascendc_api_07_0110.html)”章节。
+    算子核函数中，可通过将TPipe中InitBuffer的第二个参数（BUFFER\_NUM）值从1修改为2，开启double buffer，InitBuffer的使用可参考《Ascend C算子开发接口》中的“基础API \> 内存管理与同步控制 \> TPipe \>  [InitBuffer](https://www.hiascend.com/document/detail/zh/canncommercial/latest/API/ascendcopapi/atlasascendc_api_07_0110.html)”章节。
 
     ```shell
     constexpr int32_t BUFFER_NUM = 2;        # tensor num for each queue

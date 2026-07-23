@@ -108,4 +108,4 @@ OPPROF_{timestamp}_XXX
 > 
 > - 单核的`trace.json`文件仅展示该核的指令流水。
 > - 汇总的`trace.json`文件展示所有核的指令流水汇总。
-> - 若用户仅需关注部分算子性能，可在单核内调用`TRACE_START`和`TRACE_STOP`接口，并在编译配置文件中添加`-DASCENDC_TRACE_ON`，即可生成指定范围内的流水图信息。具体接口参见《Ascend C算子开发接口》中的"[算子调测API](https://www.hiascend.com/document/detail/zh/canncommercial/83RC1/API/ascendcopapi/atlasascendc_api_07_1212.html)"。
+> - 若用户仅需关注部分算子性能，可在单核内调用`TRACE_START`和`TRACE_STOP`接口，并在编译配置文件中添加`-DASCENDC_TRACE_ON`，即可生成指定范围内的流水图信息。具体接口参见《Ascend C算子开发接口》中的"[算子调测API](https://www.hiascend.com/document/detail/zh/canncommercial/latest/API/ascendcopapi/atlasascendc_api_07_1212.html)"。
