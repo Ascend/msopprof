@@ -103,8 +103,10 @@ class BuildManager:
         os.chdir(self.project_root)
 
 
+        extra_options = {}
         for option in self.parsed_arguments.extra:
             key, _, value = option.partition('=')
+            extra_options[key] = value
             logging.info("--extra: %s = %s", key, value)
 
         # 非 local 场景时按需更新代码；local 场景不更新代码只使用本地代码
@@ -112,12 +114,17 @@ class BuildManager:
             from download_dependencies import DependencyManager
             DependencyManager(self.parsed_arguments).run()
 
+        if extra_options.get('only_down_deps') == 'true':
+            logging.info("only_down_deps=true, exiting after dependency download.")
+            return
+
         if 'test' in self.parsed_arguments.command:
             # -------------------- 单元测试 --------------------
             unit_test_build_dir = self.project_root / "build_ut"
             unit_test_build_dir.mkdir(exist_ok=True)
             os.chdir(unit_test_build_dir)
 
+            self._execute_command(["pip", "install", "numpy"])
             self._execute_command(["cmake", "..", "-DBUILD_TESTS=ON", "-DCMAKE_BUILD_TYPE=Debug"])
             self._execute_command(["make", "-j", str(self.build_jobs), "install"])
 

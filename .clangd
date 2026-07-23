@@ -1,0 +1,39 @@
+# -------------------------------------------------------------------------
+# This file is part of the MindStudio project.
+# Copyright (c) 2025 Huawei Technologies Co.,Ltd.
+#
+# MindStudio is licensed under Mulan PSL v2.
+# You can use this software according to the terms and conditions of the Mulan PSL v2.
+# You may obtain a copy of Mulan PSL v2 at:
+#
+#          http://license.coscl.org.cn/MulanPSL2
+#
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+# EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+# MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+# See the Mulan PSL v2 for more details.
+# -------------------------------------------------------------------------
+
+# clangd 项目级配置
+# 文档: https://clangd.llvm.org/config.html
+
+CompileFlags:
+  # clangd 从这里查找各目标的编译命令
+  CompilationDatabase: build/
+
+Diagnostics:
+  # 报告未使用但直接 include 的头文件
+  UnusedIncludes: Strict
+  Suppress:
+    # 可以在这里按需屏蔽某些 clang-tidy 检查
+    # - "modernize-use-trailing-return-type"
+
+Index:
+  # 后台索引，提升跳转和补全响应速度
+  Background: Build
+
+InlayHints:
+  # 行内提示：关闭类型推导提示（如不需要可以开启）
+  TypeNameLimit: 0
+  ParameterNames: false
+  DeducedTypes: false

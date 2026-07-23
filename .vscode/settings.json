@@ -1,0 +1,18 @@
+{
+    "files.watcherExclude": {
+        ".cache/**": true,
+        "{build,build_ut,output,artifacts}/**": true
+    },
+
+    "search.exclude": {
+        ".cache/**": true,
+        "{build,build_ut,output,artifacts}/**": true
+    },
+
+    "files.exclude": {
+        ".cache": true
+    },
+    "terminal.integrated.scrollback": 10000,
+    "git.detectSubmodules": false,
+    "git.autoRepositoryDetection": false
+}

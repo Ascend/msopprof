@@ -1,0 +1,130 @@
+// -------------------------------------------------------------------------
+// This file is part of the MindStudio project.
+// Copyright (c) 2025 Huawei Technologies Co.,Ltd.
+//
+// MindStudio is licensed under Mulan PSL v2.
+// You can use this software according to the terms and conditions of the Mulan PSL v2.
+// You may obtain a copy of Mulan PSL v2 at:
+//
+//          http://license.coscl.org.cn/MulanPSL2
+//
+// THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+// EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+// MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+// See the Mulan PSL v2 for more details.
+// -------------------------------------------------------------------------
+
+{
+  "name": "msopprof",
+  "image": "swr.cn-north-4.myhuaweicloud.com/mindstudio-image/mindstudio-build:26.1.0-0701",
+
+  // 镜像 WORKDIR 即 /workspace；z_cache.sh 通过设备号探测 /workspace 是否为
+  // 独立挂载点，命中后自动把 ccache/uv 缓存放到 /workspace/.cache 下，
+  // 因此 workspaceFolder 必须与镜像约定的 /workspace 保持一致，缓存才能生效。
+  "workspaceFolder": "/workspace",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
+
+  // 宿主机初始化：容器创建前拉取镜像、准备 Git 配置快照，并创建 bind mount
+  // 所需的 uv 缓存目录。脚本必须在 Docker daemon 所在主机执行。
+  "initializeCommand": "bash ${localWorkspaceFolder}/.devcontainer/initialize.sh",
+
+  // 镜像内非 root 业务用户，镜像默认 UID/GID 为 20001。Dev Containers 在
+  // Linux 上按宿主用户更新其 UID/GID，避免向 workspace 写入 root 属主文件。
+  "remoteUser": "mindstudio",
+  "updateRemoteUserUID": true,
+
+  // 对齐 ctr_in.py 启动 mindstudio-build 时的 docker run 关键参数：
+  // --network=host、--privileged、--ipc=host、/usr/local/sbin 只读挂载。
+  // 这些参数会放宽容器隔离边界，保留它们是为了与 MindStudio 构建镜像行为一致。
+  // ctr_in.py 的 --user root + HOST_UID/HOST_GID/HOST_HOME 用于触发镜像
+  // entrypoint 做用户重映射；devcontainer 这里交给 updateRemoteUserUID 处理，
+  // 因此不再强制 containerUser=root，避免和 VS Code 的用户管理打架。
+  "runArgs": [
+    "--network=host",
+    "--privileged",
+    "--ipc=host",
+    "--ulimit", "nproc=65535:65535",
+    "--security-opt", "seccomp=unconfined"
+  ],
+  "mounts": [
+    // 构建工具可能调用宿主机提供的系统管理脚本，仅以只读方式暴露。
+    "source=/usr/local/sbin,target=/usr/local/sbin,type=bind,readonly",
+    // initialize.sh 生成宿主 ~/.gitconfig 的快照；容器只读挂载该文件，
+    // post-create.sh 仅从中读取 user.name 和 user.email，不挂载整个宿主 home。
+    "source=${localWorkspaceFolder}/.devcontainer/.host-gitconfig,target=/tmp/host-gitconfig,type=bind,readonly",
+
+    // 将宿主机 ccache 目录持久化挂载到容器内，使增量编译缓存不受容器重建影响。
+    // ${localEnv:HOME} 解析为当前登录 Linux 用户的 HOME 目录，ccache 复用率可达 80%+。
+    "source=${localEnv:HOME}/.cache/ccache,target=/home/mindstudio/.cache/ccache,type=bind",
+
+    // uv 缓存持久化：将宿主机 ~/.cache/uv bind mount 到容器内。
+    // 配合下方 UV_CACHE_DIR 环境变量，uv 安装/构建缓存不受容器重建影响。
+    "source=${localEnv:HOME}/.cache/uv,target=/home/mindstudio/.cache/uv,type=bind"
+  ],
+  "containerEnv": {
+    // ctr_in.py 进入 mindstudio-build 容器时注入，保证 profile.d 启用 gcc11
+    // 时不把构建镜像专属 rpath 写入手工编译产物。
+    "GCC11_NO_RPATH": "1",
+    // 用户执行 npm install -g 时，镜像默认 prefix 位于
+    // /usr/local/nodejs，非 root 用户没有写权限，因此把全局 npm 包放到用户目录。
+    "NPM_CONFIG_PREFIX": "/home/mindstudio/.local",
+
+    // 配合上方 mounts 中宿主机 ccache 目录挂载，固化 ccache 缓存路径。
+    // 容器销毁重建后增量编译缓存仍然有效，复用率可达 80% 以上。
+    "CCACHE_DIR": "/home/mindstudio/.cache/ccache",
+
+    // 配合上方 mounts 中宿主机 uv 缓存目录挂载，固化 uv 包安装缓存路径。
+    "UV_CACHE_DIR": "/home/mindstudio/.cache/uv"
+  },
+  "remoteEnv": {
+    // VS Code Server 及其扩展进程不一定读取 shell 启动文件，显式补充用户命令目录。
+    "PATH": "/home/mindstudio/.local/bin:${containerEnv:PATH}"
+  },
+
+  // profile.d 中的 z_gcc11.sh / z_cann.sh / z_python311.sh 只在交互式 /
+  // login shell 下自动 source（openEuler /etc/bashrc 触发），因此：
+  // 1) postCreateCommand 用 `bash -lc` 显式走 login shell，才能拿到 CANN /
+  //    gcc11 / python3.11 环境；
+  // 2) VS Code 集成终端默认也切到 login shell，交互式操作体验与镜像一致。
+  "postCreateCommand": "bash -lc '/workspace/.devcontainer/post-create.sh'",
+
+  "customizations": {
+    "vscode": {
+      // 扩展安装由 Dev Containers 管理，容器重建后自动恢复。
+      "extensions": [
+        "ms-vscode.cpptools",
+        "ms-vscode.cmake-tools",
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "charliermarsh.ruff",
+        "xaver.clang-format",
+        "llvm-vs-code-extensions.vscode-clangd",
+        "shd101wyy.markdown-preview-enhanced"
+      ],
+      "settings": {
+        // login shell 会加载镜像 /etc/profile.d 下的 CANN、GCC 和 Python 环境。
+        "terminal.integrated.defaultProfile.linux": "bash-login",
+        "terminal.integrated.profiles.linux": {
+          "bash-login": {
+            "path": "/bin/bash",
+            "args": ["-l"]
+          }
+        },
+        "cmake.configureOnOpen": true,
+        "C_Cpp.clang_format_style": "file",
+
+        // ---- Clangd ----
+        // 关闭 cpptools IntelliSense，避免和 clangd 冲突
+        "C_Cpp.intelliSenseEngine": "disabled",
+        "clangd.onConfigChanged": "restart",
+        "clangd.arguments": [
+          "--background-index",
+          "--clang-tidy",
+          "--completion-style=detailed",
+          "--header-insertion=never",
+          "--compile-commands-dir=${workspaceFolder}/build"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,200 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "GDB: Launch Main Program",
+      "type": "cppdbg",
+      "request": "launch",
+      "preLaunchTask": "Build: Debug Mode",
+      "program": "${workspaceFolder}/output/bin/msopprof",
+      "args": [
+        "--output=./msprof_output",
+        "${input:targetAppPath}"
+      ],
+      "stopAtEntry": true,
+      "cwd": "${workspaceFolder}/output/bin",
+      "environment": [
+        {
+          "name": "LD_LIBRARY_PATH",
+          "value": "${workspaceFolder}/output/lib64:${env:LD_LIBRARY_PATH}"
+        }
+      ],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "miDebuggerPath": "gdb",
+      "setupCommands": [
+        {
+          "description": "为 gdb 启用整齐打印",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        },
+        {
+          "description": "设置反汇编风格为 Intel",
+          "text": "-gdb-set disassembly-flavor intel",
+          "ignoreFailures": true
+        },
+        {
+          "description": "跟踪父进程 (fork 后)",
+          "text": "-gdb-set follow-fork-mode parent",
+          "ignoreFailures": true
+        },
+        {
+          "description": "fork 后分离子进程",
+          "text": "-gdb-set detach-on-fork on",
+          "ignoreFailures": true
+        },
+        {
+          "description": "允许挂起断点",
+          "text": "set breakpoint pending on",
+          "ignoreFailures": true
+        }
+      ],
+      "logging": {
+        "moduleLoad": false,
+        "trace": false,
+        "engineLogging": false,
+        "programOutput": true,
+        "exceptions": true
+      }
+    },
+    {
+      "name": "GDB: Launch Main Program (Child Process Tracking)",
+      "type": "cppdbg",
+      "request": "launch",
+      "preLaunchTask": "Build: Debug Mode",
+      "program": "${workspaceFolder}/output/bin/msopprof",
+      "args": [
+        "--output=./msprof_output",
+        "${input:targetAppPath}"
+      ],
+      "stopAtEntry": true,
+      "cwd": "${workspaceFolder}/output/bin",
+      "environment": [
+        {
+          "name": "LD_LIBRARY_PATH",
+          "value": "${workspaceFolder}/output/lib64:${env:LD_LIBRARY_PATH}"
+        }
+      ],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "miDebuggerPath": "gdb",
+      "setupCommands": [
+        {
+          "description": "为 gdb 启用整齐打印",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        },
+        {
+          "description": "设置反汇编风格为 Intel",
+          "text": "-gdb-set disassembly-flavor intel",
+          "ignoreFailures": true
+        },
+        {
+          "description": "跟踪子进程 (fork 后自动切换到子进程)",
+          "text": "-gdb-set follow-fork-mode child",
+          "ignoreFailures": true
+        },
+        {
+          "description": "fork 后分离父进程",
+          "text": "-gdb-set detach-on-fork on",
+          "ignoreFailures": true
+        },
+        {
+          "description": "允许挂起断点",
+          "text": "set breakpoint pending on",
+          "ignoreFailures": true
+        },
+        {
+          "description": "在共享库加载事件时暂停",
+          "text": "set stop-on-solib-events 1",
+          "ignoreFailures": true
+        }
+      ],
+      "logging": {
+        "moduleLoad": false,
+        "trace": false,
+        "engineLogging": false,
+        "programOutput": true,
+        "exceptions": true
+      }
+    },
+    {
+      "name": "GDB: Attach to Running Process",
+      "type": "cppdbg",
+      "request": "attach",
+      "program": "${workspaceFolder}/output/bin/msopprof",
+      "processId": "${command:pickProcess}",
+      "MIMode": "gdb",
+      "miDebuggerPath": "gdb",
+      "setupCommands": [
+        {
+          "description": "为 gdb 启用整齐打印",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        },
+        {
+          "description": "设置反汇编风格为 Intel",
+          "text": "-gdb-set disassembly-flavor intel",
+          "ignoreFailures": true
+        }
+      ],
+      "logging": {
+        "moduleLoad": false,
+        "trace": false,
+        "engineLogging": false,
+        "programOutput": true,
+        "exceptions": true
+      }
+    },
+    {
+      "name": "GDB: Debug Unit Test",
+      "type": "cppdbg",
+      "request": "launch",
+      "preLaunchTask": "Test: Run Unit Tests",
+      "program": "${workspaceFolder}/build_ut/test/ut/msopt_test",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}/build_ut",
+      "environment": [
+        {
+          "name": "MSOPT_UT_RESOURCE",
+          "value": "${workspaceFolder}/test/ut/resources"
+        },
+        {
+          "name": "LD_LIBRARY_PATH",
+          "value": "${workspaceFolder}/build_ut:${env:LD_LIBRARY_PATH}"
+        }
+      ],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "miDebuggerPath": "gdb",
+      "setupCommands": [
+        {
+          "description": "为 gdb 启用整齐打印",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        },
+        {
+          "description": "设置反汇编风格为 Intel",
+          "text": "-gdb-set disassembly-flavor intel",
+          "ignoreFailures": true
+        }
+      ],
+      "logging": {
+        "moduleLoad": false,
+        "trace": false,
+        "engineLogging": false,
+        "programOutput": true,
+        "exceptions": true
+      }
+    }
+  ],
+  "inputs": [
+    {
+      "id": "targetAppPath",
+      "type": "promptString",
+      "description": "请输入要 profile 的目标应用程序路径",
+      "default": "${workspaceFolder}/output/bin/"
+    }
+  ]
+}
