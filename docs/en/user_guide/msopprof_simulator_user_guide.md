@@ -28,7 +28,7 @@ The following scenarios are supported. For details, see [Collecting Profile Data
 > The value of the `--soc-version` parameter can be obtained by running the following command: `python3 -c "import acl; print(acl.get_soc_name())"`.
 
 - Kernel launch operator development: kernel launch
-    - In the kernel launch scenario, for details, see [Kernel Launch Operator Development](https://www.hiascend.com/document/detail/en/canncommercial/850/opdevg/Ascendcopdevg/atlas_ascendc_10_0056.html) in the *Ascend C Operator Development Guide*.
+    - In the kernel launch scenario, for details, see [Kernel Launch Operator Development](https://www.hiascend.com/document/detail/en/CANNCommunityEdition/900/programug/Ascendcopdevg/atlas_ascendc_10_0056.html) in the *Ascend C Operator Development Guide*.
     - In the kernel launch scenario, configure the prerequisites and then run the following command:
 
         ```shell
@@ -50,7 +50,7 @@ The following scenarios are supported. For details, see [Collecting Profile Data
             ```
 
 - Project-based operator development: single-operator API calling
-    - In the single-operator API execution scenario, see the **Project-based Operator Development** > [Single-Operator API Execution](https://www.hiascend.com/document/detail/en/canncommercial/850/opdevg/Ascendcopdevg/atlas_ascendc_10_0070.html) in the *Ascend C Operator Development Guide*.
+    - In the single-operator API execution scenario, see the **Project-based Operator Development** > [Single-Operator API Execution](https://www.hiascend.com/document/detail/en/CANNCommunityEdition/900/programug/Ascendcopdevg/atlas_ascendc_10_0070.html) in the *Ascend C Operator Development Guide*.
     - In the single-operator API execution scenario, configure the prerequisites and then run the following command:
 
         ```shell
@@ -58,7 +58,7 @@ The following scenarios are supported. For details, see [Collecting Profile Data
         ```
 
 - AI framework operator adaptation: PyTorch framework
-    - When msOpProf is used for simulated tuning of the operators in the PyTorch script on Atlas inference products, only the Kernels-based operator package calling mode is supported. Refer to the content related to Kernels operator package installation in the [Installing CANN](https://www.hiascend.com/document/detail/en/canncommercial/850/softwareinst/instg/instg_0000.html?Mode=PmIns&InstallType=netyum&OS=openEuler) of the *CANN Software Installation Guide*. Install the binary Kernels operator package, and modify the script entry file (such as `main.py`) by adding the bold information below `import torch_npu` to ensure that the operators in the Kernels operator package are used.W
+    - When msOpProf is used for simulated tuning of the operators in the PyTorch script on Atlas inference products, only the Kernels-based operator package calling mode is supported. Refer to the content related to Kernels operator package installation in the [Installing CANN](https://www.hiascend.com/document/detail/en/CANNCommunityEdition/900/softwareinst/instg/instg_0000.html?OS=openEuler&InstallType=netyum) of the *CANN Software Installation Guide*. Install the binary Kernels operator package, and modify the script entry file (such as `main.py`) by adding the bold information below `import torch_npu` to ensure that the operators in the Kernels operator package are used.W
 
         ```python
         import torch
@@ -139,7 +139,7 @@ msprof op simulator --soc-version=Ascendxxxyy --output=/home/projects/output /ho
 </td>
 <td class="cellrowborder" valign="top" headers="mcps1.2.4.1.2 "><p id="zh-cn_topic_0000002016036877_p011233417332"><span>Specifies the absolute or relative path of the binary file </span><code id="zh-cn_topic_0000002016036877_b695415337500">*.o</code><span> generated after operator compilation</span>. <span>For details, see </span><a href="./extended_functions.md#json-configuration-file-description">JSON Configuration File Description</a><span>.</span></p>
 <p id="zh-cn_topic_0000002016036877_p1611218349332">Before operator tuning, you can obtain the operator binary <code id="zh-cn_topic_0000002016036877_b1845814318519"><span>*.</span>o</code> file in either of the following ways:</p>
-<ul id="zh-cn_topic_0000002016036877_ul81131345339"><li>Refer to <strong>Modifying and Executing One-Click Compilation and Execution Script</strong> in <strong>Kernel Launch Operator Development</strong> &gt; <a href="https://www.hiascend.com/document/detail/en/canncommercial/850/opdevg/Ascendcopdevg/atlas_ascendc_10_0063.html" target="_blank" rel="noopener noreferrer"><strong>Kernel Launch</strong></a> of the <span id="zh-cn_topic_0000002016036877_ph20112143419334"><em>Ascend C Operator Development Guide</em></span> to obtain the NPU executable file, and then manually extract the <span></span>.o file from the executable file.</li><li>Refer to <a href="https://gitcode.com/Ascend/msopgen/blob/26.0.0/docs/en/user_guide/msopgen_user_guide.md#building-and-deploying-an-operator" target="_blank" rel="noopener noreferrer">Operator Compilation and Deployment</a>. The <strong id="zh-cn_topic_0000002016036877_b17819952105016">.o</strong> file is automatically generated during operator compilation.</li></ul>
+<ul id="zh-cn_topic_0000002016036877_ul81131345339"><li>Refer to <strong>Modifying and Executing One-Click Compilation and Execution Script</strong> in <strong>Kernel Launch Operator Development</strong> &gt; <a href="https://www.hiascend.com/document/detail/en/CANNCommunityEdition/900/programug/Ascendcopdevg/atlas_ascendc_10_0063.html" target="_blank" rel="noopener noreferrer"><strong>Kernel Launch</strong></a> of the <span id="zh-cn_topic_0000002016036877_ph20112143419334"><em>Ascend C Operator Development Guide</em></span> to obtain the NPU executable file, and then manually extract the <span></span>.o file from the executable file.</li><li>Refer to <a href="https://gitcode.com/Ascend/msopgen/blob/26.0.0/docs/en/user_guide/msopgen_user_guide.md#building-and-deploying-an-operator" target="_blank" rel="noopener noreferrer">Operator Compilation and Deployment</a>. The <strong id="zh-cn_topic_0000002016036877_b17819952105016">.o</strong> file is automatically generated during operator compilation.</li></ul>
 <p id="p811246204">Ensure that users in the group and other groups do not have the write permission on the JSON file specified by <code>--config</code> and its parent directory. In addition, ensure that the owner of the parent directory of the JSON file is the current user.</p>
 <div class="p" id="p20157517201"> You need to use the <code>LD_LIBRARY_PATH</code> environment variable to set the simulator type. <pre class="screen" id="screen011316904">export LD_LIBRARY_PATH=${INSTALL_DIR}/tools/simulator/Ascendxxxyy/lib:$LD_LIBRARY_PATH // xxxyy indicates the type of the processor used by the user.</pre>
 </div>
@@ -481,7 +481,7 @@ Visualizes the `visualize_data.bin` or `trace.json` files generated by msopprof 
 
 **Precautions**
 
-- For detailed MindStudio Insight operations and field explanations, see [Timeline](https://gitcode.com/Ascend/msinsight/blob/26.0.0/docs/en/user_guide/operator_tuning.md#%E6%97%B6%E9%97%B4%E7%BA%BF%EF%BC%88timeline%EF%BC%89) in *MindStudio Insight Operator Tuning*.
+- For detailed MindStudio Insight operations and field explanations, see [Timeline](https://gitcode.com/Ascend/msinsight/blob/26.0.0/docs/en/user_guide/operator_tuning.md) in *MindStudio Insight Operator Tuning*.
 - If the `-g` compilation option is added, the generated binary file contains debugging information. You are advised to restrict access to user programs with debugging information to authorized personnel only.
 - If the functions provided by the llvm-symbolizer component are not used, do not include `-g` when compiling the program that is input to msOpProf. In this case, msOpProf does not call the functions of the llvm-symbolizer component.
 - If you only need to focus on the performance of specific operators, invoke the `TRACE_START` and `TRACE_STOP` APIs within a single core on Atlas A3 training products, Atlas A3 inference products, Atlas inference products, Atlas A2 training products, and Atlas A2 inference products. These interfaces are described in the "Operator Debugging APIs" section of the *Ascend C Operator Development API*. Additionally, add `-DASCENDC_TRACE_ON` to the compilation configuration file. For details, see the [method for adding `-DASCENDC_TRACE_ON`](#adding-dascendc-trace-on). Only after this can pipeline chart information for the specified range be generated.
@@ -537,7 +537,7 @@ Visualizes the `visualize_data.bin` files generated by msopprof simulator. On th
 
 **Precautions**
 
-- For detailed MindStudio Insight operations and field explanations, see [Source](https://gitcode.com/Ascend/msinsight/blob/26.0.0/docs/en/user_guide/operator_tuning.md#%E6%BA%90%E7%A0%81%EF%BC%88source%EF%BC%89) in *MindStudio Insight Operator Tuning*.
+- For detailed MindStudio Insight operations and field explanations, see [Source](https://gitcode.com/Ascend/msinsight/blob/26.0.0/docs/en/user_guide/operator_tuning.md) in *MindStudio Insight Operator Tuning*.
 - If the `-g` compilation option is added, the generated binary file contains debugging information. You are advised to restrict access to user programs with debugging information to authorized personnel only.
 - The operator program must be compiled with the `-g` option. Otherwise, msOpProf will not display the hot spot map and will not call the relevant functions of the llvm-symbolizer component to implement code-to-PC mapping.
 - Operator code hotspot maps cannot be generated for MC2 or LCCL operators.
@@ -584,7 +584,7 @@ Visualizes the `visualize_data.bin` files generated by msopprof simulator. On th
 
 **Precautions**
 
-- For detailed MindStudio Insight operations and field explanations, see [Timeline](https://gitcode.com/Ascend/msinsight/blob/26.0.0/docs/en/user_guide/operator_tuning.md#%E6%97%B6%E9%97%B4%E7%BA%BF%EF%BC%88timeline%EF%BC%89) in *MindStudio Insight Operator Tuning*.
+- For detailed MindStudio Insight operations and field explanations, see [Timeline](https://gitcode.com/Ascend/msinsight/blob/26.0.0/docs/en/user_guide/operator_tuning.md) in *MindStudio Insight Operator Tuning*.
 - Memory channel throughput waveform charts can only be displayed for Atlas A2 training products, Atlas A2 inference products, Atlas A3 training products, and Atlas A3 inference products.
 - This feature is disabled by default. The `--core-id` setting has no effect on this feature.
 

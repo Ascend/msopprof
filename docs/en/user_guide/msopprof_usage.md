@@ -6,7 +6,7 @@
 
 This section demonstrates how to use msOpProf to collect profile data of Ascend C operators invoked through the kernel launch method, using the kernel call operator `<<<>>>` as an example.
 
-For more details on kernel launch scenarios, refer to [Kernel Launch Operator Development](https://www.hiascend.com/document/detail/en/canncommercial/83RC1/opdevg/Ascendcopdevg/atlas_ascendc_10_0052.html) in the *Ascend C Operator Development Guide*.
+For more details on kernel launch scenarios, refer to [Kernel Launch Operator Development](https://www.hiascend.com/document/detail/en/CANNCommunityEdition/900/programug/Ascendcopdevg/atlas_ascendc_10_0056.html) in the *Ascend C Operator Development Guide*.
 
 **Prerequisites**
 
@@ -81,7 +81,7 @@ For more details on kernel launch scenarios, refer to [Kernel Launch Operator De
 
 This section demonstrates how to use msOpProf to collect profile data of a single operator invoked through an API call, using a custom operator project and an ACLNN single operator API call as examples.
 
-For more details on single operator API call scenarios, refer to the **Engineering Operator Development** > [Single Operator API Call](https://www.hiascend.com/document/detail/en/canncommercial/83RC1/opdevg/Ascendcopdevg/atlas_ascendc_10_0070.html) in the *Ascend C Operator Development Guide*.
+For more details on single operator API call scenarios, refer to the **Engineering Operator Development** > [Single Operator API Call](https://www.hiascend.com/document/detail/en/CANNCommunityEdition/900/programug/Ascendcopdevg/atlas_ascendc_10_0070.html) in the *Ascend C Operator Development Guide*.
 
 **Prerequisites**
 
@@ -249,7 +249,7 @@ This section demonstrates how to use msOpProf to collect profile data of CATLASS
 
 This section demonstrates how to use msOpProf to tune an MC2 operator on the board and generate a communication and computing pipeline chart.
 
-This example uses the Ascend CL single operator invocation as an example. For other invocation scenarios, refer to the [Ascend C Operator Development Guide](https://www.hiascend.com/document/detail/en/canncommercial/83RC1/opdevg/Ascendcopdevg/atlas_ascendc_10_0001.html).
+This example uses the Ascend CL single operator invocation as an example. For other invocation scenarios, refer to the [Ascend C Operator Development Guide](https://www.hiascend.com/document/detail/en/CANNCommunityEdition/900/programug/Ascendcopdevg/atlas_ascendc_map_10_0002.html).
 
 **Prerequisites**
 
@@ -258,7 +258,7 @@ This example uses the Ascend CL single operator invocation as an example. For ot
 
 **Procedure**
 
-1. Refer to [Operator Compilation and Deployment](https://www.hiascend.com/document/detail/en/mindstudio/82RC1/ODtools/Operatordevelopmenttools/atlasopdev_16_0024.html) to complete the compilation and deployment of the operator.
+1. Refer to [Operator Compilation and Deployment](https://gitcode.com/Ascend/msopgen/blob/26.0.0/docs/en/user_guide/msopgen_user_guide.md) to complete the compilation and deployment of the operator.
      1. In the `CMakeLists.txt` file located in the `op_kernel` directory of the operator compilation files, add the following compilation options to enable the AIC timestamping and code line mapping features for the MC2 operator.
 
         ```shell

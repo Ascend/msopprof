@@ -25,7 +25,7 @@ The procedures for collecting profile data are basically the same for kernel lau
 
 **Procedure**
 
-1. Prepare for operator compilation according to the sample project description and by referring to **Kernel Launch Operator Development** > [Kernel Launch](https://www.hiascend.com/document/detail/en/canncommercial/800/opdevg/Ascendcopdevg/atlas_ascendc_10_0052.html) in the *Ascend C Operator Development Guide*.
+1. Prepare for operator compilation according to the sample project description and by referring to **Kernel Launch Operator Development** > [Kernel Launch](https://www.hiascend.com/document/detail/en/CANNCommunityEdition/900/programug/Ascendcopdevg/atlas_ascendc_10_0056.html) in the *Ascend C Operator Development Guide*.
 2. Build a single-operator executable file.
 
     Take the Add operator as an example. In the `${git_clone_path}/samples/operator/ascendc/0_introduction/3_add_kernellaunch/AddKernelInvocationNeo` directory of the sample project, run the following commands to build the executable file.
@@ -80,7 +80,7 @@ This section demonstrates how to use the instruction pipeline charts of the msOp
 
 3. Enable the double buffer mechanism of Ascend C operators to improve the MTE2 transfer efficiency.
 
-    For example, in the sample operator kernel function, you can enable double buffering by changing the second parameter (`BUFFER_NUM`) of `InitBuffer` in `TPipe` from 1 to 2. For details about `InitBuffer`, see **Base API** > **Memory Management and Synchronization Control** > **TPipe** > [InitBuffer](https://www.hiascend.com/document/detail/en/canncommercial/800/apiref/ascendcopapi/atlasascendc_api_07_0110.html) in the *Ascend C Operator Development API*.
+    For example, in the sample operator kernel function, you can enable double buffering by changing the second parameter (`BUFFER_NUM`) of `InitBuffer` in `TPipe` from 1 to 2. For details about `InitBuffer`, see **Base API** > **Memory Management and Synchronization Control** > **TPipe** > [InitBuffer](https://www.hiascend.com/document/detail/en/CANNCommunityEdition/900/API/ascendcopapi/atlasascendc_api_07_0110.html) in the *Ascend C Operator Development API*.
 
     ```shell
     constexpr int32_t BUFFER_NUM = 2;        # tensor num for each queue
@@ -101,7 +101,7 @@ This section demonstrates how to use the instruction pipeline charts of the msOp
 
 This section shows how to use msOpProf to tune an MC2 operator on the board and generate a communication and computing pipeline chart.
 
-This example uses AscendCL single-operator call as an example. For other call scenarios, see the [*Ascend C Operator Development Guide*](https://www.hiascend.com/document/detail/en/canncommercial/800/opdevg/Ascendcopdevg/atlas_ascendc_10_0001.html).
+This example uses AscendCL single-operator call as an example. For other call scenarios, see the [*Ascend C Operator Development Guide*](https://www.hiascend.com/document/detail/en/CANNCommunityEdition/900/programug/Ascendcopdevg/atlas_ascendc_map_10_0002.html).
 
 **Preparations**
 
@@ -110,7 +110,7 @@ This example uses AscendCL single-operator call as an example. For other call sc
 
 **Procedure**
 
-1. Compile and deploy the operator by referring to [Compiling and Deploying Operators](https://www.hiascend.com/document/detail/en/mindstudio/830/optools/Operatordevelopmenttools/atlasopdev_16_0024.html).
+1. Compile and deploy the operator by referring to [Compiling and Deploying Operators](https://gitcode.com/Ascend/msopgen/blob/26.0.0/docs/en/user_guide/msopgen_user_guide.md).
     1. Add the following compilation options to the `CMakeLists.txt` file in the `op_kernel` directory of the operator build file to enable the AIC instrumentation and code line mapping functions of the MC2 operator.
 
         ```shell
