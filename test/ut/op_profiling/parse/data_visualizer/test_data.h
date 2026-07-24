@@ -35,8 +35,6 @@ inline std::shared_ptr<std::map<std::string, SimData>> GetSimData()
     m2.name = WAIT_FLAG;
     m2.detail = "PIPE:VEC,TRIGGERPIPE:MTE3,FLAGID:0,";
     std::vector<MergeInfo> mergeVec {m1, m2};
-    InstrDetailTable instr(mergeVec);
-
     MergeInfo cache;
     cache.pc = 0x10f86008;
     cache.startTick = 11038;
@@ -45,7 +43,7 @@ inline std::shared_ptr<std::map<std::string, SimData>> GetSimData()
     cache.pipe = "CACHEMISS";
     std::vector<MergeInfo> cacheVec {cache};
     cachePtr = Utility::MakeShared<CacheDetailTable>(cacheVec);
-    instrPtr = Utility::MakeShared<InstrDetailTable>(instr);
+    instrPtr = Utility::MakeShared<InstrDetailTable>(mergeVec);
 
     std::map<std::string, std::vector<UserMarkInfo>> userMarkInfos;
     UserMarkInfo uu;

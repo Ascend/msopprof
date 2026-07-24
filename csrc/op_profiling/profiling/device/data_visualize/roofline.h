@@ -51,6 +51,7 @@ struct AnalysisPoint {
 
 class RoofLine {
 public:
+    virtual ~RoofLine() = default;
     RoofLine(const int64_t aicoreFreq, const int64_t aiCoreNum, std::shared_ptr<OpBasicInfo> &opBasicInfoObj,
              std::shared_ptr<BasicPmu> &basicPmuObj, std::unique_ptr<Visualize::PmuCalculator> &pmuCalculatorObj)
         : opBasicInfoObj_(opBasicInfoObj),
@@ -102,7 +103,7 @@ private:
     std::map<std::string, float> pipeLineRatio_;
 };
 
-class RoofLineOf910B : public RoofLine {
+class RoofLineOf910B final : public RoofLine {
 public:
     RoofLineOf910B(const int64_t aicoreFreq, const int64_t aiCoreNum, std::shared_ptr<OpBasicInfo> &opBasicInfoObj,
                    std::shared_ptr<BasicPmu> &basicPmuObj, std::unique_ptr<Visualize::PmuCalculator> &pmuCalculatorObj)
@@ -200,7 +201,7 @@ private:
     int64_t l2CacheEvict_ = -1;
 };
 
-class RoofLineOfA5 : public RoofLine {
+class RoofLineOfA5 final : public RoofLine {
 public:
     RoofLineOfA5(const int64_t aicoreFreq, const int64_t aiCoreNum, std::shared_ptr<OpBasicInfo> &opBasicInfoObj,
         std::shared_ptr<BasicPmu> &basicPmuObj, std::unique_ptr<Visualize::PmuCalculator> &pmuCalculatorObj)
@@ -284,7 +285,7 @@ private:
     std::vector<SubCoreProperty> vecSimtProperties_ {};
 };
 
-class RoofLineOf310P : public RoofLine {
+class RoofLineOf310P final : public RoofLine {
 public:
     RoofLineOf310P(const int64_t aicoreFreq, const int64_t aiCoreNum, std::shared_ptr<OpBasicInfo> &opBasicInfoObj,
                    std::shared_ptr<BasicPmu> &basicPmuObj, std::unique_ptr<Visualize::PmuCalculator> &pmuCalculatorObj)

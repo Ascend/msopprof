@@ -171,6 +171,7 @@ public:
     }
 
     virtual ~L2Cache() = default;
+
 private:
     CacheOpStat Load(const CacheAddrRange &range) override;
     CacheOpStat Store(const CacheAddrRange &range) override;

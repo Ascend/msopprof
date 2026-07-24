@@ -40,7 +40,7 @@ HalHelper::HalHelper()
     if (handleHal_ == nullptr) {
         return;
     }
-    halGetDeviceInfo_ = (halGetDeviceInfoFunc) dlsym(handleHal_, "halGetDeviceInfo");
+    halGetDeviceInfo_ = reinterpret_cast<halGetDeviceInfoFunc>(dlsym(handleHal_, "halGetDeviceInfo"));
 }
 
 HalHelper::~HalHelper()
@@ -71,7 +71,7 @@ ChipType HalHelper::GetPlatformType(void) const
         LogError("Fail to get soc platform because of error code:%d.", ret);
         return ChipType::END_TYPE;
     }
- 
+
     uint32_t platformType = (static_cast<uint64_t>(versionInfo) >> 8) & 0xff;
     if ((platformType > static_cast<uint32_t>(ChipType::ASCEND310B) &&
         platformType < static_cast<uint32_t>(ChipType::ASCEND950)) ||
@@ -140,7 +140,7 @@ bool HalHelper::DcmiInit()
     if (handleDcmi_ == nullptr) {
         return false;
     }
-    DcmiInitFunc dcmiInit = (DcmiInitFunc) dlsym(handleDcmi_, "dcmi_init");
+    DcmiInitFunc dcmiInit = reinterpret_cast<DcmiInitFunc>(dlsym(handleDcmi_, "dcmi_init"));
     if (dcmiInit == nullptr) {
         LogDebug("Can not get device dcmi info function.");
         dlclose(handleDcmi_);
@@ -158,8 +158,8 @@ bool HalHelper::GetCardIdDeviceIdFromLogicId(int *cardId, int *chipId, unsigned 
         LogDebug("Can not get device id info.");
         return false;
     }
-    DcmiGetCardIdDeviceIdFunc dcmiGetCardIdDeviceId = (DcmiGetCardIdDeviceIdFunc) dlsym(handleDcmi_,
-        "dcmi_get_card_id_device_id_from_logicid");
+    DcmiGetCardIdDeviceIdFunc dcmiGetCardIdDeviceId = reinterpret_cast<DcmiGetCardIdDeviceIdFunc>(dlsym(handleDcmi_,
+        "dcmi_get_card_id_device_id_from_logicid"));
     if (dcmiGetCardIdDeviceId == nullptr) {
         LogDebug("Can not get device id info function.");
         return false;
@@ -179,8 +179,8 @@ bool HalHelper::SetGmType(int cardId, int deviceId, dcmi_gm_product_info_t &gmIn
         LogDebug("Can not get device gm info.");
         return false;
     }
-    DcmiGetDeviceGmInfoFunc dcmiGetDeviceGmInfo = (DcmiGetDeviceGmInfoFunc) dlsym(handleDcmi_,
-        "dcmi_get_device_hbm_product_info");
+    DcmiGetDeviceGmInfoFunc dcmiGetDeviceGmInfo = reinterpret_cast<DcmiGetDeviceGmInfoFunc>(dlsym(handleDcmi_,
+        "dcmi_get_device_hbm_product_info"));
     if (dcmiGetDeviceGmInfo  == nullptr) {
         LogDebug("Can not get device gm info function.");
         return false;

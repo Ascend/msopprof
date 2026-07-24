@@ -39,13 +39,13 @@ struct LcclInfo {
 uint16_t GetAicoreDotBlockId(const std::string &opType, uint16_t blockIndex, uint16_t subBlockIndex,
                              uint16_t subBlockNum);
 
-class LcclTimelineParser : public TimelineParser{
+class LcclTimelineParser final : public TimelineParser{
 public:
     LcclTimelineParser(uint64_t minLcclTimeCyc, std::shared_ptr<OpBasicInfo> &opBasicInfoObj,
                        std::shared_ptr<BasicPmu> &basicPmuObj)
         : TimelineParser(minLcclTimeCyc, opBasicInfoObj, basicPmuObj), aicoreStartCyc_(minLcclTimeCyc)
         {}
-    bool TimelineToJson(const std::string &outputPath);
+    bool TimelineToJson(const std::string &outputPath) override;
 
 private:
     void PreProcessData(std::vector<LcclDumpLogInfo> &aicoreTimeStamps);

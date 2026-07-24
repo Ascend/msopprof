@@ -53,6 +53,7 @@ public:
                 }
             }
         }
+    ~AicoreTimelineParser() override = default;
     bool TimelineToJson(const std::string &outputPath) override;
     bool GetAicoreTimeStamps(std::vector<MsprofAicTimeStampInfoUpdate> &aicoreTimeStamps);
     void GenPc2Code(std::vector<MsprofAicTimeStampInfoUpdate> &aicoreTimeStamps);

@@ -57,6 +57,10 @@ bool TlvParser::ReadTlvHeader(const std::vector<uint8_t>& data, size_t& offset, 
                               TlvTag& outTag, TlvLengthType& outLength) const
 {
     bool result = ReadData(data, offset, containerEnd, outTag);
+    if (!result) {
+        Utility::LogWarn("ReadTlvHeader: Failed to read TLV tag");
+        return false;
+    }
     result = ReadData(data, offset, containerEnd, outLength);
     // 校验Value长度是否超过容器剩余空间
     if (!result || (offset + outLength > containerEnd)) {
@@ -118,19 +122,19 @@ bool TlvParser::ParseStream()
     // 读取落盘文件内容
     std::ifstream tlvFile(tlvPath_, std::ios::binary | std::ios::ate);
     if (!tlvFile.is_open()) {
-        Utility::LogWarn("Failed to open lrm file: %s ", tlvPath_);
+        Utility::LogWarn("Failed to open lrm file: %s ", tlvPath_.c_str());
         return false;
     }
     std::streamsize fileSize = tlvFile.tellg();
     tlvFile.seekg(0, std::ios::beg);
     std::vector<uint8_t> tlvData(fileSize);
     if (!tlvFile.read(reinterpret_cast<char *>(tlvData.data()), fileSize)) {
-        Utility::LogWarn("Failed to read lrm file: %s ", tlvPath_);
+        Utility::LogWarn("Failed to read lrm file: %s ", tlvPath_.c_str());
         return false;
     }
     tlvFile.close();
     if (tlvData.empty()) {
-        Utility::LogWarn("inputData is null: %s ", tlvPath_);
+        Utility::LogWarn("inputData is null: %s ", tlvPath_.c_str());
         return false;
     }
     size_t offset = 0;
@@ -566,11 +570,11 @@ void TlvParser::UpdateRegStatus(uint64_t pcAddr, const std::string& regName, uin
 void TlvParser::ProcessRegisterRecord(const std::string& regType, const RecordValue& gpr, uint64_t pcAddr, size_t pcIndex)
 {
     std::string regName = regType + std::to_string(gpr.regIndex);
-    
+
     // 更新寄存器状态
     RecordStatus status = {regName, gpr.operation, 0};
     gprStatus_[pcAddr].emplace_back(status);
-    
+
     // 更新寄存器存活时间
     auto it = regSurvivalTime_.find(regName);
     if (it == regSurvivalTime_.end()) {
@@ -594,23 +598,23 @@ void TlvParser::ProcessRegisterRecord(const std::string& regType, const RecordVa
 void TlvParser::ProcessPcGroup(const std::vector<InstRecord>& pcGroup, const std::string& regType)
 {
     regSurvivalTime_.clear();
-    
+
     for (size_t pcIndex = 0; pcIndex < pcGroup.size(); ++pcIndex) {
         const auto& pcRecord = pcGroup[pcIndex];
         uint64_t pcAddr = pcRecord.address;
-        
+
         // 更新PC寄存器计数
         pcNumCount_[pcAddr] += pcRecord.regRecord.size();
-        
+
         // 处理该PC下的所有寄存器记录
         for (const auto& gpr : pcRecord.regRecord) {
             ProcessRegisterRecord(regType, gpr, pcAddr, pcIndex);
         }
     }
-    
+
     // 处理该寄存器类型下所有寄存器的最终存活时间
-    for (const auto& [regName, length] : regSurvivalTime_) {
-        UpdateRegStatus(length.beginAddr, regName, length.survivalTime);
+    for (const auto& pair : regSurvivalTime_) {
+        UpdateRegStatus(pair.second.beginAddr, pair.first, pair.second.survivalTime);
     }
 }
 
@@ -620,21 +624,21 @@ bool TlvParser::CountPCNum()
     // 幂等性设计：每次调用先清空统计结果
     pcNumCount_.clear();
     gprStatus_.clear();
-    
+
     // 校验解析结果有效性
     const auto& instRecordList = parsedRegLiveness_.instRecordList;
     if (instRecordList.empty()) {
         Utility::LogDebug("CountPCNum: No valid data parsed, please call ParseStream() first");
         return false;
     }
-    
+
     // 遍历所有寄存器种类分组
     for (size_t groupIndex = 0; groupIndex < instRecordList.size(); ++groupIndex) {
         const auto& pcGroup = instRecordList[groupIndex];
         std::string regType = GetRegType(parsedRegLiveness_.regType[groupIndex]);
         ProcessPcGroup(pcGroup, regType);
     }
-    
+
     return true;
 }
 

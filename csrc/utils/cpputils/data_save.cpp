@@ -36,7 +36,7 @@ bool DataSave::CsvSave(const std::string &saveFilePath,
     int ret = chmod(saveFilePath.c_str(), SAVE_DATA_FILE_AUTHORITY);
     if (ret != 0) {
         std::array<char, 256> err_buf{};
-        strerror_r(errno, err_buf.data(), err_buf.size());
+        (void)strerror_r(errno, err_buf.data(), err_buf.size());
         LogError("Chmod [%s] failed, errno: %d, reason: %s", saveFilePath.c_str(), errno, err_buf.data());
         return false;
     }

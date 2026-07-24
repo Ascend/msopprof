@@ -84,6 +84,7 @@ struct OccupancyMetrics {
 
 class Occupancy {
 public:
+    virtual ~Occupancy() = default;
     Occupancy(std::shared_ptr<OpBasicInfo> &opBasicInfoObj, std::shared_ptr<BasicPmu> &basicPmuObj)
         : opBasicInfoObj_(opBasicInfoObj), basicPmuObj_(basicPmuObj)
         {
@@ -100,7 +101,7 @@ protected:
     std::shared_ptr<OpBasicInfo> &opBasicInfoObj_;
     std::shared_ptr<BasicPmu> &basicPmuObj_;
 private:
-    void SetBlockIDCoreIDPairVec() { blockIdCoreIdPairVec_ = std::move(basicPmuObj_->GetBlockIdCoreIdPairVec()); };
+    void SetBlockIDCoreIDPairVec() { blockIdCoreIdPairVec_ = basicPmuObj_->GetBlockIdCoreIdPairVec(); };
     std::vector<nlohmann::json> GetOccupancyJson();
     std::vector<nlohmann::json> GetOccupancyBlockJson(MemMapDetail &memMapDetail);
     void MergeSameCorePmu(std::vector<MemMapDetail> &pmuMapDetails);
@@ -120,7 +121,7 @@ private:
     static const std::unordered_map<OccupancyDataType, double> ReportThresholds;
 };
 
-class Occupancy910B : public Occupancy {
+class Occupancy910B final : public Occupancy {
 public:
     Occupancy910B(std::shared_ptr<OpBasicInfo> &opBasicInfoObj, std::shared_ptr<BasicPmu> &basicPmuObj)
         : Occupancy(opBasicInfoObj, basicPmuObj) {}
@@ -129,7 +130,7 @@ private:
     bool CheckCacheHitEventMap(const std::map<uint64_t, uint64_t> &pmuEvents) const;
 };
 
-class OccupancyA5 : public Occupancy {
+class OccupancyA5 final : public Occupancy {
 public:
     OccupancyA5(std::shared_ptr<OpBasicInfo> &opBasicInfoObj, std::shared_ptr<BasicPmu> &basicPmuObj)
         : Occupancy(opBasicInfoObj, basicPmuObj) {}

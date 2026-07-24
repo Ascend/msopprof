@@ -22,7 +22,7 @@
 
 namespace Profiling {
 
-class OpDeviceProf : public OpProf {
+class OpDeviceProf final : public OpProf {
 friend class DeviceTaskGenerator;
 public:
     explicit OpDeviceProf(const Common::ProfArgs &profArgs);

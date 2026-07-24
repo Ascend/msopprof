@@ -22,7 +22,7 @@
 
 namespace Profiling {
 
-class OpSimProf : public OpProf {
+class OpSimProf final : public OpProf {
 friend class SimulatorTaskGenerator;
 public:
     explicit OpSimProf(const Common::ProfArgs &profArgs);

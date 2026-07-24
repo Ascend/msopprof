@@ -25,7 +25,7 @@ PluginErrorCode CcuParser::Entry() {
     const std::string &corePrefix = dataParserConfig_.GetCoreInfo().second;
     std::vector<std::string> splitDumpFileVec = dataParserConfig_.GetSplitFilesVec(corePrefix + "ccu_log", DUMP_SUFFIX);
     reverse(splitDumpFileVec.begin(), splitDumpFileVec.end());
-    ChipProductType chip = dataParserConfig_.GetProductSeriesType();
+    (void)dataParserConfig_.GetProductSeriesType();
     if (splitDumpFileVec.empty()) {
         LogDebug("Failed to get ccu log");
         return PluginErrorCode::NONBLOCKING_ERROR;

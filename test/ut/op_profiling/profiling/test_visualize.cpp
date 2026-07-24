@@ -535,7 +535,7 @@ TEST(DataVisualize, addbasicpmu910b_success)
     auto &basicPmuObj = GetBasicPmuObjTest1(chipType, handler2);
     opBasicInfoObj->SetBlockDetail();
 
-    PmuCalculator910B pmuCalculatorObj910B = PmuCalculator910B();
+    PmuCalculator910B pmuCalculatorObj910B;
     pmuCalculatorObj910B.Init(basicPmuObj);
 
     // A2 training vector op
@@ -605,7 +605,7 @@ TEST(DataVisualize, gettablelineaicore_success)
     auto &opBasicInfoObj = GetOpBasicInfoObjTest1(chipType, handler2);
     auto &basicPmuObj = GetBasicPmuObjTest1(chipType, handler2);
     opBasicInfoObj->SetBlockDetail();
-    PmuCalculator910B pmuCalculatorObj910B = PmuCalculator910B();
+    PmuCalculator910B pmuCalculatorObj910B;
     pmuCalculatorObj910B.Init(basicPmuObj);
 
     // A2 training vector op

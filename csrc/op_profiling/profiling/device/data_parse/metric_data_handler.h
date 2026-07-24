@@ -164,7 +164,7 @@ public:
 protected:
     virtual void ParseMemoryChartData(const std::string &outputPath, const Common::ProfMetricsAbilityConfig &metrics,
                                       std::vector<Common::MemRecord> &memoryRecords,
-                                      const std::string &kernelName = "") {}
+                                      const std::string &kernelName) {}
     virtual void Statics(std::vector<Common::MemRecord> &memoryRecords,
                          std::map<uint64_t, std::map<std::string, uint64_t>> &dataSize) {}
     virtual void PrepareDbiParams(CalculateParams &params, uint64_t blockId, const std::string &subBlockId) {}
@@ -246,8 +246,8 @@ public:
     void ReadAndParseL2CacheBin(const std::string &outputPath, const Common::ProfMetricsAbilityConfig &metrics) override;
 private:
     void ParseMemoryChartData(const std::string &outputPath, const Common::ProfMetricsAbilityConfig &metrics,
-                              std::vector<Common::MemRecord> &memoryRecords,
-                              const std::string &kernelName = "") override;
+std::vector<Common::MemRecord> &memoryRecords,
+                               const std::string &kernelName) override;
     void Statics(std::vector<Common::MemRecord> &memoryRecords,
                  std::map<uint64_t, std::map<std::string, uint64_t>> &dataSize) override;
     static constexpr int64_t DEFAULT_AICORE_FREQ = 1850;
@@ -298,8 +298,8 @@ public:
     std::string GetOpType() override;
 private:
     void ParseMemoryChartData(const std::string &outputPath, const Common::ProfMetricsAbilityConfig &metrics,
-                              std::vector<Common::MemRecord> &memoryRecords,
-                              const std::string &kernelName = "") override;
+std::vector<Common::MemRecord> &memoryRecords,
+                               const std::string &kernelName) override;
     void Statics(std::vector<Common::MemRecord> &memoryRecords,
                  std::map<uint64_t, std::map<std::string, uint64_t>> &dataSize) override;
     static uint64_t CalcRequest(uint64_t x, uint64_t align);

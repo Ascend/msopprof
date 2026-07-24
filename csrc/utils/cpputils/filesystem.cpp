@@ -190,7 +190,7 @@ bool MkdirRecusively(std::string const &path, mode_t mode)
                 continue;
             }
             std::array<char, 256> err_buf{};
-            strerror_r(errno, err_buf.data(), err_buf.size());
+            (void)strerror_r(errno, err_buf.data(), err_buf.size());
             LogError("Mkdir [%s] failed, errno: %d, reason: %s", path.c_str(), errno, err_buf.data());
             return false;
         }
@@ -462,7 +462,7 @@ bool Mkdir(std::string const &path, mode_t mode, bool ignoreExist)
     }
     if (mkdir(path.c_str(), mode) < 0) {
         std::array<char, 256> err_buf{};
-        strerror_r(errno, err_buf.data(), err_buf.size());
+        (void)strerror_r(errno, err_buf.data(), err_buf.size());
         LogError("Mkdir [%s] failed, errno: %d, reason: %s", path.c_str(), errno, err_buf.data());
         return false;
     }

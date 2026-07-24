@@ -29,6 +29,7 @@ using TaskPtr = std::unique_ptr<Profiling::Task>;
 class OpProf {
 public:
     explicit OpProf(const Common::ProfArgs &args);
+    virtual ~OpProf() = default;
     virtual Profiling::TaskPtr GetTask() = 0;
     virtual std::unique_ptr<DataParse> GetDataParser() = 0;
 

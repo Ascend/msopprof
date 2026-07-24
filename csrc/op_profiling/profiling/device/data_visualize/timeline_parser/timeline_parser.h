@@ -70,6 +70,7 @@ struct JsonEvent {
 
 class TimelineParser  {
 public:
+    virtual ~TimelineParser() = default;
      TimelineParser(uint64_t minTimeCyc, std::shared_ptr<OpBasicInfo> &opBasicInfoObj, std::shared_ptr<BasicPmu> &basicPmuObj)
         : minSysCyc_(minTimeCyc), opBasicInfoObj_(opBasicInfoObj), basicPmuObj_(basicPmuObj)
         {

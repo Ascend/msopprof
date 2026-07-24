@@ -38,6 +38,7 @@ public:
     // All resources are automatically released during destructor.
     ~ThreadPool();
 
+
     // Start the thread pool and create threadsNum threads to wait for tasks.
     bool Start();
     // Stop the thread pool. (Stop task assignment, and wait current thread complete, then release all threads.

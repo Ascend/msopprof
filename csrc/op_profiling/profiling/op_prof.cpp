@@ -102,7 +102,7 @@ bool OpProf::RunTask()
 
 bool OpProf::RunDataParse(bool needMoveDir)
 {
-    std::unique_ptr<DataParse> dataParse = std::move(GetDataParser());
+    std::unique_ptr<DataParse> dataParse = GetDataParser();
     if (dataParse == nullptr) {
         LogError("Data parse task generate failed.");
         return false;

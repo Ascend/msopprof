@@ -91,8 +91,8 @@ void PmuCalculator::Init(std::shared_ptr<BasicPmu> &basicPmuObj)
     }
 }
 
-std::map<std::string, float> PmuCalculator910B::GetPipeBwByWeight(const string &socVersion, uint64_t l0aDatas,
-    uint64_t l0bDatas, uint64_t l0cToGmDatas, uint64_t l0cToL1Datas) const
+std::map<std::string, float> PmuCalculator910B::GetPipeBwByWeight(const string &socVersion, uint64_t l0aData,
+    uint64_t l0bData, uint64_t l0cToGmData, uint64_t l0cToL1Data) const
 {
     // 实验理论最大带宽，其中MTE1理论带宽待加权计算，初始化为1，避免作为除数时出现除0错误
     map<TransportType, float> maxBw = GetMaxBwBySoc(socVersion, ChipProductType::ASCEND910B1);
@@ -105,17 +105,17 @@ std::map<std::string, float> PmuCalculator910B::GetPipeBwByWeight(const string &
         {"MTE3 vector", maxBw.at(TransportType::UB_TO_GM)},
     };
 
-    float l0aRatio = (l0aDatas == 0 || (l0aDatas + l0bDatas) == 0) ?
-        0.0f : static_cast<float>(l0aDatas) / (l0aDatas + l0bDatas);
-    float l0bRatio = (l0bDatas == 0 || (l0aDatas + l0bDatas) == 0) ?
-        0.0f : static_cast<float>(l0bDatas) / (l0aDatas + l0bDatas);
+    float l0aRatio = (l0aData == 0 || (l0aData + l0bData) == 0) ?
+        0.0f : static_cast<float>(l0aData) / (l0aData + l0bData);
+    float l0bRatio = (l0bData == 0 || (l0aData + l0bData) == 0) ?
+        0.0f : static_cast<float>(l0bData) / (l0aData + l0bData);
     if ((!IsZero(l0aRatio)) || (!IsZero(l0bRatio))) {
         resBw["MTE1"] = maxBw.at(TransportType::MTE_TO_L0A) * l0aRatio + maxBw.at(TransportType::MTE_TO_L0B) * l0bRatio;
     }
-    float l0c2GmRatio = (l0cToGmDatas == 0 || (l0cToGmDatas + l0cToL1Datas) == 0) ?
-        0.0f : static_cast<float>(l0cToGmDatas) / (l0cToGmDatas + l0cToL1Datas);
-    float l0c2L1Ratio = (l0cToL1Datas == 0 || (l0cToGmDatas + l0cToL1Datas) == 0) ?
-        0.0f :  static_cast<float>(l0cToL1Datas) / (l0cToGmDatas + l0cToL1Datas);
+    float l0c2GmRatio = (l0cToGmData == 0 || (l0cToGmData + l0cToL1Data) == 0) ?
+        0.0f : static_cast<float>(l0cToGmData) / (l0cToGmData + l0cToL1Data);
+    float l0c2L1Ratio = (l0cToL1Data == 0 || (l0cToGmData + l0cToL1Data) == 0) ?
+        0.0f :  static_cast<float>(l0cToL1Data) / (l0cToGmData + l0cToL1Data);
     if ((!IsZero(l0c2GmRatio)) || (!IsZero(l0c2L1Ratio))) {
         resBw["FIXP"] = maxBw.at(TransportType::L0C_TO_GM) * l0c2GmRatio + maxBw.at(TransportType::L0C_TO_L1) * l0c2L1Ratio;
     }

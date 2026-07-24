@@ -70,19 +70,19 @@ unique_ptr<DataHandler> &GetHandle(ChipType chipType)
                 return Utility::MakeUnique<DataHandlerOf910B>();
         }
     };
-    handlePtr = std::move(createInstance(type));
+    handlePtr = createInstance(type);
     return handlePtr;
 }
 
-unique_ptr<Visualize::PmuCalculator> &GetPmuCalculatorObj(ChipType chipType, shared_ptr<BasicPmu> &basicPmuObj)
+unique_ptr<::Visualize::PmuCalculator> &GetPmuCalculatorObj(ChipType chipType, shared_ptr<BasicPmu> &basicPmuObj)
 {
-    static unique_ptr<Visualize::PmuCalculator> pmuCalculatorPtr;
+    static unique_ptr<::Visualize::PmuCalculator> pmuCalculatorPtr;
     if (chipType == ChipType::ASCEND910B) {
-        pmuCalculatorPtr = Utility::MakeUnique<Visualize::PmuCalculator910B>();
+        pmuCalculatorPtr = Utility::MakeUnique<::Visualize::PmuCalculator910B>();
     } else if (chipType == ChipType::ASCEND310P) {
-        pmuCalculatorPtr = Utility::MakeUnique<Visualize::PmuCalculator310P>();
+        pmuCalculatorPtr = Utility::MakeUnique<::Visualize::PmuCalculator310P>();
     } else {
-        pmuCalculatorPtr = Utility::MakeUnique<Visualize::PmuCalculatorA5>();
+        pmuCalculatorPtr = Utility::MakeUnique<::Visualize::PmuCalculatorA5>();
     }
     if (pmuCalculatorPtr == nullptr) {
         return pmuCalculatorPtr;
@@ -91,12 +91,12 @@ unique_ptr<Visualize::PmuCalculator> &GetPmuCalculatorObj(ChipType chipType, sha
     return pmuCalculatorPtr;
 }
 
-unique_ptr<Visualize::StorageAccess> &GetStorageAccessObj(ChipType chipType,
-                                                          shared_ptr<Visualize::OpBasicInfo> &opBasicInfoObj,
-                                                          shared_ptr<Visualize::BasicPmu> &basicPmuObj,
-                                                          unique_ptr<Visualize::PmuCalculator> &pmuCalculatorObj)
+unique_ptr<::Visualize::StorageAccess> &GetStorageAccessObj(ChipType chipType,
+                                                          shared_ptr<::Visualize::OpBasicInfo> &opBasicInfoObj,
+                                                          shared_ptr<::Visualize::BasicPmu> &basicPmuObj,
+                                                          unique_ptr<::Visualize::PmuCalculator> &pmuCalculatorObj)
 {
-    static unique_ptr<Visualize::StorageAccess> storageAccessPtr;
+    static unique_ptr<::Visualize::StorageAccess> storageAccessPtr;
     if (chipType == ChipType::ASCEND910B) {
         storageAccessPtr = Utility::MakeUnique<StorageAccess910B>(opBasicInfoObj, basicPmuObj, pmuCalculatorObj);
     } else if (chipType == ChipType::ASCEND310P) {
@@ -107,11 +107,11 @@ unique_ptr<Visualize::StorageAccess> &GetStorageAccessObj(ChipType chipType,
     return storageAccessPtr;
 }
 
-unique_ptr<Visualize::Occupancy> &GetOccupancyObj(ChipType chipType,
-                                                  shared_ptr<Visualize::OpBasicInfo> &opBasicInfoObj,
-                                                  shared_ptr<Visualize::BasicPmu> &basicPmuObj)
+unique_ptr<::Visualize::Occupancy> &GetOccupancyObj(ChipType chipType,
+                                                  shared_ptr<::Visualize::OpBasicInfo> &opBasicInfoObj,
+                                                  shared_ptr<::Visualize::BasicPmu> &basicPmuObj)
 {
-    static unique_ptr<Visualize::Occupancy> occupancyPtr;
+    static unique_ptr<::Visualize::Occupancy> occupancyPtr;
     if (chipType == ChipType::ASCEND910B) {
         occupancyPtr = Utility::MakeUnique<Occupancy910B>(opBasicInfoObj, basicPmuObj);
     } else if (chipType == ChipType::ASCEND950) {
@@ -125,7 +125,7 @@ unique_ptr<Visualize::Occupancy> &GetOccupancyObj(ChipType chipType,
 unique_ptr<RoofLine> &GetRoofLineObj(unique_ptr<DataHandler> &handler, shared_ptr<OpBasicInfo> &opBasicInfoObj,
                                      shared_ptr<BasicPmu> &basicPmuObj, unique_ptr<PmuCalculator> &pmuCalculatorObj)
 {
-    static unique_ptr<Visualize::RoofLine> roofLinePtr;
+    static unique_ptr<::Visualize::RoofLine> roofLinePtr;
     if (handler == nullptr) {
         LogWarn("Get roofline failed because of nullptr");
         return roofLinePtr;
@@ -143,36 +143,36 @@ unique_ptr<RoofLine> &GetRoofLineObj(unique_ptr<DataHandler> &handler, shared_pt
     return roofLinePtr;
 }
 
-unique_ptr<Visualize::TimelineParser> &GetTimelineObj(unique_ptr<DataHandler> &handler,
+unique_ptr<::Visualize::TimelineParser> &GetTimelineObj(unique_ptr<DataHandler> &handler,
     shared_ptr<OpBasicInfo> &opBasicInfoObj, shared_ptr<BasicPmu> &basicPmuObj, const std::string &customDotJson) {
-    static unique_ptr<Visualize::TimelineParser> parserPtr;
+    static unique_ptr<::Visualize::TimelineParser> parserPtr;
     if (handler == nullptr || opBasicInfoObj == nullptr || basicPmuObj == nullptr) {
         LogWarn("Get MC2 timeline failed because of nullptr");
         return parserPtr;
     }
     if (handler->GetMC2Flag()) {
-        parserPtr = Utility::MakeUnique<Visualize::MC2TimelineParser>(handler->GetAcsqTimeMap(),
+        parserPtr = Utility::MakeUnique<::Visualize::MC2TimelineParser>(handler->GetAcsqTimeMap(),
         handler->GetMinMc2TimeCyc(), opBasicInfoObj, basicPmuObj);
     } else if (handler->GetLcclFlag()) {
-        parserPtr = Utility::MakeUnique<Visualize::LcclTimelineParser>(
+        parserPtr = Utility::MakeUnique<::Visualize::LcclTimelineParser>(
         handler->GetMinLcclTimeCyc(), opBasicInfoObj, basicPmuObj);
     } else {
-        parserPtr = Utility::MakeUnique<Visualize::AicoreTimelineParser>(
+        parserPtr = Utility::MakeUnique<::Visualize::AicoreTimelineParser>(
             handler->GetMinTimeCyc(), opBasicInfoObj, basicPmuObj, customDotJson);
     }
     return parserPtr;
 }
 
-unique_ptr<Visualize::CachelineHeatMap> GetCachelineHeatMapObj(unique_ptr<DataHandler> &handler)
+unique_ptr<::Visualize::CachelineHeatMap> GetCachelineHeatMapObj(unique_ptr<DataHandler> &handler)
 {
-    unique_ptr<Visualize::CachelineHeatMap> parserPtr =
-        Utility::MakeUnique<Visualize::CachelineHeatMap>(handler->GetL2CacheObj());
+    unique_ptr<::Visualize::CachelineHeatMap> parserPtr =
+        Utility::MakeUnique<::Visualize::CachelineHeatMap>(handler->GetL2CacheObj());
     return parserPtr;
 }
 
-unique_ptr<Visualize::BiuTimeline> &GetBiuTimelineObj(const Common::ProfMetricsAbilityConfig &metrics)
+unique_ptr<::Visualize::BiuTimeline> &GetBiuTimelineObj(const Common::ProfMetricsAbilityConfig &metrics)
 {
-    static unique_ptr<Visualize::BiuTimeline> biuTimelinePtr;
+    static unique_ptr<::Visualize::BiuTimeline> biuTimelinePtr;
     if (metrics.instrTimelineEnable) {
         biuTimelinePtr = MakeUnique<InstrBiuTimeline>();
     } else if (metrics.pipeTimelineEnable) {
@@ -196,8 +196,8 @@ bool DeviceDataParse::ParseExactKernelData(const string &path, const string &ker
     }
     bool res = handler->ParseDeviceData(parserConfig, eventMap_, metrics_, timeStamp);
 
-    std::shared_ptr<Visualize::OpBasicInfo> opBasicInfoObj =  Utility::MakeShared<Visualize::OpBasicInfo>(handler);
-    std::shared_ptr<Visualize::BasicPmu> basicPmuObj = Utility::MakeShared<Visualize::BasicPmu>(handler);
+    std::shared_ptr<::Visualize::OpBasicInfo> opBasicInfoObj =  Utility::MakeShared<::Visualize::OpBasicInfo>(handler);
+    std::shared_ptr<::Visualize::BasicPmu> basicPmuObj = Utility::MakeShared<::Visualize::BasicPmu>(handler);
     if (!dataCenter.DataTableRegister(opBasicInfoObj) || !dataCenter.DataTableRegister(basicPmuObj)) {
         LogError("Get op basic info or basic pmu failed because of nullptr");
         return false;

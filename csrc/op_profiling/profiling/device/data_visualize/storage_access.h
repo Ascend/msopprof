@@ -63,6 +63,7 @@ struct VecDataStats {
 };
 class StorageAccess {
 public:
+    virtual ~StorageAccess() = default;
     StorageAccess(std::shared_ptr<OpBasicInfo> &opBasicInfoObj, std::shared_ptr<BasicPmu> &basicPmuObj,
                   std::unique_ptr<Visualize::PmuCalculator> &pmuCalculatorObj)
         : opBasicInfoObj_(opBasicInfoObj), basicPmuObj_(basicPmuObj), pmuCalculatorObj_(pmuCalculatorObj) {}
@@ -150,7 +151,7 @@ protected:
     static constexpr float idealRatio = 0.8f;
 };
 
-class StorageAccess910B : public StorageAccess {
+class StorageAccess910B final : public StorageAccess {
 public:
     StorageAccess910B(std::shared_ptr<OpBasicInfo> &opBasicInfoObj, std::shared_ptr<BasicPmu> &basicPmuObj,
                       std::unique_ptr<Visualize::PmuCalculator> &pmuCalculatorObj)
@@ -196,7 +197,7 @@ private:
     void LoadScalarMixPmu(const std::string &core, std::map<uint64_t, uint64_t> &pmuMap, std::map<std::string, uint64_t> &indexMap) const;
 };
 
-class StorageAccess310P : public StorageAccess {
+class StorageAccess310P final : public StorageAccess {
 public:
     StorageAccess310P(std::shared_ptr<OpBasicInfo> &opBasicInfoObj, std::shared_ptr<BasicPmu> &basicPmuObj,
                       std::unique_ptr<Visualize::PmuCalculator> &pmuCalculatorObj)
@@ -215,7 +216,7 @@ public:
         uint64_t> &basicPmu, Profiling::Calculate &cal) const;
 };
 
-class StorageAccessA5 : public StorageAccess {
+class StorageAccessA5 final : public StorageAccess {
 public:
     StorageAccessA5(std::shared_ptr<OpBasicInfo> &opBasicInfoObj, std::shared_ptr<BasicPmu> &basicPmuObj,
                     std::unique_ptr<Visualize::PmuCalculator> &pmuCalculatorObj)

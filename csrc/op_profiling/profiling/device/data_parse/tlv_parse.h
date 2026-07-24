@@ -141,7 +141,7 @@ public:
 private:
     // 辅助函数：处理单个寄存器记录，更新寄存器状态和存活时间
     void ProcessRegisterRecord(const std::string& regType, const RecordValue& gpr, uint64_t pcAddr, size_t pcIndex);
-    
+
     // 辅助函数：处理单个PC记录组
     void ProcessPcGroup(const std::vector<InstRecord>& pcGroup, const std::string& regType);
 
@@ -188,7 +188,7 @@ private:
     RegLiveness parsedRegLiveness_;
 
     std::string tlvPath_;
-    
+
     // 私有成员：存储PC寄存器统计结果（key=PC地址，value=总寄存器数）
     std::unordered_map<uint64_t, uint64_t> pcNumCount_;
 
@@ -199,7 +199,7 @@ private:
     std::string GetRegType(const RegType& type);
 
     void UpdateRegStatus(uint64_t pcAddr, const std::string& regName, uint64_t length);
-    
+
     // 校验标签有效性
     static constexpr bool IsValidTag(TlvTag tag)
     {

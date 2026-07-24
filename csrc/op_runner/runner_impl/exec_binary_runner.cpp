@@ -55,7 +55,7 @@ bool ExecBinaryRunner::Run(const std::vector<std::string>& executeCmd, const std
     int ret = posix_spawnp(&pid_, executeCmd[0].c_str(), nullptr, nullptr, cmd.data(), envp);
     if (ret != 0) {
         char errBuf[256];
-        strerror_r(ret, errBuf, sizeof(errBuf));
+        (void)strerror_r(ret, errBuf, sizeof(errBuf));
         LogError("posix_spawnp failed: %s", errBuf);
         return false;
     }

@@ -158,9 +158,7 @@ void CoreTimeLineVisualizer::WriteFile(const std::string &filePath)
     ThreadPool pool(writeJsonThreadPoolSize);
     pool.Start();
 
-    pool.AddTask([this, &fileJson, &filePath] {
-        Visualize::WriteBin<VisualizeType::TRACE>(filePath, fileJson);
-    });
+    pool.AddTask([&fileJson, &filePath] { Visualize::WriteBin<VisualizeType::TRACE>(filePath, fileJson); });
 
     pool.AddTask([&] {
         WriteFileByStream(jsonPath, fileJson);

@@ -20,7 +20,6 @@
 #include "filesystem.h"
 #include "profiling/op_prof_data_parse.h"
 namespace Visualize {
-constexpr uint64_t HEX_BASE = 16;
 bool CachelineHeatMap::ToJson(const std::string &outputPath)
 {
     if (clidBasedCacheData_.empty()) {
@@ -56,4 +55,3 @@ bool CachelineHeatMap::ToJson(const std::string &outputPath)
     return true;
 }
 }
-

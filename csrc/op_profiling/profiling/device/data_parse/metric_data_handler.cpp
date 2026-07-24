@@ -861,7 +861,6 @@ void DataHandler::ParsePcSamplingRecords(const std::string &recordBinPath)
     if (memcpy_s(&pcOffsetByPcSampling_, recordSize, binData.data(), recordSize) != EOK) {
         LogWarn("Pc sampling record memcpy failed.");
     }
-    return;
 }
 
 void DataHandler::ParseOperandRecords(const std::string &recordBinPath)

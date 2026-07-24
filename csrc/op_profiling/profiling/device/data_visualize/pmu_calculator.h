@@ -26,6 +26,7 @@ namespace Visualize {
 // 公共计算类
 class PmuCalculator {
 public:
+    virtual ~PmuCalculator() = default;
     explicit PmuCalculator() = default;
     std::map<std::string, std::uint64_t> GetBasicPmu(const MemMapDetail &memMapDetail) const;
 
@@ -33,8 +34,8 @@ public:
     std::map<std::string, std::uint64_t> GetCycleMap(const std::string &opType, MemMapDetail &detail) const;
     std::map<std::string, std::vector<std::string>> GetTableLineAiCore() { return tableLineAiCore_; };
     std::map<std::string, std::vector<MemInfoPipe>> GetMemInfoPipeMap() { return memInfoPipeMap_; };
-    virtual std::map<std::string, float> GetPipeBwByWeight(const std::string &socVersion, std::uint64_t l0aDatas,
-        std::uint64_t l0bDatas, std::uint64_t l0cToGmDatas = 0, std::uint64_t l0cToL1Datas = 0) const { return {}; };
+    virtual std::map<std::string, float> GetPipeBwByWeight(const std::string &socVersion, std::uint64_t l0aData,
+        std::uint64_t l0bData, std::uint64_t l0cToGmData, std::uint64_t l0cToL1Data) const { return {}; };
     virtual std::map<std::string, float> GetPipeBwMap(const std::string &socVersion) { return {}; };
     void Init(std::shared_ptr<BasicPmu> &basicPmuObj);
 
@@ -60,14 +61,15 @@ private:
     virtual void SetMemInfoPipeMap(const std::string &opType, MemMapDetail &memMapDetail) {};
 };
 
-class PmuCalculator910B : public PmuCalculator {
+class PmuCalculator910B final : public PmuCalculator {
 public:
     explicit PmuCalculator910B() = default;
 
-    std::map<std::string, float> GetPipeBwByWeight(const std::string &socVersion, std::uint64_t l0aDatas,
-        std::uint64_t l0bDatas, std::uint64_t l0cToGmDatas = 0, std::uint64_t l0cToL1Datas = 0) const override;
+    std::map<std::string, float> GetPipeBwByWeight(const std::string &socVersion, std::uint64_t l0aData,
+        std::uint64_t l0bData, std::uint64_t l0cToGmData, std::uint64_t l0cToL1Data) const override;
 private:
     void LoadLineMap(const std::string &opType) override;
+
     void SetMemInfoPipeMap(const std::string &opType, MemMapDetail &memMapDetail) override;
     void AddBasicPmu910B(const std::string &opType, MemMapDetail &memMapDetail,
                                         std::map<std::string, std::uint64_t> &basicPmu) const;
@@ -78,7 +80,7 @@ private:
     float GetDurCalBandWidth(std::unique_ptr<OpBasicInfo> &opBasicInfoObj) const;
 };
 
-class PmuCalculator310P : public PmuCalculator {
+class PmuCalculator310P final : public PmuCalculator {
 public:
     explicit PmuCalculator310P() = default;
 private:
@@ -86,7 +88,7 @@ private:
     void SetMemInfoPipeMap(const std::string &opType, MemMapDetail &memMapDetail) override;
 };
 
-class PmuCalculatorA5 : public PmuCalculator {
+class PmuCalculatorA5 final : public PmuCalculator {
 public:
     explicit PmuCalculatorA5() = default;
 private:

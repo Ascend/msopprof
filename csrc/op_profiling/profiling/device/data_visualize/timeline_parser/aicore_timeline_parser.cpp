@@ -40,7 +40,8 @@ void AicoreTimelineParser::GenPc2Code(std::vector<MsprofAicTimeStampInfoUpdate> 
         std::string dumpPath = JoinPath({outputPath_, "dump"});
         Profiling::ParsePcCode pc2Code(dumpPath, pcSet);
         pc2Code.Parse();
-        pc2code_ = pc2Code.GetPc2Code();
+        const Profiling::Pc2CodeMap &pc2code = pc2Code.GetPc2Code();
+        pc2code_ = pc2code;
     } else {
         LogDebug("Can not parse aic_timestamp.bin,no need to generate Aicore timeline");
     }

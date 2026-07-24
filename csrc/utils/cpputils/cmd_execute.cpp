@@ -30,7 +30,7 @@ std::vector<char *> ToRawCArgv(std::vector<std::string> const &argv)
 {
     std::vector<char *> rawArgv;
     for (auto const &arg: argv) {
-        rawArgv.emplace_back(const_cast<char *>(arg.data()));
+        rawArgv.emplace_back(const_cast<char *>(arg.data())); // NOLINT(cppcoreguidelines-pro-type-const-cast)
     }
     rawArgv.emplace_back(nullptr);
     return rawArgv;
@@ -81,16 +81,16 @@ bool CmdExecuteWithOutput(const std::vector<std::string> &executeCmd, std::strin
 {
     std::vector<char *> cmd;
     for (const auto &arg : executeCmd) {
-        cmd.emplace_back(const_cast<char *>(arg.data()));
+        cmd.emplace_back(const_cast<char *>(arg.data())); // NOLINT(cppcoreguidelines-pro-type-const-cast)
     }
-    cmd.emplace_back(const_cast<char *>(outputName.data()));
+    cmd.emplace_back(const_cast<char *>(outputName.data())); // NOLINT(cppcoreguidelines-pro-type-const-cast)
     cmd.emplace_back(nullptr);
 
     pid_t pid;
     int ret = posix_spawnp(&pid, executeCmd[0].c_str(), nullptr, nullptr, cmd.data(), environ);
     if (ret != 0) {
         char errBuf[256];
-        strerror_r(ret, errBuf, sizeof(errBuf));
+        (void)strerror_r(ret, errBuf, sizeof(errBuf));
         Utility::LogError("posix_spawnp failed: %s", errBuf);
         return false;
     }

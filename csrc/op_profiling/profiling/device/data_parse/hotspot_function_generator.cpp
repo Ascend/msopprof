@@ -333,15 +333,15 @@ void HotSpotFunctionGenerator::ReadPcSamplingData(const std::string &filePath)
     }
     size_t fileSize = GetFileSize(filePath);
     std::vector<char> totalBin(fileSize);
-    size_t headSize = sizeof(Visualize::InstrProfHeadInfo);
-    size_t structSize = headSize + Visualize::DATA_BUFFER_SIZE;
+    size_t headSize = sizeof(::Visualize::InstrProfHeadInfo);
+    size_t structSize = headSize + ::Visualize::DATA_BUFFER_SIZE;
     if (!ReadBinFileByMultiStruct(filePath, fileSize, structSize, totalBin)) {
         LogWarn("File %s failed to be read.", filePath.c_str());
         return;
     }
     // 第一个for循环取数据，每组数据包含一个数据头以及2M的数据段
     for (size_t i = 0; i < fileSize; i += structSize) {
-        Visualize::InstrProfHeadInfo instrProfHeadInfo;
+        ::Visualize::InstrProfHeadInfo instrProfHeadInfo;
         if (memcpy_s(&instrProfHeadInfo, headSize, &totalBin[i], headSize) != EOK) {
             LogDebug("Instr profiling data memory get error");
             continue;

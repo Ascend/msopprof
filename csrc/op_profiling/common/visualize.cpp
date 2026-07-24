@@ -58,7 +58,7 @@ void Visualize::VisualizeWriter<Derived>::WriteVisualizeBin(const string &header
     if (binFile.fail()) {
         LogWarn("Failed to write data to %s.", VISUALIZE_DATA_BIN);
         try {
-            truncate(binFilePath.c_str(), oriSize);
+            (void)truncate(binFilePath.c_str(), oriSize);
         } catch (std::exception &ex) {
             LogDebug("Restore %s failed, reason is %s.", VISUALIZE_DATA_BIN, ex.what());
         }

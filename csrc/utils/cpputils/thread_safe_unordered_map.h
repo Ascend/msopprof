@@ -54,6 +54,22 @@ public:
         return *this;
     }
 
+    ThreadSafeUnorderedMap(ThreadSafeUnorderedMap &&rhs)
+    {
+        std::lock_guard<std::mutex> lock(rhs.mutex_);
+        safeMap_ = std::move(rhs.safeMap_);
+    }
+
+    ThreadSafeUnorderedMap &operator=(ThreadSafeUnorderedMap &&rhs)
+    {
+        if (&rhs != this) {
+            std::lock_guard<std::mutex> lock(mutex_);
+            std::lock_guard<std::mutex> rhsLock(rhs.mutex_);
+            safeMap_ = std::move(rhs.safeMap_);
+        }
+        return *this;
+    }
+
     ThreadSafeUnorderedMap &operator=(const std::unordered_map<KeyType, ValueType> inputMap)
     {
         if (!inputMap.empty()) {

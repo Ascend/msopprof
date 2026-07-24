@@ -1293,7 +1293,7 @@ TEST(DeviceDataParse, a5_execute_func_when_pcStart_not_found_and_expect_no_throw
     ProfMetricsAbilityConfig metrics;
     metrics.pcSamplingEnable = true;
     vector<MemRecord> memoryRecords;
-    ASSERT_NO_THROW(dataHandlerA5.ParseMemoryChartData(outputPath, metrics, memoryRecords));
+    ASSERT_NO_THROW(dataHandlerA5.ParseMemoryChartData(outputPath, metrics, memoryRecords, ""));
 }
 
 /**
@@ -1585,8 +1585,7 @@ TEST(DeviceDataParse, HotSpot_ProcessEncoding_expect_true)
     GlobalMockObject::verify();
     HotSpotFunctionGenerator hotSpotFunctionGenerator({"Ascend910B4", "", 0, true, false, false});
     auto gm = std::make_shared<GM>("GM", 512);
-    L2Cache l2{{"L2Cache", gm, gm, 4, 1, 512, CachePolicy::LRU, true, true}};
-    auto ptr = Utility::MakeShared<L2Cache>(l2);
+    auto ptr = Utility::MakeShared<L2Cache>(CacheConfig{"L2Cache", gm, gm, 4, 1, 512, CachePolicy::LRU, true, true});
     MOCKER(&InstrEncoding::GenerateEncoding)
             .stubs()
             .will(returnValue(true));

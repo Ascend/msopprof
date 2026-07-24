@@ -584,11 +584,11 @@ void StorageAccess910B::GetPipePeak(std::map<std::string, uint64_t> basicPmu, Me
     const std::string &opType, Profiling::Calculate &cal)
 {
     // 1.Calculate the theoretical bandwidth of MTE1 based on the weighted channel bandwidth.
-    uint64_t l0aDatas = basicPmu["L0A Read"] * REQ_DATA_OF_910B.at(TransportType::L1_TO_L0A);
-    uint64_t l0bDatas = basicPmu["L0B Read"] * REQ_DATA_OF_910B.at(TransportType::L1_TO_L0B);
+    uint64_t l0aData = basicPmu["L0A Read"] * REQ_DATA_OF_910B.at(TransportType::L1_TO_L0A);
+    uint64_t l0bData = basicPmu["L0B Read"] * REQ_DATA_OF_910B.at(TransportType::L1_TO_L0B);
     std::string socName = opBasicInfoObj_->GetSoc();
     socName = (FREQ_MAP.count(socName) == 0) ? "Ascend910B1" : socName;
-    auto maxBwRate = pmuCalculatorObj_->GetPipeBwByWeight(socName, l0aDatas, l0bDatas);
+    auto maxBwRate = pmuCalculatorObj_->GetPipeBwByWeight(socName, l0aData, l0bData, 0, 0);
 
     // 2.Obtains the peak value of each pipe channel.
     if (opType == Common::OpType::VECTOR) {
