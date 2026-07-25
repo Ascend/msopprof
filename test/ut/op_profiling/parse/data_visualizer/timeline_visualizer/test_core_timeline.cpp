@@ -79,6 +79,58 @@ TEST(CoreTimeLineVisualizer, test_WriteFile_output_file_generate_success)
 
 /**
 * |  用例集 | CoreTimeLineVisualizer
+* | 测试函数 | CollectInstrEvents
+* |  用例名  | test_CollectInstrEvents_should_record_intra_block_instrs
+* | 用例描述 | 测试CollectInstrEvents在解析时记录intra block指令到对应map
+*/
+TEST(CoreTimeLineVisualizer, test_CollectInstrEvents_should_record_intra_block_instrs)
+{
+    DataCenter dataCenter;
+    std::string output = "test/ut/resources/dump/output";
+    SimVisualizerConfig config = GetVisualizeConfig(output, ChipProductType::ASCEND910B1);
+    CoreTimeLineVisualizer core(dataCenter, config);
+
+    MergeInfo setIntra;
+    setIntra.icacheTick = UINT64_MAX;
+    setIntra.pc = 0x10f86000;
+    setIntra.startTick = 100;
+    setIntra.endTick = 200;
+    setIntra.pipe = "CUBE";
+    setIntra.name = "SET_INTRA_BLOCK";
+    setIntra.detail = "PIPE:CUBE,sync_id:5,";
+
+    MergeInfo waitIntra;
+    waitIntra.icacheTick = UINT64_MAX;
+    waitIntra.pc = 0x10f86000;
+    waitIntra.startTick = 200;
+    waitIntra.endTick = 300;
+    waitIntra.pipe = "VECTOR";
+    waitIntra.name = "WAIT_INTRA_BLOCK";
+    waitIntra.detail = "PIPE:VECTOR,sync_id:5,";
+
+    MergeInfo normalInstr;
+    normalInstr.icacheTick = UINT64_MAX;
+    normalInstr.pc = 0x10f86000;
+    normalInstr.startTick = 100;
+    normalInstr.endTick = 110;
+    normalInstr.pipe = "SCALAR";
+    normalInstr.name = "scalar_mov_xd_imme16";
+    normalInstr.detail = "x[0]=0x0";
+
+    std::vector<MergeInfo> mergeVec {setIntra, waitIntra, normalInstr};
+    std::vector<nlohmann::json> coreJson;
+    core.CollectInstrEvents("core0.cubecore0", mergeVec, coreJson);
+
+    ASSERT_EQ(core.recordIntraSetFlag_.size(), 1);
+    ASSERT_EQ(core.recordIntraWaitFlag_.size(), 1);
+    auto setInstrsSize = core.recordIntraSetFlag_[{"core0", "cubecore0"}][{"SET_INTRA_BLOCK", 5}].size();
+    auto waitInstrSize = core.recordIntraWaitFlag_[{"core0", "cubecore0"}][{"WAIT_INTRA_BLOCK", 5}].size();
+    ASSERT_EQ(setInstrsSize, 1);
+    ASSERT_EQ(waitInstrSize, 1);
+}
+
+/**
+* |  用例集 | CoreTimeLineVisualizer
 * | 测试函数 | ParseByCore
 * |  用例名  | test_ParseByCore_should_return_ture_when_parse_success
 * | 用例描述 | 测试解析单核仿真数据json生成正确
@@ -292,4 +344,521 @@ TEST(CoreTimeLineVisualizer, test_CollectUserMarkEvents_add_none_json_when_userm
     core.CollectUserMarkEvents("core0.cube0", data, coreJsonList);
     ASSERT_EQ(coreJsonList.size(), 0);
 }
+
+/**
+* |  用例集 | CoreTimeLineVisualizer
+* | 测试函数 | IsIntraBlockInstr
+* |  用例名  | test_IsIntraBlockInstr_should_return_true_when_intra_block_instr
+* | 用例描述 | 测试IsIntraBlockInstr对4种intra block指令返回true
+*/
+TEST(CoreTimeLineVisualizer, test_IsIntraBlockInstr_should_return_true_when_intra_block_instr)
+{
+    DataCenter dataCenter;
+    std::string output = "test/ut/resources/dump/output";
+    SimVisualizerConfig config = GetVisualizeConfig(output, ChipProductType::ASCEND910B1);
+    CoreTimeLineVisualizer core(dataCenter, config);
+    ASSERT_TRUE(core.IsIntraBlockInstr("SET_INTRA_BLOCK"));
+    ASSERT_TRUE(core.IsIntraBlockInstr("SET_INTRA_BLOCKI"));
+    ASSERT_TRUE(core.IsIntraBlockInstr("WAIT_INTRA_BLOCK"));
+    ASSERT_TRUE(core.IsIntraBlockInstr("WAIT_INTRA_BLOCKI"));
+}
+
+/**
+* |  用例集 | CoreTimeLineVisualizer
+* | 测试函数 | IsIntraBlockInstr
+* |  用例名  | test_IsIntraBlockInstr_should_return_false_when_not_intra_block_instr
+* | 用例描述 | 测试IsIntraBlockInstr对非intra block指令返回false
+*/
+TEST(CoreTimeLineVisualizer, test_IsIntraBlockInstr_should_return_false_when_not_intra_block_instr)
+{
+    DataCenter dataCenter;
+    std::string output = "test/ut/resources/dump/output";
+    SimVisualizerConfig config = GetVisualizeConfig(output, ChipProductType::ASCEND910B1);
+    CoreTimeLineVisualizer core(dataCenter, config);
+    ASSERT_FALSE(core.IsIntraBlockInstr("SET_FLAG"));
+    ASSERT_FALSE(core.IsIntraBlockInstr("WAIT_FLAG"));
+    ASSERT_FALSE(core.IsIntraBlockInstr("scalar_mov_xd_imme16"));
+    ASSERT_FALSE(core.IsIntraBlockInstr(""));
+}
+
+/**
+ * |  用例集 | CoreTimeLineVisualizer
+* | 测试函数 | SplitCoreName
+* |  用例名  | test_SplitCoreName_should_return_coreId_and_subcore_when_has_dot
+* | 用例描述 | 测试SplitCoreName正确拆分含点号的coreName
+*/
+TEST(CoreTimeLineVisualizer, test_SplitCoreName_should_return_coreId_and_subcore_when_has_dot)
+{
+    DataCenter dataCenter;
+    std::string output = "test/ut/resources/dump/output";
+    SimVisualizerConfig config = GetVisualizeConfig(output, ChipProductType::ASCEND910B1);
+    CoreTimeLineVisualizer core(dataCenter, config);
+    auto [coreId, subcore] = core.SplitCoreName("core0.veccore0");
+    ASSERT_EQ(coreId, "core0");
+    ASSERT_EQ(subcore, "veccore0");
+
+    auto [coreId2, subcore2] = core.SplitCoreName("core1.cubecore0");
+    ASSERT_EQ(coreId2, "core1");
+    ASSERT_EQ(subcore2, "cubecore0");
+}
+
+/**
+* |  用例集 | CoreTimeLineVisualizer
+* | 测试函数 | SplitCoreName
+* |  用例名  | test_SplitCoreName_should_return_coreId_and_empty_when_no_dot
+* | 用例描述 | 测试SplitCoreName在无点号时返回coreId和空subcore
+*/
+TEST(CoreTimeLineVisualizer, test_SplitCoreName_should_return_coreId_and_empty_when_no_dot)
+{
+    DataCenter dataCenter;
+    std::string output = "test/ut/resources/dump/output";
+    SimVisualizerConfig config = GetVisualizeConfig(output, ChipProductType::ASCEND910B1);
+    CoreTimeLineVisualizer core(dataCenter, config);
+    auto [coreId, subcore] = core.SplitCoreName("core0");
+    ASSERT_EQ(coreId, "core0");
+    ASSERT_EQ(subcore, "");
+}
+
+/**
+* |  用例集 | CoreTimeLineVisualizer
+* | 测试函数 | AddIntraBlockFlow
+* |  用例名  | test_AddIntraBlockFlow_should_add_flow_events_to_coresJsonList
+* | 用例描述 | 测试AddIntraBlockFlow添加flow事件到coresJsonList
+*/
+TEST(CoreTimeLineVisualizer, test_AddIntraBlockFlow_should_add_flow_events_to_coresJsonList)
+{
+    DataCenter dataCenter;
+    std::string output = "test/ut/resources/dump/output";
+    ChipProductType chipType = ChipProductType::ASCEND910B1;
+    SimVisualizerConfig config = GetVisualizeConfig(output, chipType);
+    CoreTimeLineVisualizer core(dataCenter, config);
+
+    MergeInfo setInstr;
+    setInstr.pc = 0x1000;
+    setInstr.startTick = 1000;
+    setInstr.endTick = 1100;
+    setInstr.pipe = "CUBE";
+    setInstr.name = "SET_INTRA_BLOCK";
+    setInstr.detail = "PIPE:CUBE,TRIGGERPIPE:VECTOR,sync_id:0,";
+    setInstr.icacheTick = UINT64_MAX;
+
+    MergeInfo waitInstr;
+    waitInstr.pc = 0x2000;
+    waitInstr.startTick = 1200;
+    waitInstr.endTick = 1300;
+    waitInstr.pipe = "VECTOR";
+    waitInstr.name = "WAIT_INTRA_BLOCK";
+    waitInstr.detail = "PIPE:VECTOR,TRIGGERPIPE:CUBE,sync_id:0,";
+    waitInstr.icacheTick = UINT64_MAX;
+
+    size_t prevSize = core.coresJsonList_.size();
+    core.AddIntraBlockFlow(setInstr, waitInstr, "core0.cubecore0", "core0.veccore0", 0);
+    ASSERT_EQ(core.coresJsonList_.size(), prevSize + 6);
+
+    auto &flagSetBegin = core.coresJsonList_[prevSize];
+    auto &flagSetEnd = core.coresJsonList_[prevSize + 1];
+    ASSERT_EQ(flagSetBegin.at("name"), "SET_INTRA_BLOCK");
+    ASSERT_EQ(flagSetBegin.at("ph"), "B");
+    ASSERT_EQ(flagSetEnd.at("name"), "SET_INTRA_BLOCK");
+    ASSERT_EQ(flagSetEnd.at("ph"), "E");
+    auto &flagWaitBegin = core.coresJsonList_[prevSize + 2];
+    auto &flagWaitEnd = core.coresJsonList_[prevSize + 3];
+    ASSERT_EQ(flagWaitBegin.at("name"), "WAIT_INTRA_BLOCK");
+    ASSERT_EQ(flagWaitBegin.at("ph"), "B");
+    ASSERT_EQ(flagWaitEnd.at("name"), "WAIT_INTRA_BLOCK");
+    ASSERT_EQ(flagWaitEnd.at("ph"), "E");
+    auto &flowBegin = core.coresJsonList_[prevSize + 4];
+    auto &flowEnd = core.coresJsonList_[prevSize + 5];
+    ASSERT_EQ(flowBegin.at("name"), "flow");
+    ASSERT_EQ(flowBegin.at("ph"), "s");
+    ASSERT_EQ(flowEnd.at("name"), "flow");
+    ASSERT_EQ(flowEnd.at("ph"), "t");
+    ASSERT_EQ(flowBegin.at("id"), "intra_0");
+    ASSERT_EQ(flowEnd.at("id"), "intra_0");
+    ASSERT_EQ(flowBegin.at("cat"), "CUBEToVECTOR");
+    ASSERT_EQ(flowEnd.at("cat"), "CUBEToVECTOR");
+}
+
+/**
+* |  用例集 | CoreTimeLineVisualizer
+* | 测试函数 | GetIntraMatchCoreInfo
+* |  用例名  | test_GetIntraMatchCoreInfo_should_match_cubecore0_small_sync_to_veccore0
+* | 用例描述 | 测试GetIntraMatchCoreInfo: cubecore上syncId < 16的SET匹配到veccore0的WAIT
+*/
+TEST(CoreTimeLineVisualizer, test_GetIntraMatchCoreInfo_should_match_cubecore0_small_sync_to_veccore0)
+{
+    DataCenter dataCenter;
+    std::string output = "test/ut/resources/dump/output";
+    SimVisualizerConfig config = GetVisualizeConfig(output, ChipProductType::ASCEND910B1);
+    CoreTimeLineVisualizer core(dataCenter, config);
+
+    MergeInfo waitInstr;
+    waitInstr.pc = 0x2000;
+    waitInstr.startTick = 1200;
+    waitInstr.endTick = 1300;
+    waitInstr.pipe = "VECTOR";
+    waitInstr.name = "WAIT_INTRA_BLOCK";
+    waitInstr.detail = "PIPE:VECTOR,sync_id:5,";
+    core.recordIntraWaitFlag_[{"core0", "veccore0"}][{"WAIT_INTRA_BLOCK", 5}].emplace_back(
+        std::pair<MergeInfo, bool>{waitInstr, false});
+
+    IntraFlag flag = {"core0", "cubecore0", "SET_INTRA_BLOCK", "", 5, 0, nullptr};
+    ASSERT_TRUE(core.GetIntraMatchCoreInfo(flag));
+    ASSERT_EQ(flag.matchCoreName, "core0.veccore0");
+    ASSERT_EQ(flag.intraFlag->first.name, "WAIT_INTRA_BLOCK");
+    ASSERT_EQ(flag.intraFlag->first.pipe, "VECTOR");
+}
+
+/**
+* |  用例集 | CoreTimeLineVisualizer
+* | 测试函数 | GetIntraMatchCoreInfo
+* |  用例名  | test_GetIntraMatchCoreInfo_should_match_cubecore0_large_sync_to_veccore1
+* | 用例描述 | 测试GetIntraMatchCoreInfo: cubecore上syncId >= 16的SET匹配到veccore1的WAIT
+*/
+TEST(CoreTimeLineVisualizer, test_GetIntraMatchCoreInfo_should_match_cubecore0_large_sync_to_veccore1)
+{
+    DataCenter dataCenter;
+    std::string output = "test/ut/resources/dump/output";
+    SimVisualizerConfig config = GetVisualizeConfig(output, ChipProductType::ASCEND910B1);
+    CoreTimeLineVisualizer core(dataCenter, config);
+
+    MergeInfo waitInstr;
+    waitInstr.pc = 0x2000;
+    waitInstr.startTick = 1200;
+    waitInstr.endTick = 1300;
+    waitInstr.pipe = "VECTOR";
+    waitInstr.name = "WAIT_INTRA_BLOCK";
+    waitInstr.detail = "PIPE:VECTOR,sync_id:0,";
+    core.recordIntraWaitFlag_[{"core0", "veccore1"}][{"WAIT_INTRA_BLOCK", 0}].emplace_back(
+        std::pair<MergeInfo, bool>{waitInstr, false});
+
+    IntraFlag flag = {"core0", "cubecore0", "SET_INTRA_BLOCK", "", 16, 0, nullptr};
+    ASSERT_TRUE(core.GetIntraMatchCoreInfo(flag));
+    ASSERT_EQ(flag.matchCoreName, "core0.veccore1");
+    ASSERT_EQ(flag.intraFlag->first.name, "WAIT_INTRA_BLOCK");
+}
+
+/**
+* |  用例集 | CoreTimeLineVisualizer
+* | 测试函数 | GetIntraMatchCoreInfo
+* |  用例名  | test_GetIntraMatchCoreInfo_should_return_empty_when_no_match
+* | 用例描述 | 测试GetIntraMatchCoreInfo在无匹配WAIT时返回空coreName
+*/
+TEST(CoreTimeLineVisualizer, test_GetIntraMatchCoreInfo_should_return_empty_when_no_match)
+{
+    DataCenter dataCenter;
+    std::string output = "test/ut/resources/dump/output";
+    SimVisualizerConfig config = GetVisualizeConfig(output, ChipProductType::ASCEND910B1);
+    CoreTimeLineVisualizer core(dataCenter, config);
+
+    IntraFlag flag = {"core0", "cubecore0", "SET_INTRA_BLOCK", "", 5, 0, nullptr};
+    ASSERT_FALSE(core.GetIntraMatchCoreInfo(flag));
+}
+
+/**
+* |  用例集 | CoreTimeLineVisualizer
+* | 测试函数 | GetIntraMatchCoreInfo
+* |  用例名  | test_GetIntraMatchCoreInfo_should_match_SET_INTRA_BLOCKI_to_WAIT_INTRA_BLOCKI
+* | 用例描述 | 测试GetIntraMatchCoreInfo: SET_INTRA_BLOCKI匹配WAIT_INTRA_BLOCKI
+*/
+TEST(CoreTimeLineVisualizer, test_GetIntraMatchCoreInfo_should_match_SET_INTRA_BLOCKI_to_WAIT_INTRA_BLOCKI)
+{
+    DataCenter dataCenter;
+    std::string output = "test/ut/resources/dump/output";
+    SimVisualizerConfig config = GetVisualizeConfig(output, ChipProductType::ASCEND910B1);
+    CoreTimeLineVisualizer core(dataCenter, config);
+
+    MergeInfo waitInstr;
+    waitInstr.pc = 0x3000;
+    waitInstr.startTick = 2000;
+    waitInstr.endTick = 2100;
+    waitInstr.pipe = "VECTOR";
+    waitInstr.name = "WAIT_INTRA_BLOCKI";
+    waitInstr.detail = "PIPE:VECTOR,sync_id:3,";
+    core.recordIntraWaitFlag_[{"core0", "veccore0"}][{"WAIT_INTRA_BLOCKI", 3}].emplace_back(
+        std::pair<MergeInfo, bool>{waitInstr, false});
+
+    IntraFlag flag = {"core0", "cubecore0", "SET_INTRA_BLOCKI", "", 3, 0, nullptr};
+    ASSERT_TRUE(core.GetIntraMatchCoreInfo(flag));
+    ASSERT_EQ(flag.matchCoreName, "core0.veccore0");
+    ASSERT_EQ(flag.intraFlag->first.name, "WAIT_INTRA_BLOCKI");
+}
+
+/**
+* |  用例集 | CoreTimeLineVisualizer
+* | 测试函数 | CollectIntraBlockFlowEvents
+* |  用例名  | test_CollectIntraBlockFlowEvents_should_generate_flow_events_when_set_and_wait_match
+* | 用例描述 | 测试CollectIntraBlockFlowEvents在SET和WAIT匹配时生成flow事件
+*/
+TEST(CoreTimeLineVisualizer, test_CollectIntraBlockFlowEvents_should_generate_flow_events_when_set_and_wait_match)
+{
+    DataCenter dataCenter;
+    std::string output = "test/ut/resources/dump/output";
+    ChipProductType chipType = ChipProductType::ASCEND910B1;
+    SimVisualizerConfig config = GetVisualizeConfig(output, chipType);
+    CoreTimeLineVisualizer core(dataCenter, config);
+
+    MergeInfo setInstr;
+    setInstr.pc = 0x1000;
+    setInstr.startTick = 100;
+    setInstr.endTick = 200;
+    setInstr.pipe = "CUBE";
+    setInstr.name = "SET_INTRA_BLOCK";
+    setInstr.detail = "PIPE:CUBE,TRIGGERPIPE:VECTOR,sync_id:0,";
+    setInstr.icacheTick = UINT64_MAX;
+
+    MergeInfo waitInstr;
+    waitInstr.pc = 0x2000;
+    waitInstr.startTick = 200;
+    waitInstr.endTick = 300;
+    waitInstr.pipe = "VECTOR";
+    waitInstr.name = "WAIT_INTRA_BLOCK";
+    waitInstr.detail = "PIPE:VECTOR,TRIGGERPIPE:CUBE,sync_id:0,";
+    waitInstr.icacheTick = UINT64_MAX;
+
+    core.recordIntraSetFlag_[{"core0", "cubecore0"}][{"SET_INTRA_BLOCK", 0}].emplace_back(
+        std::pair<MergeInfo, bool>{setInstr, false});
+    core.recordIntraWaitFlag_[{"core0", "veccore0"}][{"WAIT_INTRA_BLOCK", 0}].emplace_back(
+        std::pair<MergeInfo, bool>{waitInstr, false});
+
+    size_t prevSize = core.coresJsonList_.size();
+    core.CollectIntraBlockFlowEvents();
+    ASSERT_EQ(core.coresJsonList_.size(), prevSize + 6);
+
+    auto &flowBegin = core.coresJsonList_[prevSize + 4];
+    ASSERT_EQ(flowBegin.at("name"), "flow");
+    ASSERT_EQ(flowBegin.at("ph"), "s");
+    ASSERT_EQ(flowBegin.at("id"), "intra_0");
+    ASSERT_EQ(flowBegin.at("cat"), "CUBEToVECTOR");
+}
+
+/**
+* |  用例集 | CoreTimeLineVisualizer
+* | 测试函数 | CollectIntraBlockFlowEvents
+* |  用例名  | test_CollectIntraBlockFlowEvents_should_not_generate_when_only_set_no_wait
+* | 用例描述 | 测试CollectIntraBlockFlowEvents在仅有SET无WAIT时不生成flow事件
+*/
+TEST(CoreTimeLineVisualizer, test_CollectIntraBlockFlowEvents_should_not_generate_when_only_set_no_wait)
+{
+    DataCenter dataCenter;
+    std::string output = "test/ut/resources/dump/output";
+    SimVisualizerConfig config = GetVisualizeConfig(output, ChipProductType::ASCEND910B1);
+    CoreTimeLineVisualizer core(dataCenter, config);
+
+    MergeInfo setInstr;
+    setInstr.pc = 0x1000;
+    setInstr.startTick = 100;
+    setInstr.endTick = 200;
+    setInstr.pipe = "CUBE";
+    setInstr.name = "SET_INTRA_BLOCK";
+    setInstr.detail = "PIPE:CUBE,sync_id:0,";
+    setInstr.icacheTick = UINT64_MAX;
+
+    core.recordIntraSetFlag_[{"core0", "cubecore0"}][{"SET_INTRA_BLOCK", 0}].emplace_back(
+        std::pair<MergeInfo, bool>{setInstr, false});
+
+    size_t prevSize = core.coresJsonList_.size();
+    core.CollectIntraBlockFlowEvents();
+    ASSERT_EQ(core.coresJsonList_.size(), prevSize + 2);
+}
+
+/**
+ * |  用例集 | CoreTimeLineVisualizer
+ * | 测试函数 | CollectIntraBlockFlowEvents
+ * |  用例名  | test_CollectIntraBlockFlowEvents_should_generate_multiple_flow_events
+* | 用例描述 | 测试CollectIntraBlockFlowEvents生成多条flow事件并分配递增id
+*/
+TEST(CoreTimeLineVisualizer, test_CollectIntraBlockFlowEvents_should_generate_multiple_flow_events)
+{
+    DataCenter dataCenter;
+    std::string output = "test/ut/resources/dump/output";
+    ChipProductType chipType = ChipProductType::ASCEND910B1;
+    SimVisualizerConfig config = GetVisualizeConfig(output, chipType);
+    CoreTimeLineVisualizer core(dataCenter, config);
+
+    for (int i = 0; i < 3; i++) {
+        MergeInfo setInstr;
+        setInstr.icacheTick = UINT64_MAX;
+        setInstr.pc = static_cast<uint64_t>(0x1000) + i;
+        setInstr.startTick = 100 + i * 10;
+        setInstr.endTick = 200 + i * 10;
+        setInstr.pipe = "CUBE";
+        setInstr.name = "SET_INTRA_BLOCK";
+        setInstr.detail = "PIPE:CUBE,sync_id:" + std::to_string(i) + ",";
+        core.recordIntraSetFlag_[{"core0", "cubecore0"}][{"SET_INTRA_BLOCK", i}].emplace_back(
+            std::pair<MergeInfo, bool>{setInstr, false});
+
+        MergeInfo waitInstr;
+        waitInstr.icacheTick = UINT64_MAX;
+        waitInstr.pc = static_cast<uint64_t>(0x2000) + i;
+        waitInstr.startTick = 200 + i * 10;
+        waitInstr.endTick = 300 + i * 10;
+        waitInstr.pipe = "VECTOR";
+        waitInstr.name = "WAIT_INTRA_BLOCK";
+        waitInstr.detail = "PIPE:VECTOR,sync_id:" + std::to_string(i) + ",";
+        core.recordIntraWaitFlag_[{"core0", "veccore0"}][{"WAIT_INTRA_BLOCK", i}].emplace_back(
+            std::pair<MergeInfo, bool>{waitInstr, false});
+    }
+
+    core.CollectIntraBlockFlowEvents();
+    ASSERT_EQ(core.coresJsonList_.size(), 18);
+
+    for (int i = 0; i < 3; i++) {
+        ASSERT_EQ(core.coresJsonList_[i * 6].at("id"), "intra_" + std::to_string(i));
+        ASSERT_EQ(core.coresJsonList_[i * 6 + 1].at("id"), "intra_" + std::to_string(i));
+    }
+}
+
+/**
+* |  用例集 | CoreTimeLineVisualizer
+* | 测试函数 | CollectIntraBlockFlowEvents
+* |  用例名  | test_CollectIntraBlockFlowEvents_should_match_large_sync_to_veccore1
+* | 用例描述 | 测试CollectIntraBlockFlowEvents: syncId >= 16的SET匹配到veccore1
+*/
+TEST(CoreTimeLineVisualizer, test_CollectIntraBlockFlowEvents_should_match_large_sync_to_veccore1)
+{
+    DataCenter dataCenter;
+    std::string output = "test/ut/resources/dump/output";
+    ChipProductType chipType = ChipProductType::ASCEND910B1;
+    SimVisualizerConfig config = GetVisualizeConfig(output, chipType);
+    CoreTimeLineVisualizer core(dataCenter, config);
+
+    MergeInfo setInstr;
+    setInstr.icacheTick = UINT64_MAX;
+    setInstr.pc = 0x1000;
+    setInstr.startTick = 100;
+    setInstr.endTick = 200;
+    setInstr.pipe = "CUBE";
+    setInstr.name = "SET_INTRA_BLOCK";
+    setInstr.detail = "PIPE:CUBE,sync_id:18,";
+    core.recordIntraSetFlag_[{"core0", "cubecore0"}][{"SET_INTRA_BLOCK", 18}].emplace_back(
+        std::pair<MergeInfo, bool>{setInstr, false});
+
+    MergeInfo waitInstr;
+    waitInstr.icacheTick = UINT64_MAX;
+    waitInstr.pc = 0x2000;
+    waitInstr.startTick = 200;
+    waitInstr.endTick = 300;
+    waitInstr.pipe = "VECTOR";
+    waitInstr.name = "WAIT_INTRA_BLOCK";
+    waitInstr.detail = "PIPE:VECTOR,sync_id:2,";
+    core.recordIntraWaitFlag_[{"core0", "veccore1"}][{"WAIT_INTRA_BLOCK", 2}].emplace_back(
+        std::pair<MergeInfo, bool>{waitInstr, false});
+
+    size_t prevSize = core.coresJsonList_.size();
+    core.CollectIntraBlockFlowEvents();
+    ASSERT_EQ(core.coresJsonList_.size(), prevSize + 6);
+    ASSERT_EQ(core.coresJsonList_[prevSize + 4].at("pid"), "core0.cubecore0");
+    ASSERT_EQ(core.coresJsonList_[prevSize + 5].at("pid"), "core0.veccore1");
+}
+
+/**
+* |  用例集 | CoreTimeLineVisualizer
+* | 测试函数 | CollectIntraBlockFlowEvents
+* |  用例名  | test_CollectIntraBlockFlowEvents_should_match_BLOCKI_variants
+* | 用例描述 | 测试CollectIntraBlockFlowEvents正确匹配SET_INTRA_BLOCKI和WAIT_INTRA_BLOCKI
+*/
+TEST(CoreTimeLineVisualizer, test_CollectIntraBlockFlowEvents_should_match_BLOCKI_variants)
+{
+    DataCenter dataCenter;
+    std::string output = "test/ut/resources/dump/output";
+    ChipProductType chipType = ChipProductType::ASCEND910B1;
+    SimVisualizerConfig config = GetVisualizeConfig(output, chipType);
+    CoreTimeLineVisualizer core(dataCenter, config);
+
+    MergeInfo setInstr;
+    setInstr.icacheTick = UINT64_MAX;
+    setInstr.pc = 0x1000;
+    setInstr.startTick = 100;
+    setInstr.endTick = 200;
+    setInstr.pipe = "CUBE";
+    setInstr.name = "SET_INTRA_BLOCKI";
+    setInstr.detail = "PIPE:CUBE,sync_id:5,";
+    core.recordIntraSetFlag_[{"core0", "cubecore0"}][{"SET_INTRA_BLOCKI", 5}].emplace_back(
+        std::pair<MergeInfo, bool>{setInstr, false});
+
+    MergeInfo waitInstr;
+    waitInstr.icacheTick = UINT64_MAX;
+    waitInstr.pc = 0x2000;
+    waitInstr.startTick = 200;
+    waitInstr.endTick = 300;
+    waitInstr.pipe = "VECTOR";
+    waitInstr.name = "WAIT_INTRA_BLOCKI";
+    waitInstr.detail = "PIPE:VECTOR,sync_id:5,";
+    core.recordIntraWaitFlag_[{"core0", "veccore0"}][{"WAIT_INTRA_BLOCKI", 5}].emplace_back(
+        std::pair<MergeInfo, bool>{waitInstr, false});
+
+    size_t prevSize = core.coresJsonList_.size();
+    core.CollectIntraBlockFlowEvents();
+    ASSERT_EQ(core.coresJsonList_.size(), prevSize + 6);
+}
+
+/**
+* |  用例集 | CoreTimeLineVisualizer
+* | 测试函数 | GetIntraMatchCoreInfo
+* |  用例名  | test_GetIntraMatchCoreInfo_should_handle_idx_out_of_range
+* | 用例描述 | 测试GetIntraMatchCoreInfo在idx超出WAIT数量时返回空
+*/
+TEST(CoreTimeLineVisualizer, test_GetIntraMatchCoreInfo_should_handle_idx_out_of_range)
+{
+    DataCenter dataCenter;
+    std::string output = "test/ut/resources/dump/output";
+    SimVisualizerConfig config = GetVisualizeConfig(output, ChipProductType::ASCEND910B1);
+    CoreTimeLineVisualizer core(dataCenter, config);
+
+    MergeInfo waitInstr;
+    waitInstr.pc = 0x2000;
+    waitInstr.startTick = 1200;
+    waitInstr.endTick = 1300;
+    waitInstr.pipe = "VECTOR";
+    waitInstr.name = "WAIT_INTRA_BLOCK";
+    waitInstr.detail = "PIPE:VECTOR,sync_id:5,";
+    core.recordIntraWaitFlag_[{"core0", "veccore0"}][{"WAIT_INTRA_BLOCK", 5}].emplace_back(
+        std::pair<MergeInfo, bool>{waitInstr, false});
+
+    IntraFlag flag = {"core0", "cubecore0", "SET_INTRA_BLOCK", "", 5, 999, nullptr};
+    ASSERT_FALSE(core.GetIntraMatchCoreInfo(flag));
+}
+
+/**
+* |  用例集 | CoreTimeLineVisualizer
+* | 测试函数 | CollectIntraBlockFlowEvents
+* |  用例名  | test_CollectIntraBlockFlowEvents_should_not_generate_when_wait_in_wrong_subcore
+* | 用例描述 | 测试CollectIntraBlockFlowEvents当WAIT在错误的subcore时无匹配
+*/
+TEST(CoreTimeLineVisualizer, test_CollectIntraBlockFlowEvents_should_not_generate_when_wait_in_wrong_subcore)
+{
+    DataCenter dataCenter;
+    std::string output = "test/ut/resources/dump/output";
+    SimVisualizerConfig config = GetVisualizeConfig(output, ChipProductType::ASCEND910B1);
+    CoreTimeLineVisualizer core(dataCenter, config);
+
+    MergeInfo setInstr;
+    setInstr.icacheTick = UINT64_MAX;
+    setInstr.pc = 0x1000;
+    setInstr.startTick = 100;
+    setInstr.endTick = 200;
+    setInstr.pipe = "CUBE";
+    setInstr.name = "SET_INTRA_BLOCK";
+    setInstr.detail = "PIPE:CUBE,sync_id:5,";
+    core.recordIntraSetFlag_[{"core0", "cubecore0"}][{"SET_INTRA_BLOCK", 5}].emplace_back(
+        std::pair<MergeInfo, bool>{setInstr, false});
+
+    // WAIT in wrong subcore: veccore1 instead of veccore0 for syncId < 16
+    MergeInfo waitInstr;
+    waitInstr.icacheTick = UINT64_MAX;
+    waitInstr.pc = 0x2000;
+    waitInstr.startTick = 200;
+    waitInstr.endTick = 300;
+    waitInstr.pipe = "VECTOR";
+    waitInstr.name = "WAIT_INTRA_BLOCK";
+    waitInstr.detail = "PIPE:VECTOR,sync_id:5,";
+    core.recordIntraWaitFlag_[{"core0", "veccore1"}][{"WAIT_INTRA_BLOCK", 5}].emplace_back(
+        std::pair<MergeInfo, bool>{waitInstr, false});
+
+    size_t prevSize = core.coresJsonList_.size();
+    core.CollectIntraBlockFlowEvents();
+    ASSERT_EQ(core.coresJsonList_.size(), prevSize + 4);
+}
+
 }
