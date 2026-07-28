@@ -271,7 +271,9 @@ void Task::CreateCamodelConfig(bool pmSamplingEnable)
     }
     camodelLibDir_ = JoinPath({ascendHomePath, "tools/simulator", simSocVersion, "lib"});
 
-    if (SOC_910B.count(simSocVersion) > 0 || SOC_910_93.count(simSocVersion) > 0) {
+    bool isSetConfig = false;
+    auto seriesType = GetProductSeriesType(simSocVersion);
+    if (seriesType == ChipProductType::ASCEND910B_SERIES || seriesType == ChipProductType::ASCEND910_93_SERIES) {
         // master branch: "Ascend910_93_model.toml", "pem_config_cloud.toml"
         // business branch: "config_stars.json", "config.json"
         bool starsRes = CreateConfigFile("Ascend910_93_model.toml",
@@ -289,17 +291,15 @@ void Task::CreateCamodelConfig(bool pmSamplingEnable)
         if (!configRes) {
             configRes = CreateConfigFile("config.json", {{"\"cache_enable\": 0,", "\"cache_enable\": 1,"}});
         }
-        if (starsRes || configRes) {
-            env["CAMODEL_CONFIG_PATH"] = camodelConfigDir_;
-        }
-    } else if (SOC_310P.count(simSocVersion) != 0) {
+        isSetConfig = starsRes || configRes;
+    } else if (seriesType == ChipProductType::ASCEND310P_SERIES) {
         // master branch: "davinci_vec_core.spec", "davinci_mini.spec", and these two files rely on "common.spec"
         // business branch: "config.json"
         std::map<std::string, std::string> replaceStrMap = {{"flush_level = \"3\"", "flush_level = \"2\""}};
         bool vecCoreRes = CreateConfigFile("davinci_vec_core.spec", replaceStrMap);
         bool miniRes = CreateConfigFile("davinci_mini.spec", replaceStrMap);
-        bool res = vecCoreRes || miniRes;
-        if (res) {
+        isSetConfig = vecCoreRes || miniRes;
+        if (isSetConfig) {
             std::string fileName = "common.spec";
             std::string destPath = JoinPath({camodelConfigDir_, fileName});
             CopyFile(JoinPath({camodelLibDir_, fileName}), destPath);
@@ -307,11 +307,13 @@ void Task::CreateCamodelConfig(bool pmSamplingEnable)
                 LogWarn("File [%s] chmod failed.", destPath.c_str());
             }
         } else {
-            res = CreateConfigFile("config.json", {{"\"flush_level\": 3", "\"flush_level\": 2"}});
+            isSetConfig = CreateConfigFile("config.json", {{"\"flush_level\": 3", "\"flush_level\": 2"}});
         }
-        if (res) {
-            env["CAMODEL_CONFIG_PATH"] = camodelConfigDir_;
-        }
+    } else if (seriesType == ChipProductType::ASCEND950_SERIES) {
+        isSetConfig = CreateConfigFile("config.json", {{"\"flush_level\": 3", "\"flush_level\": 2"}});
+    }
+    if (isSetConfig) {
+        env["CAMODEL_CONFIG_PATH"] = camodelConfigDir_;
     }
 }
 
