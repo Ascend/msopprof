@@ -72,35 +72,13 @@ void PopLogParser::ParseA5Detail(PoppedInstrParseInfo &poppedInstr)
         return;
     }
     uint64_t nextStallCycUint = 0;
-    std::string nextStallCyc = matchRes[1];         // stallCyc index = 1
-    std::string warpId = matchRes[2];           // warpId index = 2
-    std::string schId = matchRes[3];            // schId index = 3
+    std::string warpId = matchRes[1]; // warpId index = 1
+    std::string schId = matchRes[2]; // schId index = 2
     if (!Utility::StoiConverter(warpId, poppedInstr.warpId, RADIX_10) ||
-        !Utility::StoiConverter(schId, poppedInstr.schId, RADIX_16) ||
-        !Utility::StoullConverter(nextStallCyc, nextStallCycUint, RADIX_16)) {
+        !Utility::StoiConverter(schId, poppedInstr.schId, RADIX_16)) {
         LogWarn("Analyse warpId or schId failed, warpId: [%s], schId: [%s]", warpId.c_str(), schId.c_str());
         return;
     }
-    std::string chnId = warpId.append(schId);
-    // 此通道首次创建
-    if (!poppedInstrListInfo_.simtChnIdMap.count(chnId)) {
-        poppedInstrListInfo_.simtChnIdMap[chnId] = poppedInstrListInfo_.simtChnInfoGrp.size();
-        poppedInstrListInfo_.simtChnInfoGrp.push_back({nextStallCycUint, poppedInstr.tick});
-        return;
-    }
-    // 此通道已经存在则计算stall cyc
-    size_t chnIdInt = poppedInstrListInfo_.simtChnIdMap[chnId];
-    uint32_t curCyc = 0;
-    uint32_t lastCyc = 0;
-    if (poppedInstr.tick < poppedInstrListInfo_.simtChnInfoGrp[chnIdInt].tick) {
-        Utility::LogDebug("Simt instr was parsed incorrectly, curCyc:%d lastCyc:%d", curCyc, lastCyc);
-        return;
-    }
-    poppedInstr.realStallCyc = poppedInstr.tick - poppedInstrListInfo_.simtChnInfoGrp[chnIdInt].tick;
-
-    // 更新此通道信息
-    poppedInstrListInfo_.simtChnInfoGrp[chnIdInt].stallCyc = nextStallCycUint;
-    poppedInstrListInfo_.simtChnInfoGrp[chnIdInt].tick = poppedInstr.tick;
 }
 
 bool PopLogParser::LineFilter(std::smatch &lineMatch)
