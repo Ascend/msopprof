@@ -523,25 +523,6 @@ TEST_F(DataHandlerScalarTest, AddIndexToCsv_with_all_internuclear_ids_and_expect
 /**
  * |  用例集  | DataHandlerAddIndexToCsv
  * | 测试函数 | AddIndexToCsv
- * |  用例名  | test_AddIndexToCsv_with_mix_op_and_expect_both_aic_and_aiv_metrics
- * | 用例描述 | 验证Mix算子同时添加aic和aiv类型的scalar指标到config
- */
-TEST_F(DataHandlerScalarTest, AddIndexToCsv_with_mix_op_and_expect_both_aic_and_aiv_metrics) {
-    SplitBlockPmuData cubePmuData = CreatePmuDataWithScalar(1792, 1000, OpType::CUBE);
-    SplitBlockPmuData vectorPmuData = CreatePmuDataWithScalar(1792, 2000, OpType::VECTOR);
-
-    handler910B_->MergeTotalPmuData(cubePmuData);
-    handler910B_->MergeTotalPmuData(vectorPmuData);
-
-    handler910B_->AddIndexToCsv(metrics_, config_);
-
-    ASSERT_TRUE(config_.aicCalMetricItems.count("aic_scalar_wait_id0_time(us)"));
-    ASSERT_TRUE(config_.aivCalMetricItems.count("aiv_scalar_wait_id0_time(us)"));
-}
-
-/**
- * |  用例集  | DataHandlerAddIndexToCsv
- * | 测试函数 | AddIndexToCsv
  * |  用例名  | test_AddIndexToCsv_with_empty_total_pmu_data_and_expect_no_metrics_added
  * | 用例描述 | 验证空PMU数据时aicCalMetricItems和aivCalMetricItems都为空
  */

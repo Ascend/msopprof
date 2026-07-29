@@ -75,23 +75,6 @@ enum class ProfMetrics : uint32_t {
     COUNT
 };
 
-const std::set<std::string> SOC_910B = {
-    "Ascend910B1", "Ascend910B2", "Ascend910B3", "Ascend910B4", "Ascend910B2C", "Ascend910B4-1"
-};
-
-const std::set<std::string> SOC_910_93 = {
-    "Ascend910_9391", "Ascend910_9392", "Ascend910_9381", "Ascend910_9382",
-    "Ascend910_9372", "Ascend910_9362"
-};
-
-const std::set<std::string> SOC_310B = {
-    "Ascend310B1", "Ascend310B2", "Ascend310B3", "Ascend310B4"
-};
-
-const std::set<std::string> SOC_310P = {
-    "Ascend310P1", "Ascend310P2", "Ascend310P3", "Ascend310P4",  "Ascend310P5", "Ascend310P7"
-};
-
 /// 运行芯片平台类型
 enum class ChipType : uint32_t {
     ASCEND310 = 0,
