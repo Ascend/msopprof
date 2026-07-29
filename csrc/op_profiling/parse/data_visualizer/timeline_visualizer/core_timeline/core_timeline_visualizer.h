@@ -19,6 +19,7 @@
 #define MSOPT_SINGLE_WHOLE_TIME_LINE_H
 
 #include <vector>
+#include <regex>
 #include "json.hpp"
 #include "parse/data_center/data_center.h"
 #include "parse/plugin/plugin_interface.h"
@@ -30,6 +31,16 @@
 
 namespace Profiling {
 namespace Parse {
+
+struct IntraFlag {
+    std::string coreId;
+    std::string subcore;
+    std::string instrName;
+    std::string matchCoreName;
+    int syncId;
+    size_t idx;
+    std::pair<MergeInfo, bool> *intraFlag;
+};
 
 class CoreTimeLineVisualizer : public SimDataVisualizer {
 public:
@@ -76,12 +87,31 @@ private:
     uint32_t ExtraNumAfterKey(const std::string &str, const std::string &key);
     bool AddScalarHeadEvents(const MergeInfo &instr, const std::string &groupId, const Event &event, std::vector<nlohmann::json> &json) const;
     bool AddScalarHeadEvents(const SetWaitFlag &flag, const std::string &groupId, std::vector<nlohmann::json> &json) const;
+    bool GetIntraMatchCoreInfo(IntraFlag &intraFlag);
+    // intra-block sync
+    void CollectIntraBlockFlowEvents();
+    bool IsIntraBlockInstr(const std::string &name);
+    std::pair<std::string, std::string> SplitCoreName(const std::string &coreName);
+    void AddIntraBlockFlow(const MergeInfo &setInstr, const MergeInfo &waitInstr,
+        const std::string &setCoreName, const std::string &waitCoreName,
+        int flowId);
+    void AddFlag(const MergeInfo &instr, const std::string &pid, const std::string &id);
     std::string waitFlagName_;
     std::string setFlagName_;
     std::mutex timeLineLock_;
     std::vector<nlohmann::json> coresJsonList_;
     std::vector<nlohmann::json> laneJsonList_;
     Pc2CodeMap& pc2code_;
+
+    // recordIntraSetFlag_[{coreId, subcore}][{baseName, syncId}] = SET instrs , false, bool记录当前指令是否参与连线
+    std::map<std::pair<std::string, std::string>,
+        std::map<std::pair<std::string, int>, std::vector<std::pair<MergeInfo, bool>>>>
+        recordIntraSetFlag_;
+
+    // recordIntraWaitFlag_[{coreId, subcore}][{baseName, syncId}] = WAIT instrs, false, bool记录当前指令是否参与连线
+    std::map<std::pair<std::string, std::string>,
+        std::map<std::pair<std::string, int>, std::vector<std::pair<MergeInfo, bool>>>>
+        recordIntraWaitFlag_;
 };
 }
 }

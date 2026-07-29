@@ -26,6 +26,14 @@ using namespace Utility;
 namespace Profiling {
 namespace Parse {
 
+// intra-block sync
+constexpr char const *SET_INTRA_BLOCK = "SET_INTRA_BLOCK";
+constexpr char const *SET_INTRA_BLOCKI = "SET_INTRA_BLOCKI";
+constexpr char const *WAIT_INTRA_BLOCK = "WAIT_INTRA_BLOCK";
+constexpr char const *WAIT_INTRA_BLOCKI = "WAIT_INTRA_BLOCKI";
+const static std::vector<std::string> IntraInstr = { SET_INTRA_BLOCK, SET_INTRA_BLOCKI, WAIT_INTRA_BLOCK, WAIT_INTRA_BLOCKI };
+constexpr int INTRA_BLOCK_ID_SPLIT = 16;
+
 PluginErrorCode CoreTimeLineVisualizer::Entry()
 {
     auto dataMapPtr = dataCenter_.GetDbPtr<std::map<std::string, SimData>>();
@@ -48,6 +56,8 @@ PluginErrorCode CoreTimeLineVisualizer::Entry()
     }
     pool.WaitAllTasks();
     pool.Stop();
+
+    CollectIntraBlockFlowEvents();
 
     // 写入MTE Throughput json
     std::shared_ptr<std::vector<nlohmann::json>> mteJsonListPtr = dataCenter_.GetDbPtr<std::vector<nlohmann::json>>();
@@ -218,6 +228,28 @@ void CoreTimeLineVisualizer::CollectInstrEvents(const std::string &coreName, std
             waitFlagRecord[instr.detail].emplace_back(SetWaitFlag {instr, evtArgs, coreName});
             continue;
         }
+        if (IsIntraBlockInstr(instr.name)) {
+            static const std::regex re(R"(PIPE:([a-zA-Z0-9]{1,10}),.*sync_id:(\d{1,10}))");
+            std::smatch match;
+            if (std::regex_search(instr.detail, match, re)) {
+                instr.pipe = match[1].str();
+                int syncId = std::stoi(match[2].str());
+                if (syncId >= 0) {
+                    auto [coreId, subcore] = SplitCoreName(coreName);
+                    {
+                        std::lock_guard<std::mutex> lock(timeLineLock_);
+                        if (instr.name.find("SET_") == 0) {
+                            recordIntraSetFlag_[{coreId, subcore}][{instr.name, syncId}].emplace_back(
+                                std::pair<MergeInfo, bool>{instr, false});
+                        } else {
+                            recordIntraWaitFlag_[{coreId, subcore}][{instr.name, syncId}].emplace_back(
+                                std::pair<MergeInfo, bool>{instr, false});
+                        }
+                    }
+                }
+                continue;
+            }
+        }
         if (pipeEndTime.count(instr.pipe) == 0 || instr.endTick > pipeEndTime.at(instr.pipe)) {
             pipeEndTime[instr.pipe] = instr.endTick;
         }
@@ -298,6 +330,39 @@ void CoreTimeLineVisualizer::AddFlag(const SetWaitFlag &flag, const std::string 
     }
     coreJson.emplace_back(setFlagBeginJson);
     coreJson.emplace_back(setFlagEndJson);
+}
+
+void CoreTimeLineVisualizer::AddFlag(const MergeInfo &instr, const std::string &pid, const std::string &id) {
+    FlagEvent flagBeginEvent = {instr.name, GetCNameByPipe(instr.name), "B", GetMicrosecond(chipType_, instr.startTick),
+        pid, instr.pipe, {}, id};
+    EventArgs evtArgs{GetPc2String(instr.pc), "", instr.detail};
+    if (pc2code_.Find(instr.pc)) {
+        auto codeStack = pc2code_[instr.pc];
+        evtArgs.code = Utility::Join(codeStack.begin(), codeStack.end(), "\n");
+    }
+    flagBeginEvent.args["pc_addr"] = evtArgs.pcAddr;
+    flagBeginEvent.args["detail"] = evtArgs.detail;
+    flagBeginEvent.args["code"] = evtArgs.code;
+
+    if (instr.warpId != DEFAULT_INT_VALUE && instr.schId != DEFAULT_INT_VALUE) {
+        flagBeginEvent.tid = "WARP_" + std::to_string(instr.warpId);
+        flagBeginEvent.cName = GetCNameByInstrName(instr.name);
+    } else {
+        flagBeginEvent.cName = GetCNameByPipe(instr.pipe);
+    }
+    FlagEvent flagEndEvent = {
+        instr.name, GetCNameByPipe(instr.name), "E", GetMicrosecond(chipType_, instr.endTick), pid, instr.pipe, {}, id};
+    nlohmann::json flagBeginJson;
+    nlohmann::json flagEndJson;
+    flagBeginEvent.ToJson(flagBeginJson);
+    flagEndEvent.ToJson(flagEndJson);
+    SetWaitFlag setWaitIntra = {instr, evtArgs, pid};
+    if (AddScalarHeadEvents(setWaitIntra, id, coresJsonList_)) {
+        flagBeginJson["group_id"] = id;
+        flagEndJson["group_id"] = id;
+    }
+    coresJsonList_.emplace_back(flagBeginJson);
+    coresJsonList_.emplace_back(flagEndJson);
 }
 
 void CoreTimeLineVisualizer::GetFlowEvents(SetWaitFlag &begin, SetWaitFlag &end, std::string &id,
@@ -450,6 +515,122 @@ void CoreTimeLineVisualizer::CollectUserMarkEvents(const std::string &coreName, 
         coreJson.emplace_back(jsonData);
         markCnt[tmpInstr.name]++;
     }
+}
+
+bool CoreTimeLineVisualizer::IsIntraBlockInstr(const std::string &name)
+{
+    return std::find(IntraInstr.begin(), IntraInstr.end(), name) != IntraInstr.end();
+}
+
+std::pair<std::string, std::string> CoreTimeLineVisualizer::SplitCoreName(const std::string &coreName)
+{
+    auto dotPos = coreName.find('.');
+    if (dotPos == std::string::npos) {
+        return {coreName, ""};
+    }
+    return {coreName.substr(0, dotPos), coreName.substr(dotPos + 1)};
+}
+
+void CoreTimeLineVisualizer::AddIntraBlockFlow(const MergeInfo &setInstr, const MergeInfo &waitInstr,
+    const std::string &setCoreName, const std::string &waitCoreName, int flowId)
+{
+    // 额外添加的连线信息，用于insight计算指令深度
+    std::string id = "intra_" + std::to_string(flowId);
+    AddFlag(setInstr, setCoreName, id);
+    AddFlag(waitInstr, waitCoreName, id);
+
+    std::string cat = setInstr.pipe + "To" + waitInstr.pipe;
+    float beginTime = GetMicrosecond(chipType_, setInstr.endTick);
+    float endTime = GetMicrosecond(chipType_, waitInstr.endTick);
+
+    FlowEvent flowBegin = {"flow", id, "s", beginTime, setCoreName, setInstr.pipe, cat};
+    FlowEvent flowEnd = {"flow", id, "t", endTime, waitCoreName, waitInstr.pipe, cat};
+
+    nlohmann::json flowBeginJson;
+    nlohmann::json flowEndJson;
+    flowBegin.ToJson(flowBeginJson);
+    flowEnd.ToJson(flowEndJson);
+    coresJsonList_.emplace_back(flowBeginJson);
+    coresJsonList_.emplace_back(flowEndJson);
+}
+
+bool CoreTimeLineVisualizer::GetIntraMatchCoreInfo(IntraFlag &intraFlag) {
+    std::string waitBaseName;
+    if (intraFlag.instrName == SET_INTRA_BLOCK) {
+        waitBaseName = WAIT_INTRA_BLOCK;
+    } else {
+        waitBaseName = WAIT_INTRA_BLOCKI;
+    }
+
+    auto tryMatch = [&, this](const std::string &matchSubCoreName, int matchSyncId) -> bool {
+        auto coreKey = std::pair<std::string, std::string>{intraFlag.coreId, matchSubCoreName};
+        auto instrKey = std::pair<std::string, int>{waitBaseName, matchSyncId};
+        if (recordIntraWaitFlag_.find(coreKey) == recordIntraWaitFlag_.end() ||
+            recordIntraWaitFlag_.at(coreKey).find(instrKey) == recordIntraWaitFlag_.at(coreKey).end() ||
+            recordIntraWaitFlag_.at(coreKey).at(instrKey).size() <= intraFlag.idx) {
+            return false;
+        }
+        intraFlag.matchCoreName = intraFlag.coreId + "." + matchSubCoreName;
+        intraFlag.intraFlag = &recordIntraWaitFlag_.at(coreKey).at(instrKey).at(intraFlag.idx);
+        return true;
+    };
+
+    if (intraFlag.subcore.find("cube") != std::string::npos) {
+        int subcoreId = intraFlag.syncId >= INTRA_BLOCK_ID_SPLIT ? 1 : 0;
+        return tryMatch("veccore" + std::to_string(subcoreId), intraFlag.syncId % INTRA_BLOCK_ID_SPLIT);
+    } else {
+        int coreGap = intraFlag.subcore.find("0") == std::string::npos ? 1 : 0;
+        return tryMatch("cubecore0", coreGap * INTRA_BLOCK_ID_SPLIT + intraFlag.syncId);
+    }
+}
+
+void CoreTimeLineVisualizer::CollectIntraBlockFlowEvents()
+{
+    int flowId = 0;
+    std::lock_guard<std::mutex> lock(timeLineLock_);
+    for (auto &[key, value] : recordIntraSetFlag_) {
+        const std::string &coreId = key.first;
+        const std::string &subcore = key.second;
+        for (auto &[instrKey, setInstrs] : value) {
+            const std::string &instrName = instrKey.first;
+            int syncId = instrKey.second;
+            for (size_t i = 0; i < setInstrs.size(); i++) {
+                auto &setInstr = setInstrs[i].first;
+                IntraFlag flag = {coreId, subcore, instrName, "", syncId, i, nullptr};
+                if (!GetIntraMatchCoreInfo(flag)) {
+                    LogDebug("Intra block %s pc %llu not match", instrName.c_str(), setInstr.pc);
+                    break;
+                }
+                setInstrs[i].second = true;
+                flag.intraFlag->second = true;
+                std::string setCoreFull = coreId + "." + subcore;
+                AddIntraBlockFlow(setInstrs[i].first, flag.intraFlag->first, setCoreFull, flag.matchCoreName, flowId);
+                flowId++;
+            }
+        }
+    }
+
+    auto addLeftIntraFlag = [this, &flowId](std::map<std::pair<std::string, std::string>,
+                                std::map<std::pair<std::string, int>, std::vector<std::pair<MergeInfo, bool>>>>
+                                    input) {
+        for (auto &[key, value] : input) {
+            const std::string &coreId = key.first;
+            const std::string &subcore = key.second;
+            for (auto &[instrKey, setInstrs] : value) {
+                const std::string &instrName = instrKey.first;
+                int syncId = instrKey.second;
+                for (size_t i = 0; i < setInstrs.size(); i++) {
+                    if (!setInstrs[i].second) {
+                        std::string pid = coreId + "." + subcore;
+                        AddFlag(setInstrs[i].first, pid, "intra_" + std::to_string(flowId));
+                        flowId++;
+                    }
+                }
+            }
+        }
+    };
+    addLeftIntraFlag(recordIntraSetFlag_);
+    addLeftIntraFlag(recordIntraWaitFlag_);
 }
 }
 }
