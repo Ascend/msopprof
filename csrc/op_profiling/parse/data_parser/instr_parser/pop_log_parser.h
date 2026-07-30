@@ -59,7 +59,7 @@ private:
         "([0-9a-zA-Z_-]*)((\\(|\\s{2})([\\[\\]\\|a-zA-Z0-9_, :=/#-]*)[) ]?)?(, instr ID is: [0-9]+.)?"
         "(\\.? ((poped from IQ)|(pop success) [0-9]+))?)?.*");
     // stallCyc range:1-15, yeild range:0-1, inv range:0-1, warpId range:0-63, bundleId range:0-15, schId range:0-3
-    std::regex a5DetailPattern_ = std::regex(R"(\[warpId:([0-9]{1,2})\],\[schId:([0-3])\])");
+    std::regex a5DetailPattern_ = std::regex(R"(\[warpId:([0-9]{1,2})\].*\[schId:([0-3])\])");
     std::regex logicCorePattern_ = std::regex("([A-Z0-9/:]{0,10})=([0-9xXa-fA-F]{0,4}),SPR:BLOCKID");
     std::regex logicSubCorePattern_ = std::regex("([A-Z0-9/:]{0,10})=([0-9xXa-fA-F]{0,4}),SPR:SUBBLOCKID");
     std::unordered_map<uint64_t, std::vector<PoppedInstrParseInfo>> popMap_;
