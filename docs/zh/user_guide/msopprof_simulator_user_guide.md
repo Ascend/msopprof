@@ -4,7 +4,12 @@
 
 MindStudio Ops Profiler（算子调优工具，msOpProf）用于采集和分析运行在AI处理器上算子的关键性能指标，用户可根据输出的性能数据，快速定位算子的软、硬件性能瓶颈，提升算子性能的分析效率。
 
-当前支持基于上板（msopprof）或仿真（msopprof simulator）运行模式和不同文件形式（可执行文件或算子二进制.o文件）进行性能数据的采集和自动解析。本文档介绍msopprof simulator运行模式的使用。
+当前支持基于[上板（msopprof）](./msopprof_user_guide.md)或仿真（msopprof simulator）运行模式和不同文件形式（可执行文件或算子二进制.o文件）进行性能数据的采集和自动解析。
+
+- 上板模式：在真实Ascend硬件设备上运行，采集精准的性能数据，适用于生产环境调优与问题定位。
+- 仿真模式：基于CPU模拟NPU行为，无需硬件即可完成初步验证，适合开发调试与流程测试。
+
+本文档介绍msOpProf工具仿真运行模式的使用方法。
 
 **功能特性**
 
@@ -23,11 +28,11 @@ MindStudio Ops Profiler（算子调优工具，msOpProf）用于采集和分析�
 
 | 调用场景 | 参考章节 |
 | --- | --- |
-| Kernel直调场景 | [Kernel直调场景](https://gitcode.com/Ascend/msopprof/blob/26.1.0/docs/zh/user_guide/msopprof_usage.md#采集kernel直调方式ascend-c算子的性能数据) |
-| 单算子API调用场景 | [单算子API调用场景](https://gitcode.com/Ascend/msopprof/blob/26.1.0/docs/zh/user_guide/msopprof_usage.md#采集API调用单算子的性能数据) |
-| PyTorch 框架接入算子 | [PyTorch 框架算子调用场景](https://gitcode.com/Ascend/msopprof/blob/26.1.0/docs/zh/user_guide/msopprof_usage.md#采集PyTorch框架算子的性能数据) |
-| Triton-Ascend 算子 | [Triton 算子调用场景](https://gitcode.com/Ascend/msopprof/blob/26.1.0/docs/zh/user_guide/msopprof_usage.md#采集triton算子的性能数据) |
-| catlass算子 | [catlass算子调用场景](https://gitcode.com/Ascend/msopprof/blob/26.1.0/docs/zh/user_guide/msopprof_usage.md#采集catlass算子的性能数据) |
+| Kernel直调场景 | [Kernel直调场景](./msopprof_usage.md#采集kernel直调方式ascend-c算子的性能数据) |
+| 单算子API调用场景 | [单算子API调用场景](./msopprof_usage.md#采集api调用单算子的性能数据) |
+| PyTorch 框架接入算子 | [PyTorch 框架算子调用场景](./msopprof_usage.md#采集pytorch框架算子的性能数据) |
+| Triton-Ascend 算子 | [Triton 算子调用场景](./msopprof_usage.md#采集triton算子的性能数据) |
+| catlass算子 | [catlass算子调用场景](./msopprof_usage.md#采集catlass算子的性能数据) |
 
 ## 使用前准备
 
@@ -92,7 +97,7 @@ msprof op simulator --soc-version=Ascendxxxyy --output=/home/projects/output /ho
 </td>
 <td class="cellrowborder" valign="top" headers="mcps1.2.4.1.2 "><p id="zh-cn_topic_0000002016036877_p011233417332"><span>配置为算子编译得到的二进制文件</span><strong id="zh-cn_topic_0000002016036877_b695415337500">*.o</strong><span>，可配置为绝对路径或者相对路径</span>。<span>具体可参考</span><a href="./extended_functions.md#json配置文件说明">json配置文件说明</a><span>。</span></p>
 <p id="zh-cn_topic_0000002016036877_p1611218349332">进行算子调优之前，可通过以下两种方式获取算子二进制<strong id="zh-cn_topic_0000002016036877_b1845814318519"><span>*.</span>o</strong>文件。</p>
-<ul id="zh-cn_topic_0000002016036877_ul81131345339"><li>参考<span id="zh-cn_topic_0000002016036877_ph20112143419334">《Ascend C算子开发指南》</span>中的“Kernel直调算子开发 &gt; <a href="https://www.hiascend.com/document/detail/zh/canncommercial/900/programug/Ascendcopdevg/atlas_ascendc_10_0056.html" target="_blank" rel="noopener noreferrer">Kernel直调</a> ”章节中的“修改并执行一键式编译运行脚本”，获取NPU侧可执行文件，并需要用户自行从可执行文件中提取<span>*</span>.o文件。</li><li>参考<a href="https://gitcode.com/Ascend/msopgen/blob/26.1.0/docs/zh/user_guide/msopgen_user_guide.md#153-%E7%AE%97%E5%AD%90%E7%BC%96%E8%AF%91%E9%83%A8%E7%BD%B2" target="_blank" rel="noopener noreferrer">算子编译部署</a>，算子编译时会自动生成<strong id="zh-cn_topic_0000002016036877_b17819952105016">*.o</strong>文件。</li></ul>
+<ul id="zh-cn_topic_0000002016036877_ul81131345339"><li>参考<span id="zh-cn_topic_0000002016036877_ph20112143419334">《Ascend C算子开发指南》</span>中的“Kernel直调算子开发 &gt; <a href="https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/910/programug/Ascendcopdevg/docs/guide/%E7%BC%96%E7%A8%8B%E6%8C%87%E5%8D%97/%E9%99%84%E5%BD%95/%E5%9F%BA%E4%BA%8E%E6%A0%B7%E4%BE%8B%E5%B7%A5%E7%A8%8B%E5%AE%8C%E6%88%90Kernel%E7%9B%B4%E8%B0%83.md" target="_blank" rel="noopener noreferrer">Kernel直调</a> ”章节中的“修改并执行一键式编译运行脚本”，获取NPU侧可执行文件，并需要用户自行从可执行文件中提取<span>*</span>.o文件。</li><li>参考<a href="https://gitcode.com/Ascend/msopgen/blob/26.1.0/docs/zh/user_guide/msopgen_user_guide.md#153-%E7%AE%97%E5%AD%90%E7%BC%96%E8%AF%91%E9%83%A8%E7%BD%B2" target="_blank" rel="noopener noreferrer">算子编译部署</a>，算子编译时会自动生成<strong id="zh-cn_topic_0000002016036877_b17819952105016">*.o</strong>文件。</li></ul>
 <p id="p811246204">需确保群组和其他组的用户不具备--config指定的json文件及上一级目录的写入权限。同时，需要确保json文件的上一级目录属主为当前用户。</p>
 <div class="p" id="p20157517201">需要使用LD_LIBRARY_PATH环境变量设置仿真器类型。<pre class="screen" id="screen011316904">export LD_LIBRARY_PATH=${INSTALL_DIR}/tools/simulator/Ascendxxxyy/lib:$LD_LIBRARY_PATH // xxxyy为用户实际使用的具体芯片类型</pre>
 </div>
@@ -163,7 +168,7 @@ msprof op simulator --soc-version=Ascendxxxyy --output=/home/projects/output /ho
 <p id="zh-cn_topic_0000002016036877_p18115834193315">当配置--mstx=on，算子调优工具将会使能用户代码程序中使用的mstx API。</p>
 <p id="zh-cn_topic_0000002016036877_p151157346336">具体举例如下：</p>
 <pre class="code_wrap" id="zh-cn_topic_0000002016036877_screen811523463318">msprof op simulator --soc-version=Ascendxxxyy --mstx=on ./add_custom <span>// </span>xxxyy为用户实际使用的具体芯片类型</pre>
-<p id="zh-cn_topic_0000002016036877_p1776694422415">当前已支持mstx API中的mstxRangeStartA和mstxRangeEnd接口，功能为使能算子调优的指定区间，具体参数介绍请参见<span id="zh-cn_topic_0000002016036877_ph1583812516245">《MindStudio mstx API参考》</span>中的<span id="zh-cn_topic_0000002016036877_ph2878123711242"><a href="https://www.hiascend.com/document/detail/zh/mindstudio/82RC1/API/mstxAPIReference/atlasopdev_16_0117.html" target="_blank" rel="noopener noreferrer">mstxRangeStartA</a></span>和<span id="zh-cn_topic_0000002016036877_ph137651944162412"><a href="https://www.hiascend.com/document/detail/zh/mindstudio/82RC1/API/mstxAPIReference/atlasopdev_16_0118.html" target="_blank" rel="noopener noreferrer">mstxRangeEnd</a></span>接口。</p>
+<p id="zh-cn_topic_0000002016036877_p1776694422415">当前已支持mstx API中的mstxRangeStartA和mstxRangeEnd接口，功能为使能算子调优的指定区间，具体参数介绍请参见<span id="zh-cn_topic_0000002016036877_ph1583812516245">《MindStudio mstx API参考》</span>中的<span id="zh-cn_topic_0000002016036877_ph2878123711242"><a href="https://www.hiascend.com/document/detail/zh/mindstudio/2610/msTX/mstxAPIReference/docs/zh/api_reference/Common/mstxRangeStartA.md" target="_blank" rel="noopener noreferrer">mstxRangeStartA</a></span>和<span id="zh-cn_topic_0000002016036877_ph137651944162412"><a href="https://www.hiascend.com/document/detail/zh/mindstudio/2610/msTX/mstxAPIReference/docs/zh/api_reference/Common/mstxRangeEnd.md" target="_blank" rel="noopener noreferrer">mstxRangeEnd</a></span>接口。</p>
 </td>
 <td class="cellrowborder" valign="top" width="11.741174117411742%" headers="mcps1.2.4.1.3 "><p id="zh-cn_topic_0000002016036877_p131151034163318">否</p>
 </td>
@@ -251,7 +256,7 @@ msOpProf工具协助用户定位算子内存、算子代码以及算子指令的
     > - 添加-g编译选项会在生成的二进制文件中附带调试信息，建议限制带有调试信息的用户程序的访问权限，确保只有授权人员可以访问该二进制文件。
     > - 若不使用llvm-symbolizer组件提供的相关功能，输入msOpProf的程序编译时不包含-g即可，msOpProf工具则不会调用llvm-symbolizer组件的相关功能。
 
-    - 若参考msOpGen工具创建的算子工程，需编辑算子工程op\_kernel目录下的CMakeLists.txt文件，可参考[创建算子工程](https://www.hiascend.com/document/detail/zh/mindstudio/82RC1/ODtools/Operatordevelopmenttools/atlasopdev_16_0021.html)。
+    - 若参考msOpGen工具创建的算子工程，需编辑算子工程op\_kernel目录下的CMakeLists.txt文件，可参考[创建算子工程](https://gitcode.com/Ascend/msopgen/blob/26.1.0/docs/zh/user_guide/msopgen_user_guide.md)章节。
 
         ```shell
         add_ops_compile_options(ALL OPTIONS -g)
@@ -440,7 +445,7 @@ msOpProf工具协助用户定位算子内存、算子代码以及算子指令的
 - MindStudio Insight具体操作和详细字段解释请参考《MindStudio Insight算子调优》的“[时间线（Timeline）](https://gitcode.com/Ascend/msinsight/blob/26.1.0/docs/zh/user_guide/operator_tuning.md#%E6%97%B6%E9%97%B4%E7%BA%BF%EF%BC%88timeline%EF%BC%89)”章节。
 - 添加-g编译选项会在生成的二进制文件中附带调试信息，建议限制带有调试信息的用户程序的访问权限，确保只有授权人员可以访问该二进制文件。
 - 若不使用llvm-symbolizer组件提供的相关功能，输入msOpProf的程序编译时不包含-g即可，msOpProf工具则不会调用llvm-symbolizer组件的相关功能。
-- 若用户仅需关注部分算子性能时，可在<term>Atlas A3 训练系列产品/Atlas A3 推理系列产品</term>、<term>Atlas 推理系列产品</term>和<term>Atlas A2 训练系列产品/Atlas A2 推理系列产品</term>的单核内调用《Ascend C算子开发接口》中的“[算子调测API](https://www.hiascend.com/document/detail/zh/canncommercial/900/API/ascendcopapi/atlasascendc_api_07_0192.html)”章节的TRACE\_START和TRACE\_STOP接口。并在编译配置文件中添加-DASCENDC\_TRACE\_ON，具体操作请参见[添加-DASCENDC\_TRACE\_ON的方法](#添加-DASCENDC_TRACE_ON)。然后，才能生成该范围内的流水图信息。
+- 若用户仅需关注部分算子性能时，可在<term>Atlas A3 训练系列产品/Atlas A3 推理系列产品</term>、<term>Atlas 推理系列产品</term>和<term>Atlas A2 训练系列产品/Atlas A2 推理系列产品</term>的单核内调用《Ascend C算子开发接口》中的调测接口章节的[TRACE_START](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/910/API/ascendcopapi/docs/api/Utils-API/%E8%B0%83%E6%B5%8B%E6%8E%A5%E5%8F%A3/TRACE_START.md)和[TRACE_STOP](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/910/API/ascendcopapi/docs/api/Utils-API/%E8%B0%83%E6%B5%8B%E6%8E%A5%E5%8F%A3/TRACE_STOP.md)接口。并在编译配置文件中添加-DASCENDC\_TRACE\_ON，具体操作请参见[添加-DASCENDC\_TRACE\_ON的方法](#添加-DASCENDC_TRACE_ON)。然后，才能生成该范围内的流水图信息。
 
 ### 使用说明
 

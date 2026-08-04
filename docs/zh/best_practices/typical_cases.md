@@ -8,7 +8,7 @@
 
 **操作步骤**
 
-1. 参考[msopprof simulator用户指南](../user_guide/msopprof_simulator_user_guide.md)，将算子仿真性能数据采集得到的visualize\_data.bin文件导入MindStudio Insight，具体导入操作请参考《MindStudio Insight用户指南》的“[导入性能数据](https://gitcode.com/Ascend/msinsight/blob/26.1.0/docs/zh/user_guide/basic_operations.md#%E5%AF%BC%E5%85%A5%E6%95%B0%E6%8D%AE)”章节。<a id="导入数据"></a>
+1. 参考[msopprof simulator用户指南](../user_guide/msopprof_simulator_user_guide.md)，将算子仿真性能数据采集得到的visualize_data.bin文件导入MindStudio Insight，具体导入操作请参考《MindStudio Insight用户指南》的“[导入性能数据](https://gitcode.com/Ascend/msinsight/blob/26.1.0/docs/zh/user_guide/basic_operations.md#%E5%AF%BC%E5%85%A5%E6%95%B0%E6%8D%AE)”章节。<a id="导入数据"></a>
 2. 以一个Vector算子片段为例，查看算子指令流水图。
 
     可以发现MTE2流水在VADD计算时，没有执行搬运指令，且MTE2流水为该算子的性能瓶颈，需提高MTE2的搬运效率以实现算子性能优化。
@@ -17,7 +17,7 @@
 
 3. 对于MTE2搬运效率的提升有多种方式，此处以开启Ascend C算子的double buffer机制为例。
 
-    算子核函数中，可通过将TPipe中InitBuffer的第二个参数（BUFFER\_NUM）值从1修改为2，开启double buffer，InitBuffer的使用可参考《Ascend C算子开发接口》中的“基础API \> 内存管理与同步控制 \> TPipe \>  [InitBuffer](https://www.hiascend.com/document/detail/zh/canncommercial/900/API/ascendcopapi/atlasascendc_api_07_0110.html)”章节。
+    算子核函数中，可通过将TPipe中InitBuffer的第二个参数（BUFFER\_NUM）值从1修改为2，开启double buffer，InitBuffer的使用可参考《Ascend C算子开发接口》中的“基础API \> 内存管理与同步控制 \> TPipe \>  [InitBuffer](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/910/API/ascendcopapi/docs/api/SIMD-API/%E5%9F%BA%E7%A1%80API/%E8%B5%84%E6%BA%90%E7%AE%A1%E7%90%86/TPipe/InitBuffer.md)”章节。
 
     ```shell
     constexpr int32_t BUFFER_NUM = 2;        # tensor num for each queue
@@ -40,9 +40,9 @@
 
 **前期准备**
 
-准备算子工程，并在算子代码中添加mstx扩展接口确定范围级重放的范围，具体请参见[mstx扩展功能](../user_guide/extended_functions.md#mstx扩展功能)和《[MindStudio mstx API参考](https://www.hiascend.com/document/detail/zh/mindstudio/82RC1/API/mstxAPIReference/msprof_tx_0001.html)》。
+准备算子工程，并在算子代码中添加mstx扩展接口确定范围级重放的范围，具体请参见[mstx扩展功能](../user_guide/extended_functions.md#mstx扩展功能)和《[MindStudio mstx API参考](https://www.hiascend.com/document/detail/zh/mindstudio/2610/msTX/mstxAPIReference/docs/zh/api_reference/README.md?framework=mindspore)》。
 
-> [!NOTE] 
+> [!NOTE]
 > 
 > - mstxRangeStartA和mstxRangeEnd接口需成对调用，不支持交叉调用。每一对mstx API中包含的算子为一个重放范围，该重放范围内算子的Stream不能改变。
 > - 每一个重放范围能采集的算子数量受[OpBasicInfo（算子基础信息）](../user_guide/./msopprof_performance_data.md#opbasicinfo算子基础信息)中算子Block Dim数量限制，建议不超过50个。

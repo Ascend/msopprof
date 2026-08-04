@@ -6,7 +6,7 @@
 
 展示如何使用msOpProf工具采集Kernel直调方式Ascend C算子的性能数据，以内核调用符<<<>>>方式调用算子为例。
 
-Kernel直调场景，详细信息可参考《Ascend C算子开发指南》中“[Kernel直调算子开发](https://www.hiascend.com/document/detail/zh/canncommercial/900/programug/Ascendcopdevg/atlas_ascendc_10_0056.html)”章节。
+Kernel直调场景，详细信息可参考《Ascend C算子开发指南》中“[Kernel直调算子开发](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/910/programug/Ascendcopdevg/docs/guide/%E7%BC%96%E7%A8%8B%E6%8C%87%E5%8D%97/%E9%99%84%E5%BD%95/%E5%9F%BA%E4%BA%8E%E6%A0%B7%E4%BE%8B%E5%B7%A5%E7%A8%8B%E5%AE%8C%E6%88%90Kernel%E7%9B%B4%E8%B0%83.md)”章节。
 
 **前期准备**
 
@@ -81,7 +81,7 @@ Kernel直调场景，详细信息可参考《Ascend C算子开发指南》中“
 
 展示如何使用msOpProf工具采集API调用单算子的性能数据，以自定义算子工程和aclnn单算子API调用为例。
 
-单算子API调用场景，详细信息可参考《Ascend C算子开发指南》中“工程化算子开发 \>  [单算子API调用](https://www.hiascend.com/document/detail/zh/canncommercial/900/programug/Ascendcopdevg/atlas_ascendc_10_0070.html)”章节。
+单算子API调用场景，详细信息可参考《Ascend C算子开发指南》中“工程化算子开发 \>  [单算子API调用](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/910/programug/Ascendcopdevg/docs/guide/%E7%BC%96%E7%A8%8B%E6%8C%87%E5%8D%97/%E9%AB%98%E7%BA%A7%E7%BC%96%E7%A8%8B/Aclnn%E7%AE%97%E5%AD%90%E5%B7%A5%E7%A8%8B%E5%8C%96%E5%BC%80%E5%8F%91/%E5%8D%95%E7%AE%97%E5%AD%90API%E8%B0%83%E7%94%A8.md)”章节。
 
 **前期准备**
 
@@ -125,7 +125,7 @@ Kernel直调场景，详细信息可参考《Ascend C算子开发指南》中“
 
 **概述**
 
-通过PyTorch框架进行单算子调用的场景，详细信息可参考《[TorchNPU配套软件库](https://gitcode.com/Ascend/docs/blob/master/FrameworkPTAdapter/26.1.0/zh/supported_suites_and_third_party_libraries/supported_suites_and_third_party_libraries.md)》中的OpPlugin插件。
+通过PyTorch框架进行单算子调用的场景，详细信息可参考《[TorchNPU配套软件库](https://www.hiascend.com/document/detail/zh/Pytorch/2610/userguide/SuppLib/FrameworkPTAdapter/26.1.0/zh/supported_suites_and_third_party_libraries/supported_suites_and_third_party_libraries.md)》中的OpPlugin插件。
 
 PyTorch框架算子调用场景下，进行性能数据采集的操作步骤与[采集triton算子场景](#采集triton算子的性能数据)基本一致。
 
@@ -249,7 +249,7 @@ PyTorch框架算子调用场景下，进行性能数据采集的操作步骤与[
 
 展示如何使用msOpProf工具来上板调优一个MC2算子，并生成通算流水图。
 
-本示例以Ascend CL单算子调用为例，其他调用场景请参见《[Ascend C算子开发指南](https://www.hiascend.com/document/detail/zh/canncommercial/900/programug/Ascendcopdevg/atlas_ascendc_map_10_0002.html)》。
+本示例以Ascend CL单算子调用为例，其他调用场景请参见《[Ascend C算子开发指南](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/910/programug/Ascendcopdevg/docs/guide/%E5%85%A5%E9%97%A8%E6%95%99%E7%A8%8B/Ascend-C%E6%A6%82%E8%BF%B0%E4%B8%8E%E5%AD%A6%E4%B9%A0%E8%B7%AF%E5%BE%84.md)》。
 
 **前期准备**
 
@@ -258,7 +258,7 @@ PyTorch框架算子调用场景下，进行性能数据采集的操作步骤与[
 
 **操作步骤**
 
-1. 请参考[算子编译部署](https://www.hiascend.com/document/detail/zh/mindstudio/82RC1/ODtools/Operatordevelopmenttools/atlasopdev_16_0024.html)，完成算子的编译部署。
+1. 请参考[算子编译部署](https://gitcode.com/Ascend/msopgen/blob/26.1.0/docs/zh/user_guide/msopgen_user_guide.md)章节，完成算子的编译部署。
     1. 在算子编译文件op\_kernel目录下的CMakeLists.txt中引入以下编译选项，使能MC2算子的AIC打点和代码行映射功能。
 
         ```shell
