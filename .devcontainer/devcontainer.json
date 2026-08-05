@@ -16,7 +16,7 @@
 
 {
   "name": "msopprof",
-  "image": "swr.cn-north-4.myhuaweicloud.com/mindstudio-image/mindstudio-build:26.1.0-0701",
+  "image": "swr.cn-north-4.myhuaweicloud.com/mindstudio-image/mindstudio-build:26.2.0-0801",
 
   // 镜像 WORKDIR 即 /workspace；z_cache.sh 通过设备号探测 /workspace 是否为
   // 独立挂载点，命中后自动把 ccache/uv 缓存放到 /workspace/.cache 下，
@@ -59,7 +59,11 @@
 
     // uv 缓存持久化：将宿主机 ~/.cache/uv bind mount 到容器内。
     // 配合下方 UV_CACHE_DIR 环境变量，uv 安装/构建缓存不受容器重建影响。
-    "source=${localEnv:HOME}/.cache/uv,target=/home/mindstudio/.cache/uv,type=bind"
+    "source=${localEnv:HOME}/.cache/uv,target=/home/mindstudio/.cache/uv,type=bind",
+
+    // pre-commit Hook 环境持久化：使用 Docker named volume 保存首次初始化结果，
+    // 容器重建后直接复用，无需再次下载仓库和创建各 Hook 的运行环境。
+    "source=pre-commit-cache,target=/home/mindstudio/.cache/pre-commit,type=volume"
   ],
   "containerEnv": {
     // ctr_in.py 进入 mindstudio-build 容器时注入，保证 profile.d 启用 gcc11
@@ -74,7 +78,11 @@
     "CCACHE_DIR": "/home/mindstudio/.cache/ccache",
 
     // 配合上方 mounts 中宿主机 uv 缓存目录挂载，固化 uv 包安装缓存路径。
-    "UV_CACHE_DIR": "/home/mindstudio/.cache/uv"
+    "UV_CACHE_DIR": "/home/mindstudio/.cache/uv",
+
+    // 显式对齐上方 named volume 的挂载目标，确保后台预热和 Git Hook 执行时
+    // 始终复用同一份 pre-commit 环境缓存。
+    "PRE_COMMIT_HOME": "/home/mindstudio/.cache/pre-commit"
   },
   "remoteEnv": {
     // VS Code Server 及其扩展进程不一定读取 shell 启动文件，显式补充用户命令目录。

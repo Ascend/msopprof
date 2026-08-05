@@ -31,18 +31,20 @@
 #   能够感知到这些工具链的存在。
 #
 # 执行顺序（按依赖关系排列）：
-#   1. fix_cache_ownership     - 修复 z_cache.sh 创建的缓存目录权限
-#   2. fix_file_watcher_limit  - 提升 inotify max_user_watches 至 524288
-#   3. configure_user_bin      - 建立用户级命令目录，重映射 npm prefix
-#   4. configure_python311     - 在 shell 启动文件中启用 Python 3.11
-#   5. sync_git_identity       - 从宿主同步 Git 用户名和邮箱
-#   6. append_dev_hint_once    - 向 .bash_profile 追加常用开发命令提示
-#   7. install_pre_commit_hook - 自动安装 pre-commit Git Hook
-#   8. install_gitleaks        - 从 OBS 下载 gitleaks 二进制（pre-commit 依赖）
-#   9. setup_clangd            - 检查/安装 clangd，验证编译数据库配置
-#   10. verify_ccache           - 验证 ccache 编译缓存挂载与权限
-#   11. ignore_vscode_settings  - 隔离个人化 VS Code settings 修改
+#   1. configure_yum_mirror    - 切换至 HTTP 协议的华为云 openEuler 软件源
+#   2. fix_cache_ownership     - 修复 z_cache.sh 创建的缓存目录权限
+#   3. fix_file_watcher_limit  - 提升 inotify max_user_watches 至 524288
+#   4. configure_user_bin      - 建立用户级命令目录，重映射 npm prefix
+#   5. ensure_shared_bin_path  - 补齐 root 用户的共享命令路径
+#   6. configure_python311     - 在 shell 启动文件中启用 Python 3.11
+#   7. sync_git_identity       - 从宿主同步 Git 用户名和邮箱
+#   8. append_dev_hint_once    - 向 .bash_profile 追加常用开发命令提示
+#   9. install_pre_commit_hook - 自动安装 pre-commit Git Hook
+#   10. warmup_pre_commit_async - 后台预创建 pre-commit Hook 环境
+#   11. ignore_vscode_settings - 隔离个人化 VS Code settings 修改
 #   12. install_git_safe_pull_alias - 安装可处理 skip-worktree 文件的拉取命令
+#   13. verify_ccache          - 验证 ccache 编译缓存挂载与权限
+#   14. setup_clangd           - 检查/安装 clangd，验证编译数据库配置
 #
 # =============================================================================
 
@@ -62,6 +64,106 @@ log() {
 # 输出统一格式的告警日志到 stderr；告警默认不终止后续初始化。
 warn() {
     printf '[post-create] warning: %s\n' "$*" >&2
+}
+
+# 以统一格式执行并展示初始化步骤。即使某一步失败也继续后续流程，避免单项
+# 非关键配置阻止开发者进入容器；耗时用于识别初始化过程中的慢步骤。
+run_step() {
+    local step_number="$1"
+    local total_steps="$2"
+    local step_title="$3"
+    local step_function="$4"
+    local step_label
+    local exit_code
+    local started_at=$SECONDS
+    local elapsed
+
+    printf -v step_label '%02d/%02d' "$step_number" "$total_steps"
+    printf '\n'
+    log "------------------------------------------------------------------------"
+    log "[STEP $step_label] START | $step_title"
+
+    if "$step_function"; then
+        elapsed=$((SECONDS - started_at))
+        log "[STEP $step_label] DONE  | $step_title (${elapsed}s)"
+    else
+        exit_code=$?
+        elapsed=$((SECONDS - started_at))
+        warn "[STEP $step_label] FAILED | $step_title (${elapsed}s, exit: $exit_code)"
+    fi
+
+    # run_step 自身始终成功，确保某一步失败后仍执行剩余初始化任务。
+    return 0
+}
+
+# =============================================================================
+# configure_yum_mirror —— 配置华为云 openEuler 软件源
+# =============================================================================
+#
+# 背景与问题：
+#   基础镜像默认使用 https://repo.openeuler.org，部分开发网络访问该地址较慢。
+#   华为云 openEuler 镜像站提供相同的仓库目录结构，可直接保留当前发行版、
+#   仓库分区和 $basearch 路径，仅替换站点前缀。
+#
+# 解决方案：
+#   将 openEuler 官方源及 HTTPS 华为云源统一替换为：
+#     http://mirrors.huaweicloud.com/openeuler
+#   修改前保留一次原始 repo 文件备份；仅在配置发生变化时清理 dnf/yum 元数据。
+#   本地 file:// GPG Key 配置保持不变，软件包签名校验仍然启用。
+configure_yum_mirror() {
+    local repo_dir="/etc/yum.repos.d"
+    local mirror_base="http://mirrors.huaweicloud.com/openeuler"
+    local repo_files=("$repo_dir"/*.repo)
+    local repo_file
+    local backup_file
+    local changed=0
+
+    if [ ! -e "${repo_files[0]}" ]; then
+        warn "no yum repo files found in $repo_dir; skipping mirror configuration"
+        return 0
+    fi
+
+    for repo_file in "${repo_files[@]}"; do
+        if ! grep -Eq 'https?://repo\.openeuler\.org|https://mirrors\.huaweicloud\.com/openeuler|https?://repo\.huaweicloud\.com/openeuler' "$repo_file"; then
+            continue
+        fi
+
+        backup_file="${repo_file}.post-create.bak"
+        if [ ! -e "$backup_file" ]; then
+            sudo cp -a "$repo_file" "$backup_file" || {
+                warn "failed to back up yum repo file: $repo_file"
+                return 1
+            }
+        fi
+
+        sudo sed -E -i \
+            -e "s#https?://repo\.openeuler\.org#${mirror_base}#g" \
+            -e "s#https://mirrors\.huaweicloud\.com/openeuler#${mirror_base}#g" \
+            -e "s#https?://repo\.huaweicloud\.com/openeuler#${mirror_base}#g" \
+            "$repo_file" || {
+                warn "failed to update yum repo file: $repo_file"
+                return 1
+            }
+        changed=1
+    done
+
+    if ! grep -Eq '^[[:space:]]*baseurl=http://mirrors\.huaweicloud\.com/openeuler/' "${repo_files[@]}"; then
+        warn "Huawei Cloud yum mirror was not found in active repo configuration"
+        return 1
+    fi
+
+    if [ "$changed" -eq 1 ]; then
+        if command -v dnf >/dev/null 2>&1; then
+            sudo dnf clean all >/dev/null 2>&1 || warn "failed to clean dnf metadata"
+        elif command -v yum >/dev/null 2>&1; then
+            sudo yum clean all >/dev/null 2>&1 || warn "failed to clean yum metadata"
+        fi
+        log "yum mirror changed to $mirror_base"
+    else
+        log "yum mirror already uses $mirror_base"
+    fi
+
+    log "configure_yum_mirror succeeded"
 }
 
 # append_path_once：
@@ -342,6 +444,83 @@ install_pre_commit_hook() {
 }
 
 # =============================================================================
+# warmup_pre_commit_async —— 后台预创建 pre-commit Hook 环境
+# =============================================================================
+#
+# 背景与问题：
+#   pre-commit 首次运行时需要下载 Hook 仓库并创建各自的运行环境，耗时较长。
+#   如果等到开发者第一次提交时才执行，会明显阻塞提交流程。
+#
+# 解决方案：
+#   pre-commit Hook 安装完成后，在后台执行 `pre-commit install-hooks`，并与
+#   后续 clangd 安装等初始化任务并行。该命令只准备 Hook 环境，不执行检查，
+#   也不会修改工作区文件。后台进程的标准输入、输出和错误均与
+#   postCreateCommand 分离，避免阻塞容器初始化完成。
+#
+# 资源与并发控制：
+#   1. 使用 nice 和 ionice 降低 CPU、磁盘调度优先级，减少对交互操作的影响。
+#   2. flock 可用时持有非阻塞锁，防止脚本重复执行后同时启动多个预热任务。
+#   3. 详细结果写入缓存目录中的日志，预热失败不影响容器正常使用。
+warmup_pre_commit_async() {
+    if ! command -v pre-commit >/dev/null 2>&1; then
+        warn "pre-commit is not available; skipping async warmup"
+        return 0
+    fi
+
+    local repo_root
+    repo_root=$(git rev-parse --show-toplevel 2>/dev/null || true)
+    if [ -z "$repo_root" ]; then
+        warn "workspace is not a Git repository; skipping async warmup"
+        return 0
+    fi
+
+    if [ ! -f "$repo_root/.pre-commit-config.yaml" ]; then
+        warn "pre-commit config is not available; skipping async warmup"
+        return 0
+    fi
+
+    local warmup_dir="$HOME/.cache"
+    local log_file="$warmup_dir/pre-commit-warmup.log"
+    local lock_file="$warmup_dir/pre-commit-warmup.lock"
+    mkdir -p "$warmup_dir"
+
+    (
+        # 忽略启动 shell 结束时可能发送的 HUP，并断开所有终端输入输出。
+        trap '' HUP
+        cd "$repo_root" || exit 0
+
+        if command -v flock >/dev/null 2>&1; then
+            exec 9>"$lock_file"
+            if ! flock -n 9; then
+                log "pre-commit environment warmup is already running"
+                exit 0
+            fi
+        fi
+
+        # ionice 调整失败时继续运行；nice 在常规 Linux 环境中始终可用。
+        if command -v ionice >/dev/null 2>&1; then
+            ionice -c 3 -p "$$" 2>/dev/null || true
+        fi
+
+        # 确保 $HOME/.local/bin 在 PATH 前端，使用与用户交互式 shell
+        # 一致的 pre-commit 二进制（Python 3.11），避免版本不匹配导致
+        # 预热环境与用户实际使用的 Python 版本不一致而重新下载。
+        export PATH="$HOME/.local/bin:$PATH"
+
+        log "pre-commit environment warmup started"
+        if nice -n 10 pre-commit install-hooks; then
+            log "pre-commit environment warmup succeeded"
+        else
+            warn "pre-commit environment warmup failed"
+        fi
+    ) </dev/null >>"$log_file" 2>&1 &
+
+    local warmup_pid
+    warmup_pid=$!
+    log "pre-commit environment warmup started in background (pid: $warmup_pid, log: $log_file)"
+}
+
+# =============================================================================
 # fix_cache_ownership —— 修复缓存目录权限
 # =============================================================================
 #
@@ -432,70 +611,6 @@ EOF
 }
 
 # =============================================================================
-# setup_clangd —— clangd C++ 语义引擎检查与安装
-# =============================================================================
-#
-# 背景与问题：
-#   clangd 是 C++ 代码智能跳转、补全和诊断的核心引擎。VS Code 通过
-#   clangd 扩展调用 clangd 后台进程，读取 compile_commands.json 来理解
-#   代码的编译上下文（头文件路径、宏定义、编译选项等）。
-#
-#   clangd 未安装时，C++ 文件的符号跳转 (F12)、自动补全和内联诊断将不可用，
-#   严重影响 C++ 开发体验。
-#
-# 解决方案：
-#   1. 检查 clangd 是否已安装（镜像可能已预装）。
-#   2. 若未安装，通过 sudo dnf install -y clang-tools-extra 自动安装。
-#      clang-tools-extra 是包含 clangd 的官方 RPM 包。
-#   3. 安装后验证 .clangd 配置文件是否存在，以及 build/compile_commands.json
-#      编译数据库是否就绪。
-#
-# 冷启动说明：
-#   首次进入容器时 build/ 目录下尚未执行过 CMake 配置，compile_commands.json
-#   不存在属于预期状态。此时脚本只输出提示，不阻断容器创建。开发者执行一次
-#   "构建 (Debug 模式)" 或 "构建 (Release 模式)" 后，编译数据库即生成，clangd
-#   即可恢复完整的语义能力。
-#
-# 降级策略：
-#   dnf 安装失败时（如离线环境），clangd 功能不可用但不阻断容器创建。
-setup_clangd() {
-    log "checking clangd setup..."
-
-    if command -v clangd >/dev/null 2>&1; then
-        log "clangd found in PATH: $(clangd --version 2>/dev/null | head -1)"
-        _check_clangd_config
-        return 0
-    fi
-
-    log "installing clangd via dnf..."
-    sudo dnf install -y clang-tools-extra 2>/dev/null
-    log "clangd installed: $(clangd --version 2>/dev/null | head -1)"
-
-    _check_clangd_config
-}
-
-# _check_clangd_config:
-#   内部辅助函数，验证 clangd 运行所需的两项前置条件：
-#   1. /workspace/.clangd 配置文件是否存在
-#      该文件固定指向 CompilationDatabase: build/，是 clangd 读取编译命令的入口。
-#   2. /workspace/build/compile_commands.json 编译数据库是否存在
-#      该文件由 CMake 生成，包含每个 .cpp 文件的完整编译命令。
-#   两者在首次创建容器时可能都不存在，属于预期冷启动状态。
-_check_clangd_config() {
-    if [ -f /workspace/.clangd ]; then
-        log ".clangd config file found"
-    else
-        warn ".clangd config file missing; clangd may not work correctly"
-    fi
-
-    if [ ! -f /workspace/build/compile_commands.json ]; then
-        warn "compile_commands.json not found in build/; run cmake with -DCMAKE_EXPORT_COMPILE_COMMANDS=ON to generate it"
-    else
-        log "compile_commands.json found"
-    fi
-}
-
-# =============================================================================
 # fix_file_watcher_limit —— 增大 inotify 文件监听上限
 # =============================================================================
 #
@@ -545,54 +660,6 @@ fix_file_watcher_limit() {
     fi
 
     warn "failed to increase inotify max_user_watches; VS Code file watching may not work correctly"
-}
-
-# =============================================================================
-# verify_ccache —— ccache 编译缓存状态检查
-# =============================================================================
-#
-# 背景与问题：
-#   devcontainer.json 通过 mounts 将宿主机 ccache 目录持久化挂载到容器内，
-#   使增量编译缓存不受容器重建影响。但如果挂载目录权限不正确或为空，
-#   开发者可能不会注意到，导致每次都是全量编译，浪费大量时间。
-#
-# 解决方案：
-#   1. 检查 CCACHE_DIR 目录是否存在且可写。
-#   2. 目录不存在时尝试 mkdir 创建（兜底）。
-#   3. 目录存在但不可写时尝试 sudo chown 修复（Docker bind mount 自动创建的
-#      源目录可能属于 root）。
-#   4. 报告当前缓存大小，让开发者了解缓存状态。
-#   5. 如果 ccache 命令可用，输出缓存命中率统计。
-#
-# 降级策略：
-#   - mkdir / chown 失败不阻塞，最后仍不可写时告警。
-#   - 宿主机未预先创建 ccache 目录时，Docker 自动创建 root 所有的空目录，
-#     本函数尝试 chown 修复权限。
-verify_ccache() {
-    local ccache_dir="${CCACHE_DIR:-$HOME/.cache/ccache}"
-
-    # 目录不存在时尝试创建（Docker bind mount 通常已自动创建，兜底用）
-    if [ ! -d "$ccache_dir" ]; then
-        mkdir -p "$ccache_dir" 2>/dev/null || true
-    fi
-
-    # 目录存在但不可写时，尝试 chown 修复（Docker 自动创建的 bind mount
-    # 源目录可能属于 root，需要改为当前用户才能写入）
-    if [ -d "$ccache_dir" ] && [ ! -w "$ccache_dir" ]; then
-        log "ccache dir ($ccache_dir) is not writable, attempting chown..."
-        sudo chown -R "$(id -u):$(id -g)" "$ccache_dir" 2>/dev/null || true
-    fi
-
-    if [ -d "$ccache_dir" ] && [ -w "$ccache_dir" ]; then
-        local cache_size
-        cache_size=$(du -sh "$ccache_dir" 2>/dev/null | cut -f1)
-        log "ccache dir ready, current size: ${cache_size:-0}"
-        if command -v ccache >/dev/null 2>&1; then
-            ccache -s 2>/dev/null | head -3 || true
-        fi
-    else
-        warn "ccache dir ($ccache_dir) missing or not writable; incremental build cache may not work"
-    fi
 }
 
 # =============================================================================
@@ -667,45 +734,144 @@ install_git_safe_pull_alias() {
 }
 
 # =============================================================================
-# install_gitleaks —— Gitleaks 秘密扫描二进制下载
+# verify_ccache —— ccache 编译缓存状态检查
 # =============================================================================
 #
 # 背景与问题：
-#   pre-commit 配置中的 gitleaks-offline-scan hook 执行 `./gitleaks protect`，
-#   期望仓库根目录存在 gitleaks 二进制文件。如果缺失，git commit 时
-#   pre-commit hook 会因 "Executable ./gitleaks not found" 而失败。
+#   devcontainer.json 通过 mounts 将宿主机 ccache 目录持久化挂载到容器内，
+#   使增量编译缓存不受容器重建影响。但如果挂载目录权限不正确或为空，
+#   开发者可能不会注意到，导致每次都是全量编译，浪费大量时间。
 #
 # 解决方案：
-#   从华为 OBS 镜像站下载预编译的 gitleaks 二进制到 /workspace/gitleaks，
-#   确保 devcontainer 创建后立即可用，无需开发者手工下载。
+#   1. 检查 CCACHE_DIR 目录是否存在且可写。
+#   2. 目录不存在时尝试 mkdir 创建（兜底）。
+#   3. 目录存在但不可写时尝试 sudo chown 修复（Docker bind mount 自动创建的
+#      源目录可能属于 root）。
+#   4. 报告当前缓存大小，让开发者了解缓存状态。
+#   5. 如果 ccache 命令可用，输出缓存命中率统计。
 #
 # 降级策略：
-#   wget 下载失败时只告警，不阻塞容器创建。
-#   开发者仍可手工下载或使用 git commit --no-verify 绕过。
-install_gitleaks() {
-    local target="/workspace/gitleaks"
-    local base_url="https://inst.obs.cn-north-4.myhuaweicloud.com/env/mirror"
-    local arch=""
-    local url=""
+#   - mkdir / chown 失败不阻塞，最后仍不可写时告警。
+#   - 宿主机未预先创建 ccache 目录时，Docker 自动创建 root 所有的空目录，
+#     本函数尝试 chown 修复权限。
+verify_ccache() {
+    local ccache_dir="${CCACHE_DIR:-$HOME/.cache/ccache}"
 
-    # 根据 CPU 架构选择对应的二进制目录
-    case "$(uname -m)" in
-        x86_64)  arch="x86_64" ;;
-        aarch64) arch="aarch64" ;;
-        *)       arch="x86_64" ;;  # 默认回退到 x86_64
-    esac
-    url="${base_url}/${arch}/gitleaks"
-
-    log "downloading gitleaks (${arch}) from OBS..."
-    if wget --no-host-directories -c --no-check-certificate \
-        -O "$target" "$url" 2>/dev/null; then
-        chmod +x "$target"
-        log "gitleaks installed successfully: $($target --version 2>/dev/null || echo 'version unknown')"
-    else
-        warn "failed to download gitleaks (${arch}) from OBS; git commit may fail on pre-commit hook"
-        warn "URL attempted: ${url}"
-        rm -f "$target"
+    # 目录不存在时尝试创建（Docker bind mount 通常已自动创建，兜底用）
+    if [ ! -d "$ccache_dir" ]; then
+        mkdir -p "$ccache_dir" 2>/dev/null || true
     fi
+
+    # 目录存在但不可写时，尝试 chown 修复（Docker 自动创建的 bind mount
+    # 源目录可能属于 root，需要改为当前用户才能写入）
+    if [ -d "$ccache_dir" ] && [ ! -w "$ccache_dir" ]; then
+        log "ccache dir ($ccache_dir) is not writable, attempting chown..."
+        sudo chown -R "$(id -u):$(id -g)" "$ccache_dir" 2>/dev/null || true
+    fi
+
+    if [ -d "$ccache_dir" ] && [ -w "$ccache_dir" ]; then
+        local cache_size
+        cache_size=$(du -sh "$ccache_dir" 2>/dev/null | cut -f1)
+        log "ccache dir ready, current size: ${cache_size:-0}"
+        if command -v ccache >/dev/null 2>&1; then
+            ccache -s 2>/dev/null | head -3 || true
+        fi
+    else
+        warn "ccache dir ($ccache_dir) missing or not writable; incremental build cache may not work"
+    fi
+}
+
+# =============================================================================
+# setup_clangd —— clangd C++ 语义引擎检查与安装
+# =============================================================================
+#
+# 背景与问题：
+#   clangd 是 C++ 代码智能跳转、补全和诊断的核心引擎。VS Code 通过
+#   clangd 扩展调用 clangd 后台进程，读取 compile_commands.json 来理解
+#   代码的编译上下文（头文件路径、宏定义、编译选项等）。
+#
+#   clangd 未安装时，C++ 文件的符号跳转 (F12)、自动补全和内联诊断将不可用，
+#   严重影响 C++ 开发体验。
+#
+# 解决方案：
+#   1. 检查 clangd 是否已安装（镜像可能已预装）。
+#   2. 若未安装，通过 sudo dnf install -y clang-tools-extra 自动安装。
+#      clang-tools-extra 是包含 clangd 的官方 RPM 包。
+#   3. 安装后验证 .clangd 配置文件是否存在，以及 build/compile_commands.json
+#      编译数据库是否就绪。
+#
+# 冷启动说明：
+#   首次进入容器时 build/ 目录下尚未执行过 CMake 配置，compile_commands.json
+#   不存在属于预期状态。此时脚本只输出提示，不阻断容器创建。开发者执行一次
+#   "构建 (Debug 模式)" 或 "构建 (Release 模式)" 后，编译数据库即生成，clangd
+#   即可恢复完整的语义能力。
+#
+# 降级策略：
+#   dnf 安装失败时（如离线环境），clangd 功能不可用但不阻断容器创建。
+setup_clangd() {
+    log "checking clangd setup..."
+
+    if command -v clangd >/dev/null 2>&1; then
+        log "clangd found in PATH: $(clangd --version 2>/dev/null | head -1)"
+        _check_clangd_config
+        return 0
+    fi
+
+    log "installing clangd via dnf..."
+    sudo dnf install -y clang-tools-extra 2>/dev/null
+    log "clangd installed: $(clangd --version 2>/dev/null | head -1)"
+
+    _check_clangd_config
+}
+
+# _check_clangd_config:
+#   内部辅助函数，验证 clangd 运行所需的两项前置条件：
+#   1. /workspace/.clangd 配置文件是否存在
+#      该文件固定指向 CompilationDatabase: build/，是 clangd 读取编译命令的入口。
+#   2. /workspace/build/compile_commands.json 编译数据库是否存在
+#      该文件由 CMake 生成，包含每个 .cpp 文件的完整编译命令。
+#   两者在首次创建容器时可能都不存在，属于预期冷启动状态。
+_check_clangd_config() {
+    if [ -f /workspace/.clangd ]; then
+        log ".clangd config file found"
+    else
+        warn ".clangd config file missing; clangd may not work correctly"
+    fi
+
+    if [ ! -f /workspace/build/compile_commands.json ]; then
+        warn "compile_commands.json not found in build/; run cmake with -DCMAKE_EXPORT_COMPILE_COMMANDS=ON to generate it"
+    else
+        log "compile_commands.json found"
+    fi
+}
+
+# 输出醒目的完成标识，便于开发者在 Dev Containers 启动日志中快速确认状态。
+print_ready_banner() {
+    local green=$'\033[1;32m'
+    local reset=$'\033[0m'
+
+    cat <<EOF
+
++------------------------------------------------------------------------------+
+|                                                                              |
+|${green}       ____  _____    _    ______   __                                        ${reset}|
+|${green}      |  _ \| ____|  / \  |  _ \ \ / /                                        ${reset}|
+|${green}      | |_) |  _|   / _ \ | | | \ V /                                         ${reset}|
+|${green}      |  _ <| |___ / ___ \| |_| || |                                          ${reset}|
+|${green}      |_| \_\_____/_/   \_\____/ |_|                                          ${reset}|
+|                                                                              |
+|  +------------------------------------------------------------------------+  |
+|  |  DEV CONTAINER                                          STATUS: ${green}READY${reset}  |  |
+|  +------------------------------------------------------------------------+  |
+|                                                                              |
+|     ENVIRONMENT   ${green}READY${reset} FOR DEVELOPMENT                                      |
+|     WORKSPACE     /workspace                                                 |
+|                                                                              |
+|     Initialization complete. Start coding, building, and shipping.           |
+|                                                                              |
++------------------------------------------------------------------------------+
+
+EOF
 }
 
 # =============================================================================
@@ -713,22 +879,25 @@ install_gitleaks() {
 # =============================================================================
 #
 # 按依赖顺序执行：先修复目录权限，再写用户配置，最后安装 Git 辅助能力。
-# 各模块尽量自行降级并输出 warning，非关键项失败不阻止容器启动。
+# run_step 为每一步输出序号、状态和耗时，非关键项失败不阻止容器启动。
 
-log "post-create setup started"
+total_steps=14
+log "Dev Container initialization started ($total_steps steps)"
 
-fix_cache_ownership
-fix_file_watcher_limit
-configure_user_bin
-ensure_shared_bin_path
-configure_python311
-sync_git_identity
-append_dev_hint_once
-install_pre_commit_hook
-install_gitleaks
-setup_clangd
-verify_ccache
-ignore_vscode_settings
-install_git_safe_pull_alias
+run_step 1  "$total_steps" "Configure Huawei Cloud yum mirror"    configure_yum_mirror
+run_step 2  "$total_steps" "Fix cache directory ownership"       fix_cache_ownership
+run_step 3  "$total_steps" "Configure file watcher limit"        fix_file_watcher_limit
+run_step 4  "$total_steps" "Configure user command paths"        configure_user_bin
+run_step 5  "$total_steps" "Configure shared command paths"      ensure_shared_bin_path
+run_step 6  "$total_steps" "Configure Python 3.11"                configure_python311
+run_step 7  "$total_steps" "Synchronize Git identity"            sync_git_identity
+run_step 8  "$total_steps" "Install developer shell hints"       append_dev_hint_once
+run_step 9  "$total_steps" "Install pre-commit Git Hook"          install_pre_commit_hook
+run_step 10 "$total_steps" "Start pre-commit environment warmup"  warmup_pre_commit_async
+run_step 11 "$total_steps" "Configure workspace Git settings"    ignore_vscode_settings
+run_step 12 "$total_steps" "Install Git safe-pull command"        install_git_safe_pull_alias
+run_step 13 "$total_steps" "Verify ccache"                        verify_ccache
+run_step 14 "$total_steps" "Configure clangd"                     setup_clangd
 
 log "post-create setup finished"
+print_ready_banner
