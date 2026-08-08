@@ -78,8 +78,11 @@ void Log::Printf(const char* file, int line, const std::string &format, LogLv lv
         fprintf(fp_, "%s", msg);
         return;
     }
-    std::string lengthLimit = AddPrefixInfo(file, line,
-        "Log length reach limit, message truncated", lv).append("\n");
+    // 截断时 securec 不清空缓冲，msg 中已包含被截断的前缀+内容，原样打印后再补截断提示
+    msg[MAX_PRINT - 1] = '\0';
+    fprintf(fp_, "%s\n", msg);
+    std::string lengthLimit =
+        AddPrefixInfo(file, line, "Log length reach limit, message truncated", LogLv::WARN).append("\n");
     fprintf(fp_, "%s", lengthLimit.c_str());
 }
 
