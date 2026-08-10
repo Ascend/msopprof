@@ -169,7 +169,7 @@
 <td class="cellrowborder" valign="top" width="22.832283228322833%" headers="mcps1.2.7.1.1 "><p id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_p6828121843">-</p>
 </td>
 <td class="cellrowborder" valign="top" width="36.22362236223623%" headers="mcps1.2.7.1.2 "><p id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_p324215055915">输入数据bin文件的路径。</p>
-<ul id="ul1083781334916"><li>当<span class="parmvalue" id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_parmvalue47675439188">“param_type”</span>为input时必须输入data_path或value_range，且data_path优先级更高。</li><li>若json文件的"data_path"字段为空，需将json文件中的"data_path"设置为"data_path":"null"。json文件具体内容请参见<a href="#json配置文件说明">json配置文件说明</a>。</li></ul>
+<ul id="ul1083781334916"><li>当<span class="parmvalue" id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_parmvalue47675439188">“param_type”</span>为input时必须输入。</li><li>若输入非文件形式，"data_path"设置为"data_path":"null"。json文件具体内容请参见<a href="#json配置文件说明">json配置文件说明</a>。</li></ul>
 </td>
 <td class="cellrowborder" valign="top" width="10.09100910091009%" headers="mcps1.2.7.1.3 "><p id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_p135676171515">string</p>
 </td>
@@ -253,15 +253,14 @@
 > 
 > - “output”中参数取值的个数都要与“input”一致，否则测试用例生成会失败。
 >    例如：“input”的type支持的类型个数为2，则“output”的type支持的类型个数也需要为2。
->    同理，所有input和output中的type、shape和value_range的取值个数也需要保持一致。
-> - 一个算子所有“input”中参数取值的个数都要一致，否则测试用例生成会失败。
->    所有“input”中的type、shape和value_range的取值个数也需要保持一致。
+>    同理，所有input和output中的type和shape的取值个数也需要保持一致。
+> - 一个算子所有“input”中参数取值的个数都要一致，否则测试用例生成会失败。所有“input”中的type和shape的取值个数也需要保持一致。
 
 ## mstx扩展功能
 
 **mstx接口简介**
 
-mstx接口是MindStudio提供的一个性能分析接口，它允许用户在应用程序中插入特定的标记，以便在性能分析时能够更精确地定位关键代码区域，具体接口明细请参见[**表 1**  C/C++ mstx接口列表](#C-mstx接口列表)和[**表 2**  Python mstx接口列表](#Python-mstx接口列表)。具体接口的使用情况请参考《[MindStudio mstx API参考](https://www.hiascend.com/document/detail/zh/mindstudio/82RC1/API/mstxAPIReference/msprof_tx_0001.html)》。
+mstx接口是MindStudio提供的一个性能分析接口，它允许用户在应用程序中插入特定的标记，以便在性能分析时能够更精确地定位关键代码区域，具体接口明细请参见[**表 1**  C/C++ mstx接口列表](#C-mstx接口列表)和[**表 2**  Python mstx接口列表](#Python-mstx接口列表)。具体接口的使用情况请参考《[MindStudio Tools Extension Library接口文档](https://gitcode.com/Ascend/mstx/blob/master/docs/zh/api_reference/README.md)》。
 
 **表 1**  C/C++ mstx接口列表<a id="C-mstx接口列表"></a>
 
@@ -281,7 +280,7 @@ mstx接口是MindStudio提供的一个性能分析接口，它允许用户在应
 
 - msOpProf工具允许用户通过mstx接口实现特定算子调优的功能，使用mstx接口可以自定义采集代码段范围内或指定关键函数的开始和结束时间点，并识别关键函数或计算API等信息，对性能问题快速定界。
 - 默认情况下mstx接口不使能。若用户在应用程序中调用mstx接口，工具会根据具体使用场景使能mstx打点功能。例如配置--mstx=on使能用户程序中的mstx API，并可以通过--mstx-include使能用户程序中特定的mstx API，具体使用可分别参见msopprof模式用户指南的“[命令参考](./msopprof_user_guide.md#命令参考)”和msopprof simulator模式用户指南的“[命令参考](./msopprof_simulator_user_guide.md#命令参考)”中的--mstx和--mstx-include参数。
-- mstx当前提供了两种API的使用方式：库文件和头文件，以[链接](https://gitee.com/ascend/samples/tree/master/operator/ascendc/0_introduction/1_add_frameworklaunch/AclNNInvocation)为例：
+- mstx当前提供了两种API的使用方式：库文件和头文件，以[样例](https://gitee.com/ascend/samples/tree/master/operator/ascendc/0_introduction/1_add_frameworklaunch/AclNNInvocation)为例：
 
     > [!NOTE] 
     > 
@@ -314,7 +313,7 @@ mstx接口是MindStudio提供的一个性能分析接口，它允许用户在应
 
 **调用示例**
 
-启动msOpProf工具后，执行```msprof op --mstx=on --mstx-include=range1 --launch-count=2 python cal.py```命令，将会采集range1范围内的算子，即sub和mul算子。
+启动msOpProf工具后，执行```msopprof --mstx=on --mstx-include=range1 --launch-count=2 python cal.py```命令，将会采集range1范围内的算子，即sub和mul算子。
 
 ```python
 import mstx

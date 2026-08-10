@@ -86,10 +86,11 @@ msopprof --output=./msopprof_output_npu ./execute_add_op
 ##### 2.3.2.2 仿真器性能采集   
 
 > [!NOTE]说明
-> 参数 `--soc-version` 的值可通过执行以下命令获取：`python3 -c "import acl; print(acl.get_soc_name())"`。
+> 
+> 参数 `--soc-version` 的值可通过执行以下命令获取：`python3 -c "import acl; print(acl.get_soc_name())"`。xxxyy为用户实际使用的具体芯片类型。
 
 ```shell
-msopprof simulator --soc-version={Ascendxxxyy} --output=./msopprof_output_sim ./execute_add_op
+msopprof simulator --soc-version=Ascendxxxyy --output=./msopprof_output_sim ./execute_add_op
 ```
 
 #### 2.3.3 查看性能数据结果

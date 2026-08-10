@@ -34,7 +34,7 @@ Kernel直调场景，详细信息可参考《Ascend C算子开发指南》中“
 2. 使用如下命令完成msopprof上板性能数据和精细化调优数据的采集，也可参考[msopprof模式命令](https://gitcode.com/Ascend/msopprof/blob/master/docs/zh/user_guide/msopprof_user_guide.md#命令参考)指定其他命令参数。
 
     ```shell
-    msprof op add
+    msopprof add
     ```
 
 3. 修改样例工程的编译文件CMakeLists.txt，构建可运行在仿真器上的算子可执行文件，编译完成后，在工程目录下生成可执行文件add\_sim。
@@ -60,7 +60,7 @@ Kernel直调场景，详细信息可参考《Ascend C算子开发指南》中“
     > 参数 `--soc-version` 的值可通过执行以下命令获取：`python3 -c "import acl; print(acl.get_soc_name())"`。
 
     ```shell
-    msprof op simulator --soc-version=Ascendxxxyy add_sim
+    msopprof simulator --soc-version=Ascendxxxyy add_sim
     ```
 
 5. 出现如下打屏回显，表示算子性能数据采集成功。
@@ -109,7 +109,7 @@ Kernel直调场景，详细信息可参考《Ascend C算子开发指南》中“
 3. 使用如下命令完成msopprof上板性能数据和精细化调优数据的采集。
 
     ```shell
-    msprof op execute_add_op
+    msopprof execute_add_op
     ```
     
 4. 使用如下命令完成msopprof simulator性能数据、流水图和热点图数据的采集。
@@ -118,7 +118,7 @@ Kernel直调场景，详细信息可参考《Ascend C算子开发指南》中“
     > 参数 `--soc-version` 的值可通过执行以下命令获取：`python3 -c "import acl; print(acl.get_soc_name())"`。
 
     ```shell
-    msprof op simulator --soc-version=Ascendxxxyy execute_add_op
+    msopprof simulator --soc-version=Ascendxxxyy execute_add_op
     ```
 
 ## 采集PyTorch框架算子的性能数据
@@ -173,7 +173,7 @@ PyTorch框架算子调用场景下，进行性能数据采集的操作步骤与[
 2. 使用如下命令完成msopprof上板性能数据和精细化调优数据的采集。
 
     ```shell
-    msprof op python3 test_add.py
+    msopprof python3 test_add.py
     ```
 
 3. 使用如下命令完成msopprof simulator性能数据、流水图和热点图数据的采集。
@@ -182,7 +182,7 @@ PyTorch框架算子调用场景下，进行性能数据采集的操作步骤与[
     > 参数 `--soc-version` 的值可通过执行以下命令获取：`python3 -c "import acl; print(acl.get_soc_name())"`。
 
     ```shell
-    msprof op simulator --soc-version=Ascendxxxyy python3 test_add.py
+    msopprof simulator --soc-version=Ascendxxxyy python3 test_add.py
     ```
 
     > [!NOTE] 说明
@@ -219,7 +219,7 @@ PyTorch框架算子调用场景下，进行性能数据采集的操作步骤与[
     # 切换至编译产物目录
     cd output/bin
     # ./00_basic_matmul m n k [deviceId]
-    msprof op ./00_basic_matmul 256 512 1024 0
+    msopprof ./00_basic_matmul 256 512 1024 0
     ```
 
 3. 编译脚本增加选项--simulator，编译算子仿真可执行文件，并根据提示，加载仿真器二进制路径。
@@ -240,7 +240,7 @@ PyTorch框架算子调用场景下，进行性能数据采集的操作步骤与[
     # 切换至编译产物目录
     cd output/bin
     # 可执行文件名 |矩阵m轴|n轴|k轴|Device ID（可选）
-    msprof op simulator --soc-version=Ascendxxxyy ./00_basic_matmul 256 512 1024 0
+    msopprof simulator --soc-version=Ascendxxxyy ./00_basic_matmul 256 512 1024 0
     ```
 
 ## 采集MC2算子的性能数据
@@ -274,7 +274,7 @@ PyTorch框架算子调用场景下，进行性能数据采集的操作步骤与[
 2. 使用msOpProf采集MC2算子的性能数据。
 
     ```shell
-    msprof op --output=$HOME/projects/output $HOME/projects/MyApp blockdim 1   # --output为可选参数,$HOME/projects/MyApp为使用的app,blockdim 1为用户app的可选参数 
+    msopprof --output=$HOME/projects/output $HOME/projects/MyApp blockdim 1   # --output为可选参数,$HOME/projects/MyApp为使用的app,blockdim 1为用户app的可选参数 
     ```
 
 3. 界面生成以下目录结构和性能数据文件，具体请参见[msopprof模式用户指南](../user_guide/msopprof_user_guide.md)。

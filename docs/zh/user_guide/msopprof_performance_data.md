@@ -135,7 +135,7 @@ L2 Cache命中率数据L2Cache.csv，影响MTE2（Memory Transfer Engine，数�
 **Ascend 950 系列产品**
 
 **图 3**  L2Cache.csv文件  
-![](../figures/L2Cache-csv文件.png "L2Cache-csv文件")
+![](../figures/A5-L2Cache-csv.png "A5-L2Cache-csv")
 
 关键字段说明如下。
 
