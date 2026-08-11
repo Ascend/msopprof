@@ -1,0 +1,11 @@
+--- a/inter_core_balance.asc
++++ b/inter_core_balance.asc
+@@ -24,7 +24,7 @@
+ constexpr uint32_t TOTAL_LENGTH = 80 * 1024 * 1024;
+ constexpr uint32_t TILE_LENGTH = 2048;
+ constexpr uint32_t BUFFER_NUM = 1;
+-constexpr uint32_t BLOCK_DIM = 1;
++constexpr uint32_t BLOCK_DIM = 8;
+
+ class VectorAddKernel {
+ public:
