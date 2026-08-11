@@ -65,6 +65,8 @@ private:
                                 const std::pair<uint16_t, uint16_t> &streamAndTaskId, const std::string &path, int round, size_t kernelIndex);
     void ParseRangeKernelProfBin(const std::string &path, const std::vector <std::string> &outputVec, int round);
     void ParseSingleRangeData(const std::string &path);
+    void CopyDfxRegionFiles(
+        const std::string &kernelDir, const std::vector<std::string> &fileNames, const std::regex &pattern);
     /// mapping: ChipType -> specific data handler
     std::map<Common::ChipType, ChipInfo> chipInfoMap_;
 

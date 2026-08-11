@@ -171,7 +171,9 @@ void PrintDeviceHelp(ChipType chipType)
     }
     if (chipType == Common::ChipType::ASCEND950) {
         std::cout << "                                                | Occupancy | TimelineDetail | KernelScale | Source | MemoryDetail |" << std::endl
-                  << "                                                | PCSampling | PipeTimeline | InstrTimeline |" << std::endl;
+                  << "                                                | PCSampling | PipeTimeline | InstrTimeline |" << std::endl
+                  << "      --instr-timeline-pipe=<PIPE>          Specify the pipe for instr timeline." << std::endl
+                  << "                                              Only effective when --aic-metrics=<INSTRTIMELINE>." << std::endl;
     }
     std::cout << "      --kernel-name=<NAME>                  Specify the kernel name to profile." << std::endl
               << "                                              Not effective in config mode." << std::endl
@@ -185,7 +187,8 @@ void PrintDeviceHelp(ChipType chipType)
     if (chipType == Common::ChipType::ASCEND910B || chipType == Common::ChipType::ASCEND950) {
         std::cout << "|range";
     }
-    std::cout << ", default: kernel" << std::endl
+    std::cout
+        << ", default: kernel" << std::endl
         << "      --kill=<SWITCH>                       Kill op process when the number of kernel reaches launch-count." << std::endl
         << "                                              SWITCH:on|off, default: off" << std::endl
         << "      --mstx=<SWITCH>                       Enable mstx API or not." << std::endl
@@ -193,15 +196,13 @@ void PrintDeviceHelp(ChipType chipType)
         << "      --mstx-include=<RANGE>                Specify the mstx range for msprof op to be collected." << std::endl
         << "      --warm-up=<TIMES>                     Set the number of warm up times." << std::endl
         << "                                              TIMES:0-500, default: 5" << std::endl;
-    if (chipType == Common::ChipType::ASCEND950) {
-        std::cout << "      --instr-timeline-pipe=<PIPE>          Specify the pipe for instr timeline." << std::endl
-                  << "                                              Only effective when --aic-metrics=<INSTRTIMELINE>." << std::endl;
-    }
     if (chipType == Common::ChipType::ASCEND910B) {
         std::cout << "      --dump=<SWITCH>                       Enable or disable dump flushed to disk mode. Only effective when" << std::endl
                   << "                                              --aic-metrics=<TIMELINEDETAIL>." << std::endl
-                  << "                                              SWITCH:on|off, default: off" << std::endl
-                  << "      --core-id=<ID>                        Specify the id of cores to be parsed." << std::endl
+                  << "                                              SWITCH:on|off, default: off" << std::endl;
+    }
+    if (chipType == Common::ChipType::ASCEND910B || chipType == Common::ChipType::ASCEND950) {
+        std::cout << "      --core-id=<ID>                        Specify the id of cores to be parsed." << std::endl
                   << "                                              Only effective when --aic-metrics=<TIMELINEDETAIL> and only" << std::endl
                   << "                                              effective in simulation products." << std::endl;
     }
