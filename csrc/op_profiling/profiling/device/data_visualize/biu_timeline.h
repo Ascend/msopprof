@@ -85,6 +85,8 @@ protected:
     virtual void PrintMissData() {};
     virtual void ParseDfxMapInfo() {};
     void UpdateEndMarks(uint16_t dfxRegionId, uint32_t channelId);
+    // 将channelId映射为流水图对应的coreName（如core0.veccore0）
+    std::string ChannelIdToCoreName(uint32_t channelId) const;
     // 各个通道当前cycle{channelId, totalCycle}
     std::unordered_map<uint32_t, uint64_t> channelCycleMap_;
     // 各个通道workaround连续打点结束标志{channelId, EndMarkState}
@@ -111,9 +113,18 @@ private:
 class PipeBiuTimeline : public BiuTimeline {
 private:
     void ParseDfxRegion(uint16_t dfxRegionId, uint32_t channelId, const std::string &coreName, const std::string &pipe) override;
+    void PrintMissData() override;
     void ParsePipeState(uint16_t pipeMask, uint32_t channelId, const std::string &coreName) override;
     const std::array<std::string, PIPE_TIMELINE_PIPE_NUM> statePipe_ = {SU_PIPE, VEC_PIPE, CUBE_PIPE, MTE1_PIPE, MTE2_PIPE, MTE3_PIPE, FIXP_PIPE};
     BiuTimelineInfo pipeStateVec_[INSTR_PROF_CHANNEL_NUM][PIPE_TIMELINE_PIPE_NUM] = {};
+    // trace_start/trace_end 配对缓存 Key: {pipe, channelId, regionId} Value: {startCycle, coreName}
+    struct TraceStartInfo {
+        uint64_t startCycle;
+        std::string coreName;
+    };
+    std::map<std::tuple<std::string, uint32_t, uint16_t>, TraceStartInfo> traceStartCache_;
+    // 未配对的trace收集（包括未找到start的end、未找到end的start、被覆盖的start，每个regionId只记录一次）
+    std::set<uint16_t> unpairedTraces_;
 };
 
 class InstrBiuTimeline : public BiuTimeline {

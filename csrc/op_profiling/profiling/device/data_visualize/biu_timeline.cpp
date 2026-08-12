@@ -39,6 +39,7 @@ bool BiuTimeline::TimelineToJson(const std::string &outputPath)
     if (!ParseBiuTimeStamps()) {
         return false;
     }
+    // 处理未配对的trace打点（在PrintMissData中统一批量打印）
     std::vector<nlohmann::json> traceEvents;
     for (const auto& channelVec : timelineVec_) {
         for (const auto& timeline : channelVec) {
@@ -122,7 +123,7 @@ bool BiuTimeline::ParseSingleBiuTimeStamps(const std::string &filePath) {
         std::string coreName = "core" + std::to_string(instrProfHeadInfo.coreId) + "." + subCore_[instrProfHeadInfo.coreType];
         uint32_t channelId = instrProfHeadInfo.coreId * subCore_.size() + instrProfHeadInfo.coreType;
         if (channelId >= INSTR_PROF_CHANNEL_NUM) {
-            LogDebug("InstrProf channelId %u exceeds limit %d", channelId, INSTR_PROF_CHANNEL_NUM);
+            LogDebug("InstrProf channel %s exceeds channel limit %d", coreName.c_str(), INSTR_PROF_CHANNEL_NUM);
             continue;
         }
 
@@ -147,6 +148,15 @@ bool BiuTimeline::ParseSingleBiuTimeStamps(const std::string &filePath) {
         }
     }
     return true;
+}
+
+std::string BiuTimeline::ChannelIdToCoreName(uint32_t channelId) const {
+    if (channelId >= INSTR_PROF_CHANNEL_NUM) {
+        return "unknown";
+    }
+    uint16_t coreId = channelId / subCore_.size();
+    uint16_t coreType = channelId % subCore_.size();
+    return "core" + std::to_string(coreId) + "." + subCore_[coreType];
 }
 
 // 刷新endMark表，instrprof_end中插入了连续的8个标签，需要按顺序过滤这些多余的end标记
@@ -182,8 +192,58 @@ void BiuTimeline::UpdateEndMarks(uint16_t dfxRegionId, uint32_t channelId) {
 }
 
 void PipeBiuTimeline::ParseDfxRegion(uint16_t dfxRegionId, uint32_t channelId, const std::string &coreName, const std::string &pipe) {
+    // 先打一个MarkStamp瞬时点（所有dfx-region打点都会生成）
     std::string markName = "MarkStamp" + std::to_string(dfxRegionId);
     timelineVec_[channelId].emplace_back(BiuTimelineInfo(pipe, coreName, markName, channelCycleMap_[channelId], 1));
+
+    // bit10为1时，表示trace_start/trace_end打点，需要额外处理配对逻辑
+    if ((dfxRegionId & 0x400) == 0) {
+        return;
+    }
+    // bit11: 0=开始, 1=结束; bits 0-9: regionId (10位)
+    bool isEnd = (dfxRegionId & 0x800) != 0;
+    uint16_t regionId = dfxRegionId & 0x3FF;
+    std::string traceName = "Region" + std::to_string(regionId);
+    auto key = std::make_tuple(pipe, channelId, regionId);
+    if (!isEnd) {
+        // trace_start: 检查是否已存在未配对的start（重复打点），归入未配对统一处理
+        auto existIt = traceStartCache_.find(key);
+        if (existIt != traceStartCache_.end()) {
+            unpairedTraces_.insert(regionId);
+        }
+        // 缓存起始cycle和coreName
+        TraceStartInfo info;
+        info.startCycle = channelCycleMap_[channelId];
+        info.coreName = coreName;
+        traceStartCache_[key] = info;
+    } else {
+        // trace_end: 查找配对的start，生成timeline事件
+        auto it = traceStartCache_.find(key);
+        if (it != traceStartCache_.end()) {
+            // 找到配对的start，生成区间事件（BIU数据按时序出现，end必然晚于start）
+            std::string color = TOTAL_CNAME_MAP[regionId % TOTAL_CNAME_MAP.size()];
+            timelineVec_[channelId].emplace_back(BiuTimelineInfo(pipe, it->second.coreName, traceName,
+                it->second.startCycle, channelCycleMap_[channelId] - it->second.startCycle, color));
+            traceStartCache_.erase(it);
+        } else {
+            // 没有找到配对的start，记录regionId（set自动去重，每个regionId只打印一次）
+            unpairedTraces_.insert(regionId);
+        }
+    }
+}
+
+void PipeBiuTimeline::PrintMissData() {
+    // 将未配对的trace_start的regionId也加入unpairedTraces_，统一处理
+    for (const auto &[key, info] : traceStartCache_) {
+        unpairedTraces_.insert(std::get<2>(key));
+    }
+    traceStartCache_.clear();
+
+    // 统一打印未配对/被覆盖的trace（每个regionId只打印一次）
+    for (const auto &regionId : unpairedTraces_) {
+        LogDebug("trace (regionId=%u) is unpaired or overwritten", regionId);
+    }
+    unpairedTraces_.clear();
 }
 
 void PipeBiuTimeline::ParsePipeState(uint16_t pipeMask, uint32_t channelId, const std::string &coreName) {
@@ -275,8 +335,8 @@ void InstrBiuTimeline::PrintMissData() {
         for (size_t i = 0; i < total; i += missBatchSize_) {
             size_t endIdx = std::min(i + missBatchSize_, total);
             std::string regionStr = Join(dfxRegionIds.begin() + i, dfxRegionIds.begin() + endIdx, ",");
-            LogDebug("dfx point [%s] miss, channelId [%u], pipe [%s]", regionStr.c_str(), data.first.second,
-                data.first.first.c_str());
+            LogDebug("dfx point [%s] miss, coreName [%s], pipe [%s]", regionStr.c_str(),
+                ChannelIdToCoreName(data.first.second).c_str(), data.first.first.c_str());
         }
     }
 }

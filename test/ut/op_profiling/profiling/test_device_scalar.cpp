@@ -528,7 +528,9 @@ TEST_F(DataHandlerScalarTest, AddIndexToCsv_with_all_internuclear_ids_and_expect
  */
 TEST_F(DataHandlerScalarTest, AddIndexToCsv_with_mix_op_and_expect_both_aic_and_aiv_metrics) {
     SplitBlockPmuData cubePmuData = CreatePmuDataWithScalar(1792, 1000, OpType::CUBE);
+    cubePmuData.blockId = 0;
     SplitBlockPmuData vectorPmuData = CreatePmuDataWithScalar(1792, 2000, OpType::VECTOR);
+    vectorPmuData.blockId = 1;
 
     handler910B_->MergeTotalPmuData(cubePmuData);
     handler910B_->MergeTotalPmuData(vectorPmuData);
