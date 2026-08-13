@@ -379,6 +379,13 @@ bool ArgChecker::CheckReplayMode(const Common::ProfArgs &config, std::string &ms
             msg = "--replay-mode=range only support when --mstx=on";
             return false;
         }
+        if (chipType == ChipType::ASCEND950 &&
+            (config.argAicMetrics.pcSamplingEnable || config.argAicMetrics.roofline || config.argAicMetrics.isSource ||
+                config.argAicMetrics.pipeTimelineEnable || config.argAicMetrics.instrTimelineEnable)) {
+            msg = "--aic-metrics=Source/PcSampling/Roofline/PipeTimeline/InstrTimeline is invalid when "
+                  "--replay-mode=range on Ascend 950";
+            return false;
+        }
         if (config.argAicMetrics.isDeviceToSimulator || config.argAicMetrics.isSource ||
             config.argAicMetrics.isMemoryDetail) {
             msg = "--aic-metrics=TimelineDetail/Source/MemoryDetail is invalid when --replay-mode=range";
@@ -404,8 +411,14 @@ bool ArgChecker::CheckDump(const Common::ProfArgs &config, std::string &msg) con
         return false;
     }
     if (config.runMode == "device" && config.argDump == "on") {
-        return CheckDeviceChipSupport(
-            "--dump", {ChipProductType::ASCEND910B_SERIES, ChipProductType::ASCEND910_93_SERIES}, msg);
+        if (!CheckDeviceChipSupport(
+                "--dump", {ChipProductType::ASCEND910B_SERIES, ChipProductType::ASCEND910_93_SERIES}, msg)) {
+            return false;
+        }
+        if (!config.argAicMetrics.isDeviceToSimulator) {
+            msg = "--dump requires --aic-metrics=TimelineDetail.";
+            return false;
+        }
     }
     if (config.runMode == "simulator" && config.argDump == "on") {
         std::string socVersion = config.argSocVersion;
@@ -530,10 +543,16 @@ bool ArgChecker::CheckCoreId(const Common::ProfArgs &config, std::string &msg) c
         }
     }
     if (config.runMode == "device") {
-        return CheckDeviceChipSupport("--core-id",
-            {ChipProductType::ASCEND910B_SERIES, ChipProductType::ASCEND910_93_SERIES,
-                ChipProductType::ASCEND950_SERIES},
-            msg);
+        if (!CheckDeviceChipSupport("--core-id",
+                {ChipProductType::ASCEND910B_SERIES, ChipProductType::ASCEND910_93_SERIES,
+                    ChipProductType::ASCEND950_SERIES},
+                msg)) {
+            return false;
+        }
+        if (!config.argAicMetrics.isDeviceToSimulator) {
+            msg = "--core-id requires --aic-metrics=TimelineDetail.";
+            return false;
+        }
     }
     return true;
 }

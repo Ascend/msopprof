@@ -83,8 +83,8 @@ msprof op --output=$HOME/projects/output $HOME/projects/MyApp/out/main blockdim 
 |--replay-mode|Replay mode for operator data collection. Options include `kernel`, `application`, and `range`. The default value is `kernel`. If set to `application`, the entire application is replayed multiple times.<br>In `application` mode, separately enabling some `aic-metrics` may lead to missing data in the `visualize_data.bin` file. To view complete `visualize_data.bin` data, you are advised to add `Default` to `--aic-metrics`. <li>If the value set to <code>kernel</code>, the kernel function of a single operator within the specified collection range is replayed multiple times. </li><li>If the value is set to <code>range</code>, multiple operators within the specified range are replayed multiple times as a whole. Multiple ranges can be specified, and ranges are independent of each other. </li>Note: <li>`application` mode is not supported in multi-device multi-operator scenarios. </li><li>Range-level replay must be used together with `--mstx=on` and is applicable only to the Atlas A3 training products, Atlas A3 inference products, Atlas A2 training products, and Atlas A2 inference products. </li><li>Range-level replay does not support collection of MC2 and LCCL operators and cannot be enabled together with <code>--kill=on</code>, <code>--aic-metrics=MemoryDetail</code>, <code>--aic-metrics=TimelineDetail</code>, and <code>--aic-metrics=Source</code>.</li>|No|
 |--warm-up|When some operators are collected using msOpProf, they may fail to reach the minimum task time consumption for processor frequency increasing, resulting in frequency reduction, which affects the results. In this case, you can use **`--warm-up`** to specify the number of warm-up times to increase the running frequency of the AI Processor in advance, so that the data on the board is more accurate.<br>Note: <ul><li>The default value is 5, and the value range is [0, 500]. </li><li>This parameter does not take effect for the MC2 operator. </li><li>When range-level replay is enabled, the number of warm-up times must be at least 1 and cannot be set to `--warm-up=0`.</li></ul>|No|
 |--output|Path for storing the collected profile data. By default, the profile data is stored in the current directory.<br>Ensure that users in the group and other groups do not have the write permission on the parent directory of the path specified by `--output`. In addition, ensure that the owner of the parent directory of the directory specified by **--output** is the current user.|No|
-|--dump|Specifies whether to generate the dump file of the simulator.<br>The value can be `on` or `off`. The default value is `off`, indicating that the simulator dump file is not generated.<br>Note: <ul><li>This parameter is valid only when `--aic-metrics=TimelineDetail` is used. It takes effect only for Atlas A2 training/inference products and Atlas A3 training/inference products. It does not take effect for Atlas inference products. </li><li>This parameter applies only to the single-process scenario and does not support the scenario where two operators run at the same time.</li></ul>|No|
-|--core-id|This parameter is used when the operators are evenly distributed. You can use `--core-id` to specify the IDs of some logical cores to parse their simulation data.<br>The core ID range is [0, 49].<br>Note: <ul><li>If you want to parse the simulation data of multiple cores, use the symbol "\|" to combine the core IDs. For example, --core-id="0\|31" indicates that the simulation data of cores 0 and 31 is parsed. </li><li>This parameter is valid only when the `--aic-metrics=TimelineDetail` option is used. It is valid only for the [instruction pipeline chart](./msopprof_simulator_user_guide.md#instruction-pipeline-chart) and operator code hotspot diagram (#operator code hotspot diagram). This parameter is applicable only to the Atlas A2 training series products/Atlas A2 inference series products and Atlas A3 training series products/Atlas A3 inference series products.</li></ul>|No|
+|--dump|Specifies whether to generate the dump file of the simulator.<br>The value can be `on` or `off`. The default value is `off`, indicating that the simulator dump file is not generated.<br>Note: <ul><li>This parameter is valid only when `--aic-metrics=TimelineDetail` is used. It takes effect only for Atlas A2 training/inference products and Atlas A3 training/inference products. It does not take effect for Atlas inference products or Ascend 950 products. </li><li>This parameter applies only to the single-process scenario and does not support the scenario where two operators run at the same time.</li></ul>|No|
+|--core-id|This parameter is used when the operators are evenly distributed. You can use `--core-id` to specify the IDs of some logical cores to parse their simulation data.<br>The core ID range is [0, 49].<br>Note: <ul><li>If you want to parse the simulation data of multiple cores, use the symbol "\|" to combine the core IDs. For example, --core-id="0\|31" indicates that the simulation data of cores 0 and 31 is parsed. </li><li>This parameter is valid only when the `--aic-metrics=TimelineDetail` option is used. It is valid only for the [instruction pipeline chart](./msopprof_simulator_user_guide.md#instruction-pipeline-chart) and operator code hotspot diagram (#operator code hotspot diagram). This parameter is applicable only to Atlas A2 training/inference products, Atlas A3 training/inference products, and Ascend 950 products.</li></ul>|No|
 |-h, --help|Outputs help information.|No|
 
 ## Tool Usage
@@ -128,7 +128,7 @@ To implement the [cache heatmap jump](#cache-heatmap) function, perform the foll
 
 **Starting the tool**
 
-> [!NOTE]NOTE  
+> [!NOTE]NOTE
 > Currently, msOpProf does not support the `-O0` compilation option.
 
 1. Log in to the operating environment and run the `msprof op optional parameter app [arguments]` command to enable operator tuning on the board. For details about the optional parameters, see [Command Reference](#command-reference). An example command is as follows:
@@ -140,7 +140,7 @@ To implement the [cache heatmap jump](#cache-heatmap) function, perform the foll
 2. Perform operator tuning in either of the following ways:
     - Based on an executable file
         - Single-operator scenario (using `test` as an example)
-            > [!NOTE]NOTE  
+            > [!NOTE]NOTE
             > The executable file name `test` in the example is for reference only. The actual name is subject to the executable file generated during compilation in the current project.
 
             Example 1:
@@ -152,7 +152,7 @@ To implement the [cache heatmap jump](#cache-heatmap) function, perform the foll
             Example 2:
 
             ```shell
-            msprof op --aic-metrics=<select_metrics> --output=./output_data ./test 
+            msprof op --aic-metrics=<select_metrics> --output=./output_data ./test
             ```
 
         - Multi-operator scenario
@@ -173,29 +173,29 @@ To implement the [cache heatmap jump](#cache-heatmap) function, perform the foll
 
     - Collecting data in the multi-device multi-operator scenario
 
-        > [!NOTE]NOTE  
+        > [!NOTE]NOTE
         > When tuning MC2 or LCCL operators in multi-device parallel mode, several subdirectories named after device IDs will exist in the result directory, depending on the specified number of NPUs. The tuning results of each NPU are stored in the corresponding device ID directory.
 
         ```tex
         └──OPPROF_{timestamp}_XXX
         ├── device0                  // ID of the AI processor used during running.
-        └── device1                
+        └── device1
           ├── OpName0                  // Name of the operator collected.
           │ ├── 0                     // Sequence in which operators are scheduled.
           │ │ ├──dump                // Folder for storing the process files. The meaning of this parameter is the same as that in single-operator collection.
            │ │ └──xxx_yyy.csv        // xxx is the metric type name, for example, L2Cache. For metric types, see Table 2. yyy is the time sequence suffix, for example, L2Cache_20240603022812284.csv
-          │ │ └──visualize_data.bin 
-          ├── OpName1               
+          │ │ └──visualize_data.bin
+          ├── OpName1
           │ ├── 0
-          │ │ ├──dump 
+          │ │ ├──dump
           │ │ └──xxx_yyy.csv
-          │ │ └──visualize_data.bin 
-           ├── OpName2         
+          │ │ └──visualize_data.bin
+           ├── OpName2
           │ ├── 0
-          │ │ ├── dump  
+          │ │ ├── dump
           │ │ └── xxx_yyy.csv
-          │ │ └──visualize_data.bin 
-          │ │ └── trace.json         // Applicable only to MC2 and LCCL operators. 
+          │ │ └──visualize_data.bin
+          │ │ └── trace.json         // Applicable only to MC2 and LCCL operators.
         ```
 
     - Collecting data in the single-device multi-operator scenario
@@ -206,16 +206,16 @@ To implement the [cache heatmap jump](#cache-heatmap) function, perform the foll
         │ ├── 0                     // Sequence in which operators are scheduled.
         │ │ ├── dump                // Folder for storing the process files. The meaning of this parameter is the same as that in single-operator collection.
         │ │ └── xxx_yyy.csv          // xxx is the metric type name, for example, L2Cache. For metric types, see Table 2. yyy is the time sequence suffix, for example, L2Cache_20240603022812284.csv
-        │ │ └──visualize_data.bin 
+        │ │ └──visualize_data.bin
         │ ├── 1
-        │ │ ├──dump 
+        │ │ ├──dump
         │ │ └──xxx_yyy.csv
-        │ │ └──visualize_data.bin 
-        ├── OpName1         
+        │ │ └──visualize_data.bin
+        ├── OpName1
         │ ├── 0
-        │ │ ├── dump  
+        │ │ ├── dump
         │ │ └── xxx_yyy.csv
-        │ │ └── visualize_data.bin 
+        │ │ └── visualize_data.bin
         ```
 
     - Collecting data in the single-device single-operator scenario
@@ -231,7 +231,7 @@ To implement the [cache heatmap jump](#cache-heatmap) function, perform the foll
         ├── OpBasicInfo.csv
         ├── PipeUtilization.csv
         ├── ResourceConflictRatio.csv
-        ├── visualize_data.bin 
+        ├── visualize_data.bin
         ```
 
     **Table 2** msOpProf mode files
@@ -251,7 +251,7 @@ To implement the [cache heatmap jump](#cache-heatmap) function, perform the foll
     |trace.json|Visualized MC2 pipeline file.|
 
     > [!NOTE]NOTE
-    > 
+    >
     > - visualize_data.bin can be visualized using MindStudio Insight. For details, see [MindStudio Insight Operator Tuning](https://gitcode.com/Ascend/msinsight/blob/master/docs/en/user_guide/operator_tuning.md).
     > - The hot spot function function of msOpProf is supported only by <term>Atlas A2 training products and Atlas A2 inference products</term>.
     > - Currently, [communication and computing pipeline chart](#communication-and-computing-pipeline-chart) can be generated only for MC2 and LCCL operators.
@@ -273,13 +273,13 @@ For details about MindStudio Insight operations, see the [Details](https://gitco
 
 The following shows the MindStudio Insight page of the `visualize_data.bin` file.
 
-**Figure 1** Details page 1 
+**Figure 1** Details page 1
 ![](../figures/details-page-1.png "Details page 1")
 
 - Core Occupancy displays the time consumption, total data throughput, and cache hit ratio of each physical core in a data pane, allowing developers to improve the usage efficiency of physical cores.
 
     > [!NOTE]NOTE
-    > 
+    >
     > - Only <term>Atlas A3 training products, Atlas A3 inference products</term>, <term>Atlas A2 training products, Atlas A2 inference products</term>, and <term>Ascend 950 products</term> support this function.
     > - The number of cores displayed depends on the hardware.
 
@@ -288,7 +288,7 @@ The following shows the MindStudio Insight page of the `visualize_data.bin` file
 - Memory workload analysis displays the active bandwidth of each MTE channel. (If MemoryDetail is not enabled, the active bandwidth of MTE1 and MTE2 channels on the Cube is not displayed.) The memory heatmap and data pane display the number of requests, transfer bandwidth, and usage of each channel. This helps developers analyze channels that may have bottlenecks.
 
     > [!NOTE]NOTE
-    > 
+    >
     > - The content displayed in data panes varies depending on the operator type.
     > - The active bandwidth value function does not apply to <term>Atlas inference products</term>.
     > - <term>Atlas A3 training products or Atlas A3 inference products</term> does not support peak value (maximum bandwidth ratio) display.
@@ -310,13 +310,13 @@ The generated `visualize_data.bin` file can be visualized using MindStudio Insig
 
 - The Roofline bottleneck analysis chart of <term>Atlas inference products</term> contains only the memory unit view.
 
-    **Figure 1** Roofline bottleneck analysis chart of <term>Atlas inference products</term> 
+    **Figure 1** Roofline bottleneck analysis chart of <term>Atlas inference products</term>
     ![](../figures/Atlas-inference-products-Roofline-bottleneck-analysis-diagram.png "Atlas inference products-Roofline analysis chart")
 
 - For <term>Atlas A3 training products, Atlas A3 inference products</term>, <term>Atlas A2 training products, and Atlas A2 inference products</term>, different views are generated based on the operator type. For details, see [**Table 1** Roofline chart support for Atlas A3 training products, Atlas A3 inference products, Atlas A2 training products, and Atlas A2 inference products](#a2-a3-roofline-chart-support).
 
-    **Figure 2** Roofline bottleneck analysis chart for <term>Atlas A3 training products, Atlas A3 inference products</term>, <term>Atlas A2 training products, and Atlas A2 inference products</term> 
-    
+    **Figure 2** Roofline bottleneck analysis chart for <term>Atlas A3 training products, Atlas A3 inference products</term>, <term>Atlas A2 training products, and Atlas A2 inference products</term>
+
     ![](../figures/1.png)
 
     **Table 1** Roofline chart support for Atlas A3 training products, Atlas A3 inference products, Atlas A2 training products, and Atlas A2 inference products<a id="a2-a3-roofline-chart-support"></a>
@@ -399,8 +399,8 @@ The generated `visualize_data.bin` file can be visualized using MindStudio Insig
 
 - For <term>Ascend 950 products</term>, different views are generated based on the operator type. For details, see [**Table 2** Roofline chart support for <term>Ascend 950 products</term>](#a5-roofline-chart-support).
 
-    **Figure 3** Roofline bottleneck analysis chart for <term>Ascend 950 products</term> 
-    
+    **Figure 3** Roofline bottleneck analysis chart for <term>Ascend 950 products</term>
+
     ![](../figures/1-0.png)
 
     **Table 2** Roofline chart support for <term>Ascend 520 products</term><a id="a5-roofline-chart-support"></a>
@@ -463,7 +463,7 @@ The generated `visualize_data.bin` file can be visualized using MindStudio Insig
     </tbody>
     </table>
 
-    > [!NOTE]NOTE  
+    > [!NOTE]NOTE
     > The vector memory unit view of Ascend 950 products supports only the SIMT view.
 
 **Usage Instruction**
@@ -478,7 +478,7 @@ The Roofline performance analysis result of each unit or channel consists of a h
 - Roofline: The horizontal line at the top of the chart, representing the theoretical maximum computing performance of the NPU. Regardless of how the arithmetic intensity is improved, the actual performance cannot exceed the hardware limit.
 - Bandwidth slope: slope line that intersects with the roofline. Its intersection with the vertical axis depends on the theoretical maximum bandwidth. When the theoretical maximum bandwidth multiplied by the arithmetic intensity is less than the theoretical maximum computing performance of the NPU, the maximal computing power increases linearly with the arithmetic intensity.
 
-    > [!NOTE]NOTE  
+    > [!NOTE]NOTE
     > The roofline and bandwidth slope together form the theoretical maximum computing power of an operator, which can be summarized as `min(NPU theoretical maximum computing performance, Theoretical maximum bandwidth * Actual arithmetic intensity)`.
 
 - For parameters of actual running coordinates, see [**Table 3** Actual running coordinate parameters](#actual-running-coordinate-parameters).
@@ -503,7 +503,7 @@ The Roofline analysis chart analyzes the performance percentage of operators and
     - If the maximum pipeline ratio is greater than 80%, identify the type of the maximum pipeline ratio.
         - If the type of the maximum pipeline ratio is compute pipeline (cube ratio, vector ratio, or scalar ratio), the message "latency bound:compute caused" is displayed.
 
-            > [!NOTE]NOTE 
+            > [!NOTE]NOTE
             > <term>Ascend 950 products</term> support only the cube ratio and scalar ratio types.
 
         - If the type of the maximum pipeline ratio is memory pipeline (MTE1 ratio, MTE2 ratio, or MTE3 ratio), the message "latency bound:memory caused" is displayed.
@@ -526,16 +526,16 @@ Displays the L2 cache heatmap using the L2 cache access data of kernel functions
 
 The following figure shows the cache heat map.
 
-**Figure 1** Cache heatmap 
+**Figure 1** Cache heatmap
 ![](../figures/cache-heatmap.png "Cache heatmap")
 
 - **Hit** indicates the cacheline hits, and **Miss** indicates the cacheline misses, allowing you to analyze the L2 cache usage.
 - On the **Cache** tab page, select a hit or miss event graph and click to enlarge the event graph. In the enlarged event graph, right-click the selected memory cell and choose **Show Instructions in Source** from the shortcut menu. The **Source** page is displayed, and the related instruction line is highlighted.
 
-    **Figure 2** Operator code hot spot map corresponding to a cacheline  
+    **Figure 2** Operator code hot spot map corresponding to a cacheline
     ![](../figures/operator-code-hot-spot-map-corresponding-to-a-cacheline.png "Operator code hot spot map corresponding to a cacheline")
 
-    > [!NOTE]NOTE  
+    > [!NOTE]NOTE
     > To jump from the cache heatmap to the operator code hot spot map, configure msopprof in advance as described in [msOpProf Configuration](#tool-usage).
 
 ## Communication and Computing Pipeline Chart
@@ -575,8 +575,8 @@ The `trace.json` file can be visualized using either the Chrome browser or MindS
 
     Visualizes the generated `trace.json` or `visualize_data.bin` files.
 
-    **Figure 1** Communication and computing pipeline chart 
-    
+    **Figure 1** Communication and computing pipeline chart
+
     ![](../figures/1-1.png)
 
     - Displays the time consumption masking of the operator on the AICPU and AI Core to assess the MC2 operator performance.
@@ -585,7 +585,7 @@ The `trace.json` file can be visualized using either the Chrome browser or MindS
     - Displays collective communication pipeline and task pipeline during multi-device running of operators communicating via HCCL.
 
         > [!NOTE]NOTE
-        > 
+        >
         > - The MC2 operator can call the AllReduce, AllGather, ReduceScatter, and AlltoAll interfaces of the <term>Atlas A2 training products and Atlas A2 inference products</term> and the AllGather, ReduceScatter, and AlltoAllV interfaces of the <term>Atlas A3 training products and Atlas A3 inference products</term>. For details, see Advanced API \> Hccl \> [APIs on the HCCL Kernel Side](https://www.hiascend.com/document/detail/en/canncommercial/850/API/ascendcopapi/atlasascendc_api_07_0869.html) in the _Ascend C Operator Development API_. After the `-g` compilation option is added, click a specific API to associate the code call stack.
         > - For support of MC2, LCCL, and common operators, see [**Table 1** Key Fields](#key-fields).
 
@@ -609,17 +609,17 @@ For detailed MindStudio Insight operations and field explanations, see [Timeline
 - The pipeline chart feature is implemented based on sampling and is not directly related to the number of cores enabled by the user. Even if all cores are enabled, only the data of six cores is displayed.
 - If data loss occurs when MarkStamp is used for for marking, you are advised to reduce the number and density of mark points.
 
-**Figure 1** Pipeline chart 
+**Figure 1** Pipeline chart
 
 ![](../figures/1-2.png)
 
 You can use the [AscendC::MarkStamp API](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/900beta2/API/ascendcopapi/atlasascendc_api_07_00264.html) to perform pipeline marking at any point in the operator kernel code to identify the pipeline range. If a point with ID 13 is marked on the Vector core using this API, **MarkStamp13** will be displayed on the Scalar and Vector units in the chart. For details, see [**Figure 2** Custom Marking Chart](#custom-marking-chart).
 
-**Figure 2** Custom marking chart<a id="custom-marking-chart"></a> 
+**Figure 2** Custom marking chart<a id="custom-marking-chart"></a>
 ![](../figures/custom-marking-chart.png "Customized marking chart")
 
-> [!NOTE]NOTE  
-> 
+> [!NOTE]NOTE
+>
 >- Marking on the Scalar unit generates only one record, representing both issuing and execution. Marking on other units generates two records: one on the Scalar unit for issuing and one on the corresponding unit for execution.
 >- SIMT functions do not support marking.
 
@@ -641,7 +641,7 @@ Visualizes the `visualize_data.bin` files generated by msOpProf. On the page, yo
 
 The following figure shows the operator code hotspot map.
 
-**Figure 1** msOpProf source code page  
+**Figure 1** msOpProf source code page
 ![](../figures/msopprof-source-code-page-2.png "msOpProf source code page")
 
 - On the top of the page, you can switch between compute units and kernel function files.
@@ -656,7 +656,7 @@ The following figure shows the operator code hotspot map.
     |Timeline|Tool simulation|Code lines and instructions|
     |Details|Real data|Kernel|
 
-    > [!NOTE]NOTE 
+    > [!NOTE]NOTE
     > "NA" is displayed if no GM-related unit is involved when Process Bytes is checked.
 
 - For details about the features supported by msOpProf, see [**Table 2** msOpProf hot spot map features](#msopprof-hot-spot-map-features) and [**Table 3** Stall description](#stall-description).

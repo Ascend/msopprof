@@ -317,6 +317,60 @@ TEST(ArgChecker, replay_mode_return_should_be_false)
     GlobalMockObject::verify();
 }
 
+TEST(ArgChecker, ascend950_range_replay_with_unsupported_metrics_expect_return_false) {
+    GlobalMockObject::verify();
+    ProfArgs args;
+    args.argReplayMode = "range";
+    args.argMstx = "on";
+    std::string msg;
+    const std::string expectedMsg =
+        "--aic-metrics=Source/PcSampling/Roofline/PipeTimeline/InstrTimeline is invalid when "
+        "--replay-mode=range on Ascend 950";
+    ArgChecker checker("");
+    MOCKER(&Common::HalHelper::GetPlatformType).stubs().will(returnValue(Common::ChipType::ASCEND950));
+
+    ASSERT_TRUE(checker.CheckReplayMode(args, msg));
+
+    args.argAicMetrics.pcSamplingEnable = true;
+    ASSERT_FALSE(checker.CheckReplayMode(args, msg));
+    ASSERT_EQ(msg, expectedMsg);
+    args.argAicMetrics.pcSamplingEnable = false;
+
+    args.argAicMetrics.roofline = true;
+    ASSERT_FALSE(checker.CheckReplayMode(args, msg));
+    ASSERT_EQ(msg, expectedMsg);
+    args.argAicMetrics.roofline = false;
+
+    args.argAicMetrics.isSource = true;
+    ASSERT_FALSE(checker.CheckReplayMode(args, msg));
+    ASSERT_EQ(msg, expectedMsg);
+    args.argAicMetrics.isSource = false;
+
+    args.argAicMetrics.pipeTimelineEnable = true;
+    ASSERT_FALSE(checker.CheckReplayMode(args, msg));
+    ASSERT_EQ(msg, expectedMsg);
+    args.argAicMetrics.pipeTimelineEnable = false;
+
+    args.argAicMetrics.instrTimelineEnable = true;
+    ASSERT_FALSE(checker.CheckReplayMode(args, msg));
+    ASSERT_EQ(msg, expectedMsg);
+    GlobalMockObject::verify();
+}
+
+TEST(ArgChecker, ascend910b_range_replay_with_roofline_expect_return_true) {
+    GlobalMockObject::verify();
+    ProfArgs args;
+    args.argReplayMode = "range";
+    args.argMstx = "on";
+    args.argAicMetrics.roofline = true;
+    std::string msg;
+    ArgChecker checker("");
+    MOCKER(&Common::HalHelper::GetPlatformType).stubs().will(returnValue(Common::ChipType::ASCEND910B));
+
+    ASSERT_TRUE(checker.CheckReplayMode(args, msg));
+    GlobalMockObject::verify();
+}
+
 TEST(ArgChecker, config_with_launch_count_check)
 {
     ProfArgs args;
@@ -494,6 +548,23 @@ TEST(ArgChecker, args_with_core_id_expect_success)
     // test normal input
     args.argCoreId = "0|2|49";
     ASSERT_TRUE(checker.CheckCoreId(args, msg));
+}
+
+TEST(ArgChecker, device_core_id_on_ascend950_requires_timeline_detail) {
+    GlobalMockObject::verify();
+    ArgChecker checker("device");
+    Common::ProfArgs args;
+    std::string msg;
+    args.runMode = "device";
+    args.argCoreId = "0";
+    MOCKER(&Common::HalHelper::GetPlatformType).stubs().will(returnValue(Common::ChipType::ASCEND950));
+
+    ASSERT_FALSE(checker.CheckCoreId(args, msg));
+    ASSERT_EQ(msg, "--core-id requires --aic-metrics=TimelineDetail.");
+
+    args.argAicMetrics.isDeviceToSimulator = true;
+    ASSERT_TRUE(checker.CheckCoreId(args, msg));
+    GlobalMockObject::verify();
 }
 
 TEST(ArgChecker, args_with_timeout)
@@ -842,6 +913,7 @@ TEST(ArgChecker, test_CheckDump_device_unsupported_soc_expect_return_false) {
     std::string msg;
     args.runMode = "device";
     args.argDump = "on";
+    args.argAicMetrics.isDeviceToSimulator = true;
     MOCKER(&Common::HalHelper::GetPlatformType).stubs().will(returnValue(Common::ChipType::ASCEND950));
     ASSERT_FALSE(checker.CheckDump(args, msg));
     ASSERT_TRUE(msg.find("wrong soc platform") != std::string::npos);

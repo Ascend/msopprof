@@ -65,17 +65,47 @@ TEST(Interface, args_init_with_invalid_param_expect_return_false)
     ASSERT_FALSE(ret);
 }
 
-TEST(Interface, args_init_with_device_dump_on_ascend950_expect_return_false) {
+TEST(Interface, args_init_with_device_dump_on_ascend950_with_timeline_detail_expect_return_false) {
+    GlobalMockObject::verify();
+    MOCKER(&Common::HalHelper::GetPlatformType).stubs().will(returnValue(Common::ChipType::ASCEND950));
+    Common::ProfArgs args;
+    char *argv[5];
+    argv[0] = "msopprof";
+    argv[1] = "--application=/bin/true";
+    argv[2] = "--aic-metrics=TimelineDetail";
+    argv[3] = "--dump=on";
+    argv[4] = "--output=./output";
+    bool ret = ProfArgsInit(args, 5, argv, nullptr);
+    ASSERT_FALSE(ret);
+    GlobalMockObject::verify();
+}
+
+TEST(Interface, args_init_with_device_core_id_on_ascend950_without_timeline_detail_expect_return_false) {
     GlobalMockObject::verify();
     MOCKER(&Common::HalHelper::GetPlatformType).stubs().will(returnValue(Common::ChipType::ASCEND950));
     Common::ProfArgs args;
     char *argv[4];
     argv[0] = "msopprof";
     argv[1] = "--application=/bin/true";
-    argv[2] = "--dump=on";
+    argv[2] = "--core-id=0";
     argv[3] = "--output=./output";
     bool ret = ProfArgsInit(args, 4, argv, nullptr);
     ASSERT_FALSE(ret);
+    GlobalMockObject::verify();
+}
+
+TEST(Interface, args_init_with_device_core_id_on_ascend950_with_timeline_detail_expect_return_true) {
+    GlobalMockObject::verify();
+    MOCKER(&Common::HalHelper::GetPlatformType).stubs().will(returnValue(Common::ChipType::ASCEND950));
+    Common::ProfArgs args;
+    char *argv[5];
+    argv[0] = "msopprof";
+    argv[1] = "--application=/bin/true";
+    argv[2] = "--aic-metrics=TimelineDetail,Default";
+    argv[3] = "--core-id=0";
+    argv[4] = "--output=./output";
+    bool ret = ProfArgsInit(args, 5, argv, nullptr);
+    ASSERT_TRUE(ret);
     GlobalMockObject::verify();
 }
 
