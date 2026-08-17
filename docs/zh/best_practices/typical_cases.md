@@ -89,12 +89,12 @@ mstx.range_end(range2_id)
     1. 执行以下命令，使能单一mstx API范围，以下命令将执行“range1”范围级重放。
 
         ```shell
-        msprof op --replay-mode=range --mstx=on --mstx-include="range1" --launch-count=10 python3 test.py
+        msopprof --replay-mode=range --mstx=on --mstx-include="range1" --launch-count=10 python3 test.py
         ```
 
-    2. 工具生成Sub、Mul算子的调优数据，且两个算子之间的L2Cache信息会保留。具体性能文件介绍请参考[表2 msopprof模式文件介绍](../user_guide/msopprof_user_guide.md#工具使用)。
+    2. 工具生成Sub、Mul算子的调优数据，且两个算子之间的L2Cache信息会保留。具体性能文件介绍请参考[表4 msOpProf模式文件介绍](../user_guide/msopprof_user_guide.md#工具使用)。
 
-        ```tex
+        ```text
         OPPROF_{timestamp}_XXX
         ├── Mul_XXX  // Mul_XXX为采集算子名称
         │   └── 0
@@ -112,12 +112,12 @@ mstx.range_end(range2_id)
     1. 执行以下命令，使能所有mstx API范围。
 
         ```shell
-        msprof op --replay-mode=range --mstx=on --launch-count=10 python3 test.py
+        msopprof --replay-mode=range --mstx=on --launch-count=10 python3 test.py
         ```
 
-    2. 工具将会先后执行“range1”和“range2”范围级重放，生成Sub、Mul、Div、Abs、Add算子的调优数据，每次重放算子之间的L2Cache信息会保留，但两次重放的L2Cache信息互相独立。但因为“range2”和“range3”存在范围交叉，则仅第一个范围生效，“range3”将无效。具体性能文件介绍请参考[表2 msopprof模式文件介绍](../user_guide/msopprof_user_guide.md#工具使用)。
+    2. 工具将会先后执行“range1”和“range2”范围级重放，生成Sub、Mul、Div、Abs、Add算子的调优数据，每次重放算子之间的L2Cache信息会保留，但两次重放的L2Cache信息互相独立。但因为“range2”和“range3”存在范围交叉，则仅第一个范围生效，“range3”将无效。具体性能文件介绍请参考[表4 msOpProf模式文件介绍](../user_guide/msopprof_user_guide.md#工具使用)。
 
-        ```tex
+        ```text
         OPPROF_{timestamp}_XXX
         ├── Abs_XXX  // Abs_XXX为采集算子名称
         │   └── 0

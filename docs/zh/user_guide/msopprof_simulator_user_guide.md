@@ -207,8 +207,8 @@ msopprof simulator --soc-version=Ascendxxxyy --output=/home/projects/output /hom
 </tr>
 <tr id="zh-cn_topic_0000002016036877_row104315393543"><td class="cellrowborder" valign="top" width="25.232523252325233%" headers="mcps1.2.4.1.1 "><p id="zh-cn_topic_0000002016036877_p102401740175414">--dump</p>
 </td>
-<td class="cellrowborder" valign="top" width="63.02630263026302%" headers="mcps1.2.4.1.2 "><p id="zh-cn_topic_0000002016036877_p18606195017712">控制仿真器dump文件是否生成。</p>
-<p id="zh-cn_topic_0000002016036877_p3562736122116">选项包括开启（on）和关闭（off），默认情况下设置为关闭（off），即不生成仿真器dump文件。</p>
+<td class="cellrowborder" valign="top" width="63.02630263026302%" headers="mcps1.2.4.1.2 "><p id="zh-cn_topic_0000002016036877_p18606195017712">控制仿真器dump文件夹是否生成。</p>
+<p id="zh-cn_topic_0000002016036877_p3562736122116">选项包括开启（on）和关闭（off），默认情况下设置为关闭（off），即不生成仿真器dump文件夹。</p>
 <p id="p195771271259">注意事项：</p>
 <ul id="ul537191457"><li>此参数仅支持<span id="zh-cn_topic_0000002016036877_ph8606165015710"><term id="zh-cn_topic_0000002016036877_zh-cn_topic_0000001312391781_term11962195213215">Atlas A2 训练系列产品</term>/<term id="zh-cn_topic_0000002016036877_zh-cn_topic_0000001312391781_term184716139811">Atlas A2 推理系列产品</term></span>及<span id="zh-cn_topic_0000002016036877_ph96063504712"><term id="zh-cn_topic_0000002016036877_zh-cn_topic_0000001312391781_term1253731311225">Atlas A3 训练系列产品</term>/<term id="zh-cn_topic_0000002016036877_zh-cn_topic_0000001312391781_term131434243115">Atlas A3 推理系列产品</term></span>。</li><li>此参数仅适用于单进程场景，不支持两个算子同时运行的场景。</li></ul>
 </td>
