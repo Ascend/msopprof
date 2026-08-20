@@ -72,13 +72,13 @@
 |mode|测试模式。<br> - 上板：onboard <br> - 性能仿真：ca|string|是|
 |device_id|运行时使用AI处理器的ID，默认值：0。|int|否|
 |tiling_key|当前动态算子的tiling key。|uint64|否|
-|magic|算子类型。<br> - Cube算子：RT_DEV_BINARY_MAGIC_ELF_AICUBE <br> - Vector算子：RT_DEV_BINARY_MAGIC_ELF_AIVEC <br> - Mix融合算子：RT_DEV_BINARY_MAGIC_ELF（仅<term>Atlas A3 训练系列产品/Atlas A3 推理系列产品</term>和<term>Atlas A2 训练系列产品/Atlas A2 推理系列产品</term>支持配置）|string|是|
+|magic|算子类型。<br> - Cube算子：RT_DEV_BINARY_MAGIC_ELF_AICUBE <br> - Vector算子：RT_DEV_BINARY_MAGIC_ELF_AIVEC <br> - Mix融合算子：RT_DEV_BINARY_MAGIC_ELF（仅昇腾A3系列产品和昇腾A2系列产品支持配置）|string|是|
 |test_cases|测试数据，支持列表，每个元素包含一个用例。详细说明可参考[**表 2**  test_case参数字段说明](#test_case参数字段说明)。|list|是|
 
-> [!NOTE] 
+> [!NOTE]
 > 
 > - tiling_key参数仅适用于动态算子。
-> - 在使用magic参数时，<term>Atlas 推理系列产品</term>需配置为RT_DEV_BINARY_MAGIC_ELF。
+> - 在使用magic参数时，昇腾310P系列产品需配置为RT_DEV_BINARY_MAGIC_ELF。
 > - 在使用test_cases参数时，算子上板或仿真调优时仅支持配置单个用例。
 
 **表 2**  test_case参数字段说明<a id="test_case参数字段说明"></a>
@@ -284,7 +284,7 @@ mstx接口是MindStudio提供的一个性能分析接口，它允许用户在应
 
     > [!NOTE] 
     > 
-    > - 此样例工程不支持<term>Atlas A3 训练系列产品</term>。
+    > - 此样例工程不支持昇腾A3系列产品。
     > - ${INSTALL_DIR}请替换为CANN软件安装后文件存储路径。以root用户安装为例，安装后文件默认存储路径为：/usr/local/Ascend/cann。
 
     - 在`${git_clone_path}/samples/operator/ascendc/0_introduction/1_add_frameworklaunch/AclNNInvocation/src/CMakeLists.txt`路径下新增库文件`libms_tools_ext.so`，地址为：`${INSTALL_DIR}/lib64/libms_tools_ext.so`。

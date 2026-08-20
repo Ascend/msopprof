@@ -4,7 +4,7 @@
 
 Cube及Vector类型指令的cycle占比数据ArithmeticUtilization.csv，建议优化算子逻辑，减少冗余计算指令。详情介绍请参见下表中的字段说明。
 
-**<term>Atlas A3 训练系列产品/Atlas A3 推理系列产品</term>及<term>Atlas A2 训练系列产品/Atlas A2 推理系列产品</term>**
+**昇腾A3系列产品及昇腾A2系列产品**
 
 **图 1**  ArithmeticUtilization.csv文件  
 ![](../figures/ArithmeticUtilization-csv文件.png "ArithmeticUtilization-csv文件")
@@ -36,7 +36,7 @@ Cube及Vector类型指令的cycle占比数据ArithmeticUtilization.csv，建议�
 |aiv_vec_misc_ratio|代表Vec misc类型指令的cycle数在total cycle数中的占用比。|
 |aiv_vec_fops|代表Vector类型浮点运算数，即计算量，可用于衡量算法/模型的复杂度，其中fops表示floating point operations。|
 
-**<term>Atlas 推理系列产品</term>**
+**昇腾310P系列产品**
 
 **图 2**  ArithmeticUtilization.csv文件  
 ![](../figures/ArithmeticUtilization-csv文件-4.png "ArithmeticUtilization-csv文件-4")
@@ -62,7 +62,7 @@ Cube及Vector类型指令的cycle占比数据ArithmeticUtilization.csv，建议�
 |aic_vec_misc_ratio|代表Vec misc类型指令的cycle数在total cycle数中的占用比。|
 |aic_vec_fops|代表Vector类型浮点运算数，即计算量，可用于衡量算法/模型的复杂度，其中fops表示floating point operations。|
 
-**Ascend 950 系列产品**
+**昇腾950PR&950DT系列产品**
 
 **图 3**  ArithmeticUtilization.csv文件  
 ![](../figures/ArithmeticUtilization-csv文件-5.png "ArithmeticUtilization-csv文件-5")
@@ -94,7 +94,7 @@ Cube及Vector类型指令的cycle占比数据ArithmeticUtilization.csv，建议�
 
 L2 Cache命中率数据L2Cache.csv，影响MTE2（Memory Transfer Engine，数据搬入单元），建议合理规划数据搬运逻辑，增加命中率。详情介绍请参见下表中的字段说明。
 
-**<term>Atlas A3 训练系列产品/Atlas A3 推理系列产品</term>和<term>Atlas A2 训练系列产品/Atlas A2 推理系列产品</term>**
+**昇腾A3系列产品和昇腾A2系列产品**
 
 **图 1**  L2Cache.csv文件  
 ![](../figures/L2Cache-csv文件.png "L2Cache-csv文件")
@@ -119,7 +119,7 @@ L2 Cache命中率数据L2Cache.csv，影响MTE2（Memory Transfer Engine，数�
 |ai*_read_hit_rate(%)|读cache命中率。|
 |ai*_total_hit_rate(%)|读/写cache命中率。|
 
-**<term>Atlas 推理系列产品</term>**
+**昇腾310P系列产品**
 
 **图 2**  L2Cache.csv文件  
 ![](../figures/L2Cache-csv文件-6.png "L2Cache-csv文件-6")
@@ -132,7 +132,7 @@ L2 Cache命中率数据L2Cache.csv，影响MTE2（Memory Transfer Engine，数�
 |---|---|
 |aic_l2_cache_hit_rate(%)|内存访问请求命中L2次数与总次数的比值。|
 
-**Ascend 950 系列产品**
+**昇腾950PR&950DT系列产品**
 
 **图 3**  L2Cache.csv文件  
 ![](../figures/A5-L2Cache-csv.png "A5-L2Cache-csv")
@@ -170,7 +170,7 @@ UB/L1/L2/主存储器采集内存读写带宽速率数据Memory.csv。详情介�
 
 单位GB/s表示每秒传输1GB的数据量。
 
-**<term>Atlas A3 训练系列产品/Atlas A3 推理系列产品</term>及<term>Atlas A2 训练系列产品/Atlas A2 推理系列产品</term>**
+**昇腾A3系列产品及昇腾A2系列产品**
 
 **图 1**  Memory.csv文件  
 ![](../figures/Memory-csv文件.png "Memory-csv文件")
@@ -214,7 +214,7 @@ UB/L1/L2/主存储器采集内存读写带宽速率数据Memory.csv。详情介�
 |GM_to_UB_bw_usage_rate(%)|GM到UB通路带宽使用率。|
 |UB_to_GM_bw_usage_rate(%)|UB到GM通路带宽使用率。|
 
-**<term>Atlas 推理系列产品</term>**
+**昇腾310P系列产品**
 
 **图 2**  Memory.csv文件  
 ![](../figures/Memory-csv文件-7.png "Memory-csv文件-7")
@@ -240,7 +240,7 @@ UB/L1/L2/主存储器采集内存读写带宽速率数据Memory.csv。详情介�
 |aic_mte3_instructions|代表MTE3类型指令条数。|
 |aic_mte3_ratio|代表MTE3类型指令的cycle数在total cycle数中的占用比。|
 
-**Ascend 950 系列产品**
+**昇腾950PR&950DT系列产品**
 
 **图 3**  Memory.csv文件  
 ![](../figures/Memory-csv文件-8.png "Memory-csv文件-8")
@@ -288,7 +288,7 @@ L0A/L0B/L0C采集内存读写带宽速率数据MemoryL0.csv。详情介绍请参
 
 单位GB/s表示每秒传输1GB的数据量。
 
-**Atlas A3 训练系列产品/Atlas A3 推理系列产品和Atlas A2 训练系列产品/Atlas A2 推理系列产品以及Ascend 950 系列产品**
+**昇腾A3系列产品和昇腾A2系列产品以及昇腾950PR&950DT系列产品**
 
 **图 1**  MemoryL0.csv文件  
 ![](../figures/MemoryL0-csv文件.png "MemoryL0-csv文件")
@@ -312,7 +312,7 @@ L0A/L0B/L0C采集内存读写带宽速率数据MemoryL0.csv。详情介绍请参
 |aic_l0c_read_bw_cube(GB/s)|代表Cube从l0c读取的数据量对应total cycle的带宽速率，单位GB/s。|
 |aic_l0c_write_bw_cube(GB/s)|代表Cube向l0c写入的数据量对应total cycle的带宽速率，单位GB/s。|
 
-**<term>Atlas 推理系列产品</term>**
+**昇腾310P系列产品**
 
 **图 2**  MemoryL0.csv文件  
 ![](../figures/MemoryL0-csv文件-9.png "MemoryL0-csv文件-9")
@@ -340,7 +340,7 @@ mte/vector/scalar采集ub读写带宽速率数据MemoryUB.csv。详情介绍请�
 
 单位GB/s表示每秒传输1GB的数据量。
 
-**<term>Atlas A3 训练系列产品/Atlas A3 推理系列产品</term>及<term>Atlas A2 训练系列产品/Atlas A2 推理系列产品</term>**
+**昇腾A3系列产品及昇腾A2系列产品**
 
 **图 1**  MemoryUB.csv文件  
 ![](../figures/MemoryUB-csv文件.png "MemoryUB-csv文件")
@@ -362,7 +362,7 @@ mte/vector/scalar采集ub读写带宽速率数据MemoryUB.csv。详情介绍请�
 |aiv_ub_read_bw_scalar(GB/s)|代表Scalar从UB读取的数据量对应total cycle的带宽速率，单位GB/s。|
 |aiv_ub_write_bw_scalar(GB/s)|代表Scalar向UB写入的数据量对应total cycle的带宽速率，单位GB/s。|
 
-**<term>Atlas 推理系列产品</term>**
+**昇腾310P系列产品**
 
 **图 2**  MemoryUB.csv文件  
 ![](../figures/MemoryUB-csv文件-10.png "MemoryUB-csv文件-10")
@@ -380,7 +380,7 @@ mte/vector/scalar采集ub读写带宽速率数据MemoryUB.csv。详情介绍请�
 |aic_ub_read_bw_scalar(GB/s)|代表Scalar从UB读取的数据量对应total cycle的带宽速率，单位GB/s。|
 |aic_ub_write_bw_scalar(GB/s)|代表Scalar向UB写入的数据量对应total cycle的带宽速率，单位GB/s。|
 
-**Ascend 950 系列产品**
+**昇腾950PR&950DT系列产品**
 
 **图 3**  MemoryUB.csv文件  
 ![](../figures/MemoryUB-csv文件-11.png "MemoryUB-csv文件-11")
@@ -419,7 +419,7 @@ mte/vector/scalar采集ub读写带宽速率数据MemoryUB.csv。详情介绍请�
 |Op Type|算子类型。|
 |Task Duration(us)|Task耗时，包含调度到AI处理器的时间、AI处理器上的执行时间以及结束响应时间，单位us。|
 |Block Dim|Task运行切分数量，对应Task运行时核数，开发者设置的算子执行逻辑核数。|
-|Mix Block Dim|部分算子在Cube Core和Vector Core上同时执行，主AI处理器的blockDim在“Block Dim”字段中描述，可理解为Cube Core的数量，而从AI处理器的blockDim在本字段中描述，则可理解为Vector Core的数量。显示为N/A表示为非Mix融合算子。此参数仅适用于Atlas A3 训练系列产品/Atlas A3 推理系列产品和Atlas A2 训练系列产品/Atlas A2 推理系列产品以及Ascend 950 系列产品。|
+|Mix Block Dim|部分算子在Cube Core和Vector Core上同时执行，主AI处理器的blockDim在“Block Dim”字段中描述，可理解为Cube Core的数量，而从AI处理器的blockDim在本字段中描述，则可理解为Vector Core的数量。显示为N/A表示为非Mix融合算子。此参数仅适用于昇腾A3系列产品和昇腾A2系列产品以及昇腾950PR&950DT系列产品。|
 |Device ID|运行时使用AI处理器的ID。|
 |PID|算子运行时的进程号。|
 |Current Freq|AI处理器当前运行的频率。|
@@ -434,7 +434,7 @@ mte/vector/scalar采集ub读写带宽速率数据MemoryUB.csv。详情介绍请�
 > - 单位GB/s表示每秒传输1GB的数据量。
 > - 表中的字段说明里每一个ratio的total cycle表示的是cube核或者vector核上的cycle数，其中ai*分为aic和aiv，aic指的是cube，aiv指的是vector。
 
-**<term>Atlas A3 训练系列产品/Atlas A3 推理系列产品</term>和<term>Atlas A2 训练系列产品/Atlas A2 推理系列产品</term>**
+**昇腾A3系列产品和昇腾A2系列产品**
 
 **图 1**  PipeUtilization.csv文件  
 
@@ -482,10 +482,10 @@ mte/vector/scalar采集ub读写带宽速率数据MemoryUB.csv。详情介绍请�
 |aiv_mte3_active_bw(GB/s)|代表MTE3类型指令（AICORE->DDR AIV搬运类指令）数据量对应active cycle的活跃带宽。|
 |aic_fixpipe_active_bw(GB/s)|代表fixpipe类型指令（L0C->OUT/L1搬运类指令）数据量对应active cycle的活跃带宽。|
 |aiv_mte2_active_bw(GB/s)|代表MTE2类型指令（DDR->AICORE AIV搬运类指令）数据量对应active cycle的活跃带宽。|
-|aic_mte1_active_bw(GB/s)|代表Cube单元MTE1数据量对应active cycle的活跃带宽，具体涉及L1->L0A、L1->L0B这2个部分的通路数据。Atlas A3 训练系列产品/Atlas A3 推理系列产品和Atlas A2 训练系列产品/Atlas A2 推理系列产品仅开启动态插桩（设置--aic-metrics=MemoryDetail时）会显示。|
-|aic_mte2_active_bw(GB/s)|代表Cube单元MTE2数据量对应active cycle的活跃带宽，具体涉及GM->L1、GM->L0A、GM->L0B这3条通路的数据。Atlas A3 训练系列产品/Atlas A3 推理系列产品和Atlas A2 训练系列产品/Atlas A2 推理系列产品仅开启动态插桩（设置--aic-metrics=MemoryDetail时）会显示。|
+|aic_mte1_active_bw(GB/s)|代表Cube单元MTE1数据量对应active cycle的活跃带宽，具体涉及L1->L0A、L1->L0B这2个部分的通路数据。昇腾A3系列产品和昇腾A2系列产品仅开启动态插桩（设置--aic-metrics=MemoryDetail时）会显示。|
+|aic_mte2_active_bw(GB/s)|代表Cube单元MTE2数据量对应active cycle的活跃带宽，具体涉及GM->L1、GM->L0A、GM->L0B这3条通路的数据。昇腾A3系列产品和昇腾A2系列产品仅开启动态插桩（设置--aic-metrics=MemoryDetail时）会显示。|
 
-**<term>Atlas 推理系列产品</term>**
+**昇腾310P系列产品**
 
 **图 2**  PipeUtilization.csv文件  
 ![](../figures/PipeUtilization-csv文件-12.png "PipeUtilization-csv文件-12")
@@ -512,7 +512,7 @@ mte/vector/scalar采集ub读写带宽速率数据MemoryUB.csv。详情介绍请�
 |aic_vec_time(us)|代表Vec类型指令（向量类运算指令）耗时。|
 |aic_vec_ratio|代表Vec类型指令（向量类运算指令）的cycle数在total cycle数中的占用比。|
 
-**Ascend 950 系列产品**
+**昇腾950PR&950DT系列产品**
 
 **图 3**  PipeUtilization.csv文件  
 ![](../figures/PipeUtilization-csv文件.png "PipeUtilization-csv文件")
@@ -559,7 +559,7 @@ bank group是指UB中的一组bank，每个bank group包含多个bank。bank con
 
 详情介绍请参见下表中的字段说明。
 
-**<term>Atlas A3 训练系列产品/Atlas A3 推理系列产品</term>及<term>Atlas A2 训练系列产品/Atlas A2 推理系列产品</term>**
+**昇腾A3系列产品及昇腾A2系列产品**
 
 **图 1**  ResourceConflictRatio.csv文件  
 ![](../figures/ResourceConflictRatio-csv文件.png "ResourceConflictRatio-csv文件")
@@ -587,7 +587,7 @@ bank group是指UB中的一组bank，每个bank group包含多个bank。bank con
 |ai*_mte2_wait_ratio|代表MTE2被阻塞的cycle数在所有指令执行cycle数中占比。|
 |ai*_mte3_wait_ratio|代表MTE3被阻塞的cycle数在所有指令执行cycle数中占比。|
 
-**<term>Atlas 推理系列产品</term>**
+**昇腾310P系列产品**
 
 **图 2**  ResourceConflictRatio.csv文件  
 ![](../figures/ResourceConflictRatio-csv文件-13.png "ResourceConflictRatio-csv文件-13")
@@ -614,7 +614,7 @@ bank group是指UB中的一组bank，每个bank group包含多个bank。bank con
 > [!NOTE]   
 > 上表字段中的aic指的是AI Core。
 
-**Ascend 950 系列产品**
+**昇腾950PR&950DT系列产品**
 
 **图 3**  ResourceConflictRatio.csv文件  
 ![](../figures/ResourceConflictRatio-csv文件-14.png "ResourceConflictRatio-csv文件-14")

@@ -8,6 +8,8 @@
 
 </div>
 
+English | [简体中文](README.md)
+
 ## ✨ Latest Updates
 
 <span style="font-size:14px;">

@@ -83,17 +83,17 @@ msopprof --output=$HOME/projects/output $HOME/projects/MyApp/out/main blockdim 1
 |--kernel-name|指定要采集的算子名称，支持使用算子名前缀进行模糊匹配。如果不指定，则只对程序运行过程中调度的第一个算子进行采集。<br>注意事项：<li>需与--application配合使用，限制长度为1024，仅支持A-Za-z0-9_中的一个或多个字符。</li><li>需要采集多个算子时，支持使用符号“\|”进行拼接。例如，--kernel-name="add\|abs"表示采集前缀名为add和abs的算子。</li><li>具体采集的算子数量由--launch-count参数值决定。</li><li>支持使用通配符（*）匹配任意长度字符。</li>|否|
 |--launch-count|设置可以采集算子的最大数量，默认值为1，取值范围为1~5000之间的整数。|否|
 |--launch-skip-before-match|用于设置不需要采集数据的算子数量，从第一个算子开始到指定数目的算子不进行采集，仅对指定数目之后的算子开始采集。<br>注意事项：<ul><li>无论--launch-skip-before-match参数是否命中kernel-name中指定的算子，该项的计数都会增加，且不采集该算子。</li><li>此参数的取值范围为0~1000之间的整数。</li></ul>|否|
-|--aic-metrics|使能算子性能指标的采集能力和算子采集能力指标。<ul><li>使能算子性能指标的采集能力（ArithmeticUtilization、L2Cache、Memory、MemoryL0、MemoryUB、PipeUtilization、ResourceConflictRatio和Default），可选其中的一项或多项性能指标，选多项时用英文逗号隔开，例如：`--aic-metrics=Memory,MemoryL0`。</li><li>默认使能**Default**，采集以下性能指标（ArithmeticUtilization、L2Cache、Memory、MemoryL0、MemoryUB、PipeUtilization、ResourceConflictRatio）。例如：`--aic-metrics=Default`。</li><li>使能算子Kernel侧指定代码段范围内的性能指标采集（KernelScale）。<br>KernelScale可对算子Kernel侧指定代码段范围进行调优。需先配置--aic-metrics=KernelScale，然后选其中的一项或多项算子性能指标，选多项时用英文逗号隔开，例如：`--aic-metrics=KernelScale,Memory,MemoryL0`。<br>默认选择全部算子性能指标进行采集，例如：`--aic-metrics=KernelScale`。<br>指定代码段范围时，需要在算子Kernel侧对应的代码段前后进行设置，具体设置请参见《Ascend C算子开发接口》的“调试接口”章节的[MetricsProfStart](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/latest/API/ascendcopapi/docs/api/SIMD-API/%E5%9F%BA%E7%A1%80API/%E8%B0%83%E8%AF%95%E6%8E%A5%E5%8F%A3/%E6%80%A7%E8%83%BD%E7%BB%9F%E8%AE%A1/MetricsProfStart.md)和[MetricsProfStop](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/latest/API/ascendcopapi/docs/api/SIMD-API/%E5%9F%BA%E7%A1%80API/%E8%B0%83%E8%AF%95%E6%8E%A5%E5%8F%A3/%E6%80%A7%E8%83%BD%E7%BB%9F%E8%AE%A1/MetricsProfStop.md)接口。<br>仅Atlas A3 训练系列产品/Atlas A3 推理系列产品和Atlas A2 训练系列产品/Atlas A2 推理系列产品以及Ascend 950 系列产品支持该功能。</li><li>Roofline：使能生成Roofline瓶颈分析图，并通过MindStudio Insight进行可视化呈现，例如：--aic-metrics=Roofline。具体请参见[Roofline瓶颈分析图](#roofline瓶颈分析图)。Roofline与Default已绑定，使能Roofline即同时启用了Roofline和Default模式。</li><li>TimelineDetail：使能采集上板运行数据的同时，生成仿真指令流水图和仿真代码热点图，进行可视化呈现，例如：`--aic-metrics=TimelineDetail`。具体呈现内容请参见[仿真指令流水图](./msopprof_simulator_user_guide.md#指令流水图)和[仿真代码热点图](./msopprof_simulator_user_guide.md#算子代码热点图)。<br>若要使能此功能，需要参考[使用前准备](#使用前准备)进行配置。<br>仅Atlas A3 训练系列产品/Atlas A3 推理系列产品和Atlas A2 训练系列产品/Atlas A2 推理系列产品以及Ascend 950 系列产品支持该功能。<br>此功能仅支持第三方框架算子调用：PyTorch框架的场景且内部使用单算子API方式调起算子的场景。<br>此功能不支持采集二级指针类算子，Triton算子及通算融合类算子。且不支持与--replay-mode=application/range同时使能。<br>若要生成csv文件或展示计算内存热力图，拉起算子时，需使能Default，示例如下：`msopprof --aic-metrics=TimelineDetail,Default`</li><li>PipeTimeline：使能生成pipe流水图，能够直观看到算子各个Pipe的运行情况。例如：`--aic-metrics=PipeTimeline`。<br>具体呈现内容请参见[Pipe流水图](#pipe流水图)。<br>不支持PipeTimeline和InstrTimeline同时使能。<br>暂不支持通算融合类算子。<br>目前该功能只支持Ascend 950 系列产品。</li><li>InstrTimeline：使能生成上板指令流水图，直观展示每条指令的实际运行耗时，包含VECTOR/MTE1/MTE2/MTE3/CUBE/FIXP通路。例如：`--aic-metrics=InstrTimeline`。<br>配合参数`--instr-timeline-pipe`可以只采集指定pipe的流水，支持的pipe如下：cube、fixp、vector、mte1、mte2、mte3。例如`--aic-metrics=InstrTimeline --instr-timeline-pipe="mte1\|vector"`。<br>若需要每条指令展示指令PC及调用栈信息，需在编译算子时添加`-g`编译选项。<br>具体呈现内容请参见[指令流水图](#指令流水图)。<br>不支持PipeTimeline和InstrTimeline同时使能。<br>暂不支持通算融合类算子。<br>目前该功能只支持Ascend 950 系列产品。</li><li>Occupancy：使能生成核间负载分析图，并通过MindStudio Insight进行可视化呈现，例如：`--aic-metrics=Occupancy`。具体请参见[核间负载分析图](#计算内存热力图)。<br>各物理核之间，会针对耗时、数据吞吐量及Cache命中率分别进行对比，采用z-score+sigmoid对负载数据进行归一化处理，并以0.6作为阈值判断核心负载是否处于均衡状态，命令行界面会给出相应的调优建议。<br>仅Atlas A3 训练系列产品/Atlas A3 推理系列产品和Atlas A2 训练系列产品/Atlas A2 推理系列产品以及Ascend 950 系列产品支持该功能。</li><li>MemoryDetail：例如：`--aic-metrics=MemoryDetail`。</li><ul><li>使能该命令后，会开启L2 Cache相关功能（[计算负载分析图](#计算内存热力图)中的L2 Cache-L0A/L0B连线，[Cache热力图](#cache热力图)、[算子代码热点图](#算子代码热点图)中的L2Cache命中率以及与GM有关的数据搬运量）。</li></ul><ul><li>使能MemoryDetail时，会在内存负载分析图中展示aicore上Cube单元中MTE1和MTE2的活跃带宽。若MemoryDetail失败，则内存负载分析图中相应栏位会展示为NA，PipeUtilization（计算单元和搬运单元耗时占比）中不展示aic_mte1_active_bw(GB/s)和aic_mte2_active_bw(GB/s)。在使用Ascend 950 系列产品场景下，参数不开启仍会显示aic_mte1_active_bw(GB/s)和aic_mte2_active_bw(GB/s)。<br>不支持与`--replay-mode=range`同时使能。<br>MemoryDetail与Default已绑定，使能MemoryDetail即同时启用了MemoryDetail和Default模式。<br>仅Atlas A3 训练系列产品/Atlas A3 推理系列产品、Atlas A2 训练系列产品/Atlas A2 推理系列产品以及Ascend 950 系列产品支持该功能。</li></ul><li>BasicInfo：使能基础信息采集，仅落盘算子基础信息，例如：`--aic-metrics=BasicInfo`，具体落盘内容请参考[OpBasicInfo（算子基础信息）](./msopprof_performance_data.md#opbasicinfo算子基础信息)。</li><li>Source：使能算子代码热点图，例如：`--aic-metrics=Source`。具体请参见[算子代码热点图](#算子代码热点图)。<br>若需要查看代码调用栈，需在编译算子时添加`-g`编译选项，具体操作请参见[编译选项需添加-g](#使用前准备)。<br>不支持与`--replay-mode=range`同时使能。<br>仅<term>Atlas A3 训练系列产品/Atlas A3 推理系列产品</term>和<term>Atlas A2 训练系列产品/Atlas A2 推理系列产品</term>以及Ascend 950 系列产品支持该功能。</li><li>PcSampling：展示simt算子上板运行的 stall 信息。例如：`--aic-metrics=PcSampling`。具体请参见[算子代码热点图](#算子代码热点图)和[Warp Stall热点图](#warp-stall热点图)。<br>仅Ascend 950 系列产品支持该功能。</li></ul>|否|
+|--aic-metrics|使能算子性能指标的采集能力和算子采集能力指标。<ul><li>使能算子性能指标的采集能力（ArithmeticUtilization、L2Cache、Memory、MemoryL0、MemoryUB、PipeUtilization、ResourceConflictRatio和Default），可选其中的一项或多项性能指标，选多项时用英文逗号隔开，例如：`--aic-metrics=Memory,MemoryL0`。</li><li>默认使能**Default**，采集以下性能指标（ArithmeticUtilization、L2Cache、Memory、MemoryL0、MemoryUB、PipeUtilization、ResourceConflictRatio）。例如：`--aic-metrics=Default`。</li><li>使能算子Kernel侧指定代码段范围内的性能指标采集（KernelScale）。<br>KernelScale可对算子Kernel侧指定代码段范围进行调优。需先配置--aic-metrics=KernelScale，然后选其中的一项或多项算子性能指标，选多项时用英文逗号隔开，例如：`--aic-metrics=KernelScale,Memory,MemoryL0`。<br>默认选择全部算子性能指标进行采集，例如：`--aic-metrics=KernelScale`。<br>指定代码段范围时，需要在算子Kernel侧对应的代码段前后进行设置，具体设置请参见《Ascend C算子开发接口》的“调试接口”章节的[MetricsProfStart](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/latest/API/ascendcopapi/docs/api/SIMD-API/%E5%9F%BA%E7%A1%80API/%E8%B0%83%E8%AF%95%E6%8E%A5%E5%8F%A3/%E6%80%A7%E8%83%BD%E7%BB%9F%E8%AE%A1/MetricsProfStart.md)和[MetricsProfStop](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/latest/API/ascendcopapi/docs/api/SIMD-API/%E5%9F%BA%E7%A1%80API/%E8%B0%83%E8%AF%95%E6%8E%A5%E5%8F%A3/%E6%80%A7%E8%83%BD%E7%BB%9F%E8%AE%A1/MetricsProfStop.md)接口。<br>仅昇腾A3系列产品和昇腾A2系列产品以及昇腾950PR&950DT系列产品支持该功能。</li><li>Roofline：使能生成Roofline瓶颈分析图，并通过MindStudio Insight进行可视化呈现，例如：--aic-metrics=Roofline。具体请参见[Roofline瓶颈分析图](#roofline瓶颈分析图)。Roofline与Default已绑定，使能Roofline即同时启用了Roofline和Default模式。</li><li>TimelineDetail：使能采集上板运行数据的同时，生成仿真指令流水图和仿真代码热点图，进行可视化呈现，例如：`--aic-metrics=TimelineDetail`。具体呈现内容请参见[仿真指令流水图](./msopprof_simulator_user_guide.md#指令流水图)和[仿真代码热点图](./msopprof_simulator_user_guide.md#算子代码热点图)。<br>若要使能此功能，需要参考[使用前准备](#使用前准备)进行配置。<br>仅昇腾A3系列产品和昇腾A2系列产品以及昇腾950PR&950DT系列产品支持该功能。<br>此功能仅支持第三方框架算子调用：PyTorch框架的场景且内部使用单算子API方式调起算子的场景。<br>此功能不支持采集二级指针类算子，Triton算子及通算融合类算子。且不支持与--replay-mode=application/range同时使能。<br>若要生成csv文件或展示计算内存热力图，拉起算子时，需使能Default，示例如下：`msopprof --aic-metrics=TimelineDetail,Default`</li><li>PipeTimeline：使能生成pipe流水图，能够直观看到算子各个Pipe的运行情况。例如：`--aic-metrics=PipeTimeline`。<br>具体呈现内容请参见[Pipe流水图](#pipe流水图)。<br>不支持PipeTimeline和InstrTimeline同时使能。<br>暂不支持通算融合类算子。<br>目前该功能只支持昇腾950PR&950DT系列产品。</li><li>InstrTimeline：使能生成上板指令流水图，直观展示每条指令的实际运行耗时，包含VECTOR/MTE1/MTE2/MTE3/CUBE/FIXP通路。例如：`--aic-metrics=InstrTimeline`。<br>配合参数`--instr-timeline-pipe`可以只采集指定pipe的流水，支持的pipe如下：cube、fixp、vector、mte1、mte2、mte3。例如`--aic-metrics=InstrTimeline --instr-timeline-pipe="mte1\|vector"`。<br>若需要每条指令展示指令PC及调用栈信息，需在编译算子时添加`-g`编译选项。<br>具体呈现内容请参见[指令流水图](#指令流水图)。<br>不支持PipeTimeline和InstrTimeline同时使能。<br>暂不支持通算融合类算子。<br>目前该功能只支持昇腾950PR&950DT系列产品。</li><li>Occupancy：使能生成核间负载分析图，并通过MindStudio Insight进行可视化呈现，例如：`--aic-metrics=Occupancy`。具体请参见[核间负载分析图](#计算内存热力图)。<br>各物理核之间，会针对耗时、数据吞吐量及Cache命中率分别进行对比，采用z-score+sigmoid对负载数据进行归一化处理，并以0.6作为阈值判断核心负载是否处于均衡状态，命令行界面会给出相应的调优建议。<br>仅昇腾A3系列产品和昇腾A2系列产品以及昇腾950PR&950DT系列产品支持该功能。</li><li>MemoryDetail：例如：`--aic-metrics=MemoryDetail`。</li><ul><li>使能该命令后，会开启L2 Cache相关功能（[计算负载分析图](#计算内存热力图)中的L2 Cache-L0A/L0B连线，[Cache热力图](#cache热力图)、[算子代码热点图](#算子代码热点图)中的L2Cache命中率以及与GM有关的数据搬运量）。</li></ul><ul><li>使能MemoryDetail时，会在内存负载分析图中展示aicore上Cube单元中MTE1和MTE2的活跃带宽。若MemoryDetail失败，则内存负载分析图中相应栏位会展示为NA，PipeUtilization（计算单元和搬运单元耗时占比）中不展示aic_mte1_active_bw(GB/s)和aic_mte2_active_bw(GB/s)。在使用昇腾950PR&950DT系列产品场景下，参数不开启仍会显示aic_mte1_active_bw(GB/s)和aic_mte2_active_bw(GB/s)。<br>不支持与`--replay-mode=range`同时使能。<br>MemoryDetail与Default已绑定，使能MemoryDetail即同时启用了MemoryDetail和Default模式。<br>仅昇腾A3系列产品、昇腾A2系列产品以及昇腾950PR&950DT系列产品支持该功能。</li></ul><li>BasicInfo：使能基础信息采集，仅落盘算子基础信息，例如：`--aic-metrics=BasicInfo`，具体落盘内容请参考[OpBasicInfo（算子基础信息）](./msopprof_performance_data.md#opbasicinfo算子基础信息)。</li><li>Source：使能算子代码热点图，例如：`--aic-metrics=Source`。具体请参见[算子代码热点图](#算子代码热点图)。<br>若需要查看代码调用栈，需在编译算子时添加`-g`编译选项，具体操作请参见[编译选项需添加-g](#使用前准备)。<br>不支持与`--replay-mode=range`同时使能。<br>仅昇腾A3系列产品和昇腾A2系列产品以及昇腾950PR&950DT系列产品支持该功能。</li><li>PcSampling：展示simt算子上板运行的 stall 信息。例如：`--aic-metrics=PcSampling`。具体请参见[算子代码热点图](#算子代码热点图)和[Warp Stall热点图](#warp-stall热点图)。<br>仅昇腾950PR&950DT系列产品支持该功能。</li></ul>|否|
 |--instr-timeline-pipe|需配合`--aic-metrics=InstrTimeline`参数进行使用，详情请参见上方`--aic-metrics=InstrTimeline`参数。|否|
 |--kill|选项包括开启（on）和关闭（off），默认情况下设置为关闭（off），关闭该功能。<br>若用户配置--kill=on使能该功能，用户程序将会在采集完--launch-count设置的算子数量后，自动停止程序。<br>注意事项：<br><ul><li>配置--kill=on后，可能会出现因用户程序提前结束而引发的错误日志，用户需自行评估是否使用该功能。</li><li>若用户程序为多进程，--kill参数的配置只对子进程生效。</li><li>使用该参数会造成最后一个被执行的通算融合算子无法正常获取接口调用流水，具体请参见[通算流水图](#通算流水图)。</li><li>不建议与`--replay-mode=range`同时使能，否则可能导致采集的算子数据缺失。</li></ul>|否|
 |--mstx|该参数决定算子调优工具是否使能用户代码程序中使用的mstx API。<br>默认为off，表示关闭对mstx API的使能。<br>若用户配置--mstx=on，算子调优工具将会使能用户代码程序中使用的mstx API。具体举例如下：`msopprof --mstx=on ./add_custom`<br>注意事项：<ul><li>当前已支持mstx API中的mstxRangeStartA和mstxRangeEnd接口，功能为使能算子调优的指定区间，具体参数介绍请参见《MindStudio mstx API参考》中的[mstxRangeStartA](https://gitcode.com/Ascend/mstx/blob/master/docs/zh/api_reference/Common/mstxRangeStartA.md)和[mstxRangeEnd](https://gitcode.com/Ascend/mstx/blob/master/docs/zh/api_reference/Common/mstxRangeEnd.md)接口。</li><li>配合`--replay-mode=range`使用时，mstxRangeStartA和mstxRangeEnd接口需成对调用，不支持交叉调用。每一对mstx API中包含的算子为一个重放范围，该重放范围内算子的Stream不能改变。同时，能采集的算子数量受[OpBasicInfo（算子基础信息）](./msopprof_performance_data.md#opbasicinfo算子基础信息)中算子Block Dim数量限制（建议不超过50个）。</li></ul>|否|
 |--mstx-include|该参数支持在算子调优工具使能mstx API的情况下，仅使能用户指定mstx API。<br>若不配置，则默认使能所有用户代码中使用的mstx API。<br>若配置，--mstx-include只使能用户指定的mstx API。--mstx-include的输入为用户调用mstx函数时传入的message字符串，使用"\|"拼接多个字符串。具体举例如下：`--mstx=on --mstx-include="hello\|hi" //仅使能用户传入mstx函数中message参数为hello和hi的mstx API`<br>注意事项：<ul><li>不可单独配置，需要与--mstx配合使用。</li><li>仅支持message为A-Z a-z 0-9 _这些字符，使用"\|"进行拼接。</li></ul>|否|
-|--replay-mode|算子数据采集的重放模式，可配置为kernel/application/range，默认为kernel。<ul><li>若配置为application，代表是应用级重放，整个应用会进行多次重放。application模式下，单独使能部分aic-metrics可能会导致visualize_data.bin文件中部分数据丢失，若需要查看完整的visualize_data.bin数据，建议添加Default到--aic-metrics以采集完整的可视化数据。</li><li>若配置为kernel，代表是核函数级重放，指定采集范围的单个算子的核函数进行多次重放。</li><li>若配置为range，代表是范围级重放，指定范围内的多算子整体进行多次重放。可以指定多个范围，范围之间相互独立。</li>注意事项：<li>kernel模式和range模式会清除L2cache数据，而application模式不会清理L2cache数据。</li><li>多卡多算子的场景不支持配置为application。</li><li>范围级重放需配合`--mstx=on`一起使用，且仅适用于Atlas A3 训练系列产品/Atlas A3 推理系列产品和Atlas A2 训练系列产品/Atlas A2 推理系列产品以及Ascend 950 系列产品。</li><li>范围级重放不支持采集MC2和LCCL类型的通算融合算子，且Atlas A2 训练系列产品/Atlas A2 推理系列产品不支持与--kill=on、--aic-metrics=MemoryDetail、--aic-metrics=TimelineDetail及--aic-metrics=Source同时使能。Ascend 950 系列产品不支持与--kill=on、--aic-metrics=PcSampling、Source、Roofline、PipeTimeline、InstrTimeline同时使能。</li></ul>|否|
+|--replay-mode|算子数据采集的重放模式，可配置为kernel/application/range，默认为kernel。<ul><li>若配置为application，代表是应用级重放，整个应用会进行多次重放。application模式下，单独使能部分aic-metrics可能会导致visualize_data.bin文件中部分数据丢失，若需要查看完整的visualize_data.bin数据，建议添加Default到--aic-metrics以采集完整的可视化数据。</li><li>若配置为kernel，代表是核函数级重放，指定采集范围的单个算子的核函数进行多次重放。</li><li>若配置为range，代表是范围级重放，指定范围内的多算子整体进行多次重放。可以指定多个范围，范围之间相互独立。</li>注意事项：<li>kernel模式和range模式会清除L2cache数据，而application模式不会清理L2cache数据。</li><li>多卡多算子的场景不支持配置为application。</li><li>范围级重放需配合`--mstx=on`一起使用，且仅适用于昇腾A3系列产品和昇腾A2系列产品以及昇腾950PR&950DT系列产品。</li><li>范围级重放不支持采集MC2和LCCL类型的通算融合算子，且昇腾A2系列产品不支持与--kill=on、--aic-metrics=MemoryDetail、--aic-metrics=TimelineDetail及--aic-metrics=Source同时使能。昇腾950PR&950DT系列产品不支持与--kill=on、--aic-metrics=PcSampling、Source、Roofline、PipeTimeline、InstrTimeline同时使能。</li></ul>|否|
 |--warm-up|当部分算子使用msOpProf采集时，会达不到芯片提频的最小任务耗时产生降频，从而会对交付件的结果产生一定影响。在该情况下，可用`--warm-up`指定预热次数，提前提升**AI处理器**的运行频率，使上板数据更准确。<br>注意事项：<ul><li>默认值为5，取值范围为[0,500]。</li><li>此参数对MC2算子不生效。</li><li>当开启范围级别重放时，--warm-up次数至少为1，不得设置--warm-up=0。</li></ul>|否|
 |--output|收集到的性能数据的存放路径，默认在当前目录下保存性能数据。<br>需确保群组和其他组的用户不具备--output指定输出路径的上一级目录的写入权限。同时，需要确保--output指定目录的上一级目录属主为当前用户。|否|
-|--dump|控制仿真器dump文件是否生成。<br>选项包括开启（on）和关闭（off），默认情况下设置为关闭（off），即不生成仿真器dump文件。<br>注意事项：<ul><li>此参数仅在使用--aic-metrics=TimelineDetail选项时有效，且仅针对Atlas A2 训练系列产品/Atlas A2 推理系列产品及Atlas A3 训练系列产品/Atlas A3 推理系列产品生效，不支持Atlas 推理系列产品和Ascend 950 系列产品。</li><li>此参数仅适用于单进程场景，不支持两个算子同时运行的场景。</li></ul>|否|
-|--core-id|该参数适用于算子分布均匀的情况时，可使用--core-id参数指定部分逻辑核的id，解析部分核的仿真数据。<br>核id的取值范围为[0,49]。<br>注意事项：<ul><li>若要解析多个核的仿真数据时，需要使用符号"\|"进行拼接。例如，--core-id="0\|31"表示解析核id为0和31的仿真数据。</li><li>此参数仅在使用`--aic-metrics=TimelineDetail`选项时有效，仅作用于[指令流水图](./msopprof_simulator_user_guide.md#指令流水图)和[算子代码热点图](#算子代码热点图)，仅适用于Atlas A2 训练系列产品/Atlas A2 推理系列产品、Atlas A3 训练系列产品/Atlas A3 推理系列产品及Ascend 950 系列产品。</li></ul>|否|
-|--custom-input|用于读取自定义输入文件，具体输入示例请参见[json示例文件](#json示例文件)，目前只支持[通算流水图](#通算流水图)使用。仅适用于Atlas A2 训练系列产品/Atlas A2 推理系列产品、Atlas A3 训练系列产品/Atlas A3 推理系列产品以及Ascend 950 系列产品。|否|
+|--dump|控制仿真器dump文件是否生成。<br>选项包括开启（on）和关闭（off），默认情况下设置为关闭（off），即不生成仿真器dump文件。<br>注意事项：<ul><li>此参数仅在使用--aic-metrics=TimelineDetail选项时有效，且仅针对昇腾A2系列产品及昇腾A3系列产品生效，不支持昇腾310P系列产品和昇腾950PR&950DT系列产品。</li><li>此参数仅适用于单进程场景，不支持两个算子同时运行的场景。</li></ul>|否|
+|--core-id|该参数适用于算子分布均匀的情况时，可使用--core-id参数指定部分逻辑核的id，解析部分核的仿真数据。<br>核id的取值范围为[0,49]。<br>注意事项：<ul><li>若要解析多个核的仿真数据时，需要使用符号"\|"进行拼接。例如，--core-id="0\|31"表示解析核id为0和31的仿真数据。</li><li>此参数仅在使用`--aic-metrics=TimelineDetail`选项时有效，仅作用于[指令流水图](./msopprof_simulator_user_guide.md#指令流水图)和[算子代码热点图](#算子代码热点图)，仅适用于昇腾A2系列产品、昇腾A3系列产品及昇腾950PR&950DT系列产品。</li></ul>|否|
+|--custom-input|用于读取自定义输入文件，具体输入示例请参见[json示例文件](#json示例文件)，目前只支持[通算流水图](#通算流水图)使用。仅适用于昇腾A2系列产品、昇腾A3系列产品以及昇腾950PR&950DT系列产品。|否|
 |-h，--help|输出帮助信息。|否|
 
 ## 工具使用
@@ -266,9 +266,9 @@ msOpProf工具协助用户定位算子内存、算子代码以及算子指令的
     > [!NOTE]
     >
     > - visualize\_data.bin可通过MindStudio Insight工具进行可视化展示，具体使用方法请参考[MindStudio Insight算子调优](https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/user_guide/operator_tuning.md)。
-    > - msOpProf的热点函数功能仅支持<term>Atlas A2 训练系列产品/Atlas A2 推理系列产品</term>。
+    > - msOpProf的热点函数功能仅支持昇腾A2系列产品。
     > - 当前，仅支持生成MC2和LCCL类型通算融合算子的[通算流水图](#通算流水图)。
-    > - MC2和LCCL类型通算融合算子不支持生成[Cache热力图](#cache热力图)和[算子代码热点图](#算子代码热点图)，且不支持<term>Atlas 推理系列产品</term>。
+    > - MC2和LCCL类型通算融合算子不支持生成[Cache热力图](#cache热力图)和[算子代码热点图](#算子代码热点图)，且不支持昇腾310P系列产品。
     > - 单位GB/s表示每秒传输1GB的数据量。
 
 4. 将visualize_data.bin文件导入MindStudio Insight后，将会展示[计算内存热力图](#计算内存热力图)、[Roofline瓶颈分析图](#roofline瓶颈分析图)、[Cache热力图](#cache热力图)、[流水图](#流水图)和[算子代码热点图](#算子代码热点图)。
@@ -293,7 +293,7 @@ visualize\_data.bin文件通过MindStudio Insight工具展示的界面如下。
 
     > [!NOTE]
     >
-    > - 仅Atlas A3 训练系列产品/Atlas A3 推理系列产品和Atlas A2 训练系列产品/Atlas A2 推理系列产品以及Ascend 950 系列产品支持该功能。
+    > - 仅昇腾A3系列产品和昇腾A2系列产品以及昇腾950PR&950DT系列产品支持该功能。
     > - 具体展示的核数与实际使用的硬件有关。
 
 - Roofline瓶颈分析图（Roofline），具体介绍请参见[Roofline瓶颈分析图](#roofline瓶颈分析图)。
@@ -303,9 +303,9 @@ visualize\_data.bin文件通过MindStudio Insight工具展示的界面如下。
     > [!NOTE]
     >
     > - 数据窗格呈现的内容会随算子类型而变化。
-    > - 活跃带宽值的功能不适用于Atlas 推理系列产品。
-    > - Atlas A3 训练系列产品/Atlas A3 推理系列产品暂不支持峰值（最大带宽占比）展示。
-    > - Ascend 950 系列产品包含SIMD架构算子暂不支持UB读写VEC单元的数据展示。
+    > - 活跃带宽值的功能不适用于昇腾310P系列产品。
+    > - 昇腾A3系列产品暂不支持峰值（最大带宽占比）展示。
+    > - 昇腾950PR&950DT系列产品包含SIMD架构算子暂不支持UB读写VEC单元的数据展示。
 
 ## Roofline瓶颈分析图
 
@@ -321,19 +321,19 @@ MindStudio Insight具体操作请参考《MindStudio Insight算子调优》的�
 
 生成的visualize\_data.bin文件可导入MindStudio Insight进行可视化呈现，并针对不同的硬件以及算子类型会生成不同的Roofline分析视图。
 
-- Atlas 推理系列产品的Roofline瓶颈分析图中仅有内存单元视图。
+- 昇腾310P系列产品的Roofline瓶颈分析图中仅有内存单元视图。
 
-    **图 2** Atlas 推理系列产品 Roofline瓶颈分析图
+    **图 2** 昇腾310P系列产品 Roofline瓶颈分析图
 
     ![](../figures/Atlas-推理系列产品-Roofline瓶颈分析图.png "Atlas-推理系列产品-Roofline瓶颈分析图")
 
-- Atlas A3 训练系列产品/Atlas A3 推理系列产品和Atlas A2 训练系列产品/Atlas A2 推理系列产品根据算子类型不同而产生不同的视图，具体请参见[**表 5** Atlas A3 训练系列产品/Atlas A3 推理系列产品和Atlas A2 训练系列产品/Atlas A2 推理系列产品支持Roofline视图情况列表](#A2-A3支持Roofline视图情况)。
+- 昇腾A3系列产品和昇腾A2系列产品根据算子类型不同而产生不同的视图，具体请参见[**表 5** 昇腾A3系列产品和昇腾A2系列产品支持Roofline视图情况列表](#A2-A3支持Roofline视图情况)。
 
-    **图 3** Atlas A3 训练系列产品/Atlas A3 推理系列产品和Atlas A2 训练系列产品/Atlas A2 推理系列产品 Roofline瓶颈分析图
+    **图 3** 昇腾A3系列产品和昇腾A2系列产品 Roofline瓶颈分析图
 
     ![](../figures/1.png)
 
-    **表 5** Atlas A3 训练系列产品/Atlas A3 推理系列产品和Atlas A2 训练系列产品/Atlas A2 推理系列产品支持Roofline视图情况列表<a id="A2-A3支持Roofline视图情况"></a>
+    **表 5** 昇腾A3系列产品和昇腾A2系列产品支持Roofline视图情况列表<a id="A2-A3支持Roofline视图情况"></a>
 
     <table><thead align="left"><tr id="zh-cn_topic_0000002037945009_row1347917355615"><th class="cellrowborder" valign="top" width="24.97%" id="mcps1.2.5.1.1"><p id="zh-cn_topic_0000002037945009_p1447915351616">Roofline视图类型</p>
     </th>
@@ -411,13 +411,13 @@ MindStudio Insight具体操作请参考《MindStudio Insight算子调优》的�
     </tbody>
     </table>
 
-- Ascend 950 系列产品根据算子类型不同而产生不同的视图，具体请参见[**表 6** Ascend 950 系列产品支持Roofline视图情况列表](#A5支持Roofline视图情况)。
+- 昇腾950PR&950DT系列产品根据算子类型不同而产生不同的视图，具体请参见[**表 6** 昇腾950PR&950DT系列产品支持Roofline视图情况列表](#A5支持Roofline视图情况)。
 
-    **图 4** Ascend 950 系列产品Roofline瓶颈分析图
+    **图 4** 昇腾950PR&950DT系列产品Roofline瓶颈分析图
 
     ![](../figures/1-0.png)
 
-    **表 6** Ascend 950 系列产品支持Roofline视图情况列表<a id="A5支持Roofline视图情况"></a>
+    **表 6** 昇腾950PR&950DT系列产品支持Roofline视图情况列表<a id="A5支持Roofline视图情况"></a>
 
     <table><thead align="left"><tr id="zh-cn_topic_0000002037945009_row1660731475010"><th class="cellrowborder" valign="top" width="24.97%" id="mcps1.2.5.1.1"><p id="zh-cn_topic_0000002037945009_p1760741418509">Roofline视图类型</p>
     </th>
@@ -479,7 +479,7 @@ MindStudio Insight具体操作请参考《MindStudio Insight算子调优》的�
 
     > [!NOTE]
     >
-    > Ascend 950 系列产品的Vector内存单元视图仅支持SIMT视图，暂不支持SIMD视图。
+    > 昇腾950PR&950DT系列产品的Vector内存单元视图仅支持SIMT视图，暂不支持SIMD视图。
 
 **使用说明**
 
@@ -531,7 +531,7 @@ Roofline分析视图分析算子的性能百分比，并提供以下客观分析
 - MindStudio Insight具体操作和详细字段解释请参考《MindStudio Insight算子调优》的“[缓存（Cache）](https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/user_guide/operator_tuning.md#%E7%BC%93%E5%AD%98%EF%BC%88cache%EF%BC%89)”章节。
 - 添加`-g`编译选项会在生成的二进制文件中附带调试信息，建议限制带有调试信息的用户程序的访问权限，确保只有授权人员可以访问该二进制文件。
 - 若不使用`llvm-symbolizer`组件提供的相关功能，输入msOpProf的程序编译时不包含-g即可，msOpProf工具则不会调用`llvm-symbolizer`组件的相关功能。
-- Cache热力图功能不适用于<term>Atlas 推理系列产品</term>。
+- Cache热力图功能不适用于昇腾310P系列产品。
 - MC2算子和LCCL算子均不支持生成Cache热力图。
 
 ### 使用说明
@@ -688,9 +688,9 @@ trace.json文件可分别通过Chrome浏览器和MindStudio Insight展示，visu
 
         > [!NOTE]
         >
-        > - MC2算子支持对<term>Atlas A2 训练系列产品/Atlas A2 推理系列产品</term>的AllReduce、AllGather、ReduceScatter、AlltoAll等接口及<term>Atlas A3 训练系列产品/Atlas A3 推理系列产品</term>的AllGather、ReduceScatter、AlltoAllV等接口进行调用，具体介绍请参见《Ascend C算子开发接口》中的“高阶API \> Hccl \>  [Hccl Kernel侧接口](https://www.hiascend.com/document/detail/zh/canncommercial/latest/API/ascendcopapi/atlasascendc_api_07_0869.html)”章节，添加`-g`编译选项后，单击具体接口将会关联代码行调用栈。
+        > - MC2算子支持对昇腾A2系列产品的AllReduce、AllGather、ReduceScatter、AlltoAll等接口及昇腾A3系列产品的AllGather、ReduceScatter、AlltoAllV等接口进行调用，具体介绍请参见《Ascend C算子开发接口》中的“高阶API \> Hccl \>  [Hccl Kernel侧接口](https://www.hiascend.com/document/detail/zh/canncommercial/latest/API/ascendcopapi/atlasascendc_api_07_0869.html)”章节，添加`-g`编译选项后，单击具体接口将会关联代码行调用栈。
         > - MC2算子和LCCL算子及普通通算算子的支持情况请参考[**表 8**  关键字段说明](#关键字段说明)。
-        > - Ascend 950 系列产品支持打点流水图功能。
+        > - 昇腾950PR&950DT系列产品支持打点流水图功能。
 
 ### Warp流水图
 
@@ -703,7 +703,7 @@ MindStudio Insight具体操作和详细字段解释请参考《MindStudio Insigh
 #### 使用说明
 
 - 生成的visualize_data.bin文件可导入MindStudio Insight进行可视化呈现，展示warp的耗时情况，界面如下。
-- warp流水图当前仅支持Ascend 950 系列产品。
+- warp流水图当前仅支持昇腾950PR&950DT系列产品。
 
 **图 12**  warp流水图<a id="warp流水图"></a>
 
@@ -725,7 +725,7 @@ MindStudio Insight具体操作和详细字段解释请参考《MindStudio Insigh
 - MindStudio Insight具体操作和详细字段解释请参考《MindStudio Insight算子调优》的“[源码（Source）](https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/user_guide/operator_tuning.md#%E6%BA%90%E7%A0%81%EF%BC%88source%EF%BC%89)”章节。
 - 添加`-g`编译选项会在生成的二进制文件中附带调试信息，建议限制带有调试信息的用户程序的访问权限，确保只有授权人员可以访问该二进制文件。
 - 算子程序编译时需要包含-g，否则msOpProf不会展示热点图，也不调用llvm-symbolizer组件的相关功能实现代码与PC映射。
-- msOpProf算子代码热点图功能不适用于<term>Atlas 推理系列产品</term>。
+- msOpProf算子代码热点图功能不适用于昇腾310P系列产品。
 - MC2算子和LCCL算子均不支持生成算子代码热点图。
 
 ### 使用说明
@@ -755,7 +755,7 @@ MindStudio Insight具体操作和详细字段解释请参考《MindStudio Insigh
 
     **表 10**  msOpProf热点图的功能介绍<a id="msOpProf热点图的功能介绍"></a>
 
-    |列名|Atlas A2 训练系列产品/Atlas A2 推理系列产品|Atlas A3 训练系列产品/Atlas A3 推理系列产品|Atlas 推理系列产品|Ascend 950 系列产品|说明|
+    |列名|昇腾A2系列产品|昇腾A3系列产品|昇腾310P系列产品|昇腾950PR&950DT系列产品|说明|
     |-------|-------|------|-------|-------|--------|
     |源码|支持|支持|不支持|支持|-|
     |指令PC地址|支持|支持|不支持|支持|-|
@@ -799,5 +799,5 @@ visualize\_data.bin文件通过MindStudio Insight工具展示的界面如下图�
 
 > [!NOTE]
 >
-> - 仅Ascend 950 系列产品支持该功能。
+> - 仅昇腾950PR&950DT系列产品支持该功能。
 > - 该功能在开启参数`--aic-metrics=PcSampling`时生效。

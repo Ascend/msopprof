@@ -732,7 +732,7 @@ struct MsprofAicpuHcclTaskInfo {
 
 **限制**
 
-1. Atlas 推理系列产品, Atlas A2 训练系列产品/Atlas A2 推理系列产品中寄存器上限为32
+1. 昇腾310P系列产品，昇腾A2系列产品中寄存器上限为32
 2. 基于只有Scalar流水中的指令中会包含DST，其他指令认为只包含SRC
 
 可视化计算部分
@@ -886,7 +886,7 @@ FUZZ：当前对所有对外接口都进行FUZZ测试
 3. 运行环境
 
     由于当前仓中mockcpp版本限制，因此UT需要在x86机器上进行
-    由于当前支持的机器类型有Atlas A2 训练系列产品/Atlas A2 推理系列产品、Atlas A3 训练系列产品/Atlas A3 推理系列产品、Atlas 推理系列产品，所以ST需要在这三类机器上运行。
+    由于当前支持的机器类型有昇腾A2系列产品、昇腾A3系列产品、昇腾310P系列产品，所以ST需要在这三类机器上运行。
 
 ## 5. 运行视图
 
@@ -907,12 +907,15 @@ FUZZ：当前对所有对外接口都进行FUZZ测试
 ##### 5.1.1.3.1 上板采集
 
 **劫持逻辑**
+
 列举主要的劫持函数（runtime接口对应的aclrt接口）。
 
 ![image](./architecture_figures/1a12bc5385fc2d2751bf3684dc8ef711_606x314.png)
 
-注：对于Atlas 推理系列产品需要在开启硬件接口前打开runtime通道，当前设计为与msprof保持一致，直接dlopen libprof.so，传入开启的command，由prof调用开关打开通道。
+注：对于昇腾310P系列产品需要在开启硬件接口前打开runtime通道，当前设计为与msprof保持一致，直接dlopen libprof.so，传入开启的command，由prof调用开关打开通道。
+
 **处理流程**
+
 当前调优工具只依赖一个so，即libmsopprof_injection.so，当前工具侧需要启动算子进程前告知子进程当前需要启动仿真采集或者上板采集的操作。（仿真为例）
 
 ![image](./architecture_figures/428ea3fa9e3357494c0695c49c79c5e5_756x348.png)
