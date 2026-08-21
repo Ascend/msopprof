@@ -104,7 +104,7 @@ msOpProf工具协助用户定位算子内存、算子代码以及算子指令的
 
 |适用场景|使用方式|展示的图形|
 |---|---|---|
-|适用于实际运行环境中的性能分析，可协助用户定位算子内存和性能瓶颈。|直接分析运行中的算子，无需额外配置，适合在板环境中快速定位算子性能问题。|[计算内存热力图](#计算内存热力图) <br> [Roofline瓶颈分析图](#roofline瓶颈分析图) <br> [Cache热力图](#cache热力图) <br> [流水图](#流水图) <br> [算子代码热点图](#算子代码热点图) <br> [Warp Stall热力图](#warp-stall热点图)|
+|适用于实际运行环境中的性能分析，可协助用户定位算子内存和性能瓶颈。|直接分析运行中的算子，无需额外配置，适合在板环境中快速定位算子性能问题。|[计算内存热力图](#计算内存热力图) <br> [Roofline瓶颈分析图](#roofline瓶颈分析图) <br> [Cache热力图](#cache热力图) <br> [流水图](#流水图) <br> [算子代码热点图](#算子代码热点图) <br> [Warp Stall热点图](#warp-stall热点图)|
 
 **msOpProf分段调优原则**
 
@@ -580,16 +580,33 @@ MindStudio Insight具体操作和详细字段解释请参考《MindStudio Insigh
 
 ![](../figures/1-2.png)
 
-支持用户通过[AscendC::MarkStamp接口](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/900beta2/API/ascendcopapi/atlasascendc_api_07_00264.html)在算子kernel侧任意代码处进行流水图打点，用以标识流水范围。使用接口在vector打上一个id为13的点，会在图上的scalar单元和vector单元展示MarkStamp13，具体请参见[**图 9**  自定义打点图](#自定义打点图)。
+支持用户通过[AscendC::MarkStamp接口](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/900beta2/API/ascendcopapi/atlasascendc_api_07_00264.html)在算子kernel侧任意代码处进行流水图打点，用以标识流水范围。使用接口在vector打上一个id为13的点，会在图上的scalar单元和vector单元展示MarkStamp13，具体请参见[**图 9-1**  自定义打点图](#自定义打点图)。
 
-**图 9**  自定义打点图<a id="自定义打点图"></a>
+**图 9-1**  自定义打点图<a id="自定义打点图"></a>
 
 ![](../figures/自定义打点图.png "自定义打点图")
 
 > [!NOTE]
 >
->- 在scalar上进行打点，只会产生一条打点数据，既表示下发也表示执行。在其他单元上进行打点，会产生两条数据，一条是scalar上的点，表示打点指令下发，一条是对应单元上的点，表示打点指令执行。
->- SIMT函数里不支持打点。
+> - 在scalar上进行打点，只会产生一条打点数据，既表示下发也表示执行。在其他单元上进行打点，会产生两条数据，一条是scalar上的点，表示打点指令下发，一条是对应单元上的点，表示打点指令执行。
+> - SIMT函数里不支持打点。
+> - MarkStamp打点ID为12位，取值范围为0~4095。
+
+支持用户通过[TRACE_START接口](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/latest/API/ascendcopapi/docs/zh/api/Utils-API/%E8%B0%83%E6%B5%8B%E6%8E%A5%E5%8F%A3/asc_mark_stamp.md)和[TRACE_STOP接口](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/latest/API/ascendcopapi/docs/zh/api/Utils-API/%E8%B0%83%E6%B5%8B%E6%8E%A5%E5%8F%A3/TRACE_STOP.md)，对算子任意运行阶段进行打点，自定义分析指定代码片段运行流水。
+
+在Ascend算子kernel代码中，用户可以在需要分析的代码前后分别插入TRACE_START（apid）和TRACE_STOP（apid）宏。打点数据最终在流水图上以区间形式呈现，便于快速定位性能瓶颈。
+
+不同的pipeline（VECTOR、CUBE、SCALAR、MTE1等）分别在不同的轨道上进行展示，不同的apid对应不同的颜色，可直观看到各个阶段的耗时分布。具体请参见[**图 9-2** TRACE_START/TRACE_STOP自定义打点流水图](#trace自定义打点流水)。
+
+**图 9-2** TRACE_START/TRACE_STOP自定义打点流水图<a id="trace自定义打点流水"></a>
+
+![](../figures/trace自定义打点流水.png "trace自定义打点流水")
+
+> [!NOTE]
+>
+> - TRACE_START/TRACE_STOP自定义打点功能目前仅支持昇腾950PR&950DT系列产品。
+> - TRACE_START/TRACE_STOP接口打点ID为10位，取值范围为0~1023。
+> - 不建议和MarkStamp接口打点功能一起使用。
 
 ### 指令流水图
 
@@ -601,7 +618,7 @@ MindStudio Insight具体操作和详细字段解释请参考《MindStudio Insigh
 
 #### 使用说明
 
-- 通过参数`--aic-metrics=InstrTimeline`开启上板指令级别流水图功能，--instr-timeline-pipe用于指定流水图支持的pipe，例如`--aic-metrics=InstrTimeline --instr-timeline-pipe="mte1|vector"`。支持的pipe如下：cube、fixp、vector、mte1、mte2、mte3。每个pipe指令限制条数为1024条。
+- 通过参数`--aic-metrics=InstrTimeline`开启上板指令级别流水图功能，--instr-timeline-pipe用于指定流水图支持的pipe，例如`--aic-metrics=InstrTimeline --instr-timeline-pipe="mte1|vector"`。支持的pipe如下：cube、fixp、vector、mte1、mte2、mte3。每个pipe指令限制最多1024个PC。
 - 开启-g算子编译选项可获取指令级流水图PC和调用栈信息。
 - SIMT VF、SIMD VF内的指令无法展示。
 - 指令密集时可能出现数据丢失情况，建议减少循环逻辑或通过`--instr-timeline-pipe`参数指定部分pipe。
