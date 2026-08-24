@@ -429,7 +429,7 @@ mte/vector/scalar采集ub读写带宽速率数据MemoryUB.csv。详情介绍请�
 
 采集计算单元和搬运单元耗时和占比数据PipeUtilization.csv。建议优化数据搬运逻辑，提高带宽利用率。详情介绍请参见下表中的字段说明。
 
-> [!NOTE] 
+> [!NOTE]
 > 
 > - 单位GB/s表示每秒传输1GB的数据量。
 > - 表中的字段说明里每一个ratio的total cycle表示的是cube核或者vector核上的cycle数，其中ai*分为aic和aiv，aic指的是cube，aiv指的是vector。
@@ -611,7 +611,8 @@ bank group是指UB中的一组bank，每个bank group包含多个bank。bank con
 |aic_mte2_wait_ratio|代表MTE2被阻塞的cycle数在所有指令执行cycle数中占比。|
 |aic_mte3_wait_ratio|代表MTE3被阻塞的cycle数在所有指令执行cycle数中占比。|
 
-> [!NOTE]   
+> [!NOTE]
+> 
 > 上表字段中的aic指的是AI Core。
 
 **昇腾950PR&950DT系列产品**

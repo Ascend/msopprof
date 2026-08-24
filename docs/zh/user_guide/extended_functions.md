@@ -249,7 +249,7 @@
 </tbody>
 </table>
 
-> [!NOTE] 
+> [!NOTE]
 > 
 > - “output”中参数取值的个数都要与“input”一致，否则测试用例生成会失败。
 >    例如：“input”的type支持的类型个数为2，则“output”的type支持的类型个数也需要为2。
@@ -282,7 +282,7 @@ mstx接口是MindStudio提供的一个性能分析接口，它允许用户在应
 - 默认情况下mstx接口不使能。若用户在应用程序中调用mstx接口，工具会根据具体使用场景使能mstx打点功能。例如配置--mstx=on使能用户程序中的mstx API，并可以通过--mstx-include使能用户程序中特定的mstx API，具体使用可分别参见msopprof模式用户指南的“[命令参考](./msopprof_user_guide.md#命令参考)”和msopprof simulator模式用户指南的“[命令参考](./msopprof_simulator_user_guide.md#命令参考)”中的--mstx和--mstx-include参数。
 - mstx当前提供了两种API的使用方式：库文件和头文件，以[样例](https://gitee.com/ascend/samples/tree/master/operator/ascendc/0_introduction/1_add_frameworklaunch/AclNNInvocation)为例：
 
-    > [!NOTE] 
+    > [!NOTE]
     > 
     > - 此样例工程不支持昇腾A3系列产品。
     > - ${INSTALL_DIR}请替换为CANN软件安装后文件存储路径。以root用户安装为例，安装后文件默认存储路径为：/usr/local/Ascend/cann。

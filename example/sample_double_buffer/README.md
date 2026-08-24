@@ -2,7 +2,7 @@
 
 ## 概述
 
-本样例演示如何使用 **msOpProf** 工具定位计算与数据搬运串行执行的性能瓶颈，并通过使能 DoubleBuffer（`BUFFER_NUM` 从 1 改为 2）实现流水并行，让 数据搬运 与 VEC 计算重叠执行。
+本样例演示如何使用 **msOpProf** 工具定位计算与数据搬运串行执行的性能瓶颈，并通过使能 DoubleBuffer（`BUFFER_NUM` 从 1 改为 2）实现流水并行，让数据搬运与VEC计算重叠执行。
 
 ## 适用场景
 
@@ -11,9 +11,9 @@
 
 ## 支持的产品范围
 
-- Ascend 950PR/Ascend 950DT
-- Atlas A3 训练系列产品/Atlas A3 推理系列产品
-- Atlas A2 训练系列产品/Atlas A2 推理系列产品
+- 昇腾950PR&950DT系列产品
+- 昇腾A3系列产品
+- 昇腾A2系列产品
 
 ## 目录结构
 
@@ -81,7 +81,7 @@ make -j4 && cd ..
 
 | 选项 | 可选值 | 说明 |
 |------|--------|------|
-| `CMAKE_ASC_ARCHITECTURES` | `dav-2201`、`dav-3510` | NPU 架构：dav-2201 对应 Atlas A2/A3 系列产品，dav-3510 对应 Ascend 950PR/Ascend 950DT |
+| `CMAKE_ASC_ARCHITECTURES` | `dav-2201`、`dav-3510` | NPU 架构：dav-2201 对应昇腾A2系列产品/昇腾A3系列产品，dav-3510 对应昇腾950PR&950DT系列产品 |
 | `CMAKE_ASC_RUN_MODE` | `npu`（默认）、`sim`、`cpu` | 运行模式：`npu` 上板运行；`sim` 仿真运行（`msopprof simulator` 需用此模式产物）；`cpu` CPU 调试 |
 
 > **注意**：切换架构或运行模式前需清理 cmake 缓存，可在 build 目录下执行 `rm CMakeCache.txt` 后重新 cmake。运行 `msopprof simulator` 仿真前，需以 `-DCMAKE_ASC_RUN_MODE=sim` 重新编译，默认 `npu` 模式产物无法用于仿真。

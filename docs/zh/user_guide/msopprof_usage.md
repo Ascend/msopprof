@@ -27,7 +27,7 @@ Kernel直调场景，详细信息可参考《Ascend C算子开发指南》中“
     cmake ..;make -j;             # 编译工程
     ```
 
-    > [!NOTE] 说明
+    > [!NOTE]
     > 
     > 本示例中可执行文件的名称（add）仅为示例，具体以当前工程中用户实际编译的脚本为准。
 
@@ -56,7 +56,8 @@ Kernel直调场景，详细信息可参考《Ascend C算子开发指南》中“
 
 4. 使用如下命令完成msopprof simulator性能数据、流水图和热点图数据的采集，也可参考[msopprof simulator模式命令](https://gitcode.com/Ascend/msopprof/blob/master/docs/zh/user_guide/msopprof_simulator_user_guide.md#命令参考)指定其他命令参数。
 
-    > [!NOTE]说明
+    > [!NOTE]
+    > 
     > 参数 `--soc-version` 的值可通过执行以下命令获取：`python3 -c "import acl; print(acl.get_soc_name())"`。
 
     ```shell
@@ -71,7 +72,7 @@ Kernel直调场景，详细信息可参考《Ascend C算子开发指南》中“
 
 6. 分别查看算子上板和仿真的性能数据，可将采集得到的visualize\_data.bin文件导入MindStudio Insight，具体导入操作请参考《MindStudio Insight用户指南》的“[导入性能数据](https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/user_guide/basic_operations.md#导入数据)”章节。<a id="导入数据"></a>
 
-    > [!NOTE] 说明
+    > [!NOTE]
     > 
     > 其它算子调用场景下获取的性能数据文件，可使用相同方式查看。
 
@@ -114,7 +115,8 @@ Kernel直调场景，详细信息可参考《Ascend C算子开发指南》中“
     
 4. 使用如下命令完成msopprof simulator性能数据、流水图和热点图数据的采集。
 
-    > [!NOTE]说明
+    > [!NOTE]
+    > 
     > 参数 `--soc-version` 的值可通过执行以下命令获取：`python3 -c "import acl; print(acl.get_soc_name())"`。
 
     ```shell
@@ -178,14 +180,15 @@ PyTorch框架算子调用场景下，进行性能数据采集的操作步骤与[
 
 3. 使用如下命令完成msopprof simulator性能数据、流水图和热点图数据的采集。
 
-    > [!NOTE]说明
+    > [!NOTE]
+    > 
     > 参数 `--soc-version` 的值可通过执行以下命令获取：`python3 -c "import acl; print(acl.get_soc_name())"`。
 
     ```shell
     msopprof simulator --soc-version=Ascendxxxyy python3 test_add.py
     ```
 
-    > [!NOTE] 说明
+    > [!NOTE]
     > 
     > 该样例算子已经去除了其它非triton算子的冗余计算，仅保留一个需要采集仿真性能的triton算子add_kernel，可极大节约仿真运行的整体耗时。即使指定了--kernel-name的情况下，仿真器仍会按照算子顺序依次运行，因此建议仿真运行前减少非必要的算子。
 
@@ -233,7 +236,8 @@ PyTorch框架算子调用场景下，进行性能数据采集的操作步骤与[
 
 4. 使用如下命令完成msopprof simulator性能数据、流水图和热点图数据的采集。
 
-    > [!NOTE]说明
+    > [!NOTE]
+    > 
     > 参数 `--soc-version` 的值可通过执行以下命令获取：`python3 -c "import acl; print(acl.get_soc_name())"`。
 
     ```shell

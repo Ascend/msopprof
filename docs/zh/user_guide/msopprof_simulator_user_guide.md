@@ -67,7 +67,7 @@ MindStudio Ops Profiler（算子调优工具，msOpProf）用于采集和分析�
 
 登录运行环境，使用msopprof simulator开启算子仿真调优功能，并配合使用仿真可选参数和用户待调优程序（blockdim 1）进行调优，仿真可选参数请参考[**表 1**  msopprof simulator可选参数说明](#simulator可选参数说明)。
 
-> [!NOTE]说明
+> [!NOTE]
 > 
 > 参数 `--soc-version` 的值可通过执行以下命令获取：`python3 -c "import acl; print(acl.get_soc_name())"`。
 
@@ -252,7 +252,7 @@ msOpProf工具协助用户定位算子内存、算子代码以及算子指令的
 
 - 编译选项需添加-g，使能算子代码热点图和代码调用栈功能。
 
-    > [!NOTE]   
+    > [!NOTE]
     > 
     > - 添加-g编译选项会在生成的二进制文件中附带调试信息，建议限制带有调试信息的用户程序的访问权限，确保只有授权人员可以访问该二进制文件。
     > - 若不使用llvm-symbolizer组件提供的相关功能，输入msOpProf的程序编译时不包含-g即可，msOpProf工具则不会调用llvm-symbolizer组件的相关功能。
@@ -265,7 +265,7 @@ msOpProf工具协助用户定位算子内存、算子代码以及算子指令的
 
     - 若参考完整样例，以[样例](https://gitee.com/ascend/samples/tree/master/operator/ascendc/0_introduction/3_add_kernellaunch/AddKernelInvocationNeo)为例，需在样例工程目录下的“cmake/npu\_lib.cmake”文件中新增以下代码。
 
-        >[!NOTE] 
+        > [!NOTE]
         > 
         > - 此样例工程不支持昇腾A3系列产品。
         > - 下载代码样例时，需执行以下命令指定分支版本。
@@ -529,7 +529,7 @@ trace.json文件可分别通过Chrome浏览器和MindStudio Insight展示，visu
 - 在左侧界面，提供算子核函数各行代码对应的耗时、寄存器使用情况、Vector计算类指令在UB Bank上读和写的冲突情况、Vector计算单元利用率、与GM有关的数据搬运量及对应的指令数，帮助开发者快速定位瓶颈代码行。
 - 在右侧界面，提供具体的指令耗时、寄存器使用情况、与GM有关的数据搬运量、Vector计算类指令在UB Bank上读和写的冲突情况、Vector计算单元利用率、执行次数及与代码相关联，帮助开发者进一步分析代码耗时长的原因。
 
-> [!NOTE] 
+> [!NOTE]
 > 
 > - 通用寄存器的最大数量为32，当寄存器的使用数量达到32时，仿真过程需等到使用中的寄存器释放后才能运行。
 > - 不支持使用TRACE\_START和TRACE\_STOP接口查看部分算子的寄存器使用情况。
@@ -574,6 +574,7 @@ trace.json文件可分别通过Chrome浏览器和MindStudio Insight展示，visu
 - 展示各种类型内存通路（当前仅展示GM\_TO\_L1、GM\_TO\_TOTAL、GM\_TO\_UB、L1\_TO\_GM、TOTAL\_TO\_GM、UB\_TO\_GM六个通路）的数据吞吐率（单位为MB/s）。例如，GM\_TO\_UB表示从GM搬运到UB的吞吐率，GM\_TO\_TOTAL表示从GM搬运到各内存单元的吞吐率。
 - 结合MTE相关指令，观察执行相关命令时的吞吐率，协助用户识别算子性能问题。
 
-    > [!NOTE]    
+    > [!NOTE]
+    > 
     > - 吞吐率计算所采用的数据是某一个指令多次请求结束时的数据。
     > - 吞吐率波形图可能出现在某指令的起始时间和结束时间范围内（包含起始时间和结束时间）。例如，持续时间为1\~3微秒的指令，吞吐率数据可能分散在1\~2微秒、2\~3微秒及3\~4微秒三个柱状图内。
