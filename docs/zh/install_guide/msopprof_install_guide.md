@@ -74,7 +74,7 @@ mindstudio-opprof package install success!
 
 > [!NOTE]
 > 
-> 安装路径说明   
+> 安装路径说明
 > 
 > 若环境中已配置 `ASCEND_HOME_PATH` 环境变量，工具将安装至 `$ASCEND_HOME_PATH` 目录；
 > 否则，默认安装至 `$HOME/Ascend` 目录；  

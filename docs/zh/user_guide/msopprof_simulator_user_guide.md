@@ -48,7 +48,7 @@ MindStudio Ops Profiler（算子调优工具，msOpProf）用于采集和分析�
 
 **使用约束**
 
-- 性能数据采集时间建议在5min以内，同时推荐用户设置的内存大小在20G以上（例如容器配置：docker run --memory=20g  _容器名_）。
+- 性能数据采集时间建议在5min以内，同时推荐用户设置的内存大小在20GB以上（例如容器配置：docker run --memory=20g  _容器名_）。
 - 请确保性能数据保存在不含软链接的当前用户目录下，否则可能引起安全问题。
 
 ## 注意事项
@@ -67,7 +67,7 @@ MindStudio Ops Profiler（算子调优工具，msOpProf）用于采集和分析�
 
 登录运行环境，使用msopprof simulator开启算子仿真调优功能，并配合使用仿真可选参数和用户待调优程序（blockdim 1）进行调优，仿真可选参数请参考[**表 1**  msopprof simulator可选参数说明](#simulator可选参数说明)。
 
-> [!NOTE]说明
+> [!NOTE]
 > 参数 `--soc-version` 的值可通过执行以下命令获取：`python3 -c "import acl; print(acl.get_soc_name())"`。
 
 ```shell
@@ -236,7 +236,7 @@ msOpProf工具协助用户定位算子内存、算子代码以及算子指令的
 
 **msopprof simulator配置**<a id="simulator配置"></a>
 
-> [!NOTE]    
+> [!NOTE]
 > 
 > - msOpProf工具的仿真功能仅支持单卡场景，无法仿真多卡环境。
 > - 参数 `--soc-version` 的值可通过执行以下命令获取：`python3 -c "import acl; print(acl.get_soc_name())"`。
@@ -244,14 +244,14 @@ msOpProf工具协助用户定位算子内存、算子代码以及算子指令的
 - msOpProf工具使用--config模式进行算子仿真调优之前，需执行如下命令配置环境变量。
 
     ```shell
-    export LD_LIBRARY_PATH=${INSTALL_DIR}/tools/simulator/Ascendxxxyy/lib:$LD_LIBRARY_PATH 
+    export LD_LIBRARY_PATH=${INSTALL_DIR}/tools/simulator/Ascendxxxyy/lib:$LD_LIBRARY_PATH
     ```
 
     请根据CANN软件包实际安装路径和AI处理器的型号对以上环境变量进行修改。
 
 - 编译选项需添加-g，使能算子代码热点图和代码调用栈功能。
 
-    > [!NOTE]   
+    > [!NOTE]
     > 
     > - 添加-g编译选项会在生成的二进制文件中附带调试信息，建议限制带有调试信息的用户程序的访问权限，确保只有授权人员可以访问该二进制文件。
     > - 若不使用llvm-symbolizer组件提供的相关功能，输入msOpProf的程序编译时不包含-g即可，msOpProf工具则不会调用llvm-symbolizer组件的相关功能。
@@ -264,7 +264,7 @@ msOpProf工具协助用户定位算子内存、算子代码以及算子指令的
 
     - 若参考完整样例，以[样例](https://gitee.com/ascend/samples/tree/master/operator/ascendc/0_introduction/3_add_kernellaunch/AddKernelInvocationNeo)为例，需在样例工程目录下的“cmake/npu\_lib.cmake”文件中新增以下代码。
 
-        >[!NOTE] 
+        >[!NOTE]
         > 
         > - 此样例工程不支持<term>Atlas A3 训练系列产品</term>。
         > - 下载代码样例时，需执行以下命令指定分支版本。
@@ -304,7 +304,7 @@ msOpProf工具协助用户定位算子内存、算子代码以及算子指令的
 
 请先完成msopprof simulator配置，然后根据以下操作步骤使能msOpProf工具的仿真调优功能。算子调优工具支持仿真环境下的性能数据采集和自动解析。
 
-> [!NOTE] 
+> [!NOTE]
 > 
 > - 当前msOpProf不支持-O0编译选项。
 > - 仿真环境不支持采集MC2和HCCL类型的算子。
@@ -324,7 +324,8 @@ msOpProf工具协助用户定位算子内存、算子代码以及算子指令的
 1. 登录运行环境，需要使用msopprof simulator开启算子仿真调优，并配合使用仿真可选参数和用户待调优程序（app \[arguments\]）进行调优，仿真可选参数请参考[命令参考](#命令参考)。算子仿真调优可以通过以下两种方式执行：
     - 基于可执行文件
         - 单算子场景，以*test*为例
-            > [!NOTE]    
+            > [!NOTE]
+            > 
             > 示例中的可执行文件名称`test`仅作为示例展示，实际名称请以当前工程中编译生成的可执行文件为准。
 
             ```shell
@@ -333,7 +334,7 @@ msOpProf工具协助用户定位算子内存、算子代码以及算子指令的
 
         - 多算子场景
 
-            若test中有Add，MatlMul，Sub算子，可配合--launch-count和--kernel-name使用，可以指定采集Add和Sub算子。
+            若test中有Add，MatMul，Sub算子，可配合--launch-count和--kernel-name使用，可以指定采集Add和Sub算子。
 
             ```shell
             msprof op simulator --soc-version=Ascendxxxyy --launch-count=10 --kernel-name="Add|Sub" --output=./output_data ./test    # xxxyy为用户实际使用的具体芯片类型，./test需要放置在命令末尾
@@ -341,7 +342,8 @@ msOpProf工具协助用户定位算子内存、算子代码以及算子指令的
 
     - 基于输入算子二进制文件*.o的配置文件.json
 
-        > [!NOTE]    
+        > [!NOTE]
+        > 
         > --config场景下，仅支持使用LD\_LIBRARY\_PATH导入环境变量，不支持使用--soc-version参数。
 
         ```shell
@@ -520,7 +522,7 @@ trace.json文件可分别通过Chrome浏览器和MindStudio Insight展示，visu
 - 在左侧界面，提供算子核函数各行代码对应的耗时、寄存器使用情况、Vector计算类指令在UB Bank上读和写的冲突情况、Vector计算单元利用率、与GM有关的数据搬运量及对应的指令数，帮助开发者快速定位瓶颈代码行。
 - 在右侧界面，提供具体的指令耗时、寄存器使用情况、与GM有关的数据搬运量、Vector计算类指令在UB Bank上读和写的冲突情况、Vector计算单元利用率、执行次数及与代码相关联，帮助开发者进一步分析代码耗时长的原因。
 
-> [!NOTE] 
+> [!NOTE]
 > 
 > - 通用寄存器的最大数量为32，当寄存器的使用数量达到32时，仿真过程需等到使用中的寄存器释放后才能运行。
 > - 不支持使用TRACE\_START和TRACE\_STOP接口查看部分算子的寄存器使用情况。
@@ -566,6 +568,7 @@ trace.json文件可分别通过Chrome浏览器和MindStudio Insight展示，visu
 - 展示各种类型内存通路（当前仅展示GM\_TO\_L1、GM\_TO\_TOTAL、GM\_TO\_UB、L1\_TO\_GM、TOTAL\_TO\_GM、UB\_TO\_GM六个通路）的数据吞吐率（单位为MB/s）。例如，GM\_TO\_UB表示从GM搬运到UB的吞吐率，GM\_TO\_TOTAL表示从GM搬运到各内存单元的吞吐率。
 - 结合MTE相关指令，观察执行相关命令时的吞吐率，协助用户识别算子性能问题。
 
-    > [!NOTE]    
+    > [!NOTE]
+    > 
     > - 吞吐率计算所采用的数据是某一个指令多次请求结束时的数据。
     > - 吞吐率波形图可能出现在某指令的起始时间和结束时间范围内（包含起始时间和结束时间）。例如，持续时间为1\~3微秒的指令，吞吐率数据可能分散在1\~2微秒、2\~3微秒及3\~4微秒三个柱状图内。

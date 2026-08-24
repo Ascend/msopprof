@@ -14,4 +14,4 @@ For details about the overall architecture, code framework, and core design idea
 
 ### 2.2 Development Environment, Building, and Testing
 
-For details about how to set up the development environment, build code, and test code, see [msOpProf Developer Guide](../development_guide/develop_guide.md).
+For details about how to set up the development environment, build code, and test code, see the [msOpProf Developer Guide](../development_guide/develop_guide.md).

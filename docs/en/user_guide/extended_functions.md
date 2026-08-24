@@ -1,10 +1,10 @@
-# **Extended Functions**
+# Extended Functions
 
 ## JSON Configuration File Description
 
 Write the JSON file for operator definition. For details about the parameters, see [Table 1 Parameters in the JSON file](#Parameters_in_the_JSON_file) and [Table 2 test_cases_parameters](#test_cases_parameters).
 
-For example, the JSON configuration file is named **add\_test.json**. Developers can modify test data and other configuration parameters based on this template.
+For example, the JSON configuration file is named `add_test.json`. Developers can modify test data and other configuration parameters based on this template.
 
 ```json
 {
@@ -68,20 +68,20 @@ For example, the JSON configuration file is named **add\_test.json**. Developers
 |---|---|---|---|
 |kernel_name|Kernel function name.|string|Yes|
 |kernel_path|Path of the binary .o file of the kernel function. The path can be either absolute or relative.|string|Yes|
-|blockdim|Number of cores required for running the kernel function. The default value is **1**.|int|No|
-|mode|Test mode.<br> - Onboard: **onboard**<br> - Performance simulation: **ca**|string|Yes|
-|device_id|ID of the AI processor used for running. The default value is **0**.|int|No|
+|blockdim|Number of cores required for running the kernel function. The default value is 1.|int|No|
+|mode|Test mode.<br> - Onboard: `onboard`<br> - Performance simulation: `ca`|string|Yes|
+|device_id|ID of the AI processor used for running. The default value is 0.|int|No|
 |tiling_key|Tiling key of the current dynamic operator.|uint64|No|
-|magic|Operator type.<br> - Cube operator: **RT_DEV_BINARY_MAGIC_ELF_AICUBE**<br> - Vector operator: **RT_DEV_BINARY_MAGIC_ELF_AIVEC**<br> - Mixed fusion operator: **RT_DEV_BINARY_MAGIC_ELF** (only for <term>Atlas A3 training products, Atlas A3 inference products</term>, <term>Atlas A2 training products, and Atlas A2 inference products</term>)|string|Yes|
+|magic|Operator type.<br> - Cube operator: `RT_DEV_BINARY_MAGIC_ELF_AICUBE`<br> - Vector operator: `RT_DEV_BINARY_MAGIC_ELF_AIVEC`<br> - Mixed fusion operator: `RT_DEV_BINARY_MAGIC_ELF` (only for Atlas A3 training products, Atlas A3 inference products, Atlas A2 training products, and Atlas A2 inference products)|string|Yes|
 |test_cases|Test data. This can be a list, with each element containing a test case. For details, see [**Table 2** test_cases parameters](#test_cases_parameters).|list|Yes|
 
-> [!NOTE]NOTE
-> 
-> - The **tiling\_key** parameter applies only to dynamic operators.
-> - For <term>Atlas inference products</term>, the **magic** parameter must be set to **RT\_DEV\_BINARY\_MAGIC\_ELF**.
-> - For operator on-board or simulation tuning, only one case can be configured for the **test\_cases** parameter.
+> [!NOTE]
+>
+> - The `tiling_key` parameter applies only to dynamic operators.
+> - For Atlas inference products, the `magic` parameter must be set to `RT_DEV_BINARY_MAGIC_ELF`.
+> - For operator on-board or simulation tuning, only one case can be configured for the `test_cases` parameter.
 
-Table 2 test\_cases parameters<a id="test_cases_parameters"></a>
+**Table 2** test_cases parameters<a id="test_cases_parameters"></a>
 
 <table><thead align="left"><tr id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_row1958882429"><th class="cellrowborder" colspan="3" valign="top" id="mcps1.2.7.1.1"><p id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_p1859148144216">Parameter</p>
 </th>
@@ -138,8 +138,8 @@ Table 2 test\_cases parameters<a id="test_cases_parameters"></a>
 </td>
 <td class="cellrowborder" valign="top" width="22.832283228322833%" headers="mcps1.2.7.1.1 "><p id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_p3526536165810">-</p>
 </td>
-<td class="cellrowborder" valign="top" width="36.22362236223623%" headers="mcps1.2.7.1.2 "><p id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_p6519221125814">Supported input and output data types, such as **uint8**, **int16**, **int32**, **float16**, **float32** and **float**.</p>
-<p id="p157634518485">This parameter is mandatory when <span class="parmvalue" id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_parmvalue139101824171913">**param_type**</span> is set to **input** or **output**.</p>
+<td class="cellrowborder" valign="top" width="36.22362236223623%" headers="mcps1.2.7.1.2 "><p id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_p6519221125814">Supported input and output data types, such as <code>uint8</code>, <code>int16</code>, <code>int32</code>, <code>float16</code>, <code>float32</code> and <code>float</code>.</p>
+<p id="p157634518485">This parameter is mandatory when <span class="parmvalue" id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_parmvalue139101824171913"><code>param_type</code></span> is set to <code>input</code> or <code>output</code>.</p>
 </td>
 <td class="cellrowborder" valign="top" width="10.09100910091009%" headers="mcps1.2.7.1.3 "><p id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_p153569610156">string</p>
 </td>
@@ -153,9 +153,9 @@ Table 2 test\_cases parameters<a id="test_cases_parameters"></a>
 <td class="cellrowborder" valign="top" width="22.832283228322833%" headers="mcps1.2.7.1.1 "><p id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_p15823211044">-</p>
 </td>
 <td class="cellrowborder" valign="top" width="36.22362236223623%" headers="mcps1.2.7.1.2 "><p id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_p16288040175819">Shapes supported by the input and output tensors. All input and output tensors must support the same number of shapes.</p>
-<p id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_zh-cn_topic_0000001214862872_p5132810134916">For example, **[8, 3, 256, 256]**.</p>
-<p id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_zh-cn_topic_0000001214862872_p1213211102498">If an invalid shape is entered, for example, **[0]**, an error is reported.</p>
-<p id="p94333064915">This parameter is mandatory when <span class="parmvalue" id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_parmvalue10294141615195">**param_type**</span> is set to **input** or **output**.</p>
+<p id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_zh-cn_topic_0000001214862872_p5132810134916">For example, [8, 3, 256, 256].</p>
+<p id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_zh-cn_topic_0000001214862872_p1213211102498">If an invalid shape is entered, for example, [0], an error is reported.</p>
+<p id="p94333064915">This parameter is mandatory when <span class="parmvalue" id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_parmvalue10294141615195"><code>param_type</code></span> is set to <code>input</code> or <code>output</code>.</p>
 </td>
 <td class="cellrowborder" valign="top" width="10.09100910091009%" headers="mcps1.2.7.1.3 "><p id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_p10356176101520">list</p>
 </td>
@@ -169,7 +169,7 @@ Table 2 test\_cases parameters<a id="test_cases_parameters"></a>
 <td class="cellrowborder" valign="top" width="22.832283228322833%" headers="mcps1.2.7.1.1 "><p id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_p6828121843">-</p>
 </td>
 <td class="cellrowborder" valign="top" width="36.22362236223623%" headers="mcps1.2.7.1.2 "><p id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_p324215055915">Path of the input data .bin file.</p>
-<ul id="ul1083781334916"><li>When <span class="parmvalue" id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_parmvalue47675439188">**param_type**</span> is set to **input**, **data_path** or **value_range** must be set, and **data_path** has a higher priority. </li><li>To set an empty **data_path** in the JSON file, set **"data_path":"null"**. For details about the JSON file, see <a href="#json-configuration-file-description">JSON Configuration Description</a>.</li></ul>
+<ul id="ul1083781334916"><li>When <span class="parmvalue" id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_parmvalue47675439188"><code>param_type</code></span> is set to <code>input</code>, <code>data_path</code> or <code>value_range</code> must be set, and <code>data_path</code> has a higher priority. </li><li>To set an empty <code>data_path</code> in the JSON file, set <code>"data_path":"null"</code>. For details about the JSON file, see <a href="#json-configuration-file-description">JSON Configuration Description</a>.</li></ul>
 </td>
 <td class="cellrowborder" valign="top" width="10.09100910091009%" headers="mcps1.2.7.1.3 "><p id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_p135676171515">string</p>
 </td>
@@ -183,7 +183,7 @@ Table 2 test\_cases parameters<a id="test_cases_parameters"></a>
 <td class="cellrowborder" valign="top" width="22.832283228322833%" headers="mcps1.2.7.1.1 "><p id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_p13833911544">-</p>
 </td>
 <td class="cellrowborder" valign="top" width="36.22362236223623%" headers="mcps1.2.7.1.2 "><p id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_p7258175335917">Parameter name, which must be unique.</p>
-<p id="p11342112324910">This parameter is mandatory when <span class="parmvalue" id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_parmvalue1010223718184">**param_type**</span> is set to **input** or **output**.</p>
+<p id="p11342112324910">This parameter is mandatory when <span class="parmvalue" id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_parmvalue1010223718184"><code>param_type</code></span> is set to <code>input</code> or <code>output</code>.</p>
 </td>
 <td class="cellrowborder" valign="top" width="10.09100910091009%" headers="mcps1.2.7.1.3 "><p id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_p935666141513">string</p>
 </td>
@@ -196,8 +196,8 @@ Table 2 test\_cases parameters<a id="test_cases_parameters"></a>
 </td>
 <td class="cellrowborder" valign="top" width="22.832283228322833%" headers="mcps1.2.7.1.1 "><p id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_p77378388413">-</p>
 </td>
-<td class="cellrowborder" valign="top" width="36.22362236223623%" headers="mcps1.2.7.1.2 "><p id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_p543694745013">Size of **workspace** set by the user.</p>
-<p id="p196121931154911">This parameter is mandatory when <span class="parmvalue" id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_parmvalue679093317186">**param_type**</span> is set to **workspace**.</p>
+<td class="cellrowborder" valign="top" width="36.22362236223623%" headers="mcps1.2.7.1.2 "><p id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_p543694745013">Size of <code>workspace</code> set by the user.</p>
+<p id="p196121931154911">This parameter is mandatory when <span class="parmvalue" id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_parmvalue679093317186"><code>param_type</code></span> is set to <code>workspace</code>.</p>
 </td>
 <td class="cellrowborder" valign="top" width="10.09100910091009%" headers="mcps1.2.7.1.3 "><p id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_p235676141519">int</p>
 </td>
@@ -210,8 +210,8 @@ Table 2 test\_cases parameters<a id="test_cases_parameters"></a>
 </td>
 <td class="cellrowborder" valign="top" width="22.832283228322833%" headers="mcps1.2.7.1.1 "><p id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_p121521036651">-</p>
 </td>
-<td class="cellrowborder" valign="top" width="36.22362236223623%" headers="mcps1.2.7.1.2 "><p id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_p137712027185116">Size of **tiling** data.</p>
-<p id="p151211383492">This parameter is mandatory when <span class="parmvalue" id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_parmvalue13366929171818">**param_type**</span> is set to **tiling**.</p>
+<td class="cellrowborder" valign="top" width="36.22362236223623%" headers="mcps1.2.7.1.2 "><p id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_p137712027185116">Size of <code>tiling</code> data.</p>
+<p id="p151211383492">This parameter is mandatory when <span class="parmvalue" id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_parmvalue13366929171818"><code>param_type</code></span> is set to <code>tiling</code>.</p>
 </td>
 <td class="cellrowborder" valign="top" width="10.09100910091009%" headers="mcps1.2.7.1.3 "><p id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_p8357136191511">int</p>
 </td>
@@ -225,7 +225,7 @@ Table 2 test\_cases parameters<a id="test_cases_parameters"></a>
 <td class="cellrowborder" valign="top" width="22.832283228322833%" headers="mcps1.2.7.1.1 "><p id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_p715717361052">-</p>
 </td>
 <td class="cellrowborder" valign="top" width="36.22362236223623%" headers="mcps1.2.7.1.2 "><p id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_p1145144815519">Path of the tiling data .bin file.</p>
-<p id="p6227174694915">This parameter is mandatory when <span class="parmvalue" id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_parmvalue18407152416188">**param_type**</span> is set to **tiling**.</p>
+<p id="p6227174694915">This parameter is mandatory when <span class="parmvalue" id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_parmvalue18407152416188"><code>param_type</code></span> is set to <code>tiling</code>.</p>
 </td>
 <td class="cellrowborder" valign="top" width="10.09100910091009%" headers="mcps1.2.7.1.3 "><p id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_p735716681510">string</p>
 </td>
@@ -238,8 +238,8 @@ Table 2 test\_cases parameters<a id="test_cases_parameters"></a>
 </td>
 <td class="cellrowborder" valign="top" width="22.832283228322833%" headers="mcps1.2.7.1.1 "><p id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_p9188155215522">-</p>
 </td>
-<td class="cellrowborder" valign="top" width="36.22362236223623%" headers="mcps1.2.7.1.2 "><p id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_p195481842105215">Size of **fftsAddr** data.</p>
-<p id="p195766538497">This parameter is mandatory when <span class="parmvalue" id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_parmvalue111181527191815">**param_type**</span> is set to **fftsAddr**.</p>
+<td class="cellrowborder" valign="top" width="36.22362236223623%" headers="mcps1.2.7.1.2 "><p id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_p195481842105215">Size of <code>fftsAddr</code> data.</p>
+<p id="p195766538497">This parameter is mandatory when <span class="parmvalue" id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_parmvalue111181527191815"><code>param_type</code></span> is set to <code>fftsAddr</code>.</p>
 </td>
 <td class="cellrowborder" valign="top" width="10.09100910091009%" headers="mcps1.2.7.1.3 "><p id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_p63579615159">int</p>
 </td>
@@ -249,44 +249,44 @@ Table 2 test\_cases parameters<a id="test_cases_parameters"></a>
 </tbody>
 </table>
 
-> [!NOTICE]NOTICE
-> 
-> - The number of parameter values in **output** must be the same as that in **input**. Otherwise, test case generation fails.
->    For example, if **input** supports two types, **output** must also support two types.
->    Similarly, the number of values of **type**, **shape**, or **value\_range** in each **input** or **output** must be the same.
-> - The number of parameter values in each **input** of an operator must be the same. Otherwise, test case generation fails.
->    The number of values of **type**, **shape**, and **value\_range** in each **input** must be the same.
+> [!NOTICE]
+>
+> - The number of parameter values in `output` must be the same as that in `input`. Otherwise, test case generation fails.
+>    For example, if `input` supports two types, `output` must also support two types.
+>    Similarly, the number of values of `type`, `shape`, or `value_range` in each `input` or `output` must be the same.
+> - The number of parameter values in each `input` of an operator must be the same. Otherwise, test case generation fails.
+>    The number of values of `type`, `shape`, and `value_range` in each `input` must be the same.
 
-## mstx Extended Functions
+## msTX Extended Functions
 
-**mstx API Overview**
+**msTX API Overview**
 
-MindStudio provides the mstx profiling API, which enables users to embed custom markers within their applications. These markers allow for the precise identification of critical code segments during performance analysis. For details, see [**Table 1** C/C++ mstx API List](#c-mstx-api-list) and [**Table 2** Python mstx API List](#python-mstx-api-list). For further details about the API usage, see *MindStudio mstx API Reference*.
+MindStudio provides the msTX profiling API, which enables users to embed custom markers within their applications. These markers allow for the precise identification of critical code segments during performance analysis. For details, see [**Table 1** C/C++ msTX API list](#c-mstx-api-list) and [**Table 2** Python msTX API list](#python-mstx-api-list). For further details about the API usage, see [MindStudio msTX API Reference](https://www.hiascend.com/document/detail/zh/mindstudio/2610/msTX/mstxAPIReference/docs/zh/api_reference/README.md?framework=mindspore).
 
-**Table 1** C/C++ mstx API List<a id="c-mstx-api-list"></a>
-
-|API|Description|msOpProf Support|
-|---|---|---|
-|mstxRangeStartA|Marks the beginning of a specific mstx range.|Supported|
-|mstxRangeEnd|Marks the end of a specific mstx range.|Supported|
-
-**Table 2** Python mstx API List<a id="python-mstx-api-list"></a>
+**Table 1** C/C++ msTX API list<a id="c-mstx-api-list"></a>
 
 |API|Description|msOpProf Support|
 |---|---|---|
-|mstx.range_start|Marks the beginning of a specific mstx range.|Supported|
-|mstx.range_end|Marks the end of a specific mstx range.|Supported|
+|mstxRangeStartA|Marks the beginning of a specific msTX range.|Supported|
+|mstxRangeEnd|Marks the end of a specific msTX range.|Supported|
 
-**mstx API Usage**
+**Table 2** Python msTX API list<a id="python-mstx-api-list"></a>
 
-- msOpProf allows users to use the **mstx** API to tune specific operators, customize the start time and end time of the code segment or specified key functions, identify key functions or computing APIs, and quickly demarcate performance issues.
-- The mstx API is disabled by default. If the mstx API is called in the application, the mstx instrumentation function is enabled based on the actual application scenario. For example, the **--mstx=on** flag enables mstx APIs within the user program, while **--mstx-include** can be used to target specific mstx APIs. For detailed usage, refer to the **--mstx** and **--mstx-include** parameters in the "Command Reference" sections of the [*msopprof User Guide*](./msopprof_user_guide.md#command-reference) and the [*msopprof Simulator Mode User Guide*](./msopprof_simulator_user_guide.md#command-reference).
-- The mstx API can be used via library files or header files. An implementation example can be found at this [sample](https://gitee.com/ascend/samples/tree/master/operator/ascendc/0_introduction/1_add_frameworklaunch/AclNNInvocation):
+|API|Description|msOpProf Support|
+|---|---|---|
+|mstx.range_start|Marks the beginning of a specific msTX range.|Supported|
+|mstx.range_end|Marks the end of a specific msTX range.|Supported|
 
-    > [!NOTE]NOTE
-    > 
-    > - This sample project does not support <term>Atlas A3 training products</term>.
-    > - Replace $**\{INSTALL\_DIR\}** with the file storage path after CANN is installed. For example, if the installation is performed by the **root** user, the default file storage path is **/usr/local/Ascend/cann**.
+**msTX API Usage**
+
+- msOpProf allows users to use the msTX API to tune specific operators, customize the start time and end time of the code segment or specified key functions, identify key functions or computing APIs, and quickly demarcate performance issues.
+- The msTX API is disabled by default. If the msTX API is called in the application, the msTX instrumentation function is enabled based on the actual application scenario. For example, the `--mstx=on` flag enables msTX APIs within the user program, while `--mstx-include` can be used to target specific msTX APIs. For detailed usage, refer to the `--mstx` and `--mstx-include` parameters in the "Command Reference" sections of the [msopprof User Guide](./msopprof_user_guide.md#command-reference) and the [msopprof Simulator Mode User Guide](./msopprof_simulator_user_guide.md#command-reference).
+- The msTX API can be used via library files or header files. An implementation example can be found at this [sample](https://gitee.com/ascend/samples/tree/master/operator/ascendc/0_introduction/1_add_frameworklaunch/AclNNInvocation):
+
+    > [!NOTE]
+    >
+    > - This sample project does not support Atlas A3 training products.
+    > - Replace `${INSTALL_DIR}` with the file storage path after CANN is installed. For example, if the installation is performed by the `root` user, the default file storage path is `/usr/local/Ascend/cann`.
 
     - Add the `libms_tools_ext.so` library file located at `${INSTALL_DIR}/lib64/libms_tools_ext.so` to the `CMakeLists.txt` file at `${git_clone_path}/samples/operator/ascendc/0_introduction/1_add_frameworklaunch/AclNNInvocation/src/CMakeLists.txt`.
 
@@ -297,9 +297,10 @@ MindStudio provides the mstx profiling API, which enables users to embed custom 
             ${CUST_PKG_PATH}/include
         )
         ...
-        target_link_libraries( 
+        target_link_libraries(
             ...
             dl
+            ${INSTALL_DIR}/lib64/libms_tools_ext.so
         )
         ```
 
@@ -319,7 +320,7 @@ After msOpProf is started, run the `msprof op --mstx=on --mstx-include=range1 --
 import mstx
 import torch
 import torch_npu
- 
+
 x = torch.Tensor([1,2,3,4]).npu()
 y = torch.Tensor([1,2,3,4]).npu()
 

@@ -989,7 +989,7 @@ DBITask类提供动态插桩的主要功能，调用流程如下：调用DBITask
 1. 算子调优组件拉起MC2算子程序，在算子主程序执行之前，首先调用profapi.so中的MsprofRegisterCallBack接口，基础组件需要劫持该接口注册调优开关回调函数，使能MC2 AiCore任务及通信Task任务的上报。
 2. 通信Task任务通过调用profapi.so中的MsprofReportAdditionalInfo接口上报，工具需要劫持并保存通信Task流水的bin文件。
 3. 进行算子核函数的重放，在每次重放开始和结束时需要保证每张卡上的线程同步。在最后一次重放时，记录包含HCCL流水及AICPU任务流水的bin文件。
-4. 在算子核函数重放之后，AICore任务流水通过调用profapi.so中的MsprofReportAddtionalInfo接口上报，工具需要劫持并保存AICore任务流水的bin文件。
+4. 在算子核函数重放之后，AICore任务流水通过调用profapi.so中的MsprofReportAdditionalInfo接口上报，工具需要劫持并保存AICore任务流水的bin文件。
 
 #### 5.1.2 解析模块
 

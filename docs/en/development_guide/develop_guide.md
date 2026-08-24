@@ -8,15 +8,7 @@ For details about the code framework and core process, see the [msOpProf Archite
 
 ## 2. Development Environment Setup
 
-- For hardware environment requirements, see [Ascend Product Models](https://www.hiascend.com/document/detail/zh/AscendFAQ/ProduTech/productform/hardwaredesc_0001.html).
-
-- Set up the environment by referring to the [Operator Tool Development Environment Setup Guide](https://gitcode.com/Ascend/msot/blob/master/docs/en/common/dev_env_setup.md).
-
-- The CMake version must be between 3.20.2 and 3.31.10 (inclusive).
- 
-- Run the `pip install numpy` command to install the NumPy Python dependency library.
-
-- The generated .run package depends on pigz, which is typically provided by the system. Run the `pigz --version` command to check whether pigz has been installed.
+Set up the environment by referring to the [Operator Tool Development Environment Setup Guide](https://gitcode.com/Ascend/msot/blob/master/docs/en/common/dev_env_setup.md).
 
 ## 3. Building and Packaging
 
@@ -50,11 +42,11 @@ Run the following commands to start the build:
 ```shell
 mkdir build
 cd build
-cmake ../cmake   # If you only need to build the project and do not need to generate a .runfile, run cmake .. instead.
-make -j$(nproc)  # -j indicates the number of parallel build jobs, which can be specified as required. If nproc is unavailable, manually enter a number (for example, -j8).
+cmake ../cmake   # The current command builds and packages the .run file at the same time. If you only need to build without packaging, run cmake ..
+make -j$(nproc)  # -j indicates the number of parallel build jobs, which can be specified as required. If nproc is unavailable, manually enter a number (for example, -j8)
 ```
 
->[!NOTE]NOTE   
+> [!NOTE]   
 > **Debug version build**   
 > To perform GDB or VS Code graphical breakpoint debugging, build the debug version. The procedure is as follows:  
 > Add `-DCMAKE_BUILD_TYPE=Debug` when running the preceding CMake command, for example, `cmake ../cmake -DCMAKE_BUILD_TYPE=Debug`.
@@ -102,7 +94,7 @@ python download_dependencies.py test
 
 #### 4.2.2 Running UT
 
->[!NOTE]NOTE   
+> [!NOTE]   
 > **CMake entry description for UT**   
 > The UT build uses `CMakeLists.txt` in the root directory (that is, `cmake ..` instead of `cmake ../cmake`) of the project. Only the test and dependency are built, and the .run packaging process is not included.
 
@@ -110,7 +102,7 @@ python download_dependencies.py test
 mkdir build_ut
 cd build_ut
 cmake .. -DBUILD_TESTS=ON
-make -j$(nproc) # -j indicates the number of parallel build jobs, which can be specified as required. If nproc is unavailable, manually enter a number (for example, -j8).
+make -j$(nproc) # -j indicates the number of parallel build jobs, which can be specified as required. If nproc is unavailable, manually enter a number (for example, -j8)
 ./test/ut/msopt_test --gtest_output=xml:test_detail.xml
 ```
 
@@ -131,9 +123,9 @@ rm -rf build_ut
 
 ## 5. FAQ
 
-### 5.1 Why Is No .run Package Generated When I Run the make Command During Building?  
+### 5.1 Why Is No `.run` Package Generated When I Run the `make` Command During Building?  
 
 It is possible that `cmake ..` is used when running the `cmake` command. The `cmake` command is described as follows:  
 
-- `cmake ..`: Only the current project is built. The `make install` command installs the project to the `output/` directory, but does not call `makeself`. Therefore, no `Ascend-mindstudio-sanitizer-xxx.run` file is generated.
+- `cmake ..`: Only the current project is built. The `make install` command installs the project to the `output/` directory, but does not call `makeself`. Therefore, no `mindstudio-opprof-xxx.run` file is generated.
 - `cmake ../cmake`: The "super build" of `cmake/CMakeLists.txt` is used. The project is built and installed first, and then `parser.py` and `makeself` are executed to generate the .run file in the `output/` directory.

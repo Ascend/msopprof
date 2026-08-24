@@ -14,7 +14,7 @@ echo 2 > /proc/sys/kernel/randomize_va_space
 
 2. If a tool depends on CANN, install the CANN package under the same non-privileged user. After running the `source` command, do not modify the environment variables in `set_env.sh`.
 
-3. Before using any tools, set umask to `0027` or stricter to ensure generated files meet minimum security requirements.
+3. Before using any tools, set `umask` to 0027 or stricter to ensure generated files meet minimum security requirements.
 
 4. This tool is for development. No restrictions are placed on the owner and permissions for installation, nor on the owner and permissions for the file objects that the tool processes. You need to assign appropriate owners and permissions based on the application scenario and ensure that the file content processed by the tool is secure and trustworthy.
 
@@ -52,7 +52,7 @@ echo 2 > /proc/sys/kernel/randomize_va_space
 
 For details, see [MindStudio Vulnerability Handling Mechanism Description](./vulnerability_handling_procedure.md).
 
-## Data security
+## Data Security
 
 1. During tool use, some functions related to code lines may access customer operator code. If the operator code must remain confidential and cannot be leaked, delete the corresponding deliverables in a timely manner after use to prevent information leakage.
 
@@ -68,6 +68,8 @@ This tool supports building from source. During the build process, the system do
 
 3. During tool use, no security validation is performed on the user-input programs. You need to ensure the security of the programs.
 
+4. During operation, the tool loads `.so` files from `LD_LIBRARY_PATH`. Before using the tool, ensure that the content of the `LD_LIBRARY_PATH` environment variable is secure and trustworthy, that the paths it points to do not involve symbolic links, and that the permissions and owners meet security expectations and cannot be tampered with by third parties. Otherwise, there is a risk of arbitrary code injection.
+
 ## Public Network Addresses
 
 The tool does not involve the use of public IP addresses.
@@ -82,10 +84,10 @@ The interfaces exposed by the dynamic library compiled from `msopcommon` are for
 
 While unsafe functions are not forcibly disabled, you are advised to use their safe variants that explicitly take a buffer length parameter, for example, `memset_s` and `memcpy_s`.
 
-## Communication security hardening
+## Communication Security Hardening
 
 This tool does not involve remote communication. However, you are advised to run it in a secure network environment, for example, behind a firewall or within a local area network (LAN). Be mindful of potential communication security risks when using third-party software.
 
-## Communication matrix
+## Communication Matrix
 
 External port communication is not involved.

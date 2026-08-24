@@ -46,7 +46,7 @@ cmake ../cmake   # 当前命令构建编译的同时会打包生成.run文件；
 make -j$(nproc)  # -j 是并行编译的 job 数量，可自行指定；nproc 不可用时请手动填数字（例如 -j8）。
 ```
 
->[!NOTE] 说明    
+>[!NOTE]    
 > **debug 版本编译方法**    
 > 如果想进行 gdb 或 vscode 图形化断点调试等，需要编译 debug 版本，方法如下：   
 > 在执行如上 cmake 命令时增加参数 -DCMAKE_BUILD_TYPE=Debug，例如：`cmake ../cmake -DCMAKE_BUILD_TYPE=Debug`
@@ -94,7 +94,7 @@ python download_dependencies.py test
 
 #### 4.2.2 执行UT测试
 
->[!NOTE] 说明    
+>[!NOTE]    
 > **UT 的 CMake 入口说明**    
 > UT 构建使用工程根目录的 `CMakeLists.txt`（即 `cmake ..`，不是`cmake ../cmake`），只编译测试与依赖，不包含 `.run` 打包流程。
 
