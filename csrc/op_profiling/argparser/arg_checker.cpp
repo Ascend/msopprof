@@ -530,8 +530,10 @@ bool ArgChecker::CheckCoreId(const Common::ProfArgs &config, std::string &msg) c
         }
     }
     if (config.runMode == "device") {
-        return CheckDeviceChipSupport(
-            "--core-id", {ChipProductType::ASCEND910B_SERIES, ChipProductType::ASCEND910_93_SERIES}, msg);
+        return CheckDeviceChipSupport("--core-id",
+            {ChipProductType::ASCEND910B_SERIES, ChipProductType::ASCEND910_93_SERIES,
+                ChipProductType::ASCEND950_SERIES},
+            msg);
     }
     return true;
 }

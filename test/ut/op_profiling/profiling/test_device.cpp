@@ -247,6 +247,30 @@ TEST(DeviceDataParse, Execute_expect_success_with_one_device)
     std::experimental::filesystem::remove_all(testDir);
 }
 
+TEST(DeviceDataParse, Execute_multi_launch_copy_dfx_region_files) {
+    GlobalMockObject::verify();
+    MOCKER(&DeviceDataParse::ParseExactKernelData).stubs().will(returnValue(true));
+    ProfMetricsAbilityConfig metricsConfig;
+    metricsConfig.instrTimelineEnable = true;
+    PmuEventsId pmuEventsId;
+    DeviceDataParse deviceDataParse(ChipType::ASCEND910B, pmuEventsId, metricsConfig);
+    std::string testDir = "test/ut/resources/op_profiling/OPPO";
+    std::string firstDump = JoinPath({testDir, "device0/add/0/dump"});
+    std::string secondDump = JoinPath({testDir, "device0/add/1/dump"});
+    MkdirRecusively(firstDump);
+    MkdirRecusively(secondDump);
+    std::ofstream tuneFile(JoinPath({firstDump, "dfx_tune.log"}).c_str(), std::ios::out | std::ios::binary);
+    tuneFile << "test tune log\n";
+    tuneFile.close();
+    std::ofstream mapFile(JoinPath({firstDump, "dfx_region_map.txt"}).c_str(), std::ios::out | std::ios::binary);
+    mapFile << "region_id=1\n";
+    mapFile.close();
+    ASSERT_TRUE(deviceDataParse.Execute(testDir));
+    ASSERT_TRUE(IsExist(JoinPath({secondDump, "dfx_tune.log"})));
+    ASSERT_TRUE(IsExist(JoinPath({secondDump, "dfx_region_map.txt"})));
+    std::experimental::filesystem::remove_all(testDir);
+}
+
 TEST(DeviceDataParse, GetRangeFreq_expert_NA_when_get_req_failed)
 {
     std::string testDir = "test/ut/resources/op_profiling/OPPO";

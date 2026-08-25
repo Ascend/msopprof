@@ -237,7 +237,7 @@ msOpProf工具协助用户定位算子内存、算子代码以及算子指令的
 **msopprof simulator配置**<a id="simulator配置"></a>
 
 > [!NOTE]
-> 
+>
 > - msOpProf工具的仿真功能仅支持单卡场景，无法仿真多卡环境。
 > - 参数 `--soc-version` 的值可通过执行以下命令获取：`python3 -c "import acl; print(acl.get_soc_name())"`。
 
@@ -252,7 +252,7 @@ msOpProf工具协助用户定位算子内存、算子代码以及算子指令的
 - 编译选项需添加-g，使能算子代码热点图和代码调用栈功能。
 
     > [!NOTE]
-    > 
+    >
     > - 添加-g编译选项会在生成的二进制文件中附带调试信息，建议限制带有调试信息的用户程序的访问权限，确保只有授权人员可以访问该二进制文件。
     > - 若不使用llvm-symbolizer组件提供的相关功能，输入msOpProf的程序编译时不包含-g即可，msOpProf工具则不会调用llvm-symbolizer组件的相关功能。
 
@@ -265,10 +265,10 @@ msOpProf工具协助用户定位算子内存、算子代码以及算子指令的
     - 若参考完整样例，以[样例](https://gitee.com/ascend/samples/tree/master/operator/ascendc/0_introduction/3_add_kernellaunch/AddKernelInvocationNeo)为例，需在样例工程目录下的“cmake/npu\_lib.cmake”文件中新增以下代码。
 
         >[!NOTE]
-        > 
+        >
         > - 此样例工程不支持<term>Atlas A3 训练系列产品</term>。
         > - 下载代码样例时，需执行以下命令指定分支版本。
-        > 
+        >
         >    ```shell
         >    git clone https://gitee.com/ascend/samples.git -b v1.9-8.3.RC1
         >    ```
@@ -305,7 +305,7 @@ msOpProf工具协助用户定位算子内存、算子代码以及算子指令的
 请先完成msopprof simulator配置，然后根据以下操作步骤使能msOpProf工具的仿真调优功能。算子调优工具支持仿真环境下的性能数据采集和自动解析。
 
 > [!NOTE]
-> 
+>
 > - 当前msOpProf不支持-O0编译选项。
 > - 仿真环境不支持采集MC2和HCCL类型的算子。
 > - 用户设置的仿真核数不能超过物理核数。
@@ -325,7 +325,7 @@ msOpProf工具协助用户定位算子内存、算子代码以及算子指令的
     - 基于可执行文件
         - 单算子场景，以*test*为例
             > [!NOTE]
-            > 
+            >
             > 示例中的可执行文件名称`test`仅作为示例展示，实际名称请以当前工程中编译生成的可执行文件为准。
 
             ```shell
@@ -343,7 +343,7 @@ msOpProf工具协助用户定位算子内存、算子代码以及算子指令的
     - 基于输入算子二进制文件*.o的配置文件.json
 
         > [!NOTE]
-        > 
+        >
         > --config场景下，仅支持使用LD\_LIBRARY\_PATH导入环境变量，不支持使用--soc-version参数。
 
         ```shell
@@ -371,8 +371,8 @@ msOpProf工具协助用户定位算子内存、算子代码以及算子指令的
             │   ├── core1.veccore0_code_exe.csv
             │   ├── core1.veccore0_instr_exe.csv
             │   └── trace.json
-            ├── ... 
-            ├── visualize_data.bin 
+            ├── ...
+            ├── visualize_data.bin
             └── trace.json           // 全部核的仿真指令流水图文件
         ```
 
@@ -385,14 +385,14 @@ msOpProf工具协助用户定位算子内存、算子代码以及算子指令的
         │ │ ├── dump          // 与单算子含义一致，存放过程件的文件夹
         │ │ └──simulator      // 与单算子simulator文件夹内容一致,但simulator文件夹中的csv文件均会增加时序后缀,例如core*_code_exe_20240429111143146.csv
         │ ├── 1
-        │ │ ├── dump        
+        │ │ ├── dump
         │ │ └──simulator
         │ ├── dump            // 存放过程件的文件夹
-        ├── OpName2         
+        ├── OpName2
         │ ├── 0
-        │ │ ├── dump       
+        │ │ ├── dump
         │ │ └── simulator
-        │ ├── dump  
+        │ ├── dump
         ```
 
     **表 2**  msopprof simulator文件介绍
@@ -485,7 +485,7 @@ trace.json文件可分别通过Chrome浏览器和MindStudio Insight展示，visu
 
     MindStudio Insight工具以时序图方式为用户提供指令在昇腾AI处理器上的运行情况，用户可通过分析时序图中的指令详情、指令执行时间、指令关联代码的调用栈及指令/流水间同步连线等信息，识别微观指令的时序优化点。通过观察Timeline的流水排布等信息判断算子运行过程中可能存在的性能问题，如指令间未能有效并行等。
 
-    **图 1**  时间线界面  
+    **图 1**  时间线界面
     ![](../figures/时间线界面.png "时间线界面")
 
     - 展示各PIPE中各指令的运行时长以及不同PIPE间的指令依赖关系，帮助用户分析流水排布间可能存在的性能优化点。
@@ -515,7 +515,7 @@ trace.json文件可分别通过Chrome浏览器和MindStudio Insight展示，visu
 
 算子代码热点图界面如下。
 
-**图 1**  msopprof simulator源码界面  
+**图 1**  msopprof simulator源码界面
 ![](../figures/msopprof-simulator源码界面.png "msopprof-simulator源码界面")
 
 - 在界面顶部，可切换计算单元和核函数文件。
@@ -523,7 +523,7 @@ trace.json文件可分别通过Chrome浏览器和MindStudio Insight展示，visu
 - 在右侧界面，提供具体的指令耗时、寄存器使用情况、与GM有关的数据搬运量、Vector计算类指令在UB Bank上读和写的冲突情况、Vector计算单元利用率、执行次数及与代码相关联，帮助开发者进一步分析代码耗时长的原因。
 
 > [!NOTE]
-> 
+>
 > - 通用寄存器的最大数量为32，当寄存器的使用数量达到32时，仿真过程需等到使用中的寄存器释放后才能运行。
 > - 不支持使用TRACE\_START和TRACE\_STOP接口查看部分算子的寄存器使用情况。
 > - 查看与GM有关的数据搬运量（Process Bytes）时，不涉及GM单元的情况都显示为NA。
@@ -543,7 +543,6 @@ trace.json文件可分别通过Chrome浏览器和MindStudio Insight展示，visu
     |UB Bank冲突|支持|支持|支持|不支持|-|
     |vec计算单元利用率|支持|支持|支持|不支持|-|
     |Process Bytes|支持|支持|不支持|不支持|查看与GM有关的数据搬运量。|
-    |真实阻塞时钟数|不支持|不支持|不支持|支持|展示实际阻塞的Cycles数。“阻塞”是指令在执行过程中，由于资源冲突、数据依赖等原因而产生的等待时间。|
 
 ## 内存通路吞吐率波形图
 
@@ -561,7 +560,7 @@ trace.json文件可分别通过Chrome浏览器和MindStudio Insight展示，visu
 
 内存通路吞吐率波形图如下。
 
-**图 1**  内存通路吞吐率波形图  
+**图 1**  内存通路吞吐率波形图
 
 ![](../figures/1-3.png)
 
@@ -569,6 +568,6 @@ trace.json文件可分别通过Chrome浏览器和MindStudio Insight展示，visu
 - 结合MTE相关指令，观察执行相关命令时的吞吐率，协助用户识别算子性能问题。
 
     > [!NOTE]
-    > 
+    >
     > - 吞吐率计算所采用的数据是某一个指令多次请求结束时的数据。
     > - 吞吐率波形图可能出现在某指令的起始时间和结束时间范围内（包含起始时间和结束时间）。例如，持续时间为1\~3微秒的指令，吞吐率数据可能分散在1\~2微秒、2\~3微秒及3\~4微秒三个柱状图内。

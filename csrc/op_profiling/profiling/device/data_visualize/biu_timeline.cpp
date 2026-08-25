@@ -22,6 +22,7 @@
 #include "common/hal_helper.h"
 #include "common/visualize.h"
 #include "ustring.h"
+#include "include/opprof/DbiDefs.h"
 
 using namespace Utility;
 
@@ -282,7 +283,7 @@ void InstrBiuTimeline::PrintMissData() {
 
 void InstrBiuTimeline::PrintPipeIdFull() {
     // dfx-region id达到1024以上的pipe，提示给用户
-    std::string dfxLogPath = JoinPath({outputPath_, "dump", "dfx_tune.log"});
+    std::string dfxLogPath = JoinPath({outputPath_, "dump", DFX_TUNE_LOG});
     std::ifstream file(dfxLogPath);
     if (!file.is_open()) {
         LogWarn("Failed to open file %s", dfxLogPath.c_str());
@@ -320,7 +321,7 @@ void InstrBiuTimeline::PrintPipeIdFull() {
 void InstrBiuTimeline::ParseDfxMapInfo() {
     // 解析region_id、pipe、偏移地址、指令名称等信息
     std::string dumpPath = JoinPath({outputPath_, "dump"});
-    std::string dfxMapPath = JoinPath({dumpPath, "dfx_region_map.txt"});
+    std::string dfxMapPath = JoinPath({dumpPath, DFX_REGION_MAP});
     std::ifstream file(dfxMapPath);
     if (!file.is_open()) {
         LogWarn("Failed to open file %s", dfxMapPath.c_str());

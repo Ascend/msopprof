@@ -79,20 +79,6 @@ TEST(Interface, args_init_with_device_dump_on_ascend950_expect_return_false) {
     GlobalMockObject::verify();
 }
 
-TEST(Interface, args_init_with_device_core_id_on_ascend950_expect_return_false) {
-    GlobalMockObject::verify();
-    MOCKER(&Common::HalHelper::GetPlatformType).stubs().will(returnValue(Common::ChipType::ASCEND950));
-    Common::ProfArgs args;
-    char *argv[4];
-    argv[0] = "msopprof";
-    argv[1] = "--application=/bin/true";
-    argv[2] = "--core-id=0";
-    argv[3] = "--output=./output";
-    bool ret = ProfArgsInit(args, 4, argv, nullptr);
-    ASSERT_FALSE(ret);
-    GlobalMockObject::verify();
-}
-
 TEST(Interface, PlatformInit_failed)
 {
     GlobalMockObject::verify();

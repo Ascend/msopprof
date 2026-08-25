@@ -21,6 +21,7 @@
 #include "filesystem.h"
 #include "parse/plugin/plugin_manager.h"
 #include "parse/data_calculator/compute_load_calculator.h"
+#include "include/opprof/DbiDefs.h"
 
 using namespace Visualize;
 using namespace Utility;
@@ -250,6 +251,7 @@ void DeviceDataParse::ParseKernelFile(const string &kernelDir, const string &ker
     regex pattern("[0-9]{1,3}");
     auto subFilesChecker = std::bind(&DeviceDataParse::CheckKernelFiles, this, std::placeholders::_1,
                                      std::placeholders::_2, std::placeholders::_3);
+    CopyDfxRegionFiles(kernelDir, fileNames, pattern);
     for (const string &fileName : fileNames) {
         string orderDir = JoinPath({kernelDir, fileName});
         if (!regex_match(fileName, pattern)) {
@@ -276,6 +278,27 @@ void DeviceDataParse::ParseKernelFile(const string &kernelDir, const string &ker
             theOnlyKernelPath_ = orderDir;
         }
         totalKernelNum_++;
+    }
+}
+
+void DeviceDataParse::CopyDfxRegionFiles(
+    const string &kernelDir, const vector<string> &fileNames, const regex &pattern) {
+    // 多launch场景下，dfx交付件只由第一次launch生成，需要在每个算子解析前，先将交付件复制到对应的dump目录下
+    if (!metrics_.instrTimelineEnable) {
+        return;
+    }
+    const vector<string> dfxFiles = {DFX_TUNE_LOG, DFX_REGION_MAP};
+    for (const auto &fileName : fileNames) {
+        if (!regex_match(fileName, pattern) || fileName == "0") {
+            continue;
+        }
+        for (const auto &file : dfxFiles) {
+            string destPath = JoinPath({kernelDir, fileName, "dump", file});
+            if (IsExist(destPath)) {
+                continue;
+            }
+            CopyFile(JoinPath({kernelDir, "0/dump", file}), destPath);
+        }
     }
 }
 
