@@ -40,6 +40,7 @@
 #include "profiling/op_prof_task.h"
 #include "profiling/op_prof_data_parse.h"
 #include "ascend_helper.h"
+#include "cli_logo.h"
 
 using namespace Common;
 using namespace Parser;
@@ -63,7 +64,8 @@ ArgParser BuildDeviceArgParser(ProfArgs &args)
 {
     ArgParser argParser("msopprof", "operator profiling tool");
     argParser.Add(Switch('h', "help", args.printHelp));
-    argParser.Add(Switch('v', "version", args.printVersion));
+    argParser.Add(Switch('V', "version", args.printVersion));
+    argParser.Add(Switch('v', "", args.deprecatedVersion));
     argParser.Add(Option<std::string>('\0', "config", "ConfigPath", args.argConfig));
     argParser.Add(Option<std::string>('\0', "application", "CMD", args.argApplication));
     argParser.Add(Option<std::string>('\0', "output", "STRING", args.argOutput));
@@ -87,7 +89,8 @@ ArgParser BuildSimulatorArgParser(ProfArgs &args)
 {
     ArgParser argParser("msopprof", "operator profiling tool");
     argParser.Add(Switch('h', "help", args.printHelp));
-    argParser.Add(Switch('v', "version", args.printVersion));
+    argParser.Add(Switch('V', "version", args.printVersion));
+    argParser.Add(Switch('v', "", args.deprecatedVersion));
     argParser.Add(Option<std::string>('\0', "config", "ConfigPath", args.argConfig));
     argParser.Add(Option<std::string>('\0', "application", "CMD", args.argApplication));
     argParser.Add(Option<std::string>('\0', "export", "STRING", args.argExport));
@@ -106,7 +109,7 @@ ArgParser BuildSimulatorArgParser(ProfArgs &args)
 
 std::string GetFuncInjectionRevision()
 {
-    std::string revision = "<unknown>";
+    std::string revision;
 
     char buf[PATH_MAX];
     ssize_t len = readlink("/proc/self/exe", buf, sizeof(buf) - 1);
@@ -140,27 +143,39 @@ std::string GetFuncInjectionRevision()
 
 void PrintVersion()
 {
+    PrintLogo();
+    const std::string revision = GetFuncInjectionRevision();
     std::cout
-        << "msopprof is part of MindStudio Operator-dev Tools." << std::endl
-        << "msopprof vesion is " <<  __PACKAGE_VERSION__ << "-" << __MSOPPROF_COMMIT_REVISION__ << std::endl
-        << "msopscommon version is " << GetFuncInjectionRevision() << std::endl;
+        << "msopprof " << __PACKAGE_VERSION__ << " (" << __MSOPPROF_COMMIT_REVISION__ << ")\n"
+        << "Copyright (c) 2026 Huawei Technologies Co., Ltd.\n"
+        << "License: Mulan PSL v2.\n\n"
+        << "Build Info:\n"
+        << "  Date: " << __MSOPPROF_BUILD_DATE__ << "\n"
+        << "  Repo: https://gitcode.com/Ascend/msopprof";
+    if (revision.find_first_not_of(" \t\r\n") != std::string::npos &&
+        revision.find("unknown") == std::string::npos && revision.find("UNKNOWN") == std::string::npos) {
+        std::cout << "\nDependencies:\n  msopscommon: " << revision;
+    }
+    std::cout << std::endl;
 }
 
 void PrintDeviceHelp(ChipType chipType)
 {
-    std::cout << "msopprof (MindStudio Profiler For Operator) is part of MindStudio Operator-dev Tools." << std::endl
-              << "Used for Ascend C operator profiling by running on the board." << "\n"
+    std::cout << "Description:" << std::endl
+              << "  Profile Ascend C operators by running the application on an Ascend device." << std::endl
               << std::endl
-              << "Options:" << std::endl
+              << "Usage:" << std::endl
+              << "  msopprof [options] (<application> [application-args] | --config <FILE>)" << std::endl
               << std::endl
-              << "  -v, --version                             Show version information." << std::endl
+              << "Optional arguments:" << std::endl
+              << "  Exactly one of <application> and --config must be specified." << std::endl
               << "  -h, --help                                Show help message." << std::endl
-              << "      --config=<FILE>                       Json file for op config path." << std::endl
-              << "      --application=<FILE>                  Executable file path." << std::endl
-              << "      --output=<PATH>                       Output path." << std::endl
-              << "                                              PATH:default \"./\"" << std::endl
-              << "      --aic-metrics=<TYPE>                  Enable collection ability type:" << std::endl
-              << "                                              TYPE:ArithmeticUtilization | MemoryUB | Memory | "
+              << "  -V, --version                             Show version information." << std::endl
+              << "      --config <FILE>                       JSON operator configuration file." << std::endl
+              << "      --application <FILE>                  Application executable path." << std::endl
+              << "      --output <DIR>                        Output directory [default: ./]." << std::endl
+              << "      --aic-metrics <NAME>[,<NAME>...]      Enable collection ability type:" << std::endl
+              << "                                              Supported values: ArithmeticUtilization | MemoryUB | Memory | "
                  "MemoryL0 | L2Cache |"
               << std::endl
               << "                                                | PipeUtilization | ResourceConflictRatio | Default "
@@ -172,75 +187,84 @@ void PrintDeviceHelp(ChipType chipType)
     if (chipType == Common::ChipType::ASCEND950) {
         std::cout << "                                                | Occupancy | TimelineDetail | KernelScale | Source | MemoryDetail |" << std::endl
                   << "                                                | PCSampling | PipeTimeline | InstrTimeline |" << std::endl
-                  << "      --instr-timeline-pipe=<PIPE>          Specify the pipe for instr timeline." << std::endl
-                  << "                                              Only effective when --aic-metrics=<INSTRTIMELINE>." << std::endl;
+                  << "      --instr-timeline-pipe <PIPE>          Specify the pipe for InstrTimeline." << std::endl;
     }
-    std::cout << "      --kernel-name=<NAME>                  Specify the kernel name to profile." << std::endl
+    std::cout << "      --kernel-name <NAME>                  Specify the kernel name to profile." << std::endl
               << "                                              Not effective in config mode." << std::endl
-              << "      --launch-count=<LIMIT>                Number of kernel that can be collected." << std::endl
-              << "                                              LIMIT:1-5000, default: 1" << std::endl
-              << "      --launch-skip-before-match=<SKIP>     Set the number of kernel launch to skip" << std::endl
-              << "                                              before starting to analyze the kernel." << std::endl
-              << "                                              SKIP:0-1000, default: 0" << std::endl
-              << "      --replay-mode=<MODE>                  Data collection replay mode." << std::endl
-              << "                                              MODE:application|kernel";
+              << "      --launch-count <N>                    Kernel launches to collect (1-5000) [default: 1]." << std::endl
+              << "      --launch-skip-before-match <N>        Kernel launches to skip (0-1000) [default: 0]." << std::endl
+              << "      --replay-mode {application,kernel";
     if (chipType == Common::ChipType::ASCEND910B || chipType == Common::ChipType::ASCEND950) {
-        std::cout << "|range";
+        std::cout << ",range";
     }
     std::cout
-        << ", default: kernel" << std::endl
-        << "      --kill=<SWITCH>                       Kill op process when the number of kernel reaches launch-count." << std::endl
-        << "                                              SWITCH:on|off, default: off" << std::endl
-        << "      --mstx=<SWITCH>                       Enable mstx API or not." << std::endl
-        << "                                              SWITCH:on|off, default: off" << std::endl
-        << "      --mstx-include=<RANGE>                Specify the mstx range for msprof op to be collected." << std::endl
-        << "      --warm-up=<TIMES>                     Set the number of warm up times." << std::endl
-        << "                                              TIMES:0-500, default: 5" << std::endl;
+        << "}              Data collection replay mode [default: kernel]." << std::endl
+        << "      --kill {true,false}                       Kill the process after launch-count [default: false]." << std::endl
+        << "      --mstx {true,false}                       Enable mstx API [default: false]." << std::endl
+        << "      --mstx-include <RANGE>                Specify the mstx range to collect." << std::endl
+        << "      --warm-up <N>                         Warm-up runs (0-500) [default: 5]." << std::endl;
     if (chipType == Common::ChipType::ASCEND910B) {
-        std::cout << "      --dump=<SWITCH>                       Enable or disable dump flushed to disk mode. Only effective when" << std::endl
-                  << "                                              --aic-metrics=<TIMELINEDETAIL>." << std::endl
-                  << "                                              SWITCH:on|off, default: off" << std::endl;
+        std::cout << "      --dump {true,false}                       Enable TimelineDetail dump [default: false]." << std::endl;
     }
     if (chipType == Common::ChipType::ASCEND910B || chipType == Common::ChipType::ASCEND950) {
-        std::cout << "      --core-id=<ID>                        Specify the id of cores to be parsed." << std::endl
+        std::cout << "      --core-id <ID>                        Specify the id of cores to be parsed." << std::endl
                   << "                                              Only effective when --aic-metrics=<TIMELINEDETAIL> and only" << std::endl
                   << "                                              effective in simulation products." << std::endl;
     }
-    std::cout << "      --custom-input=<FILE>                 Json file for op custom input." << std::endl;
+    std::cout << "      --custom-input <FILE>                 JSON file for custom operator input." << std::endl
+              << std::endl
+              << "Examples:" << std::endl
+              << "  msopprof ./my_operator" << std::endl
+              << "  msopprof --config ./op_config.json" << std::endl
+              << std::endl
+              << "Output:" << std::endl
+              << "  Results are written to <output-dir>/OPPROF_{timestamp}_{random}." << std::endl
+              << std::endl
+              << "Troubleshooting:" << std::endl
+              << "  Check that exactly one input is provided and option values are valid." << std::endl;
 }
 
 void PrintSimulatorHelp(void)
 {
     std::cout
-        << "msopprof (MindStudio Profiler For Operator) is part of MindStudio Operator-dev Tools." << std::endl
-        << "Used for Ascend C operator profiling by running on the simulator." << "\n" << std::endl
-        << "Options:" << std::endl
+        << "Description:" << std::endl
+        << "  Profile Ascend C operators by running the application on the simulator." << std::endl
         << std::endl
-        << "  -v, --version                             Show version information." << std::endl
+        << "Usage:" << std::endl
+        << "  msopprof simulator [options] (<application> [application-args] | --config <FILE> | --export <DIR>)" << std::endl
+        << std::endl
+        << "Optional arguments:" << std::endl
+        << "  Exactly one of <application>, --config, and --export must be specified." << std::endl
         << "  -h, --help                                Show help message." << std::endl
-        << "      --config=<FILE>                       Json file for op config path." << std::endl
-        << "      --application=<FILE>                  Executable file path." << std::endl
-        << "      --export=<PATH>                       Specify the dump data path for parsing." << std::endl
-        << "      --output=<PATH>                       Output path." << std::endl
-        << "                                              PATH:default \"./\"" << std::endl
-        << "      --kernel-name=<NAME>                  Specify the kernel name to profile." << std::endl
+        << "  -V, --version                             Show version information." << std::endl
+        << "      --config <FILE>                       JSON operator configuration file." << std::endl
+        << "      --application <FILE>                  Application executable path." << std::endl
+        << "      --export <DIR>                        Simulator data directory to parse." << std::endl
+        << "      --output <DIR>                        Output directory [default: ./]." << std::endl
+        << "      --kernel-name <NAME>                  Specify the kernel name to profile." << std::endl
         << "                                              Not effective in config mode." << std::endl
-        << "      --launch-count=<LIMIT>                Number of kernel that can be collected." << std::endl
-        << "                                              LIMIT:1-5000, default: 1" << std::endl
-        << "      --aic-metrics=<TYPE>                  Enable collection ability type:" << std::endl
-        << "                                              TYPE:PipeUtilization | ResourceConflictRatio |" << std::endl
+        << "      --launch-count <N>                    Kernel launches to collect (1-5000) [default: 1]." << std::endl
+        << "      --aic-metrics <NAME>[,<NAME>...]      Enable collection ability type:" << std::endl
+        << "                                              Supported values: PipeUtilization | ResourceConflictRatio |" << std::endl
         << "                                                | PMSampling | Overhead |" << std::endl
         << "                                              PipeUtilization is required." << std::endl
-        << "      --mstx=<SWITCH>                       Enable mstx API or not." << std::endl
-        << "                                              SWITCH:on|off, default: off" << std::endl
-        << "      --mstx-include=<RANGE>                Specify the mstx range for msprof op to be collected." << std::endl
-        << "      --soc-version=<VERSION>               Specify a simulator in ascend toolkit. Not effective in config mode." << std::endl
-        << "      --core-id=<ID>                        Specify the id of cores to be parsed." << std::endl
-        << "      --timeout=<MINUTES>                   Set the timeout minutes for application runs." << std::endl
-        << "                                              MINUTES:1-2880" << std::endl
-        << "      --dump=<SWITCH>                       Enable or disable dump flushed to disk mode." << std::endl
-        << "                                              SWITCH:on|off, default: off" << std::endl
-        << "                                              This parameter is valid only for A2/A3." << std::endl;
+        << "      --mstx {true,false}                       Enable mstx API [default: false]." << std::endl
+        << "      --mstx-include <RANGE>                Specify the mstx range to collect." << std::endl
+        << "      --soc-version <VERSION>               Simulator version; not effective in config mode." << std::endl
+        << "      --core-id <ID>                        Specify the id of cores to parse." << std::endl
+        << "      --timeout <MINUTES>                   Application timeout (1-2880 minutes)." << std::endl
+        << "      --dump {true,false}                       Enable dump mode for A2/A3 [default: false]." << std::endl
+        << std::endl
+        << "Examples:" << std::endl
+        << "  msopprof simulator ./my_operator" << std::endl
+        << "  msopprof simulator --config ./op_config.json" << std::endl
+        << "  msopprof simulator --export ./simulator_output" << std::endl
+        << std::endl
+        << "Output:" << std::endl
+        << "  Results are written to <output-dir>/OPPROF_{timestamp}_{random}." << std::endl
+        << std::endl
+        << "Troubleshooting:" << std::endl
+        << "  Check that exactly one input is provided and option values are valid." << std::endl;
 }
 
 void PrintErrorMsg(std::string const &msg)
@@ -312,6 +336,11 @@ bool ProfArgsParse(int argc, char *argv[], ProfArgs &args, std::string &msg)
     } else {
         ArgParser argParser = BuildDeviceArgParser(args);
         parseRet = Parse(argParser, argc - 1, argv + 1, msg, args);
+    }
+
+    if (parseRet && args.deprecatedVersion) {
+        std::cerr << "WARNING: '-v' is deprecated; use '-V' instead." << std::endl;
+        args.printVersion = true;
     }
 
     return parseRet;

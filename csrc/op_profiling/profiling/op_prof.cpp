@@ -55,8 +55,8 @@ OpProf::OpProf(const Common::ProfArgs &args)
 {
     StringToNum<uint16_t>(args.argLaunchCount, launchCount_);
     StringToNum<uint16_t>(args.argLaunchSkipBeforeMatch, launchSkipBeforeMatch_);
-    kill_ = (args.argKill == "on");
-    isMstxEnable_ = (args.argMstx == "on");
+    kill_ = (args.argKill == "true");
+    isMstxEnable_ = (args.argMstx == "true");
     mstxInclude_ = args.argMstxInclude;
     aicMetrics_ = args.argAicMetrics;
     kernelName_ = args.argKernelName;
@@ -65,7 +65,7 @@ OpProf::OpProf(const Common::ProfArgs &args)
     config_ = args.argConfig;
     customDotJson_ = args.argCustomInput;
     kernelConfig_ = args.kernelConfig;
-    if (args.argDump != "on") {
+    if (args.argDump != "true") {
         ChipProductType chipType = GetChipType(args);
         if (chipType == ChipProductType::ASCEND910B_SERIES ||
             chipType == ChipProductType::ASCEND910_93_SERIES) {

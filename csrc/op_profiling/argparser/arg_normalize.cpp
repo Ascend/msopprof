@@ -19,6 +19,26 @@
 #include "utils.h"
 #include "filesystem.h"
 
+namespace {
+
+void NormalizeBooleanOption(std::string &value)
+{
+    if (value == "on") {
+        value = "true";
+    } else if (value == "off") {
+        value = "false";
+    }
+}
+
+void NormalizeBooleanOptions(Common::ProfArgs &config)
+{
+    NormalizeBooleanOption(config.argKill);
+    NormalizeBooleanOption(config.argMstx);
+    NormalizeBooleanOption(config.argDump);
+}
+
+} // namespace
+
 namespace Parser {
 ArgNormalize::ArgNormalize(void)
 {
@@ -33,6 +53,7 @@ ArgNormalize::ArgNormalize(void)
 
 bool ArgNormalize::Normalize(Common::ProfArgs &config, std::string &msg) const
 {
+    NormalizeBooleanOptions(config);
     for (const auto &func : normalizeFunc_) {
         if (!(this->*func)(config, msg)) {
             return false;

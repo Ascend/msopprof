@@ -28,6 +28,7 @@
 #define private public
 #include "argparser/arg_checker.h"
 #undef private
+#include "argparser/arg_normalize.h"
 
 using namespace Common;
 using namespace Parser;
@@ -220,18 +221,18 @@ TEST(ArgChecker, test_CheckMstxInclude_with_only_mstx_include_expect_check_faile
 {
     ProfArgs args;
     args.argMstxInclude = "message1|message2";
-    args.argMstx = "off";
+    args.argMstx = "false";
     std::string msg;
     ArgChecker checker("");
     ASSERT_FALSE(checker.CheckMstxInclude(args, msg));
-    ASSERT_TRUE(msg.find("--mstx-include only support when --mstx=on") != std::string::npos);
+    ASSERT_TRUE(msg.find("--mstx-include only support when --mstx=true") != std::string::npos);
 }
 
 TEST(ArgChecker, test_CheckMstxInclude_with_normal_mstx_usage_expect_check_success)
 {
     ProfArgs args;
     args.argMstxInclude = "message1|message2";
-    args.argMstx = "on";
+    args.argMstx = "true";
     std::string msg;
     ArgChecker checker("");
     ASSERT_TRUE(checker.CheckMstxInclude(args, msg));
@@ -241,7 +242,7 @@ TEST(ArgChecker, test_CheckMstxInclude_with_invalid_mstx_include_expect_check_fa
 {
     ProfArgs args;
     args.argMstxInclude = "message1,message2";
-    args.argMstx = "on";
+    args.argMstx = "true";
     std::string msg;
     ArgChecker checker("");
     ASSERT_FALSE(checker.CheckMstxInclude(args, msg));
@@ -251,7 +252,7 @@ TEST(ArgChecker, test_CheckMstxInclude_with_invalid_mstx_include_expect_check_fa
 TEST(ArgChecker, test_CheckMstxInclude_with_too_long_kernel_name_expect_check_failed)
 {
     ProfArgs args;
-    args.argMstx = "on";
+    args.argMstx = "true";
     args.argMstxInclude = std::string(1024, '|');
     std::string msg;
     ArgChecker checker("");
@@ -274,7 +275,7 @@ TEST(ArgChecker, replay_mode_return_should_be_true)
             .stubs()
             .will(returnValue(Common::ChipType::ASCEND910B));
     args.argReplayMode = "range";
-    args.argMstx = "on";
+    args.argMstx = "true";
     ASSERT_TRUE(checker.CheckReplayMode(args, msg));
     GlobalMockObject::verify();
 }
@@ -298,18 +299,18 @@ TEST(ArgChecker, replay_mode_return_should_be_false)
     ASSERT_FALSE(checker.CheckReplayMode(args, msg));
 
     args.argReplayMode = "range";
-    args.argMstx = "on";
+    args.argMstx = "true";
     args.argAicMetrics.isDeviceToSimulator = true;
     ASSERT_FALSE(checker.CheckReplayMode(args, msg));
 
     args.argReplayMode = "range";
-    args.argMstx = "on";
+    args.argMstx = "true";
     args.argAicMetrics.isDeviceToSimulator = false;
     args.argAicMetrics.isSource = true;
     ASSERT_FALSE(checker.CheckReplayMode(args, msg));
 
     args.argReplayMode = "range";
-    args.argMstx = "on";
+    args.argMstx = "true";
     args.argAicMetrics.isDeviceToSimulator = false;
     args.argAicMetrics.isSource = false;
     args.argAicMetrics.isMemoryDetail = true;
@@ -321,7 +322,7 @@ TEST(ArgChecker, ascend950_range_replay_with_unsupported_metrics_expect_return_f
     GlobalMockObject::verify();
     ProfArgs args;
     args.argReplayMode = "range";
-    args.argMstx = "on";
+    args.argMstx = "true";
     std::string msg;
     const std::string expectedMsg =
         "--aic-metrics=Source/PcSampling/Roofline/PipeTimeline/InstrTimeline is invalid when "
@@ -361,7 +362,7 @@ TEST(ArgChecker, ascend910b_range_replay_with_roofline_expect_return_true) {
     GlobalMockObject::verify();
     ProfArgs args;
     args.argReplayMode = "range";
-    args.argMstx = "on";
+    args.argMstx = "true";
     args.argAicMetrics.roofline = true;
     std::string msg;
     ArgChecker checker("");
@@ -419,12 +420,12 @@ TEST(ArgChecker, args_with_kill_check)
     ProfArgs args;
     std::string msg;
     ArgChecker checker("");
-    // kill should be in on/off or null
-    args.argKill = { "on" };
+    // kill should be true/false
+    args.argKill = { "true" };
     ASSERT_TRUE(checker.CheckKillAdvance(args, msg));
-    args.argKill = { "off" };
+    args.argKill = { "false" };
     ASSERT_TRUE(checker.CheckKillAdvance(args, msg));
-    args.argKill = { "off" };
+    args.argKill = { "false" };
     ASSERT_TRUE(checker.CheckKillAdvance(args, msg));
     // kill illegal
     args.argKill = { "off1" };
@@ -594,19 +595,20 @@ TEST(ArgChecker, mstx_args_check)
     ArgChecker checker("");
     Common::ProfArgs args;
     std::string msg;
+    // test correct input
+    args.argMstx = "true";
+    ASSERT_TRUE(checker.CheckMstx(args, msg));
+    args.argMstx = "false";
+    ASSERT_TRUE(checker.CheckMstx(args, msg));
+
     // test empty input
     args.argMstx = "";
     ASSERT_TRUE(checker.CheckMstx(args, msg));
-    // test correct input
-    args.argMstx = "on";
-    ASSERT_TRUE(checker.CheckMstx(args, msg));
-    args.argMstx = "off";
-    ASSERT_TRUE(checker.CheckMstx(args, msg));
 
-    // test error input
+    // test illegal input
     args.argMstx = "ofn";
     ASSERT_FALSE(checker.CheckMstx(args, msg));
-    ASSERT_TRUE(msg.find("--mstx should use on/off") != std::string::npos);
+    ASSERT_TRUE(msg.find("--mstx should use true/false") != std::string::npos);
 }
 
 TEST(ArgChecker, warm_up_args_check)
@@ -898,7 +900,7 @@ TEST(ArgChecker, test_CheckDump_expect_return_false)
     args.runMode = "simulator";
     args.argDump = "test";
     ASSERT_FALSE(checker.CheckDump(args, msg));
-    ASSERT_TRUE(msg.find("--dump should be on/off") != std::string::npos);
+    ASSERT_TRUE(msg.find("--dump should be true/false") != std::string::npos);
 }
 
 /**
@@ -912,12 +914,12 @@ TEST(ArgChecker, test_CheckDump_device_unsupported_soc_expect_return_false) {
     Common::ProfArgs args;
     std::string msg;
     args.runMode = "device";
-    args.argDump = "on";
+    args.argDump = "true";
     args.argAicMetrics.isDeviceToSimulator = true;
     MOCKER(&Common::HalHelper::GetPlatformType).stubs().will(returnValue(Common::ChipType::ASCEND950));
     ASSERT_FALSE(checker.CheckDump(args, msg));
     ASSERT_TRUE(msg.find("wrong soc platform") != std::string::npos);
-    args.argDump = "off";
+    args.argDump = "false";
     ASSERT_TRUE(checker.CheckDump(args, msg));
     GlobalMockObject::verify();
 }
@@ -926,7 +928,7 @@ TEST(ArgChecker, test_CheckDump_device_unsupported_soc_expect_return_false) {
 * |  用例集  | ArgChecker
 * | 测试函数 | CheckDump
 * |  用例名  | test_CheckDump_expect_return_true
-* | 用例描述 | 测试输入on/off CheckDump均成功
+* | 用例描述 | 测试输入true/false CheckDump均成功
 */
 TEST(ArgChecker, test_CheckDump_expect_return_true)
 {
@@ -935,9 +937,9 @@ TEST(ArgChecker, test_CheckDump_expect_return_true)
     std::string msg;
     args.runMode = "simulator";
     args.argSocVersion = "Ascend910B1";
-    args.argDump = "on";
+    args.argDump = "true";
     ASSERT_TRUE(checker.CheckDump(args, msg));
-    args.argDump = "off";
+    args.argDump = "false";
     ASSERT_TRUE(checker.CheckDump(args, msg));
 }
 

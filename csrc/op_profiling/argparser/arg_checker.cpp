@@ -375,8 +375,8 @@ bool ArgChecker::CheckReplayMode(const Common::ProfArgs &config, std::string &ms
         return false;
     }
     if (config.argReplayMode == "range") {
-        if (config.argMstx != "on") {
-            msg = "--replay-mode=range only support when --mstx=on";
+        if (config.argMstx != "true") {
+            msg = "--replay-mode=range only support when --mstx=true";
             return false;
         }
         if (chipType == ChipType::ASCEND950 &&
@@ -397,8 +397,8 @@ bool ArgChecker::CheckReplayMode(const Common::ProfArgs &config, std::string &ms
 
 bool ArgChecker::CheckKillAdvance(const Common::ProfArgs &config, std::string &msg) const
 {
-    if (config.argKill != "on" && config.argKill != "off") {
-        msg = "Kill should be on/off";
+    if (config.argKill != "true" && config.argKill != "false") {
+        msg = "Kill should be true/false";
         return false;
     }
     return true;
@@ -406,11 +406,11 @@ bool ArgChecker::CheckKillAdvance(const Common::ProfArgs &config, std::string &m
 
 bool ArgChecker::CheckDump(const Common::ProfArgs &config, std::string &msg) const
 {
-    if (config.argDump != "on" && config.argDump != "off") {
-        msg = "--dump should be on/off";
+    if (config.argDump != "true" && config.argDump != "false") {
+        msg = "--dump should be true/false";
         return false;
     }
-    if (config.runMode == "device" && config.argDump == "on") {
+    if (config.runMode == "device" && config.argDump == "true") {
         if (!CheckDeviceChipSupport(
                 "--dump", {ChipProductType::ASCEND910B_SERIES, ChipProductType::ASCEND910_93_SERIES}, msg)) {
             return false;
@@ -420,7 +420,7 @@ bool ArgChecker::CheckDump(const Common::ProfArgs &config, std::string &msg) con
             return false;
         }
     }
-    if (config.runMode == "simulator" && config.argDump == "on") {
+    if (config.runMode == "simulator" && config.argDump == "true") {
         std::string socVersion = config.argSocVersion;
         if (socVersion.empty() && !GetSocVersionFromEnvVar(socVersion)) {
             socVersion = "Ascend910B1";
@@ -441,8 +441,8 @@ bool ArgChecker::CheckMstx(const Common::ProfArgs &config, std::string &msg) con
     if (config.argMstx.empty()) {
         return true;
     }
-    if (config.argMstx != "on" && config.argMstx != "off") {
-        msg = "--mstx should use on/off";
+    if (config.argMstx != "true" && config.argMstx != "false") {
+        msg = "--mstx should use true/false";
         return false;
     }
     return true;
@@ -454,8 +454,8 @@ bool ArgChecker::CheckMstxInclude(const Common::ProfArgs &config, std::string &m
         return true;
     }
 
-    if (config.argMstx == "off") {
-        msg = "--mstx-include only support when --mstx=on";
+    if (config.argMstx == "false") {
+        msg = "--mstx-include only support when --mstx=true";
         return false;
     }
 

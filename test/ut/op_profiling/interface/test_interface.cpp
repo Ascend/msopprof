@@ -55,6 +55,31 @@ TEST(Interface, print_simulator_help_called_expect_return_true)
     ASSERT_EQ(ret, true);
 }
 
+TEST(Interface, deprecated_version_option_warns_and_sets_print_version)
+{
+    char program[] = "msopprof";
+    char simulator[] = "simulator";
+    char version[] = "-v";
+    char *deviceArgv[] = {program, version};
+    char *simulatorArgv[] = {program, simulator, version};
+    Common::ProfArgs deviceArgs;
+    Common::ProfArgs simulatorArgs;
+
+    testing::internal::CaptureStderr();
+    bool deviceRet = ProfArgsInit(deviceArgs, 2, deviceArgv, nullptr);
+    std::string deviceWarning = testing::internal::GetCapturedStderr();
+    testing::internal::CaptureStderr();
+    bool simulatorRet = ProfArgsInit(simulatorArgs, 3, simulatorArgv, nullptr);
+    std::string simulatorWarning = testing::internal::GetCapturedStderr();
+
+    ASSERT_TRUE(deviceRet);
+    ASSERT_TRUE(simulatorRet);
+    ASSERT_TRUE(deviceArgs.printVersion);
+    ASSERT_TRUE(simulatorArgs.printVersion);
+    ASSERT_EQ(deviceWarning, "WARNING: '-v' is deprecated; use '-V' instead.\n");
+    ASSERT_EQ(simulatorWarning, "WARNING: '-v' is deprecated; use '-V' instead.\n");
+}
+
 TEST(Interface, args_init_with_invalid_param_expect_return_false)
 {
     Common::ProfArgs args;

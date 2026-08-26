@@ -119,6 +119,7 @@ private:
 struct ProfArgs {
     bool printHelp { false };
     bool printVersion { false };
+    bool deprecatedVersion { false };
     std::string runMode { "device" };
     std::string argOutput {"./" };
     std::string argExport;
@@ -129,15 +130,15 @@ struct ProfArgs {
     std::string argKernelName;
     std::string argLaunchCount {"1" };
     std::string argLaunchSkipBeforeMatch {"0" };
-    std::string argMstx {"off" };
+    std::string argMstx {"false" };
     std::string argMstxInclude { };
     std::string argReplayMode {"kernel"};
-    std::string argKill {"off"};
+    std::string argKill {"false"};
     std::string argSocVersion;
     std::string argCoreId;
     std::string argWarmUp {"5"};
     std::string argTimeout;
-    std::string argDump {"off"};
+    std::string argDump {"false"};
     std::string argInstrTimelinePipe{};
     std::string argCustomInput;
     std::vector<std::string> cmd { };

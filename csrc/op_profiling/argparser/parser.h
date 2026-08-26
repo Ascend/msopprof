@@ -157,15 +157,22 @@ Either Option<T>::ParseLongName(TokenS const &stream, std::string const &arg) co
     auto equal = arg.find_first_of('=');
     if (arg.substr(0, equal) != longName_) {
         return Either::Left({ErrorType::ParseMissMatch, "unexpected argument --" + arg});
-    } else if (equal == std::string::npos) {
-        return Either::Left({ErrorType::ParseLeakValue, "argument --" + arg + " miss value"});
-    } else {
+    }
+    if (equal != std::string::npos) {
         if (ParseValue(arg.substr(equal + 1), value_)) {
             return Either::Right(stream.Consume(1));
-        } else {
-            return Either::Left({ErrorType::ParseInvalidValue, "argument --" + arg + " is invalid"});
         }
+        return Either::Left({ErrorType::ParseInvalidValue, "argument --" + arg + " is invalid"});
     }
+
+    TokenS valueStream = stream.Consume(1);
+    if (valueStream.Eos()) {
+        return Either::Left({ErrorType::ParseLeakValue, "argument --" + arg + " miss value"});
+    }
+    if (ParseValue(valueStream.Get(), value_)) {
+        return Either::Right(valueStream.Consume(1));
+    }
+    return Either::Left({ErrorType::ParseInvalidValue, "argument --" + arg + " is invalid"});
 }
 
 class ArgParser {
