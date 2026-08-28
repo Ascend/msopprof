@@ -1,0 +1,113 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="650" viewBox="0 0 1200 650" role="img" aria-labelledby="title desc">
+  <title id="title">优化三：半行段细分收敛核间尾块</title>
+  <desc id="desc">对比 Case 2 行粒度下 5 行/4 行的核间尾块与 Case 3 半行段下 10 段/9 段的均衡分布，Occupancy max/min 由 1.635 收敛到 1.317。</desc>
+  <defs>
+    <style>
+      .title { font: 700 28px sans-serif; fill: #172033; }
+      .head { font: 700 21px sans-serif; fill: #27344a; }
+      .label { font: 600 16px sans-serif; fill: #27344a; }
+      .small { font: 14px sans-serif; fill: #536176; }
+      .tiny { font: 12px sans-serif; fill: #64748b; }
+      .metric { font: 700 18px monospace; fill: #172033; }
+    </style>
+  </defs>
+  <rect width="1200" height="650" rx="20" fill="#f8fafc"/>
+  <text x="48" y="52" class="title">优化 3：行粒度尾块 → 半行段细分（Occupancy 驱动）</text>
+
+  <rect x="42" y="88" width="530" height="400" rx="16" fill="#fff1f2" stroke="#fda4af"/>
+  <text x="68" y="124" class="head">Case 2：整行任务（256 行 / 56 核）</text>
+  <text x="68" y="152" class="small">32 核分 5 行、24 核分 4 行，尾块 5/4 = 1.25×</text>
+  <!-- block duration bars: 5-row stragglers tall, 4-row short -->
+  <g>
+    <!-- baseline -->
+    <line x1="72" y1="430" x2="552" y2="430" stroke="#94a3b8"/>
+    <!-- 56 bars; pattern: straggler(5 rows) ~ height 150, normal(4 rows) ~ height 120 -->
+    <g fill="#ef4444">
+      <rect x="80"  y="280" width="6" height="150"/><rect x="88"  y="280" width="6" height="150"/>
+      <rect x="96"  y="310" width="6" height="120"/><rect x="104" y="280" width="6" height="150"/>
+      <rect x="112" y="310" width="6" height="120"/><rect x="120" y="280" width="6" height="150"/>
+      <rect x="128" y="280" width="6" height="150"/><rect x="136" y="310" width="6" height="120"/>
+      <rect x="144" y="280" width="6" height="150"/><rect x="152" y="310" width="6" height="120"/>
+      <rect x="160" y="280" width="6" height="150"/><rect x="168" y="280" width="6" height="150"/>
+      <rect x="176" y="310" width="6" height="120"/><rect x="184" y="280" width="6" height="150"/>
+      <rect x="192" y="310" width="6" height="120"/><rect x="200" y="280" width="6" height="150"/>
+      <rect x="208" y="280" width="6" height="150"/><rect x="216" y="310" width="6" height="120"/>
+      <rect x="224" y="280" width="6" height="150"/><rect x="232" y="310" width="6" height="120"/>
+      <rect x="240" y="280" width="6" height="150"/><rect x="248" y="280" width="6" height="150"/>
+      <rect x="256" y="310" width="6" height="120"/><rect x="264" y="280" width="6" height="150"/>
+      <rect x="272" y="310" width="6" height="120"/><rect x="280" y="280" width="6" height="150"/>
+      <rect x="288" y="280" width="6" height="150"/><rect x="296" y="310" width="6" height="120"/>
+      <rect x="304" y="280" width="6" height="150"/><rect x="312" y="310" width="6" height="120"/>
+      <rect x="320" y="280" width="6" height="150"/><rect x="328" y="280" width="6" height="150"/>
+      <rect x="336" y="310" width="6" height="120"/><rect x="344" y="280" width="6" height="150"/>
+      <rect x="352" y="310" width="6" height="120"/><rect x="360" y="280" width="6" height="150"/>
+      <rect x="368" y="280" width="6" height="150"/><rect x="376" y="310" width="6" height="120"/>
+      <rect x="384" y="280" width="6" height="150"/><rect x="392" y="310" width="6" height="120"/>
+      <rect x="400" y="280" width="6" height="150"/><rect x="408" y="280" width="6" height="150"/>
+      <rect x="416" y="310" width="6" height="120"/><rect x="424" y="280" width="6" height="150"/>
+      <rect x="432" y="310" width="6" height="120"/><rect x="440" y="280" width="6" height="150"/>
+      <rect x="448" y="280" width="6" height="150"/><rect x="456" y="310" width="6" height="120"/>
+      <rect x="464" y="280" width="6" height="150"/><rect x="472" y="310" width="6" height="120"/>
+      <rect x="480" y="280" width="6" height="150"/><rect x="488" y="280" width="6" height="150"/>
+      <rect x="496" y="310" width="6" height="120"/><rect x="504" y="280" width="6" height="150"/>
+      <rect x="512" y="310" width="6" height="120"/><rect x="520" y="280" width="6" height="150"/>
+    </g>
+    <text x="80" y="266" class="tiny">5 行尾块（最慢 +21.3%）</text>
+  </g>
+  <rect x="76" y="446" width="448" height="36" rx="10" fill="#ffffff" stroke="#fecaca"/>
+  <text x="92" y="470" class="metric">Occupancy max/min：1.635</text>
+
+  <rect x="600" y="88" width="558" height="400" rx="16" fill="#f0fdf4" stroke="#86efac"/>
+  <text x="626" y="124" class="head">Case 3：半行段任务（512 段 / 56 核）</text>
+  <text x="626" y="152" class="small">8 核分 10 段、48 核分 9 段，尾块 10/9 = 1.11×</text>
+  <g>
+    <line x1="630" y1="430" x2="1110" y2="430" stroke="#94a3b8"/>
+    <!-- 56 bars; mostly uniform ~ height 132, a few slightly taller ~ height 147 -->
+    <g fill="#16a34a">
+      <rect x="638"  y="283" width="6" height="147"/><rect x="646"  y="298" width="6" height="132"/>
+      <rect x="654"  y="298" width="6" height="132"/><rect x="662" y="298" width="6" height="132"/>
+      <rect x="670" y="298" width="6" height="132"/><rect x="678" y="298" width="6" height="132"/>
+      <rect x="686" y="283" width="6" height="147"/><rect x="694" y="298" width="6" height="132"/>
+      <rect x="702" y="298" width="6" height="132"/><rect x="710" y="298" width="6" height="132"/>
+      <rect x="718" y="298" width="6" height="132"/><rect x="726" y="298" width="6" height="132"/>
+      <rect x="734" y="283" width="6" height="147"/><rect x="742" y="298" width="6" height="132"/>
+      <rect x="750" y="298" width="6" height="132"/><rect x="758" y="298" width="6" height="132"/>
+      <rect x="766" y="298" width="6" height="132"/><rect x="774" y="298" width="6" height="132"/>
+      <rect x="782" y="283" width="6" height="147"/><rect x="790" y="298" width="6" height="132"/>
+      <rect x="798" y="298" width="6" height="132"/><rect x="806" y="298" width="6" height="132"/>
+      <rect x="814" y="298" width="6" height="132"/><rect x="822" y="298" width="6" height="132"/>
+      <rect x="830" y="283" width="6" height="147"/><rect x="838" y="298" width="6" height="132"/>
+      <rect x="846" y="298" width="6" height="132"/><rect x="854" y="298" width="6" height="132"/>
+      <rect x="862" y="298" width="6" height="132"/><rect x="870" y="298" width="6" height="132"/>
+      <rect x="878" y="283" width="6" height="147"/><rect x="886" y="298" width="6" height="132"/>
+      <rect x="894" y="298" width="6" height="132"/><rect x="902" y="298" width="6" height="132"/>
+      <rect x="910" y="298" width="6" height="132"/><rect x="918" y="298" width="6" height="132"/>
+      <rect x="926" y="283" width="6" height="147"/><rect x="934" y="298" width="6" height="132"/>
+      <rect x="942" y="298" width="6" height="132"/><rect x="950" y="298" width="6" height="132"/>
+      <rect x="958" y="298" width="6" height="132"/><rect x="966" y="298" width="6" height="132"/>
+      <rect x="974" y="283" width="6" height="147"/><rect x="982" y="298" width="6" height="132"/>
+      <rect x="990" y="298" width="6" height="132"/><rect x="998" y="298" width="6" height="132"/>
+      <rect x="1006" y="298" width="6" height="132"/><rect x="1014" y="298" width="6" height="132"/>
+      <rect x="1022" y="298" width="6" height="132"/><rect x="1030" y="298" width="6" height="132"/>
+      <rect x="1038" y="298" width="6" height="132"/><rect x="1046" y="298" width="6" height="132"/>
+      <rect x="1054" y="298" width="6" height="132"/><rect x="1062" y="298" width="6" height="132"/>
+    </g>
+    <text x="638" y="266" class="tiny">分布收紧（最慢 +12.7%）</text>
+  </g>
+  <rect x="634" y="446" width="448" height="36" rx="10" fill="#ffffff" stroke="#bbf7d0"/>
+  <text x="650" y="470" class="metric">Occupancy max/min：1.317</text>
+
+  <g>
+    <rect x="42" y="512" width="352" height="92" rx="14" fill="#ffffff" stroke="#fdba74"/>
+    <text x="66" y="544" class="label">最慢块超出均值</text>
+    <text x="66" y="578" class="metric">21.3% → 12.7%</text>
+    <rect x="424" y="512" width="352" height="92" rx="14" fill="#ffffff" stroke="#67e8f9"/>
+    <text x="448" y="544" class="label">PipeTimeline 并发度</text>
+    <text x="448" y="578" class="metric">1.43 → 1.58</text>
+    <rect x="806" y="512" width="352" height="92" rx="14" fill="#ffffff" stroke="#86efac"/>
+    <text x="830" y="544" class="label">Task Duration</text>
+    <text x="830" y="578" class="metric">8.385 → 7.932 μs（-5.40%）</text>
+  </g>
+
+  <text x="48" y="634" class="small">只改任务粒度：256 整行 → 512 半行段（8 KiB 搬运，保持 MTE 效率），同步结构与 GM 流量不变；Bias 按段重搬，SIMT 一线程一元素无循环。</text>
+</svg>

@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="640" viewBox="0 0 1200 640" role="img" aria-labelledby="title desc">
+  <title id="title">优化一：把非连续访问从 GM 转移到 UB</title>
+  <desc id="desc">对比直接从 GM 读取并跨行写 GM，以及用 32×32 tile 连续搬入 UB、在 UB 内转置、再连续搬回 GM。</desc>
+  <defs>
+    <marker id="arrow-red" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#ef4444"/></marker>
+    <marker id="arrow-green" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#16a34a"/></marker>
+    <style>
+      .title { font: 700 28px sans-serif; fill: #172033; }
+      .head { font: 700 21px sans-serif; fill: #27344a; }
+      .label { font: 600 16px sans-serif; fill: #27344a; }
+      .small { font: 14px sans-serif; fill: #536176; }
+      .metric { font: 700 18px monospace; fill: #172033; }
+    </style>
+  </defs>
+  <rect width="1200" height="640" rx="20" fill="#f8fafc"/>
+  <text x="48" y="52" class="title">优化 1：GM 跨行写 → GM 连续搬运 + UB 内转置</text>
+
+  <rect x="42" y="86" width="530" height="420" rx="16" fill="#fff1f2" stroke="#fda4af"/>
+  <text x="68" y="122" class="head">Case 0：直接 GM 转置</text>
+  <text x="68" y="150" class="small">output[col × height + row] 使相邻线程写入相隔一整行</text>
+  <rect x="76" y="186" width="180" height="210" rx="10" fill="#ffffff" stroke="#94a3b8"/>
+  <text x="137" y="216" class="label">输入 GM</text>
+  <g fill="#bfdbfe" stroke="#60a5fa">
+    <rect x="98" y="240" width="32" height="32"/><rect x="134" y="240" width="32" height="32"/><rect x="170" y="240" width="32" height="32"/>
+    <rect x="98" y="276" width="32" height="32"/><rect x="134" y="276" width="32" height="32"/><rect x="170" y="276" width="32" height="32"/>
+    <rect x="98" y="312" width="32" height="32"/><rect x="134" y="312" width="32" height="32"/><rect x="170" y="312" width="32" height="32"/>
+  </g>
+  <rect x="355" y="186" width="180" height="210" rx="10" fill="#ffffff" stroke="#94a3b8"/>
+  <text x="416" y="216" class="label">输出 GM</text>
+  <g fill="#fecaca" stroke="#f87171">
+    <rect x="377" y="240" width="32" height="32"/><rect x="413" y="240" width="32" height="32"/><rect x="449" y="240" width="32" height="32"/>
+    <rect x="377" y="276" width="32" height="32"/><rect x="413" y="276" width="32" height="32"/><rect x="449" y="276" width="32" height="32"/>
+    <rect x="377" y="312" width="32" height="32"/><rect x="413" y="312" width="32" height="32"/><rect x="449" y="312" width="32" height="32"/>
+  </g>
+  <path d="M130 256 C260 230 300 230 393 256" fill="none" stroke="#ef4444" stroke-width="3" marker-end="url(#arrow-red)"/>
+  <path d="M166 256 C270 275 315 280 393 292" fill="none" stroke="#ef4444" stroke-width="3" marker-end="url(#arrow-red)"/>
+  <path d="M202 256 C280 330 320 338 393 328" fill="none" stroke="#ef4444" stroke-width="3" marker-end="url(#arrow-red)"/>
+  <text x="68" y="438" class="metric">实际写流量 130,496.625 KB（逻辑 4,096 KB 的 31.86×）</text>
+  <text x="68" y="470" class="metric">Task Duration 53.887 μs · VECTOR 40.075 μs</text>
+
+  <rect x="600" y="86" width="558" height="420" rx="16" fill="#f0fdf4" stroke="#86efac"/>
+  <text x="626" y="122" class="head">Case 1：32×32 Tile + UB 中转</text>
+  <text x="626" y="150" class="small">GM 两端连续访问；转置方向的离散访问留在低时延 UB</text>
+  <rect x="626" y="198" width="128" height="118" rx="10" fill="#ffffff" stroke="#60a5fa"/>
+  <text x="657" y="228" class="label">输入 GM</text><text x="650" y="268" class="small">连续 32 行</text>
+  <rect x="812" y="178" width="136" height="158" rx="10" fill="#ecfeff" stroke="#06b6d4"/>
+  <text x="849" y="208" class="label">UB Tile</text>
+  <g fill="#a5f3fc" stroke="#22d3ee"><rect x="840" y="226" width="28" height="28"/><rect x="872" y="226" width="28" height="28"/><rect x="904" y="226" width="28" height="28"/><rect x="840" y="258" width="28" height="28"/><rect x="872" y="258" width="28" height="28"/><rect x="904" y="258" width="28" height="28"/></g>
+  <path d="M854 232 L910 282" stroke="#0e7490" stroke-width="3"/><path d="M910 232 L854 282" stroke="#0e7490" stroke-width="3"/>
+  <rect x="1006" y="198" width="128" height="118" rx="10" fill="#ffffff" stroke="#22c55e"/>
+  <text x="1035" y="228" class="label">输出 GM</text><text x="1025" y="268" class="small">连续 32 行</text>
+  <path d="M754 257 L810 257" stroke="#16a34a" stroke-width="5" marker-end="url(#arrow-green)"/>
+  <text x="766" y="242" class="small">MTE2</text>
+  <path d="M948 257 L1004 257" stroke="#16a34a" stroke-width="5" marker-end="url(#arrow-green)"/>
+  <text x="958" y="242" class="small">MTE3</text>
+  <text x="626" y="398" class="metric">实际写流量 4,096 KB（消除 96.86% 写放大）</text>
+  <text x="626" y="432" class="metric">Task Duration 22.383 μs · 本步 2.41×</text>
+  <text x="626" y="466" class="small">代价：MTE2 → VECTOR → MTE3 形成新的串行流水链</text>
+
+  <rect x="42" y="534" width="1116" height="68" rx="12" fill="#eef2ff" stroke="#a5b4fc"/>
+  <text x="66" y="563" class="label">为什么有效：</text>
+  <text x="166" y="563" class="small">GM 按事务传输，离散写会把少量有效字节放大成大量总线事务；先在 UB 内重排，使 GM 两端都按行连续。</text>
+  <text x="166" y="588" class="small">Roofline advice 从 compute caused 转为 pipeline caused；当前 Case 把“分块、UB 中转、块内循环”作为联合优化验证。</text>
+</svg>

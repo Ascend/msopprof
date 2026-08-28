@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="650" viewBox="0 0 1200 650" role="img" aria-labelledby="title desc">
+  <title id="title">Matrix Transpose 三个 Case 的实测性能总览</title>
+  <desc id="desc">2026-08-27 在 Ascend 950PR 上联合启用 Roofline、Occupancy、PipeTimeline 后得到的 Task Duration 和流水并发度。</desc>
+  <defs>
+    <linearGradient id="bar" x1="0" x2="1">
+      <stop offset="0" stop-color="#4f46e5"/>
+      <stop offset="1" stop-color="#22c55e"/>
+    </linearGradient>
+    <style>
+      .title { font: 700 28px sans-serif; fill: #172033; }
+      .subtitle { font: 15px sans-serif; fill: #536176; }
+      .label { font: 600 17px sans-serif; fill: #27344a; }
+      .small { font: 14px sans-serif; fill: #536176; }
+      .value { font: 700 17px monospace; fill: #172033; }
+      .card-title { font: 700 18px sans-serif; fill: #172033; }
+      .card-value { font: 700 18px monospace; fill: #075985; }
+    </style>
+  </defs>
+  <rect width="1200" height="650" rx="20" fill="#f8fafc"/>
+  <text x="52" y="54" class="title">实测性能总览：53.887 μs → 16.581 μs（3.25×）</text>
+  <text x="52" y="82" class="subtitle">Ascend 950PR · 1024×1024 FP32 · Block Dim 56 · msopprof 26.2.0 · 同次启用三类分析能力</text>
+
+  <text x="52" y="126" class="label">Task Duration（越短越好）</text>
+  <line x1="155" y1="151" x2="675" y2="151" stroke="#cbd5e1"/>
+  <line x1="155" y1="151" x2="155" y2="458" stroke="#94a3b8"/>
+  <g class="small" text-anchor="middle">
+    <text x="155" y="480">0</text><text x="253" y="480">10</text><text x="351" y="480">20</text>
+    <text x="449" y="480">30</text><text x="547" y="480">40</text><text x="645" y="480">50 μs</text>
+  </g>
+  <g stroke="#e2e8f0">
+    <line x1="253" y1="151" x2="253" y2="458"/><line x1="351" y1="151" x2="351" y2="458"/>
+    <line x1="449" y1="151" x2="449" y2="458"/><line x1="547" y1="151" x2="547" y2="458"/>
+    <line x1="645" y1="151" x2="645" y2="458"/>
+  </g>
+  <g>
+    <text x="52" y="203" class="label">Case 0</text><rect x="155" y="175" width="528" height="40" rx="8" fill="#ef4444"/><text x="691" y="202" class="value">53.887</text>
+    <text x="52" y="276" class="label">Case 1</text><rect x="155" y="248" width="219" height="40" rx="8" fill="#f59e0b"/><text x="382" y="275" class="value">22.383</text>
+    <text x="52" y="349" class="label">Case 2</text><rect x="155" y="321" width="163" height="40" rx="8" fill="url(#bar)"/><text x="326" y="348" class="value">16.581</text>
+  </g>
+
+  <g>
+    <rect x="760" y="128" width="388" height="106" rx="14" fill="#ecfeff" stroke="#67e8f9"/>
+    <text x="784" y="159" class="card-title">Roofline advice</text>
+    <text x="784" y="197" class="card-value">compute → pipeline → compute</text>
+    <text x="784" y="220" class="small">双缓冲压缩流水空洞后，VECTOR 重新成为关键路径</text>
+
+    <rect x="760" y="254" width="388" height="106" rx="14" fill="#f0fdf4" stroke="#86efac"/>
+    <text x="784" y="285" class="card-title">算法等效 GM 带宽</text>
+    <text x="784" y="323" class="card-value">0.156 → 0.375 → 0.506 TB/s</text>
+    <text x="784" y="346" class="small">按固定 8 MiB 逻辑读写量 / Task Duration 计算</text>
+
+    <rect x="760" y="380" width="388" height="106" rx="14" fill="#eef2ff" stroke="#a5b4fc"/>
+    <text x="784" y="411" class="card-title">PipeTimeline：数据流水并发度</text>
+    <text x="784" y="449" class="card-value">Case 1: 1.00 → Case 2: 2.06</text>
+    <text x="784" y="472" class="small">MTE2 / VECTOR / MTE3 活跃时长之和 ÷ 并集窗口</text>
+  </g>
+
+  <rect x="52" y="526" width="1096" height="76" rx="12" fill="#fff7ed" stroke="#fdba74"/>
+  <text x="76" y="557" class="label">证据链</text>
+  <text x="160" y="557" class="small">Case 0→1：GM 写流量 130,496.625 KB → 4,096 KB</text>
+  <text x="160" y="583" class="small">Case 1→2：GM 流量与 VECTOR 时间基本不变，流水从完全串行变为平均 2.06 路并发</text>
+</svg>

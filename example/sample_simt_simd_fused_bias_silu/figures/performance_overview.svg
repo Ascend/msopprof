@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="610" viewBox="0 0 1200 610" role="img" aria-labelledby="title desc">
+  <title id="title">Bias SiLU Residual 四个 Case 的实测性能总览</title>
+  <desc id="desc">Ascend 950PR 上的 Task Duration。Case 0 是 SIMT SIMD 混合基线，Case 1 到 Case 3 是三轮特性驱动优化。</desc>
+  <defs>
+    <linearGradient id="final-bar" x1="0" x2="1">
+      <stop offset="0" stop-color="#2563eb"/>
+      <stop offset="1" stop-color="#16a34a"/>
+    </linearGradient>
+    <style>
+      .title { font: 700 28px sans-serif; fill: #172033; }
+      .subtitle { font: 15px sans-serif; fill: #536176; }
+      .label { font: 600 17px sans-serif; fill: #27344a; }
+      .small { font: 14px sans-serif; fill: #536176; }
+      .value { font: 700 17px monospace; fill: #172033; }
+      .card-title { font: 700 18px sans-serif; fill: #172033; }
+      .card-value { font: 700 18px monospace; fill: #075985; }
+    </style>
+  </defs>
+  <rect width="1200" height="610" rx="20" fill="#f8fafc"/>
+  <text x="52" y="54" class="title">SIMT/SIMD 混合基线 11.344 μs → 7.932 μs（-30.08%）</text>
+  <text x="52" y="82" class="subtitle">Ascend 950PR · [256, 4096] FP32 · Block Dim 56 · 1650 MHz · msopprof 26.2.0 · Default 同口径 · 6 次交错重复中位数</text>
+
+  <text x="52" y="126" class="label">Task Duration（越短越好）</text>
+  <line x1="160" y1="151" x2="690" y2="151" stroke="#cbd5e1"/>
+  <line x1="160" y1="151" x2="160" y2="426" stroke="#94a3b8"/>
+  <g class="small" text-anchor="middle">
+    <text x="160" y="450">0</text><text x="248" y="450">2</text><text x="336" y="450">4</text>
+    <text x="424" y="450">6</text><text x="512" y="450">8</text><text x="600" y="450">10</text><text x="688" y="450">12 μs</text>
+  </g>
+  <g stroke="#e2e8f0">
+    <line x1="248" y1="151" x2="248" y2="426"/><line x1="336" y1="151" x2="336" y2="426"/>
+    <line x1="424" y1="151" x2="424" y2="426"/><line x1="512" y1="151" x2="512" y2="426"/>
+    <line x1="600" y1="151" x2="600" y2="426"/><line x1="688" y1="151" x2="688" y2="426"/>
+  </g>
+  <g>
+    <text x="52" y="200" class="label">Case 0</text><rect x="160" y="174" width="499" height="38" rx="8" fill="#ef4444"/><text x="668" y="199" class="value">11.344</text>
+    <text x="52" y="266" class="label">Case 1</text><rect x="160" y="240" width="475" height="38" rx="8" fill="#f59e0b"/><text x="644" y="265" class="value">10.796</text>
+    <text x="52" y="332" class="label">Case 2</text><rect x="160" y="306" width="369" height="38" rx="8" fill="#0ea5e9"/><text x="538" y="331" class="value">8.385</text>
+    <text x="52" y="398" class="label">Case 3</text><rect x="160" y="372" width="349" height="38" rx="8" fill="url(#final-bar)"/><text x="518" y="397" class="value">7.932</text>
+  </g>
+
+  <g>
+    <rect x="775" y="126" width="373" height="105" rx="14" fill="#fff7ed" stroke="#fdba74"/>
+    <text x="799" y="157" class="card-title">优化 1 · 固定映射展开</text>
+    <text x="799" y="193" class="card-value">11.344 → 10.796 μs（-4.83%）</text>
+    <text x="799" y="216" class="small">SIMT 指令数 14,720 → 11,200（-23.9%）</text>
+
+    <rect x="775" y="251" width="373" height="105" rx="14" fill="#ecfeff" stroke="#67e8f9"/>
+    <text x="799" y="282" class="card-title">优化 2 · 行级全双缓冲</text>
+    <text x="799" y="318" class="card-value">10.796 → 8.385 μs（-22.3%）</text>
+    <text x="799" y="341" class="small">PipeTimeline 并发度：1.00 → 1.43</text>
+
+    <rect x="775" y="376" width="373" height="105" rx="14" fill="#f0fdf4" stroke="#86efac"/>
+    <text x="799" y="407" class="card-title">优化 3 · 半行段细分</text>
+    <text x="799" y="443" class="card-value">8.385 → 7.932 μs（-5.40%）</text>
+    <text x="799" y="466" class="small">Occupancy max/min：1.635 → 1.317</text>
+  </g>
+
+  <rect x="52" y="500" width="1096" height="66" rx="12" fill="#eef2ff" stroke="#a5b4fc"/>
+  <text x="76" y="529" class="label">对比范围</text>
+  <text x="172" y="529" class="small">Case 0 是 SIMT/SIMD 混合基线；Case 1～3 依次只引入固定映射展开、行级全双缓冲、半行段细分三个主变量。</text>
+  <text x="172" y="554" class="small">三轮各绑定一族特性：Source/PCSampling/寄存器 → PipeTimeline/InstrTimeline → Occupancy；性能值均为同环境 Default 口径中位数。</text>
+</svg>

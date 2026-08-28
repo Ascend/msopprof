@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="650" viewBox="0 0 1200 650" role="img" aria-labelledby="title desc">
+  <title id="title">优化二：行级全双缓冲</title>
+  <desc id="desc">对比 Case 1 单 Buffer 单 mutex 三条 Pipe 严格串行与 Case 2 行级全双缓冲下 MTE2(n+1)、SIMT(n)、MTE3(n-1) 跨行重叠。</desc>
+  <defs>
+    <style>
+      .title { font: 700 28px sans-serif; fill: #172033; }
+      .head { font: 700 21px sans-serif; fill: #27344a; }
+      .label { font: 600 16px sans-serif; fill: #27344a; }
+      .small { font: 14px sans-serif; fill: #536176; }
+      .metric { font: 700 18px monospace; fill: #172033; }
+      .inside { font: 700 13px sans-serif; fill: #ffffff; text-anchor: middle; }
+      .lane { font: 700 14px sans-serif; fill: #536176; text-anchor: end; }
+    </style>
+  </defs>
+  <rect width="1200" height="650" rx="20" fill="#f8fafc"/>
+  <text x="48" y="52" class="title">优化 2：单 Buffer 串行 → 行级全双缓冲（合并流水化）</text>
+
+  <rect x="42" y="88" width="530" height="430" rx="16" fill="#fff1f2" stroke="#fda4af"/>
+  <text x="68" y="124" class="head">Case 1：单 Buffer + 单 mutex</text>
+  <text x="68" y="152" class="small">三个阶段共用 SINGLE_BUFFER_MUTEX，两两重叠全部为 0</text>
+  <text x="150" y="212" class="lane">MTE2</text>
+  <rect x="160" y="194" width="150" height="30" rx="6" fill="#ef4444"/><text x="235" y="214" class="inside">load n</text>
+  <rect x="470" y="194" width="90" height="30" rx="6" fill="#ef4444" opacity="0.5"/><text x="515" y="214" class="inside">n+1</text>
+  <text x="150" y="262" class="lane">VECTOR</text>
+  <rect x="318" y="244" width="70" height="30" rx="6" fill="#f59e0b"/><text x="353" y="264" class="inside">VF n</text>
+  <text x="150" y="312" class="lane">MTE3</text>
+  <rect x="396" y="294" width="52" height="30" rx="6" fill="#0ea5e9"/><text x="422" y="314" class="inside">st n</text>
+  <g class="small">
+    <text x="160" y="360">单 mutex：读不同 UB 的阶段互等（假依赖）；</text>
+    <text x="160" y="384">单 Buffer：MTE2(n+1) 等 SIMT(n) 读完、</text>
+    <text x="160" y="408">SIMT(n+1) 等 MTE3(n) 让出输出。</text>
+  </g>
+  <rect x="76" y="428" width="448" height="72" rx="12" fill="#ffffff" stroke="#fecaca"/>
+  <text x="98" y="456" class="metric">PipeTimeline 并发度：1.00</text>
+  <text x="98" y="484" class="metric">三条 Pipe ratio 之和：0.93 &lt; 1</text>
+
+  <rect x="600" y="88" width="558" height="430" rx="16" fill="#f0fdf4" stroke="#86efac"/>
+  <text x="626" y="124" class="head">Case 2：两组输入/输出 Buffer + 独立 mutex</text>
+  <text x="626" y="152" class="small">MTE2(n+1) ∥ SIMT(n) ∥ MTE3(n-1) 跨行重叠</text>
+  <text x="708" y="212" class="lane">MTE2</text>
+  <rect x="718" y="194" width="150" height="30" rx="6" fill="#ef4444"/><text x="793" y="214" class="inside">load n → buf0</text>
+  <rect x="876" y="194" width="150" height="30" rx="6" fill="#ef4444" opacity="0.75"/><text x="951" y="214" class="inside">load n+1 → buf1</text>
+  <text x="708" y="262" class="lane">VECTOR</text>
+  <rect x="876" y="244" width="80" height="30" rx="6" fill="#f59e0b"/><text x="916" y="264" class="inside">VF n</text>
+  <rect x="1034" y="244" width="80" height="30" rx="6" fill="#f59e0b" opacity="0.6"/><text x="1074" y="264" class="inside">n+1</text>
+  <text x="708" y="312" class="lane">MTE3</text>
+  <rect x="962" y="294" width="50" height="30" rx="6" fill="#0ea5e9"/><text x="987" y="314" class="inside">st n</text>
+  <rect x="876" y="188" width="150" height="132" rx="8" fill="none" stroke="#16a34a" stroke-width="3" stroke-dasharray="7 5"/>
+  <text x="951" y="352" class="small" text-anchor="middle">三路重叠窗口</text>
+  <rect x="634" y="388" width="448" height="110" rx="12" fill="#ffffff" stroke="#bbf7d0"/>
+  <text x="656" y="418" class="metric">并发度：1.00 → 1.43；ratio 和 0.93 → 1.34</text>
+  <text x="656" y="450" class="metric">MTE2∩VECTOR：0 → 1.82 μs；三路：0 → 0.52 μs</text>
+  <text x="656" y="482" class="metric">Task Duration：-22.3%</text>
+
+  <rect x="42" y="546" width="1116" height="66" rx="12" fill="#eef2ff" stroke="#a5b4fc"/>
+  <text x="66" y="575" class="label">合并设计点</text>
+  <text x="166" y="575" class="small">以往拆成“分离 mutex / 输入侧双缓冲 / 输出侧双缓冲”三步流水图优化，这里合并为一个行级全双缓冲设计。</text>
+  <text x="166" y="600" class="small">输入/输出各两组 Buffer，输入 mutex 0/1、输出 mutex 2/3；SIMT 计算沿用 Case 1 展开版本，GM 流量不变。</text>
+</svg>

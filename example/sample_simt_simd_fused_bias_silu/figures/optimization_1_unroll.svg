@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="650" viewBox="0 0 1200 650" role="img" aria-labelledby="title desc" xml:space="preserve">
+  <title id="title">优化一：固定映射展开</title>
+  <desc id="desc">对比 Case 0 运行时 for 循环与 Case 1 固定两列映射展开，消除循环控制与运行期寻址指令。</desc>
+  <defs>
+    <style>
+      .title { font: 700 28px sans-serif; fill: #172033; }
+      .head { font: 700 21px sans-serif; fill: #27344a; }
+      .label { font: 600 16px sans-serif; fill: #27344a; }
+      .small { font: 14px sans-serif; fill: #536176; }
+      .metric { font: 700 18px monospace; fill: #172033; }
+      .code { font: 14px monospace; fill: #1e293b; }
+      .code-hi { font: 700 14px monospace; fill: #b91c1c; }
+      .code-ok { font: 700 14px monospace; fill: #15803d; }
+      .code-dim { font: 14px monospace; fill: #94a3b8; }
+    </style>
+  </defs>
+  <rect width="1200" height="650" rx="20" fill="#f8fafc"/>
+  <text x="48" y="52" class="title">优化 1：运行时 for 循环 → 固定映射展开（Source/PCSampling 驱动）</text>
+
+  <rect x="42" y="88" width="530" height="360" rx="16" fill="#fff1f2" stroke="#fda4af"/>
+  <text x="68" y="124" class="head">Case 0：运行时 for 循环</text>
+  <text x="68" y="152" class="small">hidden、blockDim.x 均为运行期值，每线程 2 次迭代</text>
+  <rect x="66" y="176" width="482" height="180" rx="10" fill="#ffffff" stroke="#fecaca"/>
+  <text x="84" y="204" class="code-hi">for (col = threadIdx.x;</text>
+  <text x="84" y="228" class="code-hi">     col &lt; hidden;        // 比较</text>
+  <text x="84" y="252" class="code-hi">     col += blockDim.x) { // 累加+回跳</text>
+  <text x="84" y="282" class="code">  output[col] = fused(input[col],</text>
+  <text x="84" y="306" class="code">               bias[col], residual[col]);</text>
+  <text x="84" y="344" class="code">}</text>
+  <g class="small">
+    <text x="70" y="386">Source/PCSampling：stall 样本集中在 L150–L152</text>
+    <text x="70" y="410">（循环头 + 循环体），以 Nop_Cycles 发射气泡为主。</text>
+    <text x="70" y="434">寄存器：8/线程、栈 0 —— 不受寄存器限制（排除假设）。</text>
+  </g>
+
+  <rect x="600" y="88" width="558" height="360" rx="16" fill="#f0fdf4" stroke="#86efac"/>
+  <text x="626" y="124" class="head">Case 1：固定两列映射（无循环）</text>
+  <text x="626" y="152" class="small">HIDDEN_SIZE = 2 × THREADS_PER_BLOCK，编译期整除</text>
+  <rect x="624" y="176" width="510" height="150" rx="10" fill="#ffffff" stroke="#bbf7d0"/>
+  <text x="642" y="204" class="code">col0 = threadIdx.x;</text>
+  <text x="642" y="228" class="code-ok">col1 = col0 + THREADS_PER_BLOCK; // 常量</text>
+  <text x="642" y="258" class="code">output[col0] = fused(...col0...);</text>
+  <text x="642" y="282" class="code">output[col1] = fused(...col1...);</text>
+  <text x="642" y="306" class="code-dim">// 无循环头/累加/回跳，地址折叠成立即数</text>
+  <g class="small">
+    <text x="628" y="386">循环控制与运行期寻址指令被消除；</text>
+    <text x="628" y="410">寄存器 9/线程、栈 0 —— 依然不受寄存器限制。</text>
+  </g>
+
+  <g>
+    <rect x="42" y="472" width="352" height="120" rx="14" fill="#ffffff" stroke="#fdba74"/>
+    <text x="66" y="506" class="label">SIMT VF 指令数</text>
+    <text x="66" y="540" class="metric">14,720 → 11,200</text>
+    <text x="66" y="570" class="metric">-23.9%</text>
+
+    <rect x="424" y="472" width="352" height="120" rx="14" fill="#ffffff" stroke="#67e8f9"/>
+    <text x="448" y="506" class="label">平均 aiv_vec_time</text>
+    <text x="448" y="540" class="metric">3.189 → 2.607 μs</text>
+    <text x="448" y="570" class="metric">-18.2%</text>
+
+    <rect x="806" y="472" width="352" height="120" rx="14" fill="#ffffff" stroke="#86efac"/>
+    <text x="830" y="506" class="label">Task Duration</text>
+    <text x="830" y="540" class="metric">11.344 → 10.796 μs</text>
+    <text x="830" y="570" class="metric">-4.83%</text>
+  </g>
+
+  <rect x="42" y="610" width="1116" height="1" fill="none"/>
+  <text x="48" y="620" class="small">唯一变量是 SIMT VF 的指令流；搬运结构、Buffer、mutex、行循环不变。</text>
+  <text x="48" y="642" class="small">端到端收益有限是因为 Roofline 判定本算子为流水/带宽受限：VF 变快后 aiv_vec_wait_ratio 0.724→0.935，瓶颈转向供数，进入优化 2。</text>
+</svg>
