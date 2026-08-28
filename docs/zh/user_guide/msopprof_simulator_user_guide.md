@@ -33,6 +33,7 @@ MindStudio Ops Profiler（算子调优工具，msOpProf）用于采集和分析�
 | PyTorch 框架接入算子 | [PyTorch 框架算子调用场景](./msopprof_usage.md#采集pytorch框架算子的性能数据) |
 | Triton-Ascend 算子 | [Triton 算子调用场景](./msopprof_usage.md#采集triton算子的性能数据) |
 | catlass算子 | [catlass算子调用场景](./msopprof_usage.md#采集catlass算子的性能数据) |
+| catlass dsl算子 | [catlass dsl算子调用场景](./msopprof_usage.md#采集catlass-dsl算子的性能数据) |
 
 ## 使用前准备
 

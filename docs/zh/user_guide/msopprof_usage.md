@@ -247,6 +247,125 @@ PyTorch框架算子调用场景下，进行性能数据采集的操作步骤与[
     msopprof simulator --soc-version=Ascendxxxyy ./00_basic_matmul 256 512 1024 0
     ```
 
+## 采集CATLASS DSL算子的性能数据
+
+**概述**
+
+展示如何使用msOpProf工具采集CATLASS DSL算子的性能数据。CATLASS DSL介绍可参考[CATLASS DSL社区文档](https://gitcode.com/cann/catlass/blob/master/python/tla_dsl/README.md)。
+
+**前期准备**
+
+- 单击[catlass dsl快速入门](https://gitcode.com/cann/catlass/blob/master/python/tla_dsl/docs/zh/quick_start.md)，完成环境配置与源码构建。
+
+- 自备catlass dsl算子实现文件。若用户尚未准备catlass dsl算子，可参考操作步骤中的示例。
+
+- 分别参考msopprof模式用户指南的“[使用前准备](../user_guide/msopprof_user_guide.md#使用前准备)”和msopprof simulator模式用户指南的“[使用前准备](../user_guide/msopprof_simulator_user_guide.md#使用前准备)”完成相关环境变量配置，为采集算子上板和仿真调优数据做准备。
+
+> [!NOTE]
+> 
+> CATLASS DSL支持范围与triton支持范围一致，目前仅支持昇腾950PR&950DT系列产品，不支持-g，代码热点图功能以及代码行映射能力。
+
+**操作步骤**
+
+1. 准备基础的catlass dsl算子样例catlass_dsl_matmul.py。
+
+    ```shell
+    # catlass_dsl_matmul.py
+    from catlass import tla
+    from catlass.tla.runtime import from_dlpack
+    import torch
+    import torch_npu
+
+    M, K, N = 16, 16, 16
+
+    @tla.kernel
+    def matmul_kernel(a: tla.Tensor, b: tla.Tensor, c: tla.Tensor) -> None:
+        l0c_data_ready = tla.flag("l0c_data_ready", tla.arch.CUBE, tla.arch.FIX)
+        l1_loaded = tla.flag("l1_loaded", tla.arch.MTE2, tla.arch.MTE1)
+        l0_loaded = tla.flag("l0_loaded", tla.arch.MTE1, tla.arch.CUBE)
+
+        l1a_ptr = tla.allocate(M * K, tla.Float16, tla.AddressSpace.l1, 512)
+        l1b_ptr = tla.allocate(K * N, tla.Float16, tla.AddressSpace.l1, 512)
+        l0a_ptr = tla.allocate(M * K, tla.Float16, tla.AddressSpace.l0a, 512)
+        l0b_ptr = tla.allocate(K * N, tla.Float16, tla.AddressSpace.l0b, 512)
+        l0c_ptr = tla.allocate(M * N, tla.Float32, tla.AddressSpace.l0c, 512)
+
+        with tla.cube():
+            # GM -> L1
+            l1_a = tla.make_tensor_like(l1a_ptr, a, tla.arch.zN)
+            l1_b = tla.make_tensor_like(l1b_ptr, b, tla.arch.zN)
+            tla.copy(l1_a, a)
+            tla.copy(l1_b, b)
+
+            tla.set_flag(l1_loaded)
+            tla.wait_flag(l1_loaded)
+
+            # L1 -> L0A / L0B
+            l0_a = tla.make_tensor_like(l0a_ptr, l1_a, tla.arch.zN)
+            l0_b = tla.make_tensor_like(l0b_ptr, l1_b, tla.arch.nZ)
+            l0_c = tla.make_tensor_like(l0c_ptr, c, tla.arch.L0Clayout)
+            tla.copy(l0_a, l1_a)
+            tla.copy(l0_b, l1_b)
+
+            tla.set_flag(l0_loaded)
+            tla.wait_flag(l0_loaded)
+
+            # Cube: C = A x B
+            tla.mmad(l0_c, l0_a, l0_b, init_c=True)
+
+            # L0C -> GM
+            tla.set_flag(l0c_data_ready)
+            tla.wait_flag(l0c_data_ready)
+            tla.copy(c, l0_c)
+
+    def main() -> int:
+        torch.npu.set_device(0)
+        torch.manual_seed(0)
+        a = torch.rand(M, K, dtype=torch.float16, device="cpu") * 10.0 - 5.0
+        b = torch.rand(K, N, dtype=torch.float16, device="cpu") * 10.0 - 5.0
+        c = torch.rand(M, N, dtype=torch.float32, device="cpu") * 10.0 - 5.0
+        ref = a.float() @ b.float()
+
+        a = a.contiguous().npu()
+        b = b.contiguous().npu()
+        c = c.contiguous().npu()
+        a_tensor = from_dlpack(a, layout_tag=tla.arch.RowMajor, origin_shape=(M, K))
+        b_tensor = from_dlpack(b, layout_tag=tla.arch.RowMajor, origin_shape=(K, N))
+        c_tensor = from_dlpack(c, layout_tag=tla.arch.RowMajor, origin_shape=(M, N))
+
+        artifact = tla.compile(
+            matmul_kernel,
+            a_tensor,
+            b_tensor,
+            c_tensor,
+            options="--npu-arch 3510",
+        )
+        artifact(a_tensor, b_tensor, c_tensor, block_num=1)
+        torch.npu.synchronize()
+
+        passed = torch.allclose(c.cpu(), ref)
+        print("Passed." if passed else "Failed.")
+
+    main()
+
+    ```
+
+2. 使用如下命令完成msopprof上板性能数据和精细化调优数据的采集。
+
+    ```shell
+    msopprof python3 catlass_dsl_matmul.py
+    ```
+
+3. 使用如下命令完成msopprof simulator性能数据、流水图和热点图数据的采集。
+
+    > [!NOTE]
+    > 
+    > 参数 `--soc-version` 的值可通过执行以下命令获取：`python3 -c "import acl; print(acl.get_soc_name())"`。
+
+    ```shell
+    msopprof simulator --soc-version=Ascendxxxyy python3 catlass_dsl_matmul.py
+    ```
+
 ## 采集MC2算子的性能数据
 
 **概述**
