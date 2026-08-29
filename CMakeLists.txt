@@ -1,14 +1,6 @@
 cmake_minimum_required(VERSION 3.20.2)
-
+#remove maximum limit
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(MAX_SUPPORTED_CMAKE_VERSION "3.31.10")
-if(CMAKE_VERSION VERSION_GREATER MAX_SUPPORTED_CMAKE_VERSION)
-    message(FATAL_ERROR
-        "CMake ${CMAKE_VERSION} is too new! The maximum supported version is ${MAX_SUPPORTED_CMAKE_VERSION}."
-    )
-else()
-    message(STATUS "CMake version check passed: ${CMAKE_VERSION} ≤ ${MAX_SUPPORTED_CMAKE_VERSION}")
-endif()
 
 project(msopt)
 set(CMAKE_SKIP_RPATH TRUE)
