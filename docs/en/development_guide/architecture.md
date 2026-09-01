@@ -271,7 +271,7 @@ Before starting each task, `msopt` defines an `InjectEvent` class to manage requ
 
 #### 4.2.1 Plugin Module
 
-#### 4.2.1.1 Overall Design
+##### 4.2.1.1 Overall Design
 
 The plugin module implements hijacking for transfer interfaces, recording their original behavior.
 
@@ -331,21 +331,21 @@ enum class RecordType : uint8_t {
 };
 ```
 
-#### 4.2.1.2 Design Objectives
+##### 4.2.1.2 Design Objectives
 
 Include all GM-related interfaces.
 
-#### 4.2.1.3 Design Constraints
+##### 4.2.1.3 Design Constraints
 
 The code must be compiled by CCEC and thus follow CCEC coding constraints.
 
-#### 4.2.1.4 Technology Selection
+##### 4.2.1.4 Technology Selection
 
 N/A
 
 #### 4.2.2 Collection Module
 
-#### 4.2.2.1 Overall Design
+##### 4.2.2.1 Overall Design
 
 The collection module focuses on interfaces for external interaction, such as interfaces with the simulator.
 
@@ -365,15 +365,15 @@ typedef union DvcLogCbFnUnion {
 } DvcLogCbFnUnion_t;
 ```
 
-#### 4.2.2.2 Design Objectives
+##### 4.2.2.2 Design Objectives
 
 Meet current requirements and performance standards while remaining closed to modification and open to extension.
 
-#### 4.2.2.3 Design Constraints
+##### 4.2.2.3 Design Constraints
 
 Align with components like the simulator. Registration of callback interfaces requires a specific function and log type. Adding a new interface requires adding a type to the `Union` (for example, adding `ifu` logs via `DvcIfuLogCb_t ifuLogCb`) and registering it with the `DvcAttachLogCallback` interface, without modifying existing logic.
 
-#### 4.2.2.4 Technology Selection
+##### 4.2.2.4 Technology Selection
 
 N/A
 
@@ -381,20 +381,20 @@ N/A
 
 #### 4.3.1 Plugin Module
 
-#### 4.3.1.1 Design Objectives
+##### 4.3.1.1 Design Objectives
 
 1. Accuracy of data recording.
 2. Code reuse, consistent type definitions and formatting: Reuse code as much as possible, as interface recording shares logic and definitions with the tool side.
 
-#### 4.3.1.2 Design Constraints
+##### 4.3.1.2 Design Constraints
 
 The code must be compiled by CCEC and thus follow CCEC coding constraints.
 
-#### 4.3.1.3 Design Selection
+##### 4.3.1.3 Design Selection
 
 N/A
 
-#### 4.3.1.4 Data Model Design
+##### 4.3.1.4 Data Model Design
 
 1. Device-side records
 
@@ -509,24 +509,24 @@ The plugin records original interface information on the device and stores it in
 **c.** A maximum of 100 blocks of data can be stored.
 Note: The `set_nd_para` bit is set for some special interfaces, such as `copy_matrix_cc_to_gm_f32`. Before calling `copy_matrix_cc_to_gm_f32`, a user calls `set_nd_para` to set the pre-information. All subsequent calls to `copy_matrix_cc_to_gm_f32` will use this pre-information. The logic here is to reserve the `nd_para` position. Once the user calls the `set_nd_para` interface, the information is recorded. If the interface is called again, the information is updated.
 
-### 4.3.2 Parsing Module
+#### 4.3.2 Parsing Module
 
-#### 4.3.2.1 Design Objectives
+##### 4.3.2.1 Design Objectives
 
 1. Reuse shared logic.
 2. Design generic intermediate data to ensure that raw data is parsed only once.
 
-#### 4.3.2.2 Design Constraints
+##### 4.3.2.2 Design Constraints
 
 1. Ensure single-pass parsing for all features with dynamic instrumentation (for example, data transfer volume and L2 cache modeling) to prevent performance degradation.
 
-#### 4.3.2.3 Design Selection
+##### 4.3.2.3 Design Selection
 
 N/A
 
-#### 4.3.2.4 Data Model Design
+##### 4.3.2.4 Data Model Design
 
-#### 4.3.2.4.1 On-board Parsing
+###### 4.3.2.4.1 On-board Parsing
 
 Each instruction call must be decomposed into individual memory access records.
 
@@ -566,22 +566,22 @@ private:
 };
 ```
 
-### 4.3.3 Visualization Module
+#### 4.3.3 Visualization Module
 
-#### 4.3.3.1 Design Objectives
+##### 4.3.3.1 Design Objectives
 
 Outputs use the JSON format for extensibility and compatibility. Consider visualization parsing time.
 
-#### 4.3.3.2 Design Constraints
+##### 4.3.3.2 Design Constraints
 
 1. Ensure easy extensibility and compatibility.
 2. Consider visualization parsing time and centralize data to reduce visualization data loading time.
 
-#### 4.3.3.3 Design Selection
+##### 4.3.3.3 Design Selection
 
 N/A
 
-#### 4.3.3.4 Data Model Design
+##### 4.3.3.4 Data Model Design
 
 ![image](./architecture_figures/cf1aff15b08bb3fe4b7634e5202de28e_606x467.png)
 
@@ -601,21 +601,21 @@ A single binary file is output for visualization, containing the code hot spot m
 | 0x0D | Roofline model                                                   |
 | 0x0E | Cache heatmap                                                     |
 
-##### 4.3.4 Collection Module
+#### 4.3.4 Collection Module
 
-#### 4.3.4.1 Design Objectives
-
-To be determined
-
-#### 4.3.4.2 Design Constraints
+##### 4.3.4.1 Design Objectives
 
 To be determined
 
-#### 4.3.4.3 Design Selection
+##### 4.3.4.2 Design Constraints
+
+To be determined
+
+##### 4.3.4.3 Design Selection
 
 N/A
 
-#### 4.3.4.4 Data Model Design
+##### 4.3.4.4 Data Model Design
 
 1. `msopt` currently uses `Type`, MC2 AI Core timestamps, and MC2 communication task timestamps.
 
@@ -652,22 +652,22 @@ struct MsprofAicpuHcclTaskInfo {
 };
 ```
 
-##### 4.3.5 Parameter Parsing Module
+#### 4.3.5 Parameter Parsing Module
 
-#### 4.3.5.1 Design Objectives
+##### 4.3.5.1 Design Objectives
 
 1. Provide CLI parameters to capture user intent and implement corresponding functions.
 
-#### 4.3.5.2 Design Constraints
+##### 4.3.5.2 Design Constraints
 
 1. Validate input file paths and permissions for CLI inputs. Avoid security or functional issues from out-of-bounds parameters.
 2. Define security requirements for external file inputs and ensure correct file permissions.
 
-#### 4.3.5.3 Design Selection
+##### 4.3.5.3 Design Selection
 
 N/A
 
-#### 4.3.5.4 Data Model Design
+##### 4.3.5.4 Data Model Design
 
 | Parameter                  | Data Type                                                                                                           | Constraints                                                                                                                                                                                                                                                            | Remarks                 |
 | -------------------------- | ------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------- |

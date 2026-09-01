@@ -261,7 +261,7 @@ For example, the JSON configuration file is named `add_test.json`. Developers ca
 
 **msTX API Overview**
 
-MindStudio provides the msTX profiling API, which enables users to embed custom markers within their applications. These markers allow for the precise identification of critical code segments during performance analysis. For details, see [**Table 1** C/C++ msTX API list](#c-mstx-api-list) and [**Table 2** Python msTX API list](#python-mstx-api-list). For further details about the API usage, see [MindStudio msTX API Reference](https://www.hiascend.com/document/detail/zh/mindstudio/2610/msTX/mstxAPIReference/docs/zh/api_reference/README.md?framework=mindspore).
+MindStudio provides the msTX profiling API, which enables users to embed custom markers within their applications. These markers allow for the precise identification of critical code segments during performance analysis. For details, see [**Table 1** C/C++ msTX API list](#c-mstx-api-list) and [**Table 2** Python msTX API list](#python-mstx-api-list). For further details about the API usage, see [MindStudio msTX API Reference](https://gitcode.com/Ascend/mstx/blob/26.1.0/docs/en/api_reference/README.md).
 
 **Table 1** C/C++ msTX API list<a id="c-mstx-api-list"></a>
 
