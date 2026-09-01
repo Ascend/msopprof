@@ -216,6 +216,7 @@ std::shared_ptr<L2Cache> GetDefaultL2Cache(const std::string &socVersion)
             {"Ascend910_9391",  16384},
             {"Ascend910_9392",  16384},
             {"Ascend910_9362",  14336},
+            {"Ascend910_9363",  14336},
             {"Ascend910_9372",  16384},
     };
     uint32_t sets = chipWithSets.at("Ascend910B1");
