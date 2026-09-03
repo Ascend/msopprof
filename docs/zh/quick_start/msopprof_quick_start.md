@@ -83,7 +83,7 @@ cd ~/ot_demo/workspace/src/caller/build
 msopprof --output=./msopprof_output_npu ./execute_add_op
 ```
 
-##### 2.3.2.2 仿真器性能采集   
+##### 2.3.2.2 仿真器性能采集
 
 > [!NOTE]
 > 

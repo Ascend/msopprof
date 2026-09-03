@@ -46,7 +46,8 @@ cmake ../cmake   # The current command builds and packages the .run file at the 
 make -j$(nproc)  # -j indicates the number of parallel build jobs, which can be specified as required. If nproc is unavailable, manually enter a number (for example, -j8)
 ```
 
-> [!NOTE]   
+> [!NOTE]
+> 
 > **Debug version build**   
 > To perform GDB or VS Code graphical breakpoint debugging, build the debug version. The procedure is as follows:  
 > Add `-DCMAKE_BUILD_TYPE=Debug` when running the preceding CMake command, for example, `cmake ../cmake -DCMAKE_BUILD_TYPE=Debug`.
@@ -94,7 +95,8 @@ python download_dependencies.py test
 
 #### 4.2.2 Running UT
 
-> [!NOTE]   
+> [!NOTE]
+> 
 > **CMake entry description for UT**   
 > The UT build uses `CMakeLists.txt` in the root directory (that is, `cmake ..` instead of `cmake ../cmake`) of the project. Only the test and dependency are built, and the .run packaging process is not included.
 

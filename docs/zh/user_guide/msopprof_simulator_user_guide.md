@@ -68,6 +68,7 @@ MindStudio Ops Profiler（算子调优工具，msOpProf）用于采集和分析�
 登录运行环境，使用msopprof simulator开启算子仿真调优功能，并配合使用仿真可选参数和用户待调优程序（blockdim 1）进行调优，仿真可选参数请参考[**表 1**  msopprof simulator可选参数说明](#simulator可选参数说明)。
 
 > [!NOTE]
+> 
 > 参数 `--soc-version` 的值可通过执行以下命令获取：`python3 -c "import acl; print(acl.get_soc_name())"`。
 
 ```shell

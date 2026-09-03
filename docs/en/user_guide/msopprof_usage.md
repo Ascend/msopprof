@@ -57,6 +57,7 @@ For more details on kernel launch scenarios, refer to [Kernel Launch Operator De
 4. Run the following command to collect msOpProf simulator profile data, pipeline charts, and hotspot data. You can also refer to the [msOpProf simulator mode commands](https://gitcode.com/Ascend/msopprof/blob/26.1.0/docs/en/user_guide/msopprof_simulator_user_guide.md#command-reference) for other command options.
 
     > [!NOTE]
+    > 
     > The value of the `--soc-version` parameter can be obtained by running the following command: `python3 -c "import acl; print(acl.get_soc_name())"`.
 
     ```shell
@@ -115,6 +116,7 @@ For more details on single operator API call scenarios, refer to the **Engineeri
 4. Run the following command to collect msOpProf simulator profile data, pipeline charts, and hotspot data.
 
     > [!NOTE]
+    > 
     > The value of the `--soc-version` parameter can be obtained by running the following command: `python3 -c "import acl; print(acl.get_soc_name())"`.
 
     ```shell
@@ -179,6 +181,7 @@ This section demonstrates how to use msOpProf to collect profile data of Triton 
 3. Run the following command to collect msOpProf simulator profile data, pipeline charts, and hotspot data.
 
     > [!NOTE]
+    > 
     > The value of the `--soc-version` parameter can be obtained by running the following command: `python3 -c "import acl; print(acl.get_soc_name())"`.
 
     ```shell
@@ -234,6 +237,7 @@ This section demonstrates how to use msOpProf to collect profile data of CATLASS
 4. Run the following command to collect msOpProf simulator profile data, pipeline charts, and hotspot data.
 
     > [!NOTE]
+    > 
     > The value of the `--soc-version` parameter can be obtained by running the following command: `python3 -c "import acl; print(acl.get_soc_name())"`.
 
     ```shell

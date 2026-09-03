@@ -86,6 +86,7 @@ msopprof --output=./msopprof_output_npu ./execute_add_op
 ##### 2.3.2.2 Performance Collection on Simulator
 
 > [!NOTE]
+> 
 > The value of the `--soc-version` parameter can be obtained by running `python3 -c "import acl; print(acl.get_soc_name())"`.
 
 ```shell

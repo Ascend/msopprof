@@ -542,7 +542,8 @@ The following figure shows the cache heat map.
 - **Hit** indicates the cacheline hits, and **Miss** indicates the cacheline misses, allowing you to analyze the L2 cache usage.
 - On the **Cache** tab page, select a hit or miss event graph and click to enlarge the event graph. In the enlarged event graph, right-click the selected memory cell and choose **Show Instructions in Source** from the shortcut menu. The **Source** page is displayed, and the related instruction line is highlighted.
 
-    **Figure 7** Operator code hot spot map corresponding to a cacheline  
+    **Figure 7** Operator code hot spot map corresponding to a cacheline
+    
     ![](../figures/operator-code-hot-spot-map-corresponding-to-a-cacheline.png "Operator code hot spot map corresponding to a cacheline")
 
     > [!NOTE]

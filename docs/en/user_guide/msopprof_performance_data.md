@@ -7,6 +7,7 @@
 **Atlas A3 training products, Atlas A3 inference products, Atlas A2 training products, and Atlas A2 inference products**
 
 **Figure 1** ArithmeticUtilization.csv file
+
 ![](../figures/ArithmeticUtilization-csv-file.png "ArithmeticUtilization.csv file")
 
 The key fields are as follows.
@@ -122,6 +123,7 @@ The key fields are as follows.
 **Atlas inference products**
 
 **Figure 2** L2Cache.csv file
+
 ![](../figures/L2Cache-csv-file-6.png "L2Cache.csv file-6")
 
 The key fields are as follows.
@@ -135,6 +137,7 @@ The key fields are as follows.
 **Ascend 950 products**
 
 **Figure 3** L2Cache.csv file
+
 ![](../figures/L2Cache-csv-file.png "L2Cache.csv file")
 
 The key fields are as follows.
@@ -173,6 +176,7 @@ The unit is GB/s, indicating that 1GB data is transmitted per second.
 **Atlas A3 training products, Atlas A3 inference products, Atlas A2 training products, and Atlas A2 inference products**
 
 **Figure 1** Memory.csv file
+
 ![](../figures/Memory-csv-file.png "Memory.csv file")
 
 The key fields are as follows.
@@ -217,6 +221,7 @@ The key fields are as follows.
 **Atlas inference products**
 
 **Figure 2** Memory.csv file
+
 ![](../figures/Memory-csv-file-7.png "Memory.csv file-7")
 
 The key fields are as follows.
@@ -243,6 +248,7 @@ The key fields are as follows.
 **Ascend 950 products**
 
 **Figure 3** Memory.csv file
+
 ![](../figures/Memory-csv-file-8.png "Memory.csv file-8")
 
 The key fields are as follows.
@@ -291,6 +297,7 @@ The unit is GB/s, indicating that 1GB data is transmitted per second.
 **Atlas A3 training products, Atlas A3 inference products, Atlas A2 training products, Atlas A2 inference products, and Ascend 950 products**
 
 **Figure 1** MemoryL0.csv file
+
 ![](../figures/MemoryL0-csv-file.png "MemoryL0.csv file")
 
 The key fields are as follows.
@@ -315,6 +322,7 @@ The key fields are as follows.
 **Atlas inference products**
 
 **Figure 2** MemoryL0.csv file
+
 ![](../figures/MemoryL0-csv-file-9.png "MemoryL0.csv file-9")
 
 The key fields are as follows.
@@ -343,6 +351,7 @@ The unit is GB/s, indicating that 1GB data is transmitted per second.
 **Atlas A3 training products, Atlas A3 inference products, Atlas A2 training products, and Atlas A2 inference products**
 
 **Figure 1** MemoryUB.csv file
+
 ![](../figures/MemoryUB-csv-file.png "MemoryUB.csv file")
 
 The key fields are as follows.
@@ -365,6 +374,7 @@ The key fields are as follows.
 **Atlas inference products**
 
 **Figure 2** MemoryUB.csv file
+
 ![](../figures/MemoryUB-csv-file-10.png "MemoryUB.csv file-10")
 
 The key fields are as follows.
@@ -383,6 +393,7 @@ The key fields are as follows.
 **Ascend 950 products**
 
 **Figure 3** MemoryUB.csv file
+
 ![](../figures/MemoryUB-csv-file-11.png "MemoryUB.csv file-11")
 
 The key fields are as follows.
@@ -407,6 +418,7 @@ The key fields are as follows.
 `OpBasicInfo.csv` stores the basic operator information, including the operator names, operator types, block dim, and time consumptions. For details, see the field description in the following table.
 
 **Figure 1** OpBasicInfo.csv file
+
 ![](../figures/OpBasicInfo-csv-file.png "OpBasicInfo.csv file")
 
 The key fields are as follows.
@@ -488,6 +500,7 @@ The key fields are as follows.
 **Atlas inference products**
 
 **Figure 2** PipeUtilization.csv file
+
 ![](../figures/PipeUtilization-csv-file-12.png "PipeUtilization.csv file-12")
 
 The key fields are as follows.
@@ -515,6 +528,7 @@ The key fields are as follows.
 **Ascend 950 products**
 
 **Figure 3** PipeUtilization.csv file
+
 ![](../figures/PipeUtilization-csv-file.png "PipeUtilization.csv file")
 
 The key fields are as follows.
@@ -562,6 +576,7 @@ For details, see the field description in the following table.
 **Atlas A3 training products, Atlas A3 inference products, Atlas A2 training products, and Atlas A2 inference products**
 
 **Figure 1** ResourceConflictRatio.csv file
+
 ![](../figures/ResourceConflictRatio-csv-file.png "ResourceConflictRatio.csv file")
 
 The key fields are as follows.
@@ -590,6 +605,7 @@ The key fields are as follows.
 **Atlas inference products**
 
 **Figure 2** ResourceConflictRatio.csv file
+
 ![](../figures/ResourceConflictRatio-csv-file-13.png "ResourceConflictRatio.csv file-13")
 
 The key fields are as follows.
@@ -612,11 +628,13 @@ The key fields are as follows.
 |aic_mte3_wait_ratio|Ratio of cycles in which MTE3 is blocked to the total cycles of instructions.|
 
 > [!NOTE]
+> 
 > `aic` in the preceding table refers to the AI core.
 
 **Ascend 950 products**
 
 **Figure 3** ResourceConflictRatio.csv file
+
 ![](../figures/ResourceConflictRatio-csv-file-14.png "ResourceConflictRatio.csv file-14")
 
 The key fields are as follows.
