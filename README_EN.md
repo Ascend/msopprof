@@ -70,9 +70,9 @@ You are welcome to contribute to the project. For details, see the [Contribution
 
 ## ⚖️ Related Information
 
-🔹 [Release Notes](./docs/en/release_notes/release_notes.md) 
-🔹 [License Notice](./docs/en/legal/license_notice.md) 
-🔹 [Security Statement](./docs/en/legal/security_statement.md) 
+🔹 [Release Notes](./docs/en/release_notes/release_notes.md)   
+🔹 [License Notice](./docs/en/legal/license_notice.md)   
+🔹 [Security Statement](./docs/en/legal/security_statement.md)   
 🔹 [Disclaimer](./docs/en/legal/disclaimer.md) 
 
 ## 🤝 Suggestions and Communication
@@ -86,9 +86,9 @@ You are welcome to contribute to the community. If you have any questions or sug
 ## 🙏 Acknowledgements
 
 This tool is jointly developed by the following Huawei departments:   
-🔹 Ascend Computing MindStudio Development Department 
-🔹 Ascend Computing Ecosystem Enablement Department 
-🔹 Huawei Cloud AI Compute Service 
-🔹 Compiler Technologies Lab, 2012 Labs 
-🔹 Markov Lab, 2012 Labs 
+🔹 Ascend Computing MindStudio Development Department   
+🔹 Ascend Computing Ecosystem Enablement Department   
+🔹 Huawei Cloud AI Compute Service  
+🔹 Compiler Technologies Lab, 2012 Labs  
+🔹 Markov Lab, 2012 Labs   
 Thank you to everyone in the community for your PRs. We warmly welcome your contributions.

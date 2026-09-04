@@ -265,7 +265,7 @@ msOpProf工具协助用户定位算子内存、算子代码以及算子指令的
 
     - 若参考完整样例，以[样例](https://gitee.com/ascend/samples/tree/master/operator/ascendc/0_introduction/3_add_kernellaunch/AddKernelInvocationNeo)为例，需在样例工程目录下的“cmake/npu\_lib.cmake”文件中新增以下代码。
 
-        >[!NOTE]
+        > [!NOTE]
         >
         > - 此样例工程不支持<term>Atlas A3 训练系列产品</term>。
         > - 下载代码样例时，需执行以下命令指定分支版本。
