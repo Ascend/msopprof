@@ -223,6 +223,13 @@ msopprof simulator --soc-version=Ascendxxxyy --output=/home/projects/output /hom
 <td class="cellrowborder" valign="top" width="11.741174117411742%" headers="mcps1.2.4.1.3 "><p id="zh-cn_topic_0000002016036877_p1411753416333">否</p>
 </td>
 </tr>
+<tr id="zh-cn_topic_0000002016036877_row6117143443316"><td class="cellrowborder" valign="top" width="25.232523252325233%" headers="mcps1.2.4.1.1 "><p id="zh-cn_topic_0000002016036877_p1611719348336">-V，--version</p>
+</td>
+<td class="cellrowborder" valign="top" width="63.02630263026302%" headers="mcps1.2.4.1.2 "><p id="zh-cn_topic_0000002016036877_p161171134103312">查询相关版本信息。</p>
+</td>
+<td class="cellrowborder" valign="top" width="11.741174117411742%" headers="mcps1.2.4.1.3 "><p id="zh-cn_topic_0000002016036877_p1411753416334">否</p>
+</td>
+</tr>
 </tbody>
 </table>
 
@@ -306,7 +313,7 @@ msOpProf工具协助用户定位算子内存、算子代码以及算子指令的
 
 请先完成msopprof simulator配置，然后根据以下操作步骤使能msOpProf工具的仿真调优功能。算子调优工具支持仿真环境下的性能数据采集和自动解析。
 
-> [!NOTE] 
+> [!NOTE]
 > 
 > - 当前msOpProf不支持-O0编译选项。
 > - 仿真环境不支持采集MC2和HCCL类型的算子。
@@ -326,7 +333,8 @@ msOpProf工具协助用户定位算子内存、算子代码以及算子指令的
 1. 登录运行环境，需要使用msopprof simulator开启算子仿真调优，并配合使用仿真可选参数和用户待调优程序（app \[arguments\]）进行调优，仿真可选参数请参考[命令参考](#命令参考)。算子仿真调优可以通过以下两种方式执行：
     - 基于可执行文件
         - 单算子场景，以*test*为例
-            > [!NOTE]    
+            > [!NOTE]
+            > 
             > 示例中的可执行文件名称`test`仅作为示例展示，实际名称请以当前工程中编译生成的可执行文件为准。
 
             ```shell
@@ -343,7 +351,8 @@ msOpProf工具协助用户定位算子内存、算子代码以及算子指令的
 
     - 基于输入算子二进制文件*.o的配置文件.json
 
-        > [!NOTE]    
+        > [!NOTE]
+        > 
         > --config场景下，仅支持使用LD\_LIBRARY\_PATH导入环境变量，不支持使用--soc-version参数。
 
         ```shell

@@ -96,6 +96,7 @@ msopprof --output=$HOME/projects/output $HOME/projects/MyApp/out/main blockdim 1
 |--core-id|该参数适用于算子分布均匀的情况时，可使用--core-id参数指定部分逻辑核的id，解析部分核的仿真数据。<br>核id的取值范围为[0,49]。<br>注意事项：<ul><li>若要解析多个核的仿真数据时，需要使用符号"\|"进行拼接。例如，--core-id="0\|31"表示解析核id为0和31的仿真数据。</li><li>此参数仅在使用`--aic-metrics=TimelineDetail`选项时有效，仅作用于[指令流水图](./msopprof_simulator_user_guide.md#指令流水图)和[算子代码热点图](#算子代码热点图)，仅适用于昇腾A2系列产品、昇腾A3系列产品及昇腾950PR&950DT系列产品。</li></ul>|否|
 |--custom-input|用于读取自定义输入文件，具体输入示例请参见[json示例文件](#json示例文件)，目前只支持[通算流水图](#通算流水图)使用。仅适用于昇腾A2系列产品、昇腾A3系列产品以及昇腾950PR&950DT系列产品。|否|
 |-h，--help|输出帮助信息。|否|
+|-V，--version|查询相关版本信息。|否|
 
 ## 工具使用
 
