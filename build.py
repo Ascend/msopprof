@@ -111,6 +111,14 @@ class BuildManager:
 
         # 非 local 场景时按需更新代码；local 场景不更新代码只使用本地代码
         if 'local' not in self.parsed_arguments.command:
+            if self.parsed_arguments.revision is None:#当revison为0时检查head指向标签
+                try:
+                    rev = subprocess.check_output( ["git", "describe", "--tags", "--exact-match", "HEAD"], cwd=self.project_root,
+                          stderr=subprocess.DEVNULL, text=True).strip()
+                    self.parsed_arguments.revision = rev#给dependency传入参数
+                    logging.info("Auto-detected revision from tag: %s", rev)
+                except subprocess.CalledProcessError:
+                    logging.info("No tag found for HEAD. Using default submodule commit.")
             from download_dependencies import DependencyManager
             DependencyManager(self.parsed_arguments).run()
 
