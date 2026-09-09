@@ -38,6 +38,7 @@ public:
         ProfDataPathConfig profDataPathConfig;
         ProcessCtrl::Req processCtrlReq;
         Common::DvcInstrLog dvcInstrLog;
+        Common::DvcInstrLogV2 dvcInstrLogV2;
         Common::DvciCacheLog dvcIcacheLog;
         Common::DvcMteLog dvcMteLog;
         Common::DvcCcuLog dvcCcuLog;
@@ -48,6 +49,7 @@ public:
     std::string &GetAskMsg() { return askMsg_; } // only used for DBI task
     inline std::size_t GetClientId() const { return clientId_; }
     inline ProfPacketType GetType() const { return head_.type; }
+    inline bool IsInstrLogV2() const { return isInstrLogV2_; }
 private:
     PacketParseRet InitConfigAsk() const { return PacketParseRet::SUCCESS; }
     PacketParseRet ProfPathAsk();
@@ -64,6 +66,7 @@ private:
     std::string askMsg_ {};
     std::size_t clientId_ {UINT64_MAX};
     ProfPacketHead head_{ProfPacketType::INVALID, 0};
+    bool isInstrLogV2_ {false};
     // 每种消息的处理函数
     std::unordered_map<ProfPacketType, std::function<PacketParseRet(void)>> msgParseFunc_;
     // 每种消息会接收的最大报文长度（不含ProfPacketHead）

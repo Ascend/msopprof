@@ -16,12 +16,55 @@
 
 
 #include <bitset>
+#include "json.hpp"
 #include "parse/data_table/instr_detail_table.h"
 #include "instr_parser.h"
 using namespace Utility;
 
 namespace Profiling {
 namespace Parse {
+
+namespace {
+constexpr char const *A5_WARP_ID = "warp_id";
+constexpr char const *A5_SCH_ID = "sch_id";
+constexpr uint64_t A5_MAX_WARP_ID = 63;
+constexpr uint64_t A5_MAX_SCH_ID = 3;
+
+bool GetNonNegativeJsonInt(const nlohmann::json &detailJson, const char *key, uint64_t maxValue, int &result)
+{
+    const auto iter = detailJson.find(key);
+    if (iter == detailJson.end()) {
+        return false;
+    }
+    if (iter->is_number_unsigned()) {
+        const uint64_t value = iter->get<uint64_t>();
+        if (value > maxValue) {
+            return false;
+        }
+        result = static_cast<int>(value);
+        return true;
+    }
+    if (!iter->is_number_integer()) {
+        return false;
+    }
+    const int64_t value = iter->get<int64_t>();
+    if (value < 0 || static_cast<uint64_t>(value) > maxValue) {
+        return false;
+    }
+    result = static_cast<int>(value);
+    return true;
+}
+
+void UpdateA5ScheduleInfo(const std::string &detail, MergeInfo &mergeInfo)
+{
+    const auto detailJson = nlohmann::json::parse(detail, nullptr, false);
+    if (detailJson.is_discarded() || !detailJson.is_object()) {
+        return;
+    }
+    GetNonNegativeJsonInt(detailJson, A5_WARP_ID, A5_MAX_WARP_ID, mergeInfo.warpId);
+    GetNonNegativeJsonInt(detailJson, A5_SCH_ID, A5_MAX_SCH_ID, mergeInfo.schId);
+}
+}
 
 PluginErrorCode InstrParser::Entry()
 {
@@ -42,7 +85,7 @@ PluginErrorCode InstrParser::Entry()
         return PluginErrorCode::SUCCESS;
     }
     instrLogParser.ParseDumpLog(matchMode);
-    if (!MergeLog(instrLogParser, popParser, matchMode)) {
+    if (!MergeLog(instrLogParser, popParser, matchMode, matchMode == MatchMode::ID_MATCH)) {
         return PluginErrorCode::FATAL_ERROR;
     }
     if (!logicName.empty()) {
@@ -57,13 +100,13 @@ PluginErrorCode InstrParser::Entry()
     return PluginErrorCode::SUCCESS;
 }
 
-bool InstrParser::MergeLog(const InstrLogParser &instrLogParser, const PopLogParser &popParser, MatchMode matchMode)
-{
+bool InstrParser::MergeLog(
+    const InstrLogParser &instrLogParser, const PopLogParser &popParser, MatchMode matchMode, bool preferJsonDetail) {
     const std::unordered_map<uint64_t, std::vector<InstrParseInfo>> &instrMap = instrLogParser.GetInstrLog();
     const std::unordered_map<uint64_t, std::vector<PoppedInstrParseInfo>> &popMap = popParser.GetPopLog();
     std::vector<MergeInfo> mergeVec;
 
-    if (!MergeInstr(instrMap, popMap, mergeVec, matchMode)) {
+    if (!MergeInstr(instrMap, popMap, mergeVec, matchMode, preferJsonDetail)) {
         return false;
     }
 
@@ -89,13 +132,12 @@ bool InstrParser::MergeLog(const InstrLogParser &instrLogParser, const PopLogPar
 }
 
 bool InstrParser::MergeInstr(const std::unordered_map<uint64_t, std::vector<InstrParseInfo>> &instrMap,
-                             const std::unordered_map<uint64_t, std::vector<PoppedInstrParseInfo>> &popMap,
-                             std::vector<MergeInfo> &mergeList, MatchMode matchMode)
-{
+    const std::unordered_map<uint64_t, std::vector<PoppedInstrParseInfo>> &popMap, std::vector<MergeInfo> &mergeList,
+    MatchMode matchMode, bool preferJsonDetail) {
     if (matchMode == MatchMode::PC_MATCH) {
         MergeInstrByPc(instrMap, popMap, mergeList);
     } else {
-        MergeInstrById(instrMap, popMap, mergeList);
+        MergeInstrById(instrMap, popMap, mergeList, preferJsonDetail);
     }
     return !mergeList.empty();
 }
@@ -142,9 +184,8 @@ void InstrParser::MergeInstrByPc(const std::unordered_map<uint64_t, std::vector<
 }
 
 void InstrParser::MergeInstrById(const std::unordered_map<uint64_t, std::vector<InstrParseInfo>> &instrMap,
-                                 const std::unordered_map<uint64_t, std::vector<PoppedInstrParseInfo>> &popMap,
-                                 std::vector<MergeInfo> &mergeList)
-{
+    const std::unordered_map<uint64_t, std::vector<PoppedInstrParseInfo>> &popMap, std::vector<MergeInfo> &mergeList,
+    bool preferJsonDetail) {
     for (auto &instrGrp : popMap) {
         uint64_t id = instrGrp.first;
         std::vector<PoppedInstrParseInfo> instrPoppedVec = instrGrp.second;
@@ -170,6 +211,14 @@ void InstrParser::MergeInstrById(const std::unordered_map<uint64_t, std::vector<
             mergeItem.pc = instrPoppedVec[i].pc;
             mergeItem.id = id;
             InitMergeItem(instrPoppedVec[i], instrVec[i], mergeItem);
+            // A5 extend_params_json is produced by the complete callback. Use it for scheduling fields and
+            // instruction detail; retain the popped detail when the complete callback has no JSON.
+            if (preferJsonDetail) {
+                UpdateA5ScheduleInfo(instrVec[i].detail, mergeItem);
+                if (!instrVec[i].detail.empty() && instrVec[i].detail.front() == '{') {
+                    mergeItem.detail = instrVec[i].detail;
+                }
+            }
             mergeList.push_back(mergeItem);
         }
     }
@@ -206,6 +255,7 @@ void InstrParser::InitMergeItem(const PoppedInstrParseInfo& instrPopped, const I
     mergeItem.name = instrPopped.name;
     mergeItem.detail = instrPopped.detail;
     mergeItem.spStatus = {}; // pre-design attribute, assign empty
+    mergeItem.xnValue = instrPopped.xnValue;
     mergeItem.gprCount = instrPopped.gprCount;
     mergeItem.realStallCyc = instrPopped.realStallCyc;
     mergeItem.warpId = instrPopped.warpId;

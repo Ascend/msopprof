@@ -25,6 +25,45 @@
 
 namespace Utility {
 
+namespace {
+constexpr char const *RUNTIME_CAMODEL_SO = "libruntime_camodel.so";
+constexpr char const *PEM_DAVINCI_SO = "libpem_davinci.so";
+
+std::string GetSoFromSearchPath(const std::string &librarySearchPath, const std::string &soName)
+{
+    size_t begin = 0;
+    while (begin <= librarySearchPath.size()) {
+        size_t end = librarySearchPath.find(':', begin);
+        std::string path = librarySearchPath.substr(begin, end - begin);
+        // An empty LD_LIBRARY_PATH component means the current working directory.
+        if (path.empty()) {
+            path = ".";
+        }
+        std::string realSoPath = Realpath(JoinPath({path, soName}));
+        if (!realSoPath.empty()) {
+            return realSoPath;
+        }
+        if (end == std::string::npos) {
+            break;
+        }
+        begin = end + 1;
+    }
+    return "";
+}
+
+std::string GetParentPath(const std::string &path)
+{
+    size_t pos = path.find_last_of('/');
+    return pos == std::string::npos ? "" : path.substr(0, pos);
+}
+
+std::string GetFileName(const std::string &path)
+{
+    size_t pos = path.find_last_of('/');
+    return pos == std::string::npos ? path : path.substr(pos + 1);
+}
+}
+
 bool GetAscendHomePath(std::string &ascendHomePath)
 {
     char const *env = getenv("ASCEND_HOME_PATH");
@@ -125,7 +164,7 @@ bool GetSocVersionFromEnvVar(std::string &socVersion)
             if (it != CHIP_TO_DEFAULT_SOC.end()) {
                 socVersion = it->second;
                 return true;
-            }     
+            }
         }
     }
     return false;
@@ -138,18 +177,49 @@ std::string GetSoFromEnvVar(const std::string &soName)
     if (ldEnv == nullptr) {
         return "";
     }
-    std::string pathFromEnv = ldEnv;
-    std::vector<std::string> envs;
-    SplitString(pathFromEnv, ':', envs);
-    for (const std::string &path : envs) {
-        std::string soPath = JoinPath({path.c_str(), soName});
-        std::string realSoPath = Realpath(soPath);
-        if (realSoPath.empty()) {
-            continue;
-        }
-        return realSoPath;
+    return GetSoFromSearchPath(ldEnv, soName);
+}
+
+std::string GetSimulatorLibrarySearchPath(const std::string &socVersion)
+{
+    if (socVersion.empty()) {
+        const char *ldLibraryPath = getenv("LD_LIBRARY_PATH");
+        return ldLibraryPath == nullptr ? "" : ldLibraryPath;
     }
-    return "";
+    std::string ascendHomePath;
+    if (!GetAscendHomePath(ascendHomePath)) {
+        return "";
+    }
+    std::string simulatorName = StartsWith(socVersion, "Ascend950") ? "dav_3510" : socVersion;
+    // A5 默认从 camodel 目录加载仿真库，使能在线实时解析；其余平台仍使用 lib 目录
+    std::string libraryDir = StartsWith(socVersion, "Ascend950") ? "camodel" : "lib";
+    return JoinPath({ascendHomePath, "tools/simulator", simulatorName, libraryDir});
+}
+
+SimulatorLibrarySource GetSimulatorLibrarySource(const std::string &librarySearchPath)
+{
+    if (librarySearchPath.empty()) {
+        return SimulatorLibrarySource::UNKNOWN;
+    }
+    std::string runtimePath = GetSoFromSearchPath(librarySearchPath, RUNTIME_CAMODEL_SO);
+    std::string pemPath = GetSoFromSearchPath(librarySearchPath, PEM_DAVINCI_SO);
+    if (runtimePath.empty() || pemPath.empty()) {
+        return SimulatorLibrarySource::UNKNOWN;
+    }
+    std::string runtimeParent = GetParentPath(runtimePath);
+    if (runtimeParent.empty() || runtimeParent != GetParentPath(pemPath)) {
+        LogWarn("Simulator runtime and PEM libraries are not from the same directory, runtime: [%s], PEM: [%s]",
+                runtimePath.c_str(), pemPath.c_str());
+        return SimulatorLibrarySource::UNKNOWN;
+    }
+    std::string directoryName = GetFileName(runtimeParent);
+    if (directoryName == "camodel") {
+        return SimulatorLibrarySource::CAMODEL;
+    }
+    if (directoryName == "lib") {
+        return SimulatorLibrarySource::LIB;
+    }
+    return SimulatorLibrarySource::UNKNOWN;
 }
 
 }  // namespace Utility

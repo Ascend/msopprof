@@ -231,7 +231,8 @@ void PrintSimulatorHelp(void)
         << "  Profile Ascend C operators by running the application on the simulator." << std::endl
         << std::endl
         << "Usage:" << std::endl
-        << "  msopprof simulator [options] (<application> [application-args] | --config <FILE> | --export <DIR>)" << std::endl
+        << "  msopprof simulator [options] (<application> [application-args] | --config <FILE> | --export <DIR>)"
+        << std::endl
         << std::endl
         << "Optional arguments:" << std::endl
         << "  Exactly one of <application>, --config, and --export must be specified." << std::endl
@@ -245,7 +246,8 @@ void PrintSimulatorHelp(void)
         << "                                              Not effective in config mode." << std::endl
         << "      --launch-count <N>                    Kernel launches to collect (1-5000) [default: 1]." << std::endl
         << "      --aic-metrics <NAME>[,<NAME>...]      Enable collection ability type:" << std::endl
-        << "                                              Supported values: PipeUtilization | ResourceConflictRatio |" << std::endl
+        << "                                              Supported values: PipeUtilization | ResourceConflictRatio |"
+        << std::endl
         << "                                                | PMSampling | Overhead |" << std::endl
         << "                                              PipeUtilization is required." << std::endl
         << "      --mstx {true,false}                       Enable mstx API [default: false]." << std::endl
@@ -253,7 +255,8 @@ void PrintSimulatorHelp(void)
         << "      --soc-version <VERSION>               Simulator version; not effective in config mode." << std::endl
         << "      --core-id <ID>                        Specify the id of cores to parse." << std::endl
         << "      --timeout <MINUTES>                   Application timeout (1-2880 minutes)." << std::endl
-        << "      --dump {true,false}                       Enable dump mode for A2/A3 [default: false]." << std::endl
+        << "      --dump {true,false}                       Enable native dump for A2/A3, or instruction dump "
+        << "from Ascend950 camodel real-time callbacks [default: false]." << std::endl
         << std::endl
         << "Examples:" << std::endl
         << "  msopprof simulator ./my_operator" << std::endl

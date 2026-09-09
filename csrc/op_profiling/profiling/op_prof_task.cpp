@@ -19,6 +19,7 @@
 #include <dlfcn.h>
 #include <fstream>
 #include "common/defs.h"
+#include "common/runtime_helper.h"
 #include "ascend_helper.h"
 #include "filesystem.h"
 #include "umask_guard.h"
@@ -53,8 +54,9 @@ bool Task::CheckSimulatorSoExist() const
 bool Task::IsSetSocVersion(std::string &paramSocVersion) const
 {
     if (paramSocVersion.empty()) {
-        if (!Utility::GetSocVersionFromEnvVar(paramSocVersion)) {
-            Utility::LogDebug("Can not get socVersion from LD_LIBRARY_PATH");
+        paramSocVersion = Common::RuntimeHelper::Instance().GetSocVersion();
+        if (paramSocVersion.empty() && !Utility::GetSocVersionFromEnvVar(paramSocVersion)) {
+            Utility::LogDebug("Can not get socVersion from runtime or LD_LIBRARY_PATH");
         }
         return false;
     }
@@ -334,16 +336,29 @@ bool Task::CreateTaskDir(const std::string &path) const
 
 void Task::RegisterRunningEvent()
 {
-    if (!needRegisterEvent_) { return; }
+    if (!needRegisterEvent_ || realTimeDataParser_ == nullptr) { return; }
+    const bool enableCacheAndCcu = realTimeDataParser_->IsCacheAndCcuSupported();
     ProfStub::InjectionEvent::Instance().RegisterPacketHandler(
         {ProfPacketType::INSTR_LOG, [&](const std::shared_ptr<ProfStub::Packet>& pkt, size_t) {
-            if (pkt != nullptr) { realTimeDataParser_->SetInstrLog(pkt->GetPayload().dvcInstrLog);}
+            if (pkt != nullptr) {
+                if (pkt->IsInstrLogV2()) {
+                    realTimeDataParser_->SetInstrLog(pkt->GetPayload().dvcInstrLogV2);
+                } else {
+                    realTimeDataParser_->SetInstrLog(pkt->GetPayload().dvcInstrLog);
+                }
+            }
             return "";
         }}
     );
     ProfStub::InjectionEvent::Instance().RegisterPacketHandler(
         {ProfPacketType::POPPED_LOG, [&](const std::shared_ptr<ProfStub::Packet>& pkt, size_t) {
-            if (pkt != nullptr) { realTimeDataParser_->SetPopInstrLog(pkt->GetPayload().dvcInstrLog); }
+            if (pkt != nullptr) {
+                if (pkt->IsInstrLogV2()) {
+                    realTimeDataParser_->SetPopInstrLog(pkt->GetPayload().dvcInstrLogV2);
+                } else {
+                    realTimeDataParser_->SetPopInstrLog(pkt->GetPayload().dvcInstrLog);
+                }
+            }
             return "";
         }}
     );
@@ -355,12 +370,20 @@ void Task::RegisterRunningEvent()
             return "";
         }}
     );
-    ProfStub::InjectionEvent::Instance().RegisterPacketHandler(
-        {ProfPacketType::ICACHE_LOG, [&](const std::shared_ptr<ProfStub::Packet>& pkt, size_t) {
-            if (pkt != nullptr) { realTimeDataParser_->SetICacheLog(pkt->GetPayload().dvcIcacheLog); }
-            return "";
-        }}
-    );
+    if (enableCacheAndCcu) {
+        ProfStub::InjectionEvent::Instance().RegisterPacketHandler(
+            {ProfPacketType::ICACHE_LOG, [&](const std::shared_ptr<ProfStub::Packet>& pkt, size_t) {
+                if (pkt != nullptr) { realTimeDataParser_->SetICacheLog(pkt->GetPayload().dvcIcacheLog); }
+                return "";
+            }}
+        );
+        ProfStub::InjectionEvent::Instance().RegisterPacketHandler(
+            {ProfPacketType::CCU_LOG, [&](const std::shared_ptr<ProfStub::Packet> &pkt, size_t) {
+                if (pkt != nullptr) { realTimeDataParser_->SetCcuLog(pkt->GetPayload().dvcCcuLog); }
+                return "";
+            }}
+        );
+    }
     ProfStub::InjectionEvent::Instance().RegisterPacketHandler(
         {ProfPacketType::COLLECT_START, [&](const std::shared_ptr<ProfStub::Packet>& pkt, size_t) {
             if (pkt == nullptr) { return "";}
@@ -371,12 +394,6 @@ void Task::RegisterRunningEvent()
                 realTimeDataParser_->Start(kernelOutputPath, kernelName);
             }
             return "SUC";
-        }}
-    );
-    ProfStub::InjectionEvent::Instance().RegisterPacketHandler(
-        {ProfPacketType::CCU_LOG, [&](const std::shared_ptr<ProfStub::Packet> &pkt, size_t) {
-            if (pkt != nullptr) { realTimeDataParser_->SetCcuLog(pkt->GetPayload().dvcCcuLog); }
-            return "";
         }}
     );
     ProfStub::InjectionEvent::Instance().RegisterPacketHandler(

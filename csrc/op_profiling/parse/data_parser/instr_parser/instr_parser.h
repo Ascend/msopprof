@@ -40,19 +40,19 @@ public:
     }
 protected:
     bool MergeLog(const InstrLogParser &instrLogParser, const PopLogParser &popParser,
-                  MatchMode matchMode = MatchMode::PC_MATCH);
+        MatchMode matchMode = MatchMode::PC_MATCH, bool preferJsonDetail = false);
 
 private:
     size_t GetPruneSize(std::vector<PoppedInstrParseInfo> &instrPoppedVec, std::vector<InstrParseInfo> &instrVec) const;
     bool MergeInstr(const std::unordered_map<uint64_t, std::vector<InstrParseInfo>> &instrMap,
-                    const std::unordered_map<uint64_t, std::vector<PoppedInstrParseInfo>> &popMap,
-                    std::vector<MergeInfo> &mergeList, MatchMode matchMode);
+        const std::unordered_map<uint64_t, std::vector<PoppedInstrParseInfo>> &popMap,
+        std::vector<MergeInfo> &mergeList, MatchMode matchMode, bool preferJsonDetail);
     void MergeInstrByPc(const std::unordered_map<uint64_t, std::vector<InstrParseInfo>> &instrMap,
                         const std::unordered_map<uint64_t, std::vector<PoppedInstrParseInfo>> &popMap,
                         std::vector<MergeInfo> &mergeList);
     void MergeInstrById(const std::unordered_map<uint64_t, std::vector<InstrParseInfo>> &instrMap,
-                        const std::unordered_map<uint64_t, std::vector<PoppedInstrParseInfo>> &popMap,
-                        std::vector<MergeInfo> &mergeList);
+        const std::unordered_map<uint64_t, std::vector<PoppedInstrParseInfo>> &popMap,
+        std::vector<MergeInfo> &mergeList, bool preferJsonDetail);
     void InitMergeItem(const PoppedInstrParseInfo& instrPopped, const InstrParseInfo& instr,
                        MergeInfo& mergeItem) const;
     void ParseThreadId(const std::string &instrDetail, std::string &mergeDetail) const;

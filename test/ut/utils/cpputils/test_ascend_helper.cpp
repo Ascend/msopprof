@@ -16,6 +16,7 @@
 
 #include <gtest/gtest.h>
 #include <dlfcn.h>
+#include <fstream>
 #include <stdlib.h>
 #include "mockcpp/mockcpp.hpp"
 #define private public
@@ -30,6 +31,8 @@ protected:
     void SetUp() override {
         const char* tmpAscendHomePath = getenv("ASCEND_HOME_PATH");
         const char* tmpLdLibraryPath = getenv("LD_LIBRARY_PATH");
+        hasAscendHomePathEnv_ = tmpAscendHomePath != nullptr;
+        hasLdLibraryPathEnv_ = tmpLdLibraryPath != nullptr;
         ascendHomePathEnv_ = (tmpAscendHomePath == nullptr) ? "" : tmpAscendHomePath;
         ldLibraryPathEnv_ = (tmpLdLibraryPath == nullptr) ? "" : tmpLdLibraryPath;
         unsetenv("ASCEND_HOME_PATH");
@@ -37,17 +40,45 @@ protected:
     }
 
     void TearDown() override {
-        if (!ascendHomePathEnv_.empty()) {
+        if (hasAscendHomePathEnv_) {
             setenv("ASCEND_HOME_PATH", ascendHomePathEnv_.c_str(), 1);
+        } else {
+            unsetenv("ASCEND_HOME_PATH");
         }
-        if (!ldLibraryPathEnv_.empty()) {
+        if (hasLdLibraryPathEnv_) {
             setenv("LD_LIBRARY_PATH", ldLibraryPathEnv_.c_str(), 1);
+        } else {
+            unsetenv("LD_LIBRARY_PATH");
         }
         GlobalMockObject::verify();
     }
+    bool hasAscendHomePathEnv_ {false};
+    bool hasLdLibraryPathEnv_ {false};
     std::string ascendHomePathEnv_;
     std::string ldLibraryPathEnv_;
 };
+
+namespace {
+std::string MakeSimulatorLibraryTestDir()
+{
+    char path[] = "/tmp/msopprof_simulator_library_XXXXXX";
+    char *result = mkdtemp(path);
+    return result == nullptr ? "" : result;
+}
+
+void CreateEmptyFile(const std::string &path)
+{
+    std::ofstream output(path, std::ios::out | std::ios::trunc);
+    output.close();
+}
+
+void CreateSimulatorLibrarySet(const std::string &directory)
+{
+    ASSERT_TRUE(MkdirRecusively(directory));
+    CreateEmptyFile(directory + "/libruntime_camodel.so");
+    CreateEmptyFile(directory + "/libpem_davinci.so");
+}
+}
 
 /**
 * |  用例集  | AscendHelper
@@ -287,4 +318,41 @@ TEST_F(AscendHelperTest, test_GetSoFromEnvVar_expect_return_empty_valid_path)
         .will(returnValue(soName));
     std::string so = GetSoFromEnvVar("libascend_hal.so");
     ASSERT_EQ(so, "/usr/lib64/libascend_hal.so");
+}
+
+TEST_F(AscendHelperTest, test_GetSimulatorLibrarySource_search_order_and_unknown_directory)
+{
+    std::string root = MakeSimulatorLibraryTestDir();
+    ASSERT_FALSE(root.empty());
+    std::string libDir = root + "/dav_3510/lib";
+    std::string camodelDir = root + "/dav_3510/camodel";
+    std::string unknownDir = root + "/dav_3510/custom";
+    CreateSimulatorLibrarySet(libDir);
+    CreateSimulatorLibrarySet(camodelDir);
+    CreateSimulatorLibrarySet(unknownDir);
+
+    ASSERT_EQ(GetSimulatorLibrarySource(camodelDir + ":" + libDir), SimulatorLibrarySource::CAMODEL);
+    ASSERT_EQ(GetSimulatorLibrarySource(libDir + ":" + camodelDir), SimulatorLibrarySource::LIB);
+    ASSERT_EQ(GetSimulatorLibrarySource(unknownDir), SimulatorLibrarySource::UNKNOWN);
+    std::experimental::filesystem::remove_all(root);
+}
+
+TEST_F(AscendHelperTest, test_GetSimulatorLibrarySource_resolves_symlink_and_rejects_mixed_libraries)
+{
+    std::string root = MakeSimulatorLibraryTestDir();
+    ASSERT_FALSE(root.empty());
+    std::string camodelDir = root + "/dav_3510/camodel";
+    CreateSimulatorLibrarySet(camodelDir);
+    std::string latestDir = root + "/latest";
+    ASSERT_EQ(symlink(camodelDir.c_str(), latestDir.c_str()), 0);
+    ASSERT_EQ(GetSimulatorLibrarySource(latestDir), SimulatorLibrarySource::CAMODEL);
+
+    std::string runtimeDir = root + "/mixed/camodel";
+    std::string pemDir = root + "/mixed/lib";
+    ASSERT_TRUE(MkdirRecusively(runtimeDir));
+    ASSERT_TRUE(MkdirRecusively(pemDir));
+    CreateEmptyFile(runtimeDir + "/libruntime_camodel.so");
+    CreateEmptyFile(pemDir + "/libpem_davinci.so");
+    ASSERT_EQ(GetSimulatorLibrarySource(runtimeDir + ":" + pemDir), SimulatorLibrarySource::UNKNOWN);
+    std::experimental::filesystem::remove_all(root);
 }

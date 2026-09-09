@@ -43,23 +43,35 @@ public:
         isSetSocVersion = IsSetSocVersion(simSocVersion);
         auto it = SOC_STRING_TO_CHIP_PRODUCT.find(simSocVersion);
         auto chipType = (it == SOC_STRING_TO_CHIP_PRODUCT.end()) ? ChipProductType::UNKNOWN_PRODUCT_TYPE : it->second;
+        std::string simulatorLibrarySearchPath =
+            Utility::GetSimulatorLibrarySearchPath(profConfig->socVersion_);
+        auto librarySource = Utility::GetSimulatorLibrarySource(simulatorLibrarySearchPath);
+        if (GetProductSeriesType(chipType) == ChipProductType::ASCEND950_SERIES) {
+            bool enableRealTime = librarySource == Utility::SimulatorLibrarySource::CAMODEL;
+            profConfig->dump_ = !enableRealTime;
+            profConfig->rawCallbackDump_ = enableRealTime && profConfig->rawCallbackDump_;
+            if (librarySource == Utility::SimulatorLibrarySource::CAMODEL) {
+                Utility::LogInfo("Ascend950 simulator library is loaded from camodel; real-time parsing is enabled%s",
+                    profConfig->rawCallbackDump_ ? " with instruction callback dump" : "");
+            } else if (librarySource == Utility::SimulatorLibrarySource::LIB) {
+                Utility::LogInfo(
+                    "Ascend950 simulator library is loaded from lib; legacy offline dump mode is preserved");
+            } else {
+                Utility::LogWarn(
+                    "Cannot determine Ascend950 simulator mode from the selected camodel library directory");
+            }
+        }
+        env["ENABLE_CA_LOG_TRANS"] = profConfig->dump_ ? "false" : "true";
+        env["ENABLE_CA_RAW_INSTR_DUMP"] = profConfig->rawCallbackDump_ ? "true" : "false";
         if (!profConfig->dump_) {
             std::set<int> coreIdSet = Utility::SplitString<int32_t>(profConfig->coreId_, '|');
             realTimeSimParseContext_ = RealTimeSimParseContext{coreIdSet,
                 profConfig->aicMetrics_.IsOn(ProfMetrics::RESOURCE_CONFLICT_RATIO), chipType, profConfig->aicMetrics_};
             realTimeDataParser_ = std::make_shared<Parse::RealTimeDataParser>(realTimeSimParseContext_);
-            env["ENABLE_CA_LOG_TRANS"] = "true";
             needRegisterEvent_ = true;
         }
-        std::string ascendHomePath;
-        Utility::GetAscendHomePath(ascendHomePath);
         if (isSetSocVersion) {
-            auto tmpSoc = profConfig->socVersion_;
-            if (Utility::StartsWith(profConfig->socVersion_, "Ascend950") &&
-                SOC_STRING_TO_CHIP_PRODUCT.find(profConfig->socVersion_) != SOC_STRING_TO_CHIP_PRODUCT.end()) {
-                tmpSoc = "dav_3510";
-            }
-            env["LD_LIBRARY_PATH"] = Utility::JoinPath({ascendHomePath, "tools/simulator", tmpSoc, "lib"});
+            env["LD_LIBRARY_PATH"] = simulatorLibrarySearchPath;
         }
         tmpPath_ = Utility::JoinPath({profConfig->output_, "device0", TMP_DUMP});
         outputPath = profConfig->output_;

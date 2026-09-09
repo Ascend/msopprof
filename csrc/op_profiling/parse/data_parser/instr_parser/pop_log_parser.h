@@ -31,7 +31,8 @@ class PopLogParser {
 public:
     explicit PopLogParser(SimDataParserConfig& config) : dataParserConfig_(config) {};
     bool ParseDumpLog(MatchMode matchMode = MatchMode::PC_MATCH);
-    void ParseRealTimeDumpLog(PoppedInstrParseInfo &poppedInstrParseInfo);
+    void ParseRealTimeDumpLog(PoppedInstrParseInfo &poppedInstrParseInfo,
+                              MatchMode matchMode = MatchMode::PC_MATCH);
     const std::unordered_map<uint64_t, std::vector<PoppedInstrParseInfo>> &GetPopLog() const { return popMap_;}
     const std::string &GetLogicalName() const { return logicalCorename_; }
     int GetCoreId() const;
@@ -54,9 +55,10 @@ private:
         {"tick", 2}, {"pc", 3},  {"pipe", 5}, {"id", 9}, {"name", 10}, {"detail", 13}, {"pop_str", 16}
     };
     std::regex instrPoppedMatchPattern_ = std::regex(
-        "(\\[info\\] )?\\[([0-9]+)\\]\\s?\\(PC: (0x[0-9a-f]{1,16})\\)(@CORE[0-9]{1,2})?\\s?"
-        "([A-Za-z0-3_]+)( ISSUE| IB ISSUE)?\\s*(: \\(Binary: 0x[0-9a-f ]{8,34}\\) (\\(ID: ([0-9]{6,15})\\)\\s)?"
-        "([0-9a-zA-Z_-]*)((\\(|\\s{2})([\\[\\]\\|a-zA-Z0-9_, :=/#-]*)[) ]?)?(, instr ID is: [0-9]+.)?"
+        "(\\[info\\] )?\\[([0-9]+)\\]\\s?\\(PC:\\s*(0x[0-9a-fA-F]{1,16})\\)(@CORE[0-9]{1,2})?\\s?"
+        "([A-Za-z0-9_]+)( ISSUE| IB ISSUE)?\\s*(: \\(Binary:\\s*0x[0-9a-fA-F ]{8,34}\\) "
+        "(\\(ID:\\s*([0-9]{1,20})\\)\\s)?([0-9a-zA-Z_-]+)((\\(|\\s{2})"
+        "([\\[\\]\\|a-zA-Z0-9_, :=/#-]*)[) ]?)?(, instr ID is: [0-9]+.)?"
         "(\\.? ((poped from IQ)|(pop success) [0-9]+))?)?.*");
     // stallCyc range:1-15, yeild range:0-1, inv range:0-1, warpId range:0-63, bundleId range:0-15, schId range:0-3
     std::regex a5DetailPattern_ = std::regex(R"(\[warpId:([0-9]{1,2})\].*\[schId:([0-3])\])");

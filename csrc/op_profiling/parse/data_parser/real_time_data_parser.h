@@ -172,8 +172,17 @@ public:
     void Start(const std::string &outputPath, const std::string &kernelName);
     void Stop();
 
+    bool IsCacheAndCcuSupported() const
+    {
+        ChipProductType seriesType = ::GetProductSeriesType(context_.chipType);
+        return seriesType == ChipProductType::ASCEND910B_SERIES ||
+            seriesType == ChipProductType::ASCEND910_93_SERIES;
+    }
+
     void SetInstrLog(const Common::DvcInstrLog &dvcInstrLog);
+    void SetInstrLog(const Common::DvcInstrLogV2 &dvcInstrLog);
     void SetPopInstrLog(const Common::DvcInstrLog &dvcInstrLog);
+    void SetPopInstrLog(const Common::DvcInstrLogV2 &dvcInstrLog);
     void SetICacheLog(const Common::DvciCacheLog &iCacheLog);
     void SetMteLog(const Common::DvcMteLog &dvcMteLog);
     void SetCcuLog(const Common::DvcCcuLog &ccuLog);

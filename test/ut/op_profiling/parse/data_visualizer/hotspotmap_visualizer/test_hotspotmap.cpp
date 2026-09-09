@@ -257,6 +257,34 @@ TEST(DataVisualize, SimPcToCode_statistic) {
 
 /**
 * |  用例集  | DataVisualize
+* | 测试函数 | UpdatePCStat
+* |  用例名  | SimPcToCode_select_lowest_core_detail
+* | 用例描述 | 多核同一 PC 的详情固定取核列表中序号最小的核
+*/
+TEST(DataVisualize, SimPcToCode_select_lowest_core_detail) {
+    const std::string output = "test/ut/resources/dump/output";
+    std::vector<std::string> cores = {"core0.veccore0", "core1.veccore0"};
+    DataCenter dataCenter;
+    SimVisualizerConfig config = GetVisualizeConfig(output, ChipProductType::ASCEND950PR_9599);
+    SimPcToCode simPcToCode {config, dataCenter, cores};
+    Serialization::CycleInfo cycleInfo {1, 0, 0, 0, 0};
+    MergeInfo instr{};
+    instr.pc = 0x9000d0f368;
+    instr.name = "MOV_SRC_TO_DST_ALIGNv2";
+    instr.pipe = "MTE2";
+
+    instr.detail = R"({"src_addr":200})";
+    simPcToCode.UpdatePCStat(instr, "core1.veccore0", cycleInfo, 1);
+    instr.detail = R"({"src_addr":100})";
+    simPcToCode.UpdatePCStat(instr, "core0.veccore0", cycleInfo, 1);
+
+    auto instrInfo = simPcToCode.GetInstrInfo();
+    ASSERT_EQ(instrInfo.size(), 1U);
+    EXPECT_EQ(instrInfo.front().instr, R"(MOV_SRC_TO_DST_ALIGNv2 {"src_addr":100})");
+}
+
+/**
+* |  用例集  | DataVisualize
 * | 测试函数 | UpdateInstr
 * |  用例名  | SimPcToCode_updateInstr_waitevent_instr_expect_wait_event_l1
 * | 用例描述 | update wait event

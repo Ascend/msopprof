@@ -25,6 +25,7 @@
 #include <set>
 #include <algorithm>
 #include "core/PlatformConfig.h"
+#include "include/opprof/CamodelLogProtocol.h"
 #include "ustring.h"
 
 namespace Common {
@@ -86,42 +87,6 @@ enum class ChipType : uint32_t {
     ASCEND310B = 7,
     ASCEND950 = 15,
     END_TYPE
-};
-
-struct DvcMteLog {
-    uint64_t time;
-    uint64_t size;
-    uint64_t instrId;
-    uint32_t coreId;
-    uint32_t reqId;
-    char intf[32];
-};
-
-struct DvciCacheLog {
-    uint64_t time;
-    uint64_t addr;
-    uint32_t coreId;
-    uint32_t subCoreId;
-    uint32_t size;
-    uint32_t type;
-    uint8_t last;
-    char opType[32];
-};
-
-struct DvcInstrLog {
-    uint64_t time;
-    uint64_t pc;
-    uint32_t coreId;
-    uint32_t subCoreId;
-    char decodeDescr[200];
-    char execDescr[200];
-};
-
-struct DvcCcuLog {
-    uint64_t time;
-    uint64_t pc;
-    uint32_t coreId;
-    uint32_t subCoreId;
 };
 
 const std::map<ChipType, ChipProductType> CHIP_ARCHITECTURE_TO_PRODUCT_SERIES{

@@ -22,11 +22,19 @@
 
 namespace Utility {
 
+enum class SimulatorLibrarySource {
+    UNKNOWN = 0,
+    LIB,
+    CAMODEL,
+};
+
 bool GetAscendHomePath(std::string &ascendHomePath);
 bool GetSimulators(std::vector<std::string> &simulators);
 std::string GetMsopprofPath();
 bool GetSocVersionFromEnvVar(std::string &socVersion);
 std::string GetSoFromEnvVar(const std::string &soName);
+std::string GetSimulatorLibrarySearchPath(const std::string &socVersion);
+SimulatorLibrarySource GetSimulatorLibrarySource(const std::string &librarySearchPath);
 }  // namespace Utility
 
 #endif  // __CPPUTILS_ASCEND_HELPER_H__

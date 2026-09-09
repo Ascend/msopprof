@@ -16,17 +16,20 @@
 
 
 #include "real_time_data_parser.h"
+#include <algorithm>
 #include <utility>
+#include "json.hpp"
 #include "sim_data_parser.h"
 #include "sim_dump_parser.h"
+#include "ustring.h"
 namespace Profiling {
 namespace Parse {
 using namespace Utility;
-const char * const CORE = "core";
-const char * const CORE_CUBE = "cubecore";
-const char * const CORE_VEC = "veccore";
+const char *const CORE = "core";
 const std::regex INSTR_PATTERN(
     R"(\(PC: 0x[0-9a-f]{1,16}\)\s*([A-Za-z0-3_]+)\s*\:\s*\(Binary\: 0x[0-9a-f]{8}\)\s*([0-9a-zA-Z_-]*))");
+const std::regex A5_INSTR_PATTERN(
+    R"(\(PC:\s*0x[0-9a-fA-F]{1,16}\)\s*([A-Za-z0-9_]+)\s*:\s*\(Binary:\s*0x[0-9a-fA-F ]{8,34}\)\s*\(ID:\s*([0-9]{1,20})\)\s*([0-9a-zA-Z_-]+).*)");
 struct PairHash {
 public:
     size_t operator()(const std::pair<uint32_t, uint32_t>& p) const
@@ -131,21 +134,11 @@ const std::string &GetCoreName(uint32_t coreId, uint32_t subCoreId)
     static std::string nullCore;
     static std::mutex mtx;
     std::lock_guard<std::mutex> lock(mtx);
-    std::string subcoreNum;
-    switch (subCoreId) {
-        case 0: // 0 means vector0
-            subcoreNum = std::string(CORE_CUBE) + "0";
-            break;
-        case 1: // 1 means cube0
-            subcoreNum = std::string(CORE_VEC) + "0";
-            break;
-        case 2: // 2 means cube1
-            subcoreNum = std::string(CORE_VEC) + "1";
-            break;
-        default:
-            return nullCore;
+    const char *subCoreName = Common::GetDvcSubCoreName(subCoreId);
+    if (subCoreName == nullptr) {
+        return nullCore;
     }
-    std::string coreName = CORE + std::to_string(coreId) + "." + subcoreNum;
+    std::string coreName = CORE + std::to_string(coreId) + "." + subCoreName;
     coreNameMap[{coreId, subCoreId}] = coreName;
     return coreNameMap[{coreId, subCoreId}];
 }
@@ -153,6 +146,36 @@ const std::string &GetCoreName(uint32_t coreId, uint32_t subCoreId)
 bool GetInstrDetail(const std::string &decodeDescr, std::smatch &lineMatch)
 {
     return std::regex_match(decodeDescr, lineMatch, INSTR_PATTERN);
+}
+
+namespace {
+template <size_t N>
+std::string ReadFixedString(const char (&value)[N])
+{
+    return std::string(value, std::find(value, value + N, '\0'));
+}
+
+bool GetA5InstrParseInfo(const Common::DvcInstrLogV2 &dvcInstrLog, InstrParseInfo &instrParseInfo,
+                         std::string &coreName)
+{
+    const std::string decodeDescr = ReadFixedString(dvcInstrLog.decodeDescr);
+    std::smatch lineMatch;
+    if (!std::regex_match(decodeDescr, lineMatch, A5_INSTR_PATTERN)) {
+        return false;
+    }
+    uint64_t instrId = 0;
+    if (!StoullConverter(lineMatch[2].str(), instrId)) {
+        return false;
+    }
+    coreName = GetCoreName(dvcInstrLog.coreId, dvcInstrLog.subCoreId);
+    if (coreName.empty()) {
+        return false;
+    }
+    const std::string detail = ReadFixedString(dvcInstrLog.extendParamsJson);
+    instrParseInfo = {dvcInstrLog.time, dvcInstrLog.pc, instrId, DEFAULT_INT_VALUE, DEFAULT_INT_VALUE,
+        lineMatch[1].str(), lineMatch[3].str(), detail, {}, ""};
+    return true;
+}
 }
 
 void RealTimeDataParser::SetInstrLog(const Common::DvcInstrLog &dvcInstrLog)
@@ -193,8 +216,35 @@ void RealTimeDataParser::SetPopInstrLog(const Common::DvcInstrLog &dvcInstrLog)
     realTimeInstrParser_.SetPopInstrLog(instrParseInfo);
 }
 
+void RealTimeDataParser::SetInstrLog(const Common::DvcInstrLogV2 &dvcInstrLog)
+{
+    InstrParseInfo instrParseInfo{};
+    std::string coreName;
+    if (!GetA5InstrParseInfo(dvcInstrLog, instrParseInfo, coreName)) {
+        LogWarn("Set Ascend950 instr log failed, payload format is invalid");
+        return;
+    }
+    realTimeInstrParser_.SetInstrLog({instrParseInfo, std::move(coreName)});
+}
+
+void RealTimeDataParser::SetPopInstrLog(const Common::DvcInstrLogV2 &dvcInstrLog)
+{
+    InstrParseInfo instrParseInfo{};
+    std::string coreName;
+    if (!GetA5InstrParseInfo(dvcInstrLog, instrParseInfo, coreName)) {
+        LogWarn("Set Ascend950 popped instr log failed, payload format is invalid");
+        return;
+    }
+    PoppedInstrParseInfo poppedInstrParseInfo(instrParseInfo);
+    PoppedInstrParseInfoForRealTime realTimeInfo(poppedInstrParseInfo, std::move(coreName));
+    realTimeInstrParser_.SetPopInstrLog(realTimeInfo);
+}
+
 void RealTimeDataParser::SetICacheLog(const Common::DvciCacheLog &iCacheLog)
 {
+    if (!IsCacheAndCcuSupported()) {
+        return;
+    }
     // need to test
     std::ostringstream oss;
     // In hexadecimal format, 8 is reserved for display.
@@ -225,9 +275,11 @@ void RealTimeDataParser::ProcessAfterKernelExit()
         LogWarn("Inter data center ptr create failed");
         return;
     }
-    InsertCache(dateCenterMap);
-    if (context_.metricsConfig.overHead) {
-        InsertScalar(dateCenterMap);
+    if (IsCacheAndCcuSupported()) {
+        InsertCache(dateCenterMap);
+        if (context_.metricsConfig.overHead) {
+            InsertScalar(dateCenterMap);
+        }
     }
     if (context_.metricsConfig.pmSamplingEnable) {
         realTimeMteParser_.MteProcessAfterExit(InteDataCenterPtr);
@@ -285,12 +337,14 @@ void RealTimeDataParser::Stop()
     }
     Utility::LogDebug("Real time all plugin will stop");
     isStop_ = true;
-    realTimeICacheParser_.Stop();
+    if (IsCacheAndCcuSupported()) {
+        realTimeICacheParser_.Stop();
+        realTimeCcuParser_.Stop();
+    }
     if (context_.metricsConfig.pmSamplingEnable) {
         realTimeMteParser_.Stop();
     }
     realTimeInstrParser_.Stop();
-    realTimeCcuParser_.Stop();
     Utility::LogDebug("Real time all plugin stopped");
     {
         std::lock_guard<std::mutex> lock(mtx_);
@@ -312,10 +366,18 @@ void RealTimeDataParser::Start(const std::string &outputPath, const std::string 
     outputPath_ = outputPath;
     kernelName_ = kernelName;
     Utility::RollbackPath(outputPath_, 1);
-    GetPc2Code();
+    if (::GetProductSeriesType(context_.chipType) == ChipProductType::ASCEND950_SERIES) {
+        // A5 kernels may execute helper functions outside the main kernel symbol range. Defer source mapping until
+        // all actual PCs are collected so that real-time and offline parsing use the same PC set.
+        pc2Code_ = nullptr;
+    } else {
+        GetPc2Code();
+    }
     realTimeInstrParser_.Start();
-    realTimeICacheParser_.Start();
-    realTimeCcuParser_.Start();
+    if (IsCacheAndCcuSupported()) {
+        realTimeICacheParser_.Start();
+        realTimeCcuParser_.Start();
+    }
     if (context_.metricsConfig.pmSamplingEnable) {
         Utility::LogDebug("PMSampling is enabled. Start to dispose mte log");
         realTimeMteParser_.Start();
@@ -411,6 +473,9 @@ RealTimeCcuParser::RealTimeCcuParser(RealTimeSimParseContext context) : RealTime
 }
 
 void RealTimeDataParser::SetCcuLog(const Common::DvcCcuLog &ccuLog) {
+    if (!IsCacheAndCcuSupported()) {
+        return;
+    }
     const std::string &coreName = GetCoreName(ccuLog.coreId, ccuLog.subCoreId);
     if (coreName.empty()) {
         LogDebug("Set iCache log failed, core name is empty");

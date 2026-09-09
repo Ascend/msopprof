@@ -79,6 +79,7 @@ void SimPcToCode::UpdatePCStat(const MergeInfo &selectedInstr, const std::string
         Utility::LogWarn("Core index error, core name:%s", coreName.c_str());
         return;
     }
+    std::lock_guard<std::mutex> lock(instrInfoMutex_);
     // 多线程操作instrInfoMap_第一次创建数据可能因为key存在失败，需要另外处理
     bool res = false;
     if (instrInfoMap_.Count(selectedInstr.pc) == 0) {
@@ -103,6 +104,11 @@ void SimPcToCode::UpdatePCStat(const MergeInfo &selectedInstr, const std::string
         instrInfo.scalarCyc[coreIndex] = cycleInfo.scalarCyc;
         instrInfo.callCount[coreIndex] = callCount;
         res = instrInfoMap_.Insert(std::make_pair(selectedInstr.pc, instrInfo));
+    }
+    auto sourceCore = instrSourceCoreIndex_.find(selectedInstr.pc);
+    if (sourceCore == instrSourceCoreIndex_.end() || static_cast<size_t>(coreIndex) < sourceCore->second) {
+        instrInfoMap_[selectedInstr.pc].instr = selectedInstr.name + " " + selectedInstr.detail;
+        instrSourceCoreIndex_[selectedInstr.pc] = static_cast<size_t>(coreIndex);
     }
     if (!res) {
         instrInfoMap_[selectedInstr.pc].gprCount[coreIndex] = selectedInstr.gprCount;

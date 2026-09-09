@@ -27,6 +27,7 @@
 #undef protected
 #undef private
 #include "parse/data_table/instr_detail_table.h"
+#include "parse/data_parser/sim_dump_parser.h"
 #include "profiling/simulator/data_parse/sim_defs.h"
 
 using namespace Profiling::Parse;
@@ -78,7 +79,202 @@ TEST(InstrParser, test_9109599_InstrParser_should_return_ture_when_parse_ok) {
     ASSERT_TRUE(instrParse.Entry() == PluginErrorCode::SUCCESS);
     auto instrPtr = dataCenter.GetDbPtr<InstrDetailTable>();
     ASSERT_TRUE(instrPtr != nullptr);
-    ASSERT_TRUE(instrPtr->GetColumnData<MergeInfo>(InstrDetailTable::MERGE_INFO)->size() == 3);
+    auto mergeInfo = instrPtr->GetColumnData<MergeInfo>(InstrDetailTable::MERGE_INFO);
+    ASSERT_TRUE(mergeInfo != nullptr);
+    ASSERT_EQ(mergeInfo->size(), 3U);
+    EXPECT_EQ(mergeInfo->front().detail, R"({"processed_bytes":8192,"src_mem":"OUT"})");
+    EXPECT_EQ(mergeInfo->at(1).detail, "XD:X0=0x106b8000,SPR:PARA_BASE,");
+}
+
+TEST(InstrParser, test_a5_two_dump_versions_should_preserve_expected_detail) {
+    SimDataParserConfig config = GetSimConfig(ChipProductType::ASCEND950PR_9599, true);
+    InstrLogParser instrParser{config, "core0.veccore0"};
+    instrParser.ParseLine("[info] [00000749] (PC: 0x11bbe040) SCALAR   : (Binary: 0x02004880) (ID: 000124) "
+                          "MOV_XD_SPR  XD:X0=0x106b9000, SPR:PARA_BASE,",
+        MatchMode::ID_MATCH);
+    instrParser.ParseLine("[info] [00034438] (PC: 0x9000d10628) RVECEX   : (Binary: 0x80082700) (ID: 183300) "
+                          "RV_VADD Dtype: F16",
+        MatchMode::ID_MATCH);
+    instrParser.ParseLine("[info] [00012323] (PC: 0x9000d0d080) ALL      : (Binary: 0x40e01800) (ID: 000032) "
+                          "BAR  {\"sync_kind\":\"BARRIER\",\"target_pipe\":\"ALL\"}",
+        MatchMode::ID_MATCH);
+
+    const auto &instrMap = instrParser.GetInstrLog();
+    ASSERT_EQ(instrMap.at(124).size(), 1U);
+    EXPECT_EQ(instrMap.at(124).front().detail, "XD:X0=0x106b9000,SPR:PARA_BASE,");
+    ASSERT_EQ(instrMap.at(183300).size(), 1U);
+    EXPECT_TRUE(instrMap.at(183300).front().detail.empty());
+    ASSERT_EQ(instrMap.at(32).size(), 1U);
+    EXPECT_EQ(instrMap.at(32).front().detail, R"({"sync_kind":"BARRIER","target_pipe":"ALL"})");
+
+    PopLogParser popParser{config};
+    popParser.ParseLine("[info] [00000745] (PC: 0x11bbe040) SCALAR   : (Binary: 0x02004880) (ID: 000124) "
+                        "MOV_XD_SPR  XD:X0=0x106b8000, SPR:PARA_BASE,",
+        MatchMode::ID_MATCH);
+    popParser.ParseLine("[info] [00034438] (PC: 0x9000d10628) RVECEX   : (Binary: 0x80082700) (ID: 183300) "
+                        "RV_VADD Dtype: F16",
+        MatchMode::ID_MATCH);
+    popParser.ParseLine(
+        "[info] [00012320] (PC: 0x9000d0d080) ALL      : (Binary: 0x40e01800) (ID: 000032) BAR", MatchMode::ID_MATCH);
+
+    const auto &popMap = popParser.GetPopLog();
+    ASSERT_EQ(popMap.at(124).size(), 1U);
+    EXPECT_EQ(popMap.at(124).front().detail, "XD:X0=0x106b8000,SPR:PARA_BASE,");
+    ASSERT_EQ(popMap.at(183300).size(), 1U);
+    EXPECT_TRUE(popMap.at(183300).front().detail.empty());
+
+    DataCenter dataCenter;
+    InstrParser mergeParser{dataCenter, config};
+    ASSERT_TRUE(mergeParser.MergeLog(instrParser, popParser, MatchMode::ID_MATCH, true));
+    auto detailTable = dataCenter.GetDbPtr<InstrDetailTable>();
+    ASSERT_TRUE(detailTable != nullptr);
+    auto mergeInfo = detailTable->GetColumnData<MergeInfo>(InstrDetailTable::MERGE_INFO);
+    ASSERT_TRUE(mergeInfo != nullptr);
+    ASSERT_EQ(mergeInfo->size(), 3U);
+    EXPECT_EQ(mergeInfo->at(0).detail, R"({"sync_kind":"BARRIER","target_pipe":"ALL"})");
+    EXPECT_EQ(mergeInfo->at(1).detail, "XD:X0=0x106b8000,SPR:PARA_BASE,");
+    EXPECT_TRUE(mergeInfo->at(2).detail.empty());
+}
+
+TEST(InstrParser, test_a5_extend_params_should_supply_warp_schedule_and_gpr_count) {
+    SimDataParserConfig config = GetSimConfig(ChipProductType::ASCEND950PR_9599, true);
+    InstrLogParser instrParser{config, "core0.veccore0"};
+    const std::string detail = R"({"core_type":"AIV0","gpr_count":2,"sch_id":3,"warp_id":7})";
+    instrParser.ParseLine("[info] [00000120] (PC: 0x9000d0d348) RVECST   : "
+                          "(Binary: 0x120800041c100480 ) (ID: 000042) SIMT_STS  " +
+            detail,
+        MatchMode::ID_MATCH);
+
+    PopLogParser popParser{config};
+    popParser.ParseLine("[info] [00000100] (PC: 0x9000d0d348) RVECST   : "
+                        "(Binary: 0x120800041c100480 ) (ID: 000042) SIMT_STS",
+        MatchMode::ID_MATCH);
+
+    DataCenter dataCenter;
+    InstrParser mergeParser{dataCenter, config};
+    ASSERT_TRUE(mergeParser.MergeLog(instrParser, popParser, MatchMode::ID_MATCH, true));
+    auto detailTable = dataCenter.GetDbPtr<InstrDetailTable>();
+    ASSERT_TRUE(detailTable != nullptr);
+    auto mergeInfo = detailTable->GetColumnData<MergeInfo>(InstrDetailTable::MERGE_INFO);
+    ASSERT_TRUE(mergeInfo != nullptr);
+    ASSERT_EQ(mergeInfo->size(), 1U);
+    EXPECT_EQ(mergeInfo->front().detail, detail);
+    EXPECT_EQ(mergeInfo->front().warpId, 7);
+    EXPECT_EQ(mergeInfo->front().schId, 3);
+
+    Common::ProfMetricsAbilityConfig metricsConfig;
+    CalCulateDetail(dataCenter, ChipProductType::ASCEND950PR_9599, metricsConfig, 1);
+    EXPECT_EQ(mergeInfo->front().gprCount, 2);
+}
+
+TEST(InstrParser, test_dfx_region_json_detail_should_create_user_mark_without_nop_dependency) {
+    SimDataParserConfig config = GetSimConfig(ChipProductType::ASCEND950PR_9599, true);
+    InstrLogParser instrParser{config, "core0.veccore0"};
+    instrParser.ParseLine("[info] [00000100] (PC: 0x10d0d128) FLOWCTRL : (Binary: 0x42c20020) (ID: 000001) "
+                          R"(DFX_REGION  {"xt_value":"0x401"})",
+        MatchMode::ID_MATCH);
+    instrParser.ParseLine("[info] [00000140] (PC: 0x10d0d1c8) FLOWCTRL : (Binary: 0x42c20040) (ID: 000003) "
+                          R"(DFX_REGION  {"xt_value":"0xc01"})",
+        MatchMode::ID_MATCH);
+
+    const auto &markMap = instrParser.GetUserMarkInfo();
+    ASSERT_EQ(markMap.count("Mark 0x1"), 1U);
+    ASSERT_EQ(markMap.at("Mark 0x1").size(), 1U);
+    EXPECT_EQ(markMap.at("Mark 0x1").front().startTick, 100U);
+    EXPECT_EQ(markMap.at("Mark 0x1").front().endTick, 140U);
+    EXPECT_EQ(markMap.at("Mark 0x1").front().startPc, 0x10d0d128U);
+    EXPECT_EQ(markMap.at("Mark 0x1").front().endPc, 0x10d0d1c8U);
+    EXPECT_EQ(instrParser.GetInstrLog().count(1), 0U);
+    EXPECT_EQ(instrParser.GetInstrLog().count(3), 0U);
+
+    instrParser.DisposeUserMark();
+    const auto &userMarks = instrParser.GetUserMarkInstr();
+    ASSERT_EQ(userMarks.size(), 1U);
+    EXPECT_EQ(userMarks.front().name, "Mark 0x1");
+    EXPECT_EQ(userMarks.front().pipe, USER_MARK);
+    EXPECT_EQ(userMarks.front().startTick, 100U);
+    EXPECT_EQ(userMarks.front().endTick, 140U);
+}
+
+TEST(InstrParser, test_dfx_region_callback_dump_should_support_max_id) {
+    SimDataParserConfig config = GetSimConfig(ChipProductType::ASCEND950PR_9599, true);
+    InstrLogParser instrParser{config, "core0.veccore0"};
+    instrParser.ParseLine("[info] [00000200] (PC: 0x1000) FLOWCTRL : (Binary: 0x42c20020) (ID: 000010) "
+                          R"(DFX_REGION  {"xt_value":"0x7ff"})",
+        MatchMode::ID_MATCH);
+    instrParser.ParseLine("[info] [00000280] (PC: 0x1004) FLOWCTRL : (Binary: 0x42c20040) (ID: 000011) "
+                          R"(DFX_REGION  {"xt_value":"0xfff"})",
+        MatchMode::ID_MATCH);
+
+    instrParser.DisposeUserMark();
+    const auto &userMarks = instrParser.GetUserMarkInstr();
+    ASSERT_EQ(userMarks.size(), 1U);
+    EXPECT_EQ(userMarks.front().name, "Mark 0x3ff");
+    EXPECT_EQ(userMarks.front().startTick, 200U);
+    EXPECT_EQ(userMarks.front().endTick, 280U);
+    EXPECT_EQ(userMarks.front().detail, R"({"xt_value":"0x7ff"})");
+}
+
+TEST(InstrParser, test_invalid_dfx_region_data_should_remain_normal_instruction) {
+    SimDataParserConfig config = GetSimConfig(ChipProductType::ASCEND950PR_9599, true);
+    InstrLogParser instrParser{config, "core0.veccore0"};
+    instrParser.ParseLine("[info] [00000300] (PC: 0x2000) FLOWCTRL : (Binary: 0x42c20020) (ID: 000020) "
+                          R"(DFX_REGION  {"xn_value":"0x401"})",
+        MatchMode::ID_MATCH);
+    instrParser.ParseLine("[info] [00000310] (PC: 0x2004) FLOWCTRL : (Binary: 0x42c20020) (ID: 000021) "
+                          "DFX_REGION  PIPE:SCALAR, XT:X8=0x401,",
+        MatchMode::ID_MATCH);
+    instrParser.ParseLine("[info] [00000320] (PC: 0x2008) FLOWCTRL : (Binary: 0x42c20020) (ID: 000022) "
+                          R"(DFX_REGION  {"xt_value":"invalid"})",
+        MatchMode::ID_MATCH);
+    instrParser.ParseLine("[info] [00000330] (PC: 0x200c) FLOWCTRL : (Binary: 0x42c20020) (ID: 000023) "
+                          R"(MOV  {"xt_value":"0x401"})",
+        MatchMode::ID_MATCH);
+    instrParser.ParseLine("[info] [00000340] (PC: 0x2010) FLOWCTRL : (Binary: 0x42c20020) (ID: 000024) "
+                          R"(DFX_REGION  {"xt_value":"0x401")",
+        MatchMode::ID_MATCH);
+    instrParser.ParseLine("[info] [00000350] (PC: 0x2014) FLOWCTRL : (Binary: 0x42c20020) (ID: 000025) "
+                          R"(DFX_REGION  {"processed_bytes":64})",
+        MatchMode::ID_MATCH);
+    instrParser.ParseLine("[info] [00000360] (PC: 0x2018) FLOWCTRL : (Binary: 0x42c20020) (ID: 000026) "
+                          R"(DFX_REGION  {"xt_value":"0x1000"})",
+        MatchMode::ID_MATCH);
+    instrParser.ParseLine("[info] [00000370] (PC: 0x201c) FLOWCTRL : (Binary: 0x42c20020) (ID: 000027) "
+                          R"(DFX_REGION  {"xt_value":"0x800"})",
+        MatchMode::ID_MATCH);
+
+    EXPECT_TRUE(instrParser.GetUserMarkInfo().empty());
+    const auto &instrMap = instrParser.GetInstrLog();
+    EXPECT_EQ(instrMap.count(20), 1U);
+    EXPECT_EQ(instrMap.count(21), 1U);
+    EXPECT_EQ(instrMap.count(22), 1U);
+    EXPECT_EQ(instrMap.count(23), 1U);
+    EXPECT_EQ(instrMap.count(24), 1U);
+    EXPECT_EQ(instrMap.count(25), 1U);
+    EXPECT_EQ(instrMap.count(26), 1U);
+    EXPECT_EQ(instrMap.count(27), 1U);
+}
+
+TEST(InstrParser, test_spr_cond_should_keep_legacy_nop_boundaries) {
+    SimDataParserConfig config = GetSimConfig(ChipProductType::ASCEND910B1, true);
+    InstrLogParser instrParser{config, "core0.veccore0"};
+    instrParser.ParseLine("[info] [00000400] (PC: 0x3000) SCALAR   : (Binary: 0x02004880) "
+                          "MOV_XD_SPR  XD:X0=0x80000001, SPR:COND,",
+        MatchMode::PC_MATCH);
+    instrParser.ParseLine("[info] [00000410] (PC: 0x3004) SCALAR   : (Binary: 0x00000000) NOP_PIPE",
+        MatchMode::PC_MATCH);
+    instrParser.ParseLine("[info] [00000440] (PC: 0x3008) SCALAR   : (Binary: 0x02004880) "
+                          "MOV_XD_SPR  XD:X0=0xc0000001, SPR:COND,",
+        MatchMode::PC_MATCH);
+    instrParser.ParseLine("[info] [00000450] (PC: 0x300c) SCALAR   : (Binary: 0x00000000) NOP_PIPE",
+        MatchMode::PC_MATCH);
+
+    instrParser.DisposeUserMark();
+    const auto &userMarks = instrParser.GetUserMarkInstr();
+    ASSERT_EQ(userMarks.size(), 1U);
+    EXPECT_EQ(userMarks.front().name, "Mark 0x1");
+    EXPECT_EQ(userMarks.front().startTick, 410U);
+    EXPECT_EQ(userMarks.front().endTick, 450U);
 }
 
 /**

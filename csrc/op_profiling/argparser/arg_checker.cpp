@@ -421,6 +421,10 @@ bool ArgChecker::CheckDump(const Common::ProfArgs &config, std::string &msg) con
         }
     }
     if (config.runMode == "simulator" && config.argDump == "true") {
+        auto librarySource = GetSimulatorLibrarySource(GetSimulatorLibrarySearchPath(config.argSocVersion));
+        if (librarySource == SimulatorLibrarySource::CAMODEL) {
+            return true;
+        }
         std::string socVersion = config.argSocVersion;
         if (socVersion.empty() && !GetSocVersionFromEnvVar(socVersion)) {
             socVersion = "Ascend910B1";

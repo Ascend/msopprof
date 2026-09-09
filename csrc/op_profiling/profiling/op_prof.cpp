@@ -21,6 +21,7 @@
 #include "smart_pointer.h"
 #include "op_prof_task.h"
 #include "common/hal_helper.h"
+#include "common/runtime_helper.h"
 #include "common/defs.h"
 #include "ascend_helper.h"
 
@@ -40,8 +41,9 @@ ChipProductType GetChipType(const Common::ProfArgs &args)
     }
     std::string simSocVersion = args.argSocVersion;
     if (simSocVersion.empty()) {
-        if (!Utility::GetSocVersionFromEnvVar(simSocVersion)) {
-            Utility::LogDebug("Can not get socVersion from LD_LIBRARY_PATH");
+        simSocVersion = Common::RuntimeHelper::Instance().GetSocVersion();
+        if (simSocVersion.empty() && !Utility::GetSocVersionFromEnvVar(simSocVersion)) {
+            Utility::LogDebug("Can not get socVersion from runtime or LD_LIBRARY_PATH");
             return ChipProductType::UNKNOWN_PRODUCT_TYPE;
         }
     }
@@ -65,8 +67,17 @@ OpProf::OpProf(const Common::ProfArgs &args)
     config_ = args.argConfig;
     customDotJson_ = args.argCustomInput;
     kernelConfig_ = args.kernelConfig;
+    ChipProductType chipType = GetChipType(args);
+    if (args.runMode == "simulator" && chipType == ChipProductType::ASCEND950_SERIES) {
+        auto librarySource = Utility::GetSimulatorLibrarySource(
+            Utility::GetSimulatorLibrarySearchPath(args.argSocVersion));
+        if (librarySource == Utility::SimulatorLibrarySource::CAMODEL) {
+            dump_ = false;
+            rawCallbackDump_ = (args.argDump == "true");
+        }
+        return;
+    }
     if (args.argDump != "true") {
-        ChipProductType chipType = GetChipType(args);
         if (chipType == ChipProductType::ASCEND910B_SERIES ||
             chipType == ChipProductType::ASCEND910_93_SERIES) {
             dump_ = false;

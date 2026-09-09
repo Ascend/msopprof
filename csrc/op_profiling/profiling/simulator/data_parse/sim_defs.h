@@ -91,6 +91,7 @@ struct InstrParseInfo {
     std::string name;
     std::string detail;
     SpReg spStatus;
+    std::string xnValue;
 };
 
 struct InstrParseInfoForRealTime : public InstrParseInfo {

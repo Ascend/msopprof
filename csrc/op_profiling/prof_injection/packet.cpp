@@ -28,6 +28,8 @@ using namespace Utility;
 using namespace Common;
 Packet::Packet(std::size_t clientId) : clientId_(clientId)
 {
+    constexpr uint32_t instrLogMaxLength = sizeof(Common::DvcInstrLogV2) > sizeof(Common::DvcInstrLog) ?
+        sizeof(Common::DvcInstrLogV2) : sizeof(Common::DvcInstrLog);
     msgParseFunc_.emplace(ProfPacketType::CONFIG, std::bind(&Packet::InitConfigAsk, this));
     msgParseFunc_.emplace(ProfPacketType::DATA_PATH, std::bind(&Packet::ProfPathAsk, this));
     msgParseFunc_.emplace(ProfPacketType::PROCESS_CTRL, std::bind(&Packet::ProcessCtrlAsk, this));
@@ -44,11 +46,11 @@ Packet::Packet(std::size_t clientId) : clientId_(clientId)
     msgMaxLength_.emplace(ProfPacketType::DATA_PATH, sizeof(ProfDataPathConfig));
     msgMaxLength_.emplace(ProfPacketType::PROCESS_CTRL, sizeof(ProcessCtrl::Req));
     msgMaxLength_.emplace(ProfPacketType::DBI_DATA, sizeof(DBIDataHeader) + MAX_BLOCK_DATA_SIZE);
-    msgMaxLength_.emplace(ProfPacketType::INSTR_LOG, sizeof(DvcInstrLog));
-    msgMaxLength_.emplace(ProfPacketType::POPPED_LOG, sizeof(DvcInstrLog));
-    msgMaxLength_.emplace(ProfPacketType::ICACHE_LOG, sizeof(DvciCacheLog));
-    msgMaxLength_.emplace(ProfPacketType::MTE_LOG, sizeof(DvcMteLog));
-    msgMaxLength_.emplace(ProfPacketType::CCU_LOG, sizeof(DvcCcuLog));
+    msgMaxLength_.emplace(ProfPacketType::INSTR_LOG, instrLogMaxLength);
+    msgMaxLength_.emplace(ProfPacketType::POPPED_LOG, instrLogMaxLength);
+    msgMaxLength_.emplace(ProfPacketType::ICACHE_LOG, sizeof(Common::DvciCacheLog));
+    msgMaxLength_.emplace(ProfPacketType::MTE_LOG, sizeof(Common::DvcMteLog));
+    msgMaxLength_.emplace(ProfPacketType::CCU_LOG, sizeof(Common::DvcCcuLog));
     msgMaxLength_.emplace(ProfPacketType::COLLECT_START, sizeof(CollectLogStart));
     msgMaxLength_.emplace(ProfPacketType::PROF_FINISH, 0);
 }
@@ -161,12 +163,18 @@ bool Packet::IsPacketHeadValid() const
 
 PacketParseRet Packet::ProcessInstrData()
 {
-    if (askMsg_.size() == sizeof(DvcInstrLog)) {
-        Deserialize<struct DvcInstrLog>(askMsg_, payload_.dvcInstrLog);
+    if (askMsg_.size() == sizeof(Common::DvcInstrLog)) {
+        isInstrLogV2_ = false;
+        Deserialize<Common::DvcInstrLog>(askMsg_, payload_.dvcInstrLog);
         return PacketParseRet::SUCCESS;
     }
-    LogDebug("Packet for instr data invalid, expect length: %lu, actual length: %lu.",
-             sizeof(DvcInstrLog), askMsg_.length());
+    if (askMsg_.size() == sizeof(Common::DvcInstrLogV2)) {
+        isInstrLogV2_ = true;
+        Deserialize<Common::DvcInstrLogV2>(askMsg_, payload_.dvcInstrLogV2);
+        return PacketParseRet::SUCCESS;
+    }
+    LogDebug("Packet for instr data invalid, expect V1 length: %lu or V2 length: %lu, actual length: %lu.",
+             sizeof(Common::DvcInstrLog), sizeof(Common::DvcInstrLogV2), askMsg_.length());
     return PacketParseRet::FAILED;
 }
 
@@ -182,33 +190,34 @@ PacketParseRet Packet::ProcessCollectStartMessage()
 
 PacketParseRet Packet::ProcessMteData()
 {
-    if (askMsg_.size() == sizeof(DvcMteLog)) {
-        Deserialize<struct DvcMteLog>(askMsg_, payload_.dvcMteLog);
+    if (askMsg_.size() == sizeof(Common::DvcMteLog)) {
+        Deserialize<Common::DvcMteLog>(askMsg_, payload_.dvcMteLog);
         return PacketParseRet::SUCCESS;
     }
     LogDebug("Packet for mte data invalid, expect length: %lu, actual length: %lu.",
-             sizeof(DvcMteLog), askMsg_.length());
+             sizeof(Common::DvcMteLog), askMsg_.length());
     return PacketParseRet::FAILED;
 }
 
 PacketParseRet Packet::ProcessICacheData()
 {
-    if (askMsg_.size() == sizeof(DvciCacheLog)) {
-        Deserialize<struct DvciCacheLog>(askMsg_, payload_.dvcIcacheLog);
+    if (askMsg_.size() == sizeof(Common::DvciCacheLog)) {
+        Deserialize<Common::DvciCacheLog>(askMsg_, payload_.dvcIcacheLog);
         return PacketParseRet::SUCCESS;
     }
     LogDebug("Packet for icache data invalid, expect length: %lu, actual length: %lu.",
-             sizeof(DvciCacheLog), askMsg_.length());
+             sizeof(Common::DvciCacheLog), askMsg_.length());
     return PacketParseRet::FAILED;
 }
 
 PacketParseRet Packet::ProcessCcuData() {
-    if (askMsg_.size() == sizeof(DvcCcuLog)) {
-        Deserialize<struct DvcCcuLog>(askMsg_, payload_.dvcCcuLog);
+    if (askMsg_.size() == sizeof(Common::DvcCcuLog)) {
+        Deserialize<Common::DvcCcuLog>(askMsg_, payload_.dvcCcuLog);
         return PacketParseRet::SUCCESS;
     }
     LogDebug(
-        "Packet for ccu data invalid, expect length: %lu, actual length: %lu.", sizeof(DvcCcuLog), askMsg_.length());
+        "Packet for ccu data invalid, expect length: %lu, actual length: %lu.",
+        sizeof(Common::DvcCcuLog), askMsg_.length());
     return PacketParseRet::FAILED;
 }
 }

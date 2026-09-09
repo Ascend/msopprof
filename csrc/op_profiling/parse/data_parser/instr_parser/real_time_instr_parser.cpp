@@ -23,6 +23,15 @@
 namespace Profiling {
 namespace Parse {
 using namespace Utility;
+
+namespace {
+MatchMode GetRealTimeInstrMatchMode(const SimDataParserConfig &config)
+{
+    return config.GetProductSeriesType() == ChipProductType::ASCEND950_SERIES ?
+        MatchMode::ID_MATCH : MatchMode::PC_MATCH;
+}
+}
+
 PluginErrorCode RealTimeInstrParserPlugin::Entry()
 {
     instrLogParsers_.clear();
@@ -43,7 +52,7 @@ PluginErrorCode RealTimeInstrParserPlugin::Entry()
             instrLogParsers_.insert({instrInfo.coreName, instrLogParser});
             iter = instrLogParsers_.find(instrInfo.coreName);
         }
-        iter->second.ParseRealTimeDumpLog(instrInfo);
+        iter->second.ParseRealTimeDumpLog(instrInfo, GetRealTimeInstrMatchMode(dataParserConfig_));
     }
     SetEntry(false);
     return PluginErrorCode::SUCCESS;
@@ -70,7 +79,7 @@ PluginErrorCode RealTimePopParserPlugin::Entry()
             popLogParsers_.insert({instrInfo.coreName, popLogParser});
             iter = popLogParsers_.find(instrInfo.coreName);
         }
-        iter->second.ParseRealTimeDumpLog(instrInfo);
+        iter->second.ParseRealTimeDumpLog(instrInfo, GetRealTimeInstrMatchMode(dataParserConfig_));
     }
     SetEntry(false);
     return PluginErrorCode::SUCCESS;
@@ -124,9 +133,11 @@ void RealTimeInstrParser::SetPopInstrLog(const Profiling::PoppedInstrParseInfoFo
 RealTimeInstrParser::RealTimeInstrParser(RealTimeSimParseContext context) : RealTimeLogParer(std::move(context), 2)
 {
     realTimeInstrParserPlugin_ = std::make_shared<RealTimeInstrParserPlugin>(dataCenter_,
-        SimDataParserConfig("", context_.parseCoreId, context_.enableResourceConflictRatio, context_.metricsConfig.overHead));
+        SimDataParserConfig("", context_.parseCoreId, context_.enableResourceConflictRatio,
+            context_.metricsConfig.overHead, context_.chipType));
     realTimePopParserPlugin_ = std::make_shared<RealTimePopParserPlugin>(dataCenter_,
-        SimDataParserConfig("", context_.parseCoreId, context_.enableResourceConflictRatio, context_.metricsConfig.overHead));
+        SimDataParserConfig("", context_.parseCoreId, context_.enableResourceConflictRatio,
+            context_.metricsConfig.overHead, context_.chipType));
     pluginManager_.AddPlugin(realTimePopParserPlugin_);
     pluginManager_.AddPlugin(realTimeInstrParserPlugin_);
 }
@@ -185,7 +196,8 @@ void RealTimeInstrParser::Merge(std::map<std::string, std::shared_ptr<Profiling:
     auto threadNum = (dateCenterMap.size() < poolSize) ? dateCenterMap.size() : poolSize;
     Profiling::Parse::PluginManager pluginManager(threadNum);
     for (auto& iter : dateCenterMap) {
-        SimDataParserConfig dataParserConfig {iter.first, context_.parseCoreId, context_.enableResourceConflictRatio, context_.metricsConfig.overHead};
+        SimDataParserConfig dataParserConfig {iter.first, context_.parseCoreId,
+            context_.enableResourceConflictRatio, context_.metricsConfig.overHead, context_.chipType};
         pluginManager.AddPlugin<Profiling::Parse::RealTimeInstrMergeParser>(*iter.second, dataParserConfig);
     }
     std::vector<PluginErrorCode> res;
@@ -201,7 +213,8 @@ PluginErrorCode RealTimeInstrMergeParser::Entry()
         return PluginErrorCode::NONBLOCKING_ERROR;
     }
     instrLogParserPtr->DisposeUserMark();
-    MergeLog(*instrLogParserPtr, *popLogParserPtr);
+    const MatchMode matchMode = GetRealTimeInstrMatchMode(dataParserConfig_);
+    MergeLog(*instrLogParserPtr, *popLogParserPtr, matchMode, matchMode == MatchMode::ID_MATCH);
     return PluginErrorCode::SUCCESS;
 }
 }

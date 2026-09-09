@@ -35,6 +35,7 @@ msOpProf demonstrates single-operator tuning capabilities such as instruction pi
 
 Configure related environment variables by referring to the [MindStudio Ops Profiler Installation Guide](../install_guide/msopprof_install_guide.md).
 
+- The default simulator library directory varies by platform: Ascend 950 products load the simulator library in the `${INSTALL_DIR}/tools/simulator/dav_3510/camodel` directory by default (supporting camodel online parsing), while Atlas A2 training products/Atlas A2 inference products and Atlas A3 training products/Atlas A3 inference products load the simulator library in the `${INSTALL_DIR}/tools/simulator/<soc-version>/lib` directory by default (offline dump mode). If the `--soc-version` option is not specified, you can set the `LD_LIBRARY_PATH` environment variable to a custom simulator library directory to change the simulator source.
 - To use MindStudio Insight for viewing, install the MindStudio Insight software package separately. For download links, see the [MindStudio Insight Installation Guide](https://gitcode.com/Ascend/msinsight/blob/master/docs/en/user_guide/mindstudio_insight_install_guide.md).
 - For Atlas A2 training products/Atlas A2 inference products, if you want to use the [template library](https://gitcode.com/cann/catlass/blob/master/scripts/build.sh) for simulation, add the `--simulator` option to the compilation script to compile the operator in simulator mode. For details, see this [sample](https://gitcode.com/cann/docs/1_Practice/evaluation_tools/performance_tools.md).
 
@@ -200,7 +201,7 @@ msprof op simulator --soc-version=Ascendxxxyy --output=/home/projects/output /ho
 <td class="cellrowborder" valign="top" width="63.02630263026302%" headers="mcps1.2.4.1.2 "><p id="zh-cn_topic_0000002016036877_p18606195017712">Specifies whether to generate the dump file of the simulator.</p>
 <p id="zh-cn_topic_0000002016036877_p3562736122116">The value can be <code>on</code> or <code>off</code>. The default value is <code>off</code>, indicating that the simulator dump file is not generated.</p>
 <p id="p195771271259">Note:</p>
-<ul id="ul537191457"><li>This parameter is valid only for <span id="zh-cn_topic_0000002016036877_ph8606165015710">Atlas A2 training products, Atlas A2 inference products</span>, <span id="zh-cn_topic_0000002016036877_ph96063504712">Atlas A3 training products, and Atlas A3 inference products</span>. For <span id="zh-cn_topic_0000002016036877_zh-cn_topic_0000001740005657_ph548418373598">Atlas inference products</span>, this parameter does not take effect. The dump files are saved to drives as usual. </li><li>This parameter applies only to the single-process scenario and does not support the scenario where two operators run at the same time.</li></ul>
+<ul id="ul537191457"><li>This parameter is valid only for <span id="zh-cn_topic_0000002016036877_ph8606165015710">Atlas A2 training products, Atlas A2 inference products</span>, <span id="zh-cn_topic_0000002016036877_ph96063504712">Atlas A3 training products, Atlas A3 inference products</span>, and Ascend 950 products. For <span id="zh-cn_topic_0000002016036877_zh-cn_topic_0000001740005657_ph548418373598">Atlas inference products</span>, this parameter does not take effect. The dump files are saved to drives as usual. For Ascend 950 products, camodel online parsing is enabled by default and no simulator dump files are generated; when <code>--dump=on</code> is specified, the instruction callback dump files are preserved.</li><li>This parameter applies only to the single-process scenario and does not support the scenario where two operators run at the same time.</li></ul>
 </td>
 <td class="cellrowborder" valign="top" width="11.741174117411742%" headers="mcps1.2.4.1.3 "><p id="zh-cn_topic_0000002016036877_p182411240125415">No</p>
 </td>
@@ -227,14 +228,14 @@ msOpProf assists in identifying exceptions in the operator memory, code, and ins
 
 **msopprof simulator configuration**<a id="simulator-configuration"></a>
 
-> [!NOTE]NOTE  
+> [!NOTE]NOTE
 > The simulation function of the msOpProf tool only supports single-device scenarios and cannot simulate multi-device environments.
 > Refer to <a href="https://gitcode.com/Ascend/msot/blob/master/docs/en/quick_start/get_chip_soc_type.md" target="_blank">Chip SoC Type Acquisition Method</a> to obtain the chip type, and use it as the value of the `--soc-version` parameter.
 
 - Before using msOpProf to perform operator simulation-based tuning in `--config` mode, run the following command to configure environment variables:
 
     ```shell
-    export LD_LIBRARY_PATH=${INSTALL_DIR}/tools/simulator/Ascendxxxyy/lib:$LD_LIBRARY_PATH 
+    export LD_LIBRARY_PATH=${INSTALL_DIR}/tools/simulator/Ascendxxxyy/lib:$LD_LIBRARY_PATH
     ```
 
     Modify the preceding environment variables based on the actual installation path of the CANN package and the AI processor type.
@@ -242,7 +243,7 @@ msOpProf assists in identifying exceptions in the operator memory, code, and ins
 - Add the `-g` compilation option to enable the operator code hot spot map and code call stack features.
 
     > [!NOTE]NOTE
-    > 
+    >
     > - If the `-g` compilation option is added, the generated binary file contains debugging information. You are advised to restrict access to user programs with debugging information to authorized personnel only.
     > - If the functions provided by the llvm-symbolizer component are not used, do not include `-g` when compiling the program that is input to msOpProf. In this case, msOpProf does not call the functions of the llvm-symbolizer component.
 
@@ -255,10 +256,10 @@ msOpProf assists in identifying exceptions in the operator memory, code, and ins
     - For a project created by referring to the complete example, for example, the [sample](https://gitee.com/ascend/samples/tree/master/operator/ascendc/0_introduction/3_add_kernellaunch/AddKernelInvocationNeo), add the following code to the `cmake/npu_lib.cmake` file in the sample project directory.
 
         >[!NOTE]NOTE
-        > 
+        >
         > - This sample project does not support <term>Atlas A3 training products</term>.
         > - When downloading the code sample, run the following command to specify the branch version:
-        > 
+        >
         >    ```shell
         >    git clone https://gitee.com/ascend/samples.git -b v1.9-8.3.RC1
         >    ```
@@ -295,7 +296,7 @@ msOpProf assists in identifying exceptions in the operator memory, code, and ins
 Configure msopprof simulator, and then perform the following steps to enable the simulation-based tuning function of the msOpProf tool. The operator tuning tool supports profile data collection and automatic parsing in a simulation environment.
 
 > [!NOTE]NOTE
-> 
+>
 > - Currently, msOpProf does not support the `-O0` compilation option.
 > - The collection of MC2 and HCCL operators is not supported in the simulation environment.
 > - The number of simulation cores set by the user cannot exceed the number of physical cores.
@@ -314,7 +315,7 @@ Configure msopprof simulator, and then perform the following steps to enable the
 1. Log in to the operating environment. Use msopprof simulator to start operator simulation and tuning, combined with the optional simulation parameters and the program to be tuned (`app [arguments]`). For details about the optional simulation parameters, see [Command Reference](#command-reference). You can use either of the following methods for operator simulation-based tuning:
     - Based on an executable file
         - Single-operator scenario (using `test` as an example)
-            > [!NOTE]NOTE  
+            > [!NOTE]NOTE
             > The executable file name `test` in the example is for demonstration only. Use the actual name of the executable file generated by compilation in the current project.
 
             ```shell
@@ -331,7 +332,7 @@ Configure msopprof simulator, and then perform the following steps to enable the
 
     - Based on a JSON configuration file of the input operator binary file `*.o`
 
-        > [!NOTE]NOTE  
+        > [!NOTE]NOTE
         > --When using `--config`, you can import environment variables only via `LD_LIBRARY_PATH`. The `--soc-version` parameter is not supported.
 
         ```shell
@@ -359,8 +360,8 @@ Configure msopprof simulator, and then perform the following steps to enable the
             │   ├── core1.veccore0_code_exe.csv
             │   ├── core1.veccore0_instr_exe.csv
             │   └── trace.json
-            ├── ... 
-            ├── visualize_data.bin 
+            ├── ...
+            ├── visualize_data.bin
             └── trace.json // Simulation instruction pipeline chart file for all cores.
         ```
 
@@ -373,14 +374,14 @@ Configure msopprof simulator, and then perform the following steps to enable the
         │ │ ├── dump          // Folder storing intermediate files, which functions in the same way as in single-operator collection.
         │ │ ├── simulator     // The content is the same as that in the single-operator simulator scenario, but the .csv files in the simulator folder have timestamp suffixes added, for example, core*_code_exe_20240429111143146.csv.
         │ ├── 1
-        │ │ ├── dump        
+        │ │ ├── dump
         │ │ └──simulator
         │ ├── dump          // Folder storing intermediate files.
-        ├── OpName2         
+        ├── OpName2
         │ ├── 0
-        │ │ ├── dump       
+        │ │ ├── dump
         │ │ └── simulator
-        │ ├── dump  
+        │ ├── dump
         ```
 
     **Table 2** msopprof simulator files
@@ -473,7 +474,7 @@ The `trace.json` file can be visualized using either the Chrome browser or MindS
 
     MindStudio Insight provides a timeline view of instruction execution on Ascend AI Processors. You can identify the timing optimization opportunities of micro instructions by analyzing the instruction details, execution times, call stacks of the code associated with the instruction, and synchronization lines between instructions and pipelines. By observing pipeline arrangements on the timeline, you can identify potential performance issues during operator execution, such as ineffective parallelization between instructions.
 
-    **Figure 1** Timeline page 
+    **Figure 1** Timeline page
     ![](../figures/timeline-page.png "Timeline page")
 
     - Shows the execution duration of each instruction within each pipeline and the instruction dependencies across different pipelines, helping you to identify potential performance optimization opportunities of pipelines.
@@ -497,7 +498,7 @@ Visualizes the `visualize_data.bin` files generated by msopprof simulator. On th
 
 The following figure shows the operator code hotspot map.
 
-**Figure 1** msopprof simulator source code page 
+**Figure 1** msopprof simulator source code page
 ![](../figures/msopprof-simulator-source-code-page.png "msopprof simulator source code page")
 
 - On the top of the page, you can switch between compute units and kernel function files.
@@ -505,7 +506,7 @@ The following figure shows the operator code hotspot map.
 - The right pane displays the time consumed by each instruction, register usage, GM-related data transfer, read and write conflicts of vector instructions on the UB Bank, Vector unit usage, execution counts, and code associations, helping developers further analyze the cause of long code execution times.
 
 > [!NOTE]NOTE
-> 
+>
 > - The maximum number of general-purpose registers is 32. When the number of used registers reaches 32, the simulation can be performed only after the registers in use are released.
 > - Register usage for certain operators using the `TRACE_START` and `TRACE_STOP` APIs cannot be displayed.
 > - "NA" is displayed if no GM-related unit is involved when Process Bytes is checked.
@@ -543,7 +544,7 @@ Visualizes the `visualize_data.bin` files generated by msopprof simulator. On th
 
 The following figure shows the memory channel throughput waveform chart.
 
-**Figure 1** Memory channel throughput waveform chart 
+**Figure 1** Memory channel throughput waveform chart
 
 ![](../figures/1-3.png)
 

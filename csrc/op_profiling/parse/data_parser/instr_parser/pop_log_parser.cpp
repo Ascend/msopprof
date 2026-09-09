@@ -23,6 +23,22 @@ using namespace Utility;
 namespace Profiling {
 namespace Parse {
 
+namespace {
+constexpr char const *A5_DETAIL_SEPARATOR = "  {";
+
+std::string GetCompleteDetail(const std::string &line, const std::string &parsedDetail, MatchMode matchMode)
+{
+    if (matchMode != MatchMode::ID_MATCH) {
+        return parsedDetail;
+    }
+    const size_t jsonPosition = line.rfind(A5_DETAIL_SEPARATOR);
+    if (jsonPosition == std::string::npos) {
+        return parsedDetail;
+    }
+    return line.substr(jsonPosition + 2);
+}
+}
+
 bool PopLogParser::ParseDumpLog(MatchMode matchMode)
 {
     const std::string &corePrefix = dataParserConfig_.GetCoreInfo().second;
@@ -107,7 +123,7 @@ void PopLogParser::DisposeLine(PoppedInstrParseInfo &poppedInstrParseInfo, Match
     TrimBlank(poppedInstrParseInfo.detail);
     ParseA5Detail(poppedInstrParseInfo);
     poppedInstrParseInfo.pipe = pipeType.FindPipe(poppedInstrParseInfo.pipe, poppedInstrParseInfo.name,
-                                                  poppedInstrParseInfo.detail);
+        poppedInstrParseInfo.detail, poppedInstrParseInfo.xnValue);
     if (matchMode == MatchMode::PC_MATCH) {
         popMap_[poppedInstrParseInfo.pc].emplace_back(poppedInstrParseInfo);
     } else {
@@ -142,7 +158,8 @@ void PopLogParser::ParseLine(const std::string &line, MatchMode matchMode)
     }
     poppedInstrParseInfo.pipe = pipe;
     poppedInstrParseInfo.name = lineMatch[instrPoppedRuleNamePos_["name"]].str();
-    poppedInstrParseInfo.detail = lineMatch[instrPoppedRuleNamePos_["detail"]].str();
+    poppedInstrParseInfo.detail =
+        GetCompleteDetail(line, lineMatch[instrPoppedRuleNamePos_["detail"]].str(), matchMode);
     poppedInstrParseInfo.spStatus = {};
     poppedInstrParseInfo.gprCount = 0;
     poppedInstrParseInfo.realStallCyc = 0;
@@ -189,15 +206,15 @@ void PopLogParser::GetLogicalCoreName(const std::string &name, const std::string
     }
 }
 
-void PopLogParser::ParseRealTimeDumpLog(PoppedInstrParseInfo &poppedInstrParseInfo)
+void PopLogParser::ParseRealTimeDumpLog(PoppedInstrParseInfo &poppedInstrParseInfo, MatchMode matchMode)
 {
-    if (dataParserConfig_.GetProductSeriesType() != ChipProductType::ASCEND310P_SERIES) {
-        useLogicalCore_ = true;
-    }
+    ChipProductType seriesType = dataParserConfig_.GetProductSeriesType();
+    useLogicalCore_ = seriesType == ChipProductType::ASCEND910B_SERIES ||
+        seriesType == ChipProductType::ASCEND910_93_SERIES;
     if (LineFilter(poppedInstrParseInfo)) {
         return;
     }
-    DisposeLine(poppedInstrParseInfo);
+    DisposeLine(poppedInstrParseInfo, matchMode);
 }
 }
 }

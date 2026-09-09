@@ -15,12 +15,47 @@
  * ------------------------------------------------------------------------- */
 
 
+#include <limits>
 #include "gpr_live_register_calculator.h"
 #include "common/defs.h"
+#include "json.hpp"
 #include "ustring.h"
 
 namespace Profiling {
 namespace Parse {
+
+namespace {
+constexpr char const *A5_GPR_COUNT = "gpr_count";
+
+bool GetA5GprCount(const std::string &detail, int &gprCount)
+{
+    const auto detailJson = nlohmann::json::parse(detail, nullptr, false);
+    if (detailJson.is_discarded() || !detailJson.is_object()) {
+        return false;
+    }
+    const auto iter = detailJson.find(A5_GPR_COUNT);
+    if (iter == detailJson.end()) {
+        return false;
+    }
+    if (iter->is_number_unsigned()) {
+        const uint64_t value = iter->get<uint64_t>();
+        if (value > static_cast<uint64_t>(std::numeric_limits<int>::max())) {
+            return false;
+        }
+        gprCount = static_cast<int>(value);
+        return true;
+    }
+    if (!iter->is_number_integer()) {
+        return false;
+    }
+    const int64_t value = iter->get<int64_t>();
+    if (value < 0 || value > std::numeric_limits<int>::max()) {
+        return false;
+    }
+    gprCount = static_cast<int>(value);
+    return true;
+}
+}
 
 using FunctionType = std::function<void(std::vector<std::string>&, std::vector<std::string>&,
                                         const std::vector<uint16_t>&, std::vector<std::string>&)>;
@@ -293,6 +328,14 @@ PluginErrorCode GPRLiveRegisterCalculator::Entry()
     }
     auto mergeInfo = *instrDetailTable->GetColumnData<MergeInfo>(InstrDetailTable::MERGE_INFO);
     for (size_t i = 0; i < instrDetailTable->GetSize(); i++) {
+        int gprCount = 0;
+        // New A5 callbacks report the count directly in extend_params_json. Keep register-list calculation as the
+        // fallback for legacy dump details.
+        if (IsChipSeriesTypeValid(chipType_, ChipProductType::ASCEND950_SERIES) &&
+            GetA5GprCount(mergeInfo[i].detail, gprCount)) {
+            instrDetailTable->UpdateColumnValue(InstrDetailTable::GPR_COUNT, i, gprCount);
+            continue;
+        }
         auto instrName = mergeInfo[i].name;
         std::vector<std::string> dstRegisters;
         std::vector<std::string> srcRegisters;

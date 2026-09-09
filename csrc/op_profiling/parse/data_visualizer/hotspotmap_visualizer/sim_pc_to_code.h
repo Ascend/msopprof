@@ -18,8 +18,10 @@
 #ifndef MSOPT_SIM_PC_STATIC_H
 #define MSOPT_SIM_PC_STATIC_H
 
+#include <mutex>
 #include <string>
 #include <regex>
+#include <unordered_map>
 #include "profiling/simulator/data_parse/sim_defs.h"
 #include "parse/data_center/data_center.h"
 #include "parse/data_visualizer/sim_visualizer_config.h"
@@ -66,6 +68,8 @@ private:
     Pc2CodeMap& pc2code_;
     DataCenter &dataCenter_;
     std::vector<std::string> cores_;
+    std::mutex instrInfoMutex_;
+    std::unordered_map<uint64_t, size_t> instrSourceCoreIndex_;
     bool hasStallCyc_ = false;
     bool hasScalarCyc_ = false;
 };

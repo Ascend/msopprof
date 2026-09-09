@@ -44,6 +44,7 @@ public:
     std::string mstxInclude_;
     bool kill_{false};
     bool dump_ {true};
+    bool rawCallbackDump_ {false};
     std::string kernelName_;
     std::vector<std::string> cmd_;
     std::string output_;

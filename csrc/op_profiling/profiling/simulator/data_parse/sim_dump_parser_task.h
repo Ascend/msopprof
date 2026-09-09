@@ -73,7 +73,8 @@ private:
 
 class PipeType {
 public:
-    std::string FindPipe(const std::string &pipeValue, const std::string &nameValue, const std::string &detailValue);
+    std::string FindPipe(const std::string &pipeValue, const std::string &nameValue, const std::string &detailValue,
+                         const std::string &specialDetailValue = "");
 private:
     std::vector<std::string> pipeVec_ = {"SCALAR", "FLOWCTRL", "VECTOR", "CUBE", "MTE1", "MTE2", "MTE3",
         "FIXP", "EVENT", "CACHEMISS", "ALL", USER_MARK, RVECST, RVECLD, RVECEX, PUSHQ, RVECSU, RVECLP};

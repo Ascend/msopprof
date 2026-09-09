@@ -39,7 +39,7 @@ public:
         coreName_(std::move(coreName)) {};
     explicit InstrLogParser(SimDataParserConfig &config) : dataParserConfig_(config) {};
     bool ParseDumpLog(MatchMode matchMode = MatchMode::PC_MATCH);
-    void ParseRealTimeDumpLog(InstrParseInfo &instrInfo);
+    void ParseRealTimeDumpLog(InstrParseInfo &instrInfo, MatchMode matchMode = MatchMode::PC_MATCH);
     void DisposeUserMark();
     inline void SetCoreName(const std::string &coreName)
     {
@@ -70,16 +70,17 @@ private:
         {"detail", 13}
     };
     std::regex instrMatchPattern_ = std::regex(
-        "(\\[info\\] )?\\[([0-9]+)\\]\\s?\\(PC: (0x[0-9a-f]{1,16})\\)(@CORE[0-9]{1,2})?\\s?"
-        "([A-Za-z0-3_]+)( ISSUE| IB ISSUE)?\\s*(: \\(Binary: 0x[0-9a-f ]{8,34}\\) (\\(ID: ([0-9]{6,15})\\)\\s)?"
-        "([0-9a-zA-Z_-]*)((\\(|\\s{2})([\\[\\]\\|a-zA-Z0-9_, :=/#-]*)[) ]?)?(, instr ID is: [0-9]+.)?)?.*");
+        "(\\[info\\] )?\\[([0-9]+)\\]\\s?\\(PC:\\s*(0x[0-9a-fA-F]{1,16})\\)(@CORE[0-9]{1,2})?\\s?"
+        "([A-Za-z0-9_]+)( ISSUE| IB ISSUE)?\\s*(: \\(Binary:\\s*0x[0-9a-fA-F ]{8,34}\\) "
+        "(\\(ID:\\s*([0-9]{1,20})\\)\\s)?([0-9a-zA-Z_-]+)((\\(|\\s{2})"
+        "([\\[\\]\\|a-zA-Z0-9_, :=/#-]*)[) ]?)?(, instr ID is: [0-9]+.)?)?.*");
     std::unordered_map<uint64_t, std::vector<InstrParseInfo>> instrMap_;
-    // 记录当前是哪一个userMark,最多只有10个userMark
+    // 记录需要由后继 NOP_PIPE 修正边界的旧版 userMark
     std::string userMarkName_;
     // key是userMark的名称，对应记录不同userMark的起点终点
     std::map<std::string, std::vector<UserMarkInfo>> userMarkMap_;
     std::set<std::string> invalidMarkName_;
-    // 记录不同userMark的状态，0表示查找终点的tick，1表示查找起点的tick
+    // 记录旧版 userMark 的 NOP_PIPE 修正方向，0 表示终点，1 表示起点
     std::map<std::string, bool> userMarkStatus_;
     std::vector<InstrParseInfo> userMarkParseInfo_;
     std::vector<MergeInfo> userMarkInstr_;
