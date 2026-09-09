@@ -249,6 +249,8 @@ void PrintSimulatorHelp(void)
         << "                                              Supported values: PipeUtilization | ResourceConflictRatio |"
         << std::endl
         << "                                                | PMSampling | Overhead |" << std::endl
+        << "                                              PMSampling and Overhead are not supported on Ascend950."
+        << std::endl
         << "                                              PipeUtilization is required." << std::endl
         << "      --mstx {true,false}                       Enable mstx API [default: false]." << std::endl
         << "      --mstx-include <RANGE>                Specify the mstx range to collect." << std::endl

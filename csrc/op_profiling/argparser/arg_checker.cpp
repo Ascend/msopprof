@@ -76,16 +76,14 @@ const AicMetricsSupportMap DEVICE_AIC_METRICS_SUPPORT_MAP{
 };
 // 仿真模式下支持的AIC指标，key是指标名称，value是支持的产品类型列表
 const AicMetricsSupportMap SIMULATOR_AIC_METRICS_SUPPORT_MAP{
-    {std::string(Common::MsprofMetrics::PIPE_UTILIZATION),        {ChipProductType::ALL_PRODUCT_TYPE}},
-    {std::string(Common::MsprofMetrics::RESOURCE_CONFLICT_RATIO), {ChipProductType::ASCEND910B_SERIES,
-                                                                   ChipProductType::ASCEND910_93_SERIES,
-                                                                   ChipProductType::ASCEND310P_SERIES,
-                                                                   ChipProductType::ASCEND950_SERIES}},
-    {std::string(Common::MsprofMetrics::PMSAMPLING),              {ChipProductType::ASCEND910B_SERIES,
-                                                                   ChipProductType::ASCEND910_93_SERIES,
-                                                                   ChipProductType::ASCEND950_SERIES}},
-    {std::string(Common::MsprofMetrics::OVERHEAD),                {ChipProductType::ASCEND910B_SERIES,
-                                                                   ChipProductType::ASCEND910_93_SERIES}},
+    {std::string(Common::MsprofMetrics::PIPE_UTILIZATION), {ChipProductType::ALL_PRODUCT_TYPE}},
+    {std::string(Common::MsprofMetrics::RESOURCE_CONFLICT_RATIO),
+        {ChipProductType::ASCEND910B_SERIES, ChipProductType::ASCEND910_93_SERIES, ChipProductType::ASCEND310P_SERIES,
+            ChipProductType::ASCEND950_SERIES}},
+    {std::string(Common::MsprofMetrics::PMSAMPLING),
+        {ChipProductType::ASCEND910B_SERIES, ChipProductType::ASCEND910_93_SERIES}},
+    {std::string(Common::MsprofMetrics::OVERHEAD),
+        {ChipProductType::ASCEND910B_SERIES, ChipProductType::ASCEND910_93_SERIES}},
 };
 
 bool ArgChecker::CheckDeviceChipSupport(

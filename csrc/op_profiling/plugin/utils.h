@@ -254,7 +254,7 @@ AICORE_FUNC_HEAD bool TryGetBlockIdx(uint64_t &blockIdx)
         blockIdx = block + (block + 1) * (MIX_SUB_BLOCKDIM - 1);
     }
 #endif
-    if (blockIdx > MAX_BLOCK) {
+    if (blockIdx >= MAX_BLOCK) {
         return false;
     }
     return true;

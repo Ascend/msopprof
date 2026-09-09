@@ -17,6 +17,7 @@
 
 #include "runtime_helper.h"
 #include <dlfcn.h>
+#include <mutex>
 #include "log.h"
 #include "runtime/runtime.h"
 #include "ascend_helper.h"
@@ -71,13 +72,14 @@ RuntimeHelper::~RuntimeHelper()
 std::string RuntimeHelper::GetSocVersion() const
 {
     static std::string socVersion;
+    static std::once_flag getSocVersionWarningFlag;
     if (!socVersion.empty()) {
         return socVersion;
     }
     constexpr uint64_t socVersionBufLen = 64ULL;
     char socVersionArr[socVersionBufLen] = "";
     if (getSocVersionFunc == nullptr || getSocVersionFunc(socVersionArr, sizeof(socVersionArr)) != 0) {
-        Utility::LogWarn("Get soc version from runtime failed");
+        std::call_once(getSocVersionWarningFlag, []() { Utility::LogWarn("Get soc version from runtime failed"); });
         return socVersion;
     }
     socVersion = socVersionArr;

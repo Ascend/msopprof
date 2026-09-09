@@ -888,6 +888,47 @@ TEST(ArgChecker, test_CheckAicMetrics_sim_expect_return_true)
 
 /**
 * |  用例集  | ArgChecker
+* | 测试函数 | CheckAicMetrics
+* |  用例名  | test_CheckAicMetrics_sim_a5_unsupported_metrics_expect_return_false
+* | 用例描述 | 测试A5仿真场景不支持PMSampling和Overhead
+*/
+TEST(ArgChecker, test_CheckAicMetrics_sim_a5_unsupported_metrics_expect_return_false) {
+    ArgChecker checker("");
+    Common::ProfArgs args;
+    args.runMode = "simulator";
+    args.argSocVersion = "Ascend950PR_9599";
+    std::string msg;
+
+    for (const std::string &metric : {"pmsampling", "overhead"}) {
+        SCOPED_TRACE(metric);
+        args.argAicMetrics.metricVec = {metric};
+        ASSERT_FALSE(checker.CheckAicMetrics(args, msg));
+        ASSERT_TRUE(msg.find("maybe in wrong soc platform") != std::string::npos);
+    }
+}
+
+/**
+* |  用例集  | ArgChecker
+* | 测试函数 | CheckAicMetrics
+* |  用例名  | test_CheckAicMetrics_sim_a2_a3_supported_metrics_expect_return_true
+* | 用例描述 | 测试A2和A3仿真场景仍支持PMSampling和Overhead
+*/
+TEST(ArgChecker, test_CheckAicMetrics_sim_a2_a3_supported_metrics_expect_return_true) {
+    ArgChecker checker("");
+    Common::ProfArgs args;
+    args.runMode = "simulator";
+    args.argAicMetrics.metricVec = {"pmsampling", "overhead"};
+    std::string msg;
+
+    for (const std::string &socVersion : {"Ascend910B1", "Ascend910_9391"}) {
+        SCOPED_TRACE(socVersion);
+        args.argSocVersion = socVersion;
+        ASSERT_TRUE(checker.CheckAicMetrics(args, msg));
+    }
+}
+
+/**
+* |  用例集  | ArgChecker
 * | 测试函数 | CheckDump
 * |  用例名  | test_CheckDump_expect_return_false
 * | 用例描述 | 测试异常输入CheckDump失败

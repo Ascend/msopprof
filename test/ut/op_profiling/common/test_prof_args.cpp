@@ -16,11 +16,18 @@
 
 
 #include <gtest/gtest.h>
+#include <array>
+#include <cstdio>
+#include <cstdlib>
 #include <functional>
+#include <limits.h>
+#include <sys/wait.h>
+#include <unistd.h>
 
 #include "argparser/options.h"
 #include "common/prof_args.h"
 #include "common/hal_helper.h"
+#include "common/runtime_helper.h"
 
 using namespace Common;
 
@@ -59,6 +66,46 @@ TEST(ProfArgs, dlopen_failed)
     int64_t num;
     ASSERT_FALSE(HalHelper::Instance().GetAicoreFreq(num));
     ASSERT_FALSE(HalHelper::Instance().GetTaskSchedulerFreq(num));
+}
+
+TEST(RuntimeHelper, get_soc_version_failed_repeatedly_expect_warn_once) {
+    constexpr char childProcessEnv[] = "MSOPPROF_RUNTIME_HELPER_WARNING_CHILD";
+    if (std::getenv(childProcessEnv) != nullptr) {
+        RuntimeHelper &helper = RuntimeHelper::Instance();
+        EXPECT_TRUE(helper.GetSocVersion().empty());
+        EXPECT_TRUE(helper.GetSocVersion().empty());
+        EXPECT_TRUE(helper.GetSocVersion().empty());
+        return;
+    }
+
+    std::array<char, PATH_MAX> executablePath{};
+    ssize_t pathLength = readlink("/proc/self/exe", executablePath.data(), executablePath.size() - 1);
+    ASSERT_GT(pathLength, 0);
+    executablePath[static_cast<size_t>(pathLength)] = '\0';
+    std::string command = "env ASCEND_HOME_PATH=/__msopprof_runtime_helper_ut_missing__ " +
+        std::string(childProcessEnv) + "=1 '" + executablePath.data() +
+        "' --gtest_filter=RuntimeHelper.get_soc_version_failed_repeatedly_expect_warn_once --gtest_color=no";
+    FILE *childPipe = popen(command.c_str(), "r");
+    ASSERT_NE(childPipe, nullptr);
+
+    std::string childOutput;
+    std::array<char, 1024> outputBuffer{};
+    while (fgets(outputBuffer.data(), outputBuffer.size(), childPipe) != nullptr) {
+        childOutput += outputBuffer.data();
+    }
+    int childStatus = pclose(childPipe);
+    ASSERT_NE(childStatus, -1);
+    ASSERT_TRUE(WIFEXITED(childStatus)) << childOutput;
+    ASSERT_EQ(WEXITSTATUS(childStatus), 0) << childOutput;
+
+    const std::string warning = "Get soc version from runtime failed";
+    size_t warningCount = 0;
+    size_t warningPos = 0;
+    while ((warningPos = childOutput.find(warning, warningPos)) != std::string::npos) {
+        ++warningCount;
+        warningPos += warning.size();
+    }
+    EXPECT_EQ(warningCount, 1U) << childOutput;
 }
 
 TEST(DeviceTask, LoadPmuVec_App_910B_replay)

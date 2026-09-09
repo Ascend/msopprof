@@ -135,9 +135,9 @@ msopprof simulator --soc-version=Ascendxxxyy --output=/home/projects/output /hom
 </li><li>ResourceConflictRatio（默认采集）：开启可查看同步事件指令细节。<ul id="ul12706651330"><li><span id="zh-cn_topic_0000002016036877_zh-cn_topic_0000001740005657_ph38331631115919">昇腾A3系列产品</span>和<span id="zh-cn_topic_0000002016036877_ph9610350151414">昇腾A2系列产品</span>展示为SET_FLAG/WAIT_FLAG指令。</li><li><span id="zh-cn_topic_0000002016036877_ph12187735121517">昇腾310P系列产品</span>展示为set_event/wait_event指令。</li></ul>
 </li></ul>
 </div>
-<ul id="zh-cn_topic_0000002016036877_ul21140347333"><li>PMSampling：使能内存通路吞吐率波形图，并进行可视化呈现，例如：<strong id="zh-cn_topic_0000002016036877_b1368923464413">--aic-metrics=PMSampling</strong>。具体呈现内容请参见<a href="#内存通路吞吐率波形图">内存通路吞吐率波形图</a>。<ul id="zh-cn_topic_0000002016036877_ul536462164812"><li>--core-id设置对PMSampling参数不生效，PMSampling参数解析全部核。</li><li>此功能默认不开启。</li><li>仅支持昇腾950PR&950DT系列产品。</li></ul>
+<ul id="zh-cn_topic_0000002016036877_ul21140347333"><li>PMSampling：使能内存通路吞吐率波形图，并进行可视化呈现，例如：<strong id="zh-cn_topic_0000002016036877_b1368923464413">--aic-metrics=PMSampling</strong>。具体呈现内容请参见<a href="#内存通路吞吐率波形图">内存通路吞吐率波形图</a>。<ul id="zh-cn_topic_0000002016036877_ul536462164812"><li>--core-id设置对PMSampling参数不生效，PMSampling参数解析全部核。</li><li>此功能默认不开启。</li><li>该参数当前仅支持昇腾A3系列产品和昇腾A2系列产品，昇腾950系列产品不支持。</li></ul>
 </li></ul>
-<ul id="zh-cn_topic_0000002016036877_ul17160143219117"><li>OverHead：控制scalar头开销是否使能。<p id="p1253172210220">当配置--aic-metrics=OverHead后流水图有相应scalar的开销时间，分为cache_time和ccu_time。具体呈现内容请参见<a href="#scalar耗时展示">scalar耗时展示</a>。<ul id="zh-cn_topic_0000002016036877_ul536462164813"><li>该参数当前仅支持昇腾A3系列产品和昇腾A2系列产品。</li><li>若需在MindStudio Insight中正常展示scalar头开销数据，对应MindStudio Insight应为MindStudio-Insight_26.1.0及以上版本。</li></ul></p>
+<ul id="zh-cn_topic_0000002016036877_ul17160143219117"><li>Overhead：控制scalar头开销是否使能。<p id="p1253172210220">当配置--aic-metrics=Overhead后流水图有相应scalar的开销时间，分为cache_time和ccu_time。具体呈现内容请参见<a href="#scalar耗时展示">scalar耗时展示</a>。<ul id="zh-cn_topic_0000002016036877_ul536462164813"><li>该参数当前仅支持昇腾A3系列产品和昇腾A2系列产品，昇腾950系列产品不支持。</li><li>若需在MindStudio Insight中正常展示scalar头开销数据，对应MindStudio Insight应为MindStudio-Insight_26.1.0及以上版本。</li></ul></p>
 </li></ul>
 </td>
 <td class="cellrowborder" valign="top" width="11.741174117411742%" headers="mcps1.2.4.1.3 "><p id="zh-cn_topic_0000002016036877_p4115163416335">否</p>
