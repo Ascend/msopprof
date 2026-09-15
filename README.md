@@ -43,11 +43,11 @@ MindStudio Ops Profiler（算子调优工具，msOpProf）用于采集与分析�
 
 ## 🚀 快速入门
 
-快速体验核心功能，请参见《[msOpProf 快速入门](./docs/zh/quick_start/msopprof_quick_start.md)》。
+基于入门教程中开发的简易加法算子，快速体验msOpProf工具的核心功能，请参见《[msOpProf 快速入门](./docs/zh/quick_start/msopprof_quick_start.md)》。
 
 ## 📦 安装指南
 
-msOpProf工具安装操作请参见《[msOpProf 安装指南](./docs/zh/install_guide/msopprof_install_guide.md)》。
+msOpProf工具支持在线安装、离线安装以及源码安装，安装操作请参见《[msOpProf 安装指南](./docs/zh/install_guide/msopprof_install_guide.md)》。
 
 ## 📘 使用指南
 
@@ -62,7 +62,7 @@ msOpProf通过一些典型案例帮助您理解并使用工具，具体案例请
 为提升文档查阅效率，我们提供多种高效检索方式：  
 🔹 [AI 问答（DeepWiki）](https://deepwiki.com/mindstudio-docs/master)：自然语言问答，快速把握项目架构与模块关系。   
 🔹 [AI 问答（ZRead）](https://zread.ai/mindstudio-docs/master)：中文问答体验更优，精准定位功能用法与细节。   
-🔹 [精确搜索（ReadTheDocs）](https://mindstudio-operator-tools-docs.readthedocs.io/zh-cn/latest/)：关键词全文检索，直达接口、参数与报错等信息。  
+🔹 [精确搜索（ReadTheDocs）](https://mindstudio-operator-tools-docs.readthedocs.io/zh-cn/latest/)：关键词全文检索，直达接口、参数与报错等信息。
 
 ## 🛠️ 贡献指南
 
@@ -70,7 +70,7 @@ msOpProf通过一些典型案例帮助您理解并使用工具，具体案例请
 
 ## ⚖️ 相关说明
 
-🔹《[版本说明](./docs/zh/release_notes/release_notes.md)》  
+🔹《[版本说明](https://gitcode.com/Ascend/msopprof/releases)》  
 🔹《[许可证声明](./docs/zh/legal/license_notice.md)》  
 🔹《[安全声明](./docs/zh/legal/security_statement.md)》  
 🔹《[免责声明](./docs/zh/legal/disclaimer.md)》   

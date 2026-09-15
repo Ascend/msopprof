@@ -66,11 +66,11 @@ To improve documentation search efficiency, we provide multiple efficient search
 
 ## 🛠️ Contribution Guide
 
-You are welcome to contribute to the project. For details, see the [Contribution Guide](./docs/en/contributing/contributing_guide.md). 
+You are welcome to contribute to the project. For details, see the [Contribution Guide](./docs/en/contributing/contributing_guide.md).
 
 ## ⚖️ Related Information
 
-🔹 [Release Notes](./docs/en/release_notes/release_notes.md)   
+🔹 [Release Notes](https://gitcode.com/Ascend/msopprof/releases)   
 🔹 [License Notice](./docs/en/legal/license_notice.md)   
 🔹 [Security Statement](./docs/en/legal/security_statement.md)   
 🔹 [Disclaimer](./docs/en/legal/disclaimer.md) 
