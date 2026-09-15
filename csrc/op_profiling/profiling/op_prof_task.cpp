@@ -271,7 +271,8 @@ void Task::CreateCamodelConfig(bool pmSamplingEnable)
     if (simSocVersion.empty() || !Utility::GetAscendHomePath(ascendHomePath)) {
         return;
     }
-    camodelLibDir_ = JoinPath({ascendHomePath, "tools/simulator", simSocVersion, "lib"});
+    camodelLibDir_ = JoinPath({ascendHomePath, "tools/simulator",
+                               Utility::GetSimulatorDirName(simSocVersion), "lib"});
 
     bool isSetConfig = false;
     auto seriesType = GetProductSeriesType(simSocVersion);

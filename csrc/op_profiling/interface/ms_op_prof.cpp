@@ -364,6 +364,10 @@ bool ProfArgsInit(Common::ProfArgs &args, int argc, char *argv[], char *env[])
         return true;
     }
 
+    if (StartsWith(args.argSocVersion, "dav_")) {
+        args.argSocVersion = GetSocVersionBySimDir(args.argSocVersion);
+    }
+
     if (!ProfArgsNormalize(args, msg) || !ProfArgsChecker(args, msg)) {
         PrintErrorMsg(msg);
         return false;

@@ -180,6 +180,23 @@ std::string GetSoFromEnvVar(const std::string &soName)
     return GetSoFromSearchPath(ldEnv, soName);
 }
 
+std::string GetSimulatorDirName(const std::string &socVersion)
+{
+    if (StartsWith(socVersion, "Ascend950")) {
+        return "dav_3510";
+    }
+    if (StartsWith(socVersion, "Ascend910_93")) {
+        return "dav_2201";
+    }
+    return socVersion;
+}
+
+std::string GetSocVersionBySimDir(const std::string &simDirName)
+{
+    auto it = CHIP_TO_DEFAULT_SOC.find(simDirName);
+    return it == CHIP_TO_DEFAULT_SOC.end() ? simDirName : it->second;
+}
+
 std::string GetSimulatorLibrarySearchPath(const std::string &socVersion)
 {
     if (socVersion.empty()) {
@@ -190,7 +207,7 @@ std::string GetSimulatorLibrarySearchPath(const std::string &socVersion)
     if (!GetAscendHomePath(ascendHomePath)) {
         return "";
     }
-    std::string simulatorName = StartsWith(socVersion, "Ascend950") ? "dav_3510" : socVersion;
+    std::string simulatorName = GetSimulatorDirName(socVersion);
     // A5 默认从 camodel 目录加载仿真库，使能在线实时解析；其余平台仍使用 lib 目录
     std::string libraryDir = StartsWith(socVersion, "Ascend950") ? "camodel" : "lib";
     return JoinPath({ascendHomePath, "tools/simulator", simulatorName, libraryDir});

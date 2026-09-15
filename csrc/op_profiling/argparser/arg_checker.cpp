@@ -492,7 +492,7 @@ bool ArgChecker::CheckSimSocVersion(const Common::ProfArgs &config, std::string 
         msg = "$ASCEND_HOME_PATH not found";
         return false;
     }
-    if (StartsWith(config.argSocVersion, "Ascend950") &&
+    if ((StartsWith(config.argSocVersion, "Ascend950") || StartsWith(config.argSocVersion, "Ascend910_93")) &&
         SOC_STRING_TO_CHIP_PRODUCT.find(config.argSocVersion) != SOC_STRING_TO_CHIP_PRODUCT.end()) {
         return true;
     }

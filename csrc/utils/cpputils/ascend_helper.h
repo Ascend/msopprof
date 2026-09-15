@@ -33,6 +33,8 @@ bool GetSimulators(std::vector<std::string> &simulators);
 std::string GetMsopprofPath();
 bool GetSocVersionFromEnvVar(std::string &socVersion);
 std::string GetSoFromEnvVar(const std::string &soName);
+std::string GetSimulatorDirName(const std::string &socVersion);
+std::string GetSocVersionBySimDir(const std::string &simDirName);
 std::string GetSimulatorLibrarySearchPath(const std::string &socVersion);
 SimulatorLibrarySource GetSimulatorLibrarySource(const std::string &librarySearchPath);
 }  // namespace Utility

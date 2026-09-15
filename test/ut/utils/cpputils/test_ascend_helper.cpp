@@ -356,3 +356,67 @@ TEST_F(AscendHelperTest, test_GetSimulatorLibrarySource_resolves_symlink_and_rej
     ASSERT_EQ(GetSimulatorLibrarySource(runtimeDir + ":" + pemDir), SimulatorLibrarySource::UNKNOWN);
     std::experimental::filesystem::remove_all(root);
 }
+
+/**
+* |  用例集  | AscendHelper
+* | 测试函数 | GetSimulatorDirName
+* |  用例名  | test_GetSimulatorDirName_ascend910_93_map_to_dav_2201
+* | 用例描述 | 测试Ascend910_93系列soc版本映射到dav_2201仿真器目录
+*/
+TEST_F(AscendHelperTest, test_GetSimulatorDirName_ascend910_93_map_to_dav_2201)
+{
+    ASSERT_EQ(GetSimulatorDirName("Ascend910_9391"), "dav_2201");
+    ASSERT_EQ(GetSimulatorDirName("Ascend910_9362"), "dav_2201");
+}
+
+/**
+* |  用例集  | AscendHelper
+* | 测试函数 | GetSimulatorDirName
+* |  用例名  | test_GetSimulatorDirName_ascend950_map_to_dav_3510
+* | 用例描述 | 测试Ascend950系列soc版本映射到dav_3510仿真器目录
+*/
+TEST_F(AscendHelperTest, test_GetSimulatorDirName_ascend950_map_to_dav_3510)
+{
+    ASSERT_EQ(GetSimulatorDirName("Ascend950PR_9599"), "dav_3510");
+    ASSERT_EQ(GetSimulatorDirName("Ascend950DT_9573"), "dav_3510");
+}
+
+/**
+* |  用例集  | AscendHelper
+* | 测试函数 | GetSimulatorDirName
+* |  用例名  | test_GetSimulatorDirName_other_soc_passthrough
+* | 用例描述 | 测试其余soc版本与dav目录名原样透传
+*/
+TEST_F(AscendHelperTest, test_GetSimulatorDirName_other_soc_passthrough)
+{
+    ASSERT_EQ(GetSimulatorDirName("Ascend910B4"), "Ascend910B4");
+    ASSERT_EQ(GetSimulatorDirName("Ascend310P3"), "Ascend310P3");
+    ASSERT_EQ(GetSimulatorDirName("dav_2201"), "dav_2201");
+    ASSERT_EQ(GetSimulatorDirName(""), "");
+}
+
+/**
+* |  用例集  | AscendHelper
+* | 测试函数 | GetSocVersionBySimDir
+* |  用例名  | test_GetSocVersionBySimDir_dav_dir_map_to_default_soc
+* | 用例描述 | 测试dav仿真器目录名映射回默认Ascend型号名
+*/
+TEST_F(AscendHelperTest, test_GetSocVersionBySimDir_dav_dir_map_to_default_soc)
+{
+    ASSERT_EQ(GetSocVersionBySimDir("dav_2002"), "Ascend310P1");
+    ASSERT_EQ(GetSocVersionBySimDir("dav_2201"), "Ascend910B1");
+    ASSERT_EQ(GetSocVersionBySimDir("dav_3510"), "Ascend950PR_9599");
+}
+
+/**
+* |  用例集  | AscendHelper
+* | 测试函数 | GetSocVersionBySimDir
+* |  用例名  | test_GetSocVersionBySimDir_unknown_name_passthrough
+* | 用例描述 | 测试未收录的目录名与Ascend型号名原样透传
+*/
+TEST_F(AscendHelperTest, test_GetSocVersionBySimDir_unknown_name_passthrough)
+{
+    ASSERT_EQ(GetSocVersionBySimDir("Ascend910B4"), "Ascend910B4");
+    ASSERT_EQ(GetSocVersionBySimDir("dav_9999"), "dav_9999");
+    ASSERT_EQ(GetSocVersionBySimDir(""), "");
+}

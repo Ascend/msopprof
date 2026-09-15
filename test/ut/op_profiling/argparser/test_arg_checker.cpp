@@ -462,6 +462,21 @@ TEST(ArgChecker, args_with_sim_soc_version_in_chip_product_success)
     GlobalMockObject::verify();
 }
 
+TEST(ArgChecker, args_with_sim_soc_version_910_93_in_chip_product_success)
+{
+    ProfArgs args;
+    std::string msg;
+    MOCKER(&Utility::GetAscendHomePath)
+        .stubs()
+        .will(returnValue(true));
+    ArgChecker checker("simulator");
+    args.cmd = { "./app" };
+    args.runMode = { "simulator" };
+    args.argSocVersion = { "Ascend910_9391" };
+    ASSERT_TRUE(checker.CheckSimSocVersion(args, msg));
+    GlobalMockObject::verify();
+}
+
 TEST(ArgChecker, args_with_sim_soc_version_get_ascend_home_path_failed)
 {
     MOCKER(&Utility::GetAscendHomePath)
