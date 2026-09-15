@@ -312,7 +312,12 @@ void Task::CreateCamodelConfig(bool pmSamplingEnable)
             isSetConfig = CreateConfigFile("config.json", {{"\"flush_level\": 3", "\"flush_level\": 2"}});
         }
     } else if (seriesType == ChipProductType::ASCEND950_SERIES) {
-        isSetConfig = CreateConfigFile("config.json", {{"\"flush_level\": 3", "\"flush_level\": 2"}});
+        // camodel目录为在线回调解析模式,指令数据走DvcInstrLogV2回调通道,不依赖flush_level配置;
+        // 且camodel库会将CAMODEL_CONFIG_PATH目录当文件读取并打出"Is a directory"告警,因此该模式下跳过
+        std::string searchPath = Utility::GetSimulatorLibrarySearchPath(simSocVersion);
+        if (Utility::GetSimulatorLibrarySource(searchPath) != Utility::SimulatorLibrarySource::CAMODEL) {
+            isSetConfig = CreateConfigFile("config.json", {{"\"flush_level\": 3", "\"flush_level\": 2"}});
+        }
     }
     if (isSetConfig) {
         env["CAMODEL_CONFIG_PATH"] = camodelConfigDir_;

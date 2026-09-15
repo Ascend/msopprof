@@ -189,9 +189,6 @@ void SimPcToCode::Statistic(const std::string &coreName, SimData &data)
         int callCount = static_cast<int>(instrList.second.size());
         CycleInfo cycleInfo = {0, 0, 0, 0, 0};
         CalCycles(instrList.second, cycleInfo);
-        if (cycleInfo.realStallCyc > 0) {
-            hasStallCyc_ = true;
-        }
         if (cycleInfo.scalarCyc > 0) {
             hasScalarCyc_ = true;
         }

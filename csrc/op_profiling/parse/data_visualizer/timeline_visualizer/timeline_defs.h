@@ -27,6 +27,26 @@
 namespace Profiling {
 namespace Parse {
 
+inline std::string GetFlagPairKey(const std::string &detail) {
+    const auto detailJson = nlohmann::json::parse(detail, nullptr, false);
+    if (detailJson.is_discarded() || !detailJson.is_object()) {
+        return detail;
+    }
+    const auto targetPipe = detailJson.find("target_pipe");
+    const auto consumerPipe = detailJson.find("consumer_pipe");
+    const auto flagId = detailJson.find("flag_id");
+    if (targetPipe == detailJson.end() || !targetPipe->is_string() || consumerPipe == detailJson.end() ||
+        !consumerPipe->is_string() || flagId == detailJson.end() ||
+        (!flagId->is_number_integer() && !flagId->is_number_unsigned() && !flagId->is_string())) {
+        return detail;
+    }
+    nlohmann::json pairKey;
+    pairKey["target_pipe"] = *targetPipe;
+    pairKey["consumer_pipe"] = *consumerPipe;
+    pairKey["flag_id"] = *flagId;
+    return pairKey.dump();
+}
+
 struct Event {
     inline void ToJson(nlohmann::json &jsonData) const
     {

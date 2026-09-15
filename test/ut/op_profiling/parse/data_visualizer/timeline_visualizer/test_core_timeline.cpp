@@ -131,6 +131,100 @@ TEST(CoreTimeLineVisualizer, test_CollectInstrEvents_should_record_intra_block_i
 
 /**
 * |  用例集 | CoreTimeLineVisualizer
+* | 测试函数 | CollectInstrEvents
+* |  用例名  | test_CollectInstrEvents_should_generate_flow_for_camodel_json_flags
+* | 用例描述 | 测试camodel JSON格式的SET_FLAG和WAIT_FLAG可以按同步字段匹配并生成连线
+*/
+TEST(CoreTimeLineVisualizer, test_CollectInstrEvents_should_generate_flow_for_camodel_json_flags)
+{
+    DataCenter dataCenter;
+    std::string output = "test/ut/resources/dump/output";
+    SimVisualizerConfig config = GetVisualizeConfig(output, ChipProductType::ASCEND950PR_9589);
+    CoreTimeLineVisualizer core(dataCenter, config);
+
+    MergeInfo setFlag;
+    setFlag.icacheTick = UINT64_MAX;
+    setFlag.pc = 0x1000;
+    setFlag.startTick = 100;
+    setFlag.endTick = 110;
+    setFlag.pipe = "MTE2";
+    setFlag.name = "SET_FLAG";
+    setFlag.detail = R"({"consumer_pipe":"VEC","core_type":"AIV0","flag_id":0,"instr_type":"MTE2",)"
+        R"("queue_type":"MTE2","sync_kind":"SET_FLAG","target_pipe":"MTE2"})";
+
+    MergeInfo waitFlag;
+    waitFlag.icacheTick = UINT64_MAX;
+    waitFlag.pc = 0x2000;
+    waitFlag.startTick = 110;
+    waitFlag.endTick = 120;
+    waitFlag.pipe = "VECTOR";
+    waitFlag.name = "WAIT_FLAG";
+    waitFlag.detail = R"({"consumer_pipe":"VEC","core_type":"AIV0","flag_id":0,"instr_type":"PUSHQ",)"
+        R"("queue_type":"SIMD","sync_kind":"WAIT_FLAG","target_pipe":"MTE2"})";
+
+    std::vector<MergeInfo> mergeVec {setFlag, waitFlag};
+    std::vector<nlohmann::json> coreJson;
+    core.CollectInstrEvents("core0.veccore0", mergeVec, coreJson);
+
+    size_t flowCount = 0;
+    for (const auto &event : coreJson) {
+        if (event.at("name") == "flow") {
+            flowCount++;
+            ASSERT_EQ(event.at("cat"), "MTE2ToVECTOR");
+        }
+    }
+    ASSERT_EQ(flowCount, 2);
+}
+
+/**
+* |  用例集 | CoreTimeLineVisualizer
+* | 测试函数 | CollectInstrEvents
+* |  用例名  | test_CollectInstrEvents_should_generate_intra_flow_for_camodel_json
+* | 用例描述 | 测试camodel JSON格式的核间同步指令可以提取target_pipe和sync_id并生成连线
+*/
+TEST(CoreTimeLineVisualizer, test_CollectInstrEvents_should_generate_intra_flow_for_camodel_json)
+{
+    DataCenter dataCenter;
+    std::string output = "test/ut/resources/dump/output";
+    SimVisualizerConfig config = GetVisualizeConfig(output, ChipProductType::ASCEND950PR_9589);
+    CoreTimeLineVisualizer core(dataCenter, config);
+
+    MergeInfo setIntra;
+    setIntra.icacheTick = UINT64_MAX;
+    setIntra.pc = 0x1000;
+    setIntra.startTick = 100;
+    setIntra.endTick = 110;
+    setIntra.pipe = "SCALAR";
+    setIntra.name = "SET_INTRA_BLOCK";
+    setIntra.detail = R"({"core_type":"AIV0","instr_type":"FC","queue_type":"SCALAR","sync_id":6,)"
+        R"("sync_kind":"SET_INTRA_BLOCK","target_pipe":"MTE3"})";
+
+    MergeInfo waitIntra;
+    waitIntra.icacheTick = UINT64_MAX;
+    waitIntra.pc = 0x2000;
+    waitIntra.startTick = 110;
+    waitIntra.endTick = 120;
+    waitIntra.pipe = "SCALAR";
+    waitIntra.name = "WAIT_INTRA_BLOCK";
+    waitIntra.detail = R"({"core_type":"AIC","instr_type":"FC","queue_type":"SCALAR","sync_id":6,)"
+        R"("sync_kind":"WAIT_INTRA_BLOCK","target_pipe":"FIXP"})";
+
+    std::vector<MergeInfo> setVec {setIntra};
+    std::vector<MergeInfo> waitVec {waitIntra};
+    std::vector<nlohmann::json> coreJson;
+    core.CollectInstrEvents("core0.veccore0", setVec, coreJson);
+    core.CollectInstrEvents("core0.cubecore0", waitVec, coreJson);
+    core.CollectIntraBlockFlowEvents();
+
+    ASSERT_EQ(core.coresJsonList_.size(), 6);
+    ASSERT_EQ(core.coresJsonList_[4].at("name"), "flow");
+    ASSERT_EQ(core.coresJsonList_[4].at("ph"), "s");
+    ASSERT_EQ(core.coresJsonList_[4].at("cat"), "MTE3ToFIXP");
+    ASSERT_EQ(core.coresJsonList_[5].at("ph"), "t");
+}
+
+/**
+* |  用例集 | CoreTimeLineVisualizer
 * | 测试函数 | ParseByCore
 * |  用例名  | test_ParseByCore_should_return_ture_when_parse_success
 * | 用例描述 | 测试解析单核仿真数据json生成正确

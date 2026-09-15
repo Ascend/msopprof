@@ -186,6 +186,57 @@ TEST(SubcoreTimelineVisualizer, test_CollectInstrEvents4SepTrace_collect_json_su
 
 /**
 * |  用例集 | SubcoreTimelineVisualizer
+* | 测试函数 | CollectInstrEvents4SepTrace
+* |  用例名  | test_CollectInstrEvents4SepTrace_should_generate_flow_for_camodel_json_flags
+* | 用例描述 | 测试分核流水图可以匹配camodel JSON格式的SET_FLAG和WAIT_FLAG
+*/
+TEST(SubcoreTimelineVisualizer, test_CollectInstrEvents4SepTrace_should_generate_flow_for_camodel_json_flags) {
+    DataCenter dataCenter;
+    std::string output = "test/ut/resources/dump/output";
+    SimVisualizerConfig config = GetVisualizeConfig(output, ChipProductType::ASCEND950PR_9589);
+    SubcoreTimelineVisualizer core(dataCenter, config);
+
+    MergeInfo setFlag;
+    setFlag.icacheTick = UINT64_MAX;
+    setFlag.pc = 0x1000;
+    setFlag.startTick = 100;
+    setFlag.endTick = 110;
+    setFlag.pipe = "MTE2";
+    setFlag.name = "SET_FLAG";
+    setFlag.detail = R"({"consumer_pipe":"VEC","core_type":"AIV0","flag_id":0,"instr_type":"MTE2",)"
+                     R"("queue_type":"MTE2","sync_kind":"SET_FLAG","target_pipe":"MTE2"})";
+    setFlag.warpId = DEFAULT_INT_VALUE;
+    setFlag.schId = DEFAULT_INT_VALUE;
+
+    MergeInfo waitFlag;
+    waitFlag.icacheTick = UINT64_MAX;
+    waitFlag.pc = 0x2000;
+    waitFlag.startTick = 110;
+    waitFlag.endTick = 120;
+    waitFlag.pipe = "VECTOR";
+    waitFlag.name = "WAIT_FLAG";
+    waitFlag.detail = R"({"consumer_pipe":"VEC","core_type":"AIV0","flag_id":0,"instr_type":"PUSHQ",)"
+                      R"("queue_type":"SIMD","sync_kind":"WAIT_FLAG","target_pipe":"MTE2"})";
+    waitFlag.warpId = DEFAULT_INT_VALUE;
+    waitFlag.schId = DEFAULT_INT_VALUE;
+
+    std::vector<MergeInfo> mergeVec{setFlag, waitFlag};
+    std::vector<nlohmann::json> coreJson;
+    std::set<std::string> pipeSet;
+    core.CollectInstrEvents4SepTrace(mergeVec, coreJson, pipeSet);
+
+    size_t flowCount = 0;
+    for (const auto &event : coreJson) {
+        if (event.at("name") == "flow") {
+            flowCount++;
+            ASSERT_EQ(event.at("cat"), "MTE2ToVECTOR");
+        }
+    }
+    ASSERT_EQ(flowCount, 2);
+}
+
+/**
+* |  用例集 | SubcoreTimelineVisualizer
 * | 测试函数 | CollectEvents
 * |  用例名  | test_CollectEvents_collect_json_success_of_910B_set_wait_bar_instr
 * | 用例描述 | 测试910B芯片set、wait及bar指令生成正确json数据

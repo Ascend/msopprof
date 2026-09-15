@@ -21,6 +21,7 @@
 #include "ustring.h"
 #include "thread_pool.h"
 #include "filesystem.h"
+#include <limits>
 
 using namespace Utility;
 namespace Profiling {
@@ -33,6 +34,50 @@ constexpr char const *WAIT_INTRA_BLOCK = "WAIT_INTRA_BLOCK";
 constexpr char const *WAIT_INTRA_BLOCKI = "WAIT_INTRA_BLOCKI";
 const static std::vector<std::string> IntraInstr = { SET_INTRA_BLOCK, SET_INTRA_BLOCKI, WAIT_INTRA_BLOCK, WAIT_INTRA_BLOCKI };
 constexpr int INTRA_BLOCK_ID_SPLIT = 16;
+
+namespace {
+bool GetIntraBlockInfo(const std::string &detail, std::string &pipe, int &syncId)
+{
+    const auto detailJson = nlohmann::json::parse(detail, nullptr, false);
+    if (!detailJson.is_discarded() && detailJson.is_object()) {
+        const auto targetPipe = detailJson.find("target_pipe");
+        const auto syncIdIter = detailJson.find("sync_id");
+        if (targetPipe != detailJson.end() && targetPipe->is_string() && syncIdIter != detailJson.end()) {
+            uint64_t value = 0;
+            bool validSyncId = false;
+            if (syncIdIter->is_number_unsigned()) {
+                value = syncIdIter->get<uint64_t>();
+                validSyncId = true;
+            } else if (syncIdIter->is_number_integer()) {
+                const int64_t signedValue = syncIdIter->get<int64_t>();
+                if (signedValue >= 0) {
+                    value = static_cast<uint64_t>(signedValue);
+                    validSyncId = true;
+                }
+            }
+            if (validSyncId && value <= static_cast<uint64_t>(std::numeric_limits<int>::max())) {
+                pipe = targetPipe->get<std::string>();
+                syncId = static_cast<int>(value);
+                return true;
+            }
+        }
+    }
+
+    static const std::regex re(R"(PIPE:([a-zA-Z0-9]{1,10}),.*sync_id:(\d{1,10}))");
+    std::smatch match;
+    if (!std::regex_search(detail, match, re)) {
+        return false;
+    }
+    uint64_t value = 0;
+    if (!StoullConverter(match[2].str(), value) ||
+        value > static_cast<uint64_t>(std::numeric_limits<int>::max())) {
+        return false;
+    }
+    pipe = match[1].str();
+    syncId = static_cast<int>(value);
+    return true;
+}
+}
 
 PluginErrorCode CoreTimeLineVisualizer::Entry()
 {
@@ -219,30 +264,25 @@ void CoreTimeLineVisualizer::CollectInstrEvents(const std::string &coreName, std
             }
         }
         if (instr.name == setFlagName_) {
-            setFlagRecord[instr.detail].emplace_back(SetWaitFlag {instr, evtArgs, coreName});
+            setFlagRecord[GetFlagPairKey(instr.detail)].emplace_back(SetWaitFlag {instr, evtArgs, coreName});
             continue;
         }
         if (instr.name == waitFlagName_) {
-            waitFlagRecord[instr.detail].emplace_back(SetWaitFlag {instr, evtArgs, coreName});
+            waitFlagRecord[GetFlagPairKey(instr.detail)].emplace_back(SetWaitFlag {instr, evtArgs, coreName});
             continue;
         }
         if (IsIntraBlockInstr(instr.name)) {
-            static const std::regex re(R"(PIPE:([a-zA-Z0-9]{1,10}),.*sync_id:(\d{1,10}))");
-            std::smatch match;
-            if (std::regex_search(instr.detail, match, re)) {
-                instr.pipe = match[1].str();
-                int syncId = std::stoi(match[2].str());
-                if (syncId >= 0) {
-                    auto [coreId, subcore] = SplitCoreName(coreName);
-                    {
-                        std::lock_guard<std::mutex> lock(timeLineLock_);
-                        if (instr.name.find("SET_") == 0) {
-                            recordIntraSetFlag_[{coreId, subcore}][{instr.name, syncId}].emplace_back(
-                                std::pair<MergeInfo, bool>{instr, false});
-                        } else {
-                            recordIntraWaitFlag_[{coreId, subcore}][{instr.name, syncId}].emplace_back(
-                                std::pair<MergeInfo, bool>{instr, false});
-                        }
+            int syncId = 0;
+            if (GetIntraBlockInfo(instr.detail, instr.pipe, syncId)) {
+                auto [coreId, subcore] = SplitCoreName(coreName);
+                {
+                    std::lock_guard<std::mutex> lock(timeLineLock_);
+                    if (instr.name.find("SET_") == 0) {
+                        recordIntraSetFlag_[{coreId, subcore}][{instr.name, syncId}].emplace_back(
+                            std::pair<MergeInfo, bool>{instr, false});
+                    } else {
+                        recordIntraWaitFlag_[{coreId, subcore}][{instr.name, syncId}].emplace_back(
+                            std::pair<MergeInfo, bool>{instr, false});
                     }
                 }
                 continue;

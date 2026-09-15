@@ -287,13 +287,13 @@ void SubcoreTimelineVisualizer::CollectEvents(const std::map<int, std::vector<Me
                 xEvent.ts = GetMicrosecond(chipType_, tmpInstr.endTick - 1);
                 xEvent.dur = GetMicrosecond(chipType_, 1);
                 xEvent.cName = GetCNameByPipe(setFlagName_);
-                setFlagRecord[tmpInstr.detail].emplace_back(xEvent);
+                setFlagRecord[GetFlagPairKey(tmpInstr.detail)].emplace_back(xEvent);
             }
             if (tmpInstr.name == waitFlagName_) {
                 xEvent.ts = GetMicrosecond(chipType_, startCycle);
                 xEvent.dur = GetMicrosecond(chipType_, durationCycle);
                 xEvent.cName = GetCNameByPipe(waitFlagName_);
-                waitFlagRecord[tmpInstr.detail].emplace_back(xEvent);
+                waitFlagRecord[GetFlagPairKey(tmpInstr.detail)].emplace_back(xEvent);
             }
             nlohmann::json jsonData;
             xEvent.ToJson(jsonData);
