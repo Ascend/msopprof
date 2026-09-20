@@ -72,7 +72,7 @@
 |mode|测试模式。<br> - 上板：onboard <br> - 性能仿真：ca|string|是|
 |device_id|运行时使用AI处理器的ID，默认值：0。|int|否|
 |tiling_key|当前动态算子的tiling key。|uint64|否|
-|magic|算子类型。<br> - Cube算子：RT_DEV_BINARY_MAGIC_ELF_AICUBE <br> - Vector算子：RT_DEV_BINARY_MAGIC_ELF_AIVEC <br> - Mix融合算子：RT_DEV_BINARY_MAGIC_ELF（仅Atlas A3 系列产品和Atlas A2 系列产品支持配置）|string|是|
+|magic|算子类型。<br> - Cube算子：RT_DEV_BINARY_MAGIC_ELF_AICUBE <br> - Vector算子：RT_DEV_BINARY_MAGIC_ELF_AIVEC <br> - Mix融合算子：RT_DEV_BINARY_MAGIC_ELF（仅Atlas A3系列产品和Atlas A2系列产品支持配置）|string|是|
 |test_cases|测试数据，支持列表，每个元素包含一个用例。详细说明可参考[**表 2**  test_case参数字段说明](#test_case参数字段说明)。|list|是|
 
 > [!NOTE]
@@ -260,7 +260,7 @@
 
 **mstx接口简介**
 
-mstx接口是MindStudio提供的一个性能分析接口，它允许用户在应用程序中插入特定的标记，以便在性能分析时能够更精确地定位关键代码区域，具体接口明细请参见[**表 1**  C/C++ mstx接口列表](#C-mstx接口列表)和[**表 2**  Python mstx接口列表](#Python-mstx接口列表)。具体接口的使用情况请参考《[MindStudio Tools Extension Library接口文档](https://gitcode.com/Ascend/mstx/blob/master/docs/zh/api_reference/README.md)》。
+mstx接口是MindStudio提供的一个性能分析接口，它允许用户在应用程序中插入特定的标记，以便在性能分析时能够更精确地定位关键代码区域，具体接口明细请参见[**表 1**  C/C++ mstx接口列表](#C-mstx接口列表)和[**表 2**  Python mstx接口列表](#Python-mstx接口列表)。具体接口的使用情况请参考《[MindStudio Tools Extension Library接口文档](https://gitcode.com/Ascend/mstx/blob/26.2.0/docs/zh/api_reference/README.md)》。
 
 **表 1**  C/C++ mstx接口列表<a id="C-mstx接口列表"></a>
 
@@ -284,7 +284,7 @@ mstx接口是MindStudio提供的一个性能分析接口，它允许用户在应
 
     > [!NOTE]
     > 
-    > - 此样例工程不支持Atlas A3 系列产品。
+    > - 此样例工程不支持Atlas A3系列产品。
     > - ${INSTALL_DIR}请替换为CANN软件安装后文件存储路径。以root用户安装为例，安装后文件默认存储路径为：/usr/local/Ascend/cann。
 
     - 在`${git_clone_path}/samples/operator/ascendc/0_introduction/1_add_frameworklaunch/AclNNInvocation/src/CMakeLists.txt`路径下新增库文件`libms_tools_ext.so`，地址为：`${INSTALL_DIR}/lib64/libms_tools_ext.so`。

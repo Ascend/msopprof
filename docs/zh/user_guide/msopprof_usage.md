@@ -6,7 +6,7 @@
 
 展示如何使用msOpProf工具采集Kernel直调方式Ascend C算子的性能数据，以内核调用符<<<>>>方式调用算子为例。
 
-Kernel直调场景，详细信息可参考《Ascend C算子开发指南》中“[Kernel直调算子开发](https://www.hiascend.com/document/detail/zh/canncommercial/latest/programug/Ascendcopdevg/atlas_ascendc_10_0056.html)”章节。
+Kernel直调场景，详细信息可参考《Ascend C算子开发指南》中“[基于样例工程完成核函数（Kernel）直调](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/latest/programug/Ascendcopdevg/docs/zh/guide/programming_guide/appendix/kernel_direct_call_from_sample.md)”章节。
 
 **前期准备**
 
@@ -31,7 +31,7 @@ Kernel直调场景，详细信息可参考《Ascend C算子开发指南》中“
     > 
     > 本示例中可执行文件的名称（add）仅为示例，具体以当前工程中用户实际编译的脚本为准。
 
-2. 使用如下命令完成msopprof上板性能数据和精细化调优数据的采集，也可参考[msopprof模式命令](https://gitcode.com/Ascend/msopprof/blob/master/docs/zh/user_guide/msopprof_user_guide.md#命令参考)指定其他命令参数。
+2. 使用如下命令完成msopprof上板性能数据和精细化调优数据的采集，也可参考[msopprof模式命令](https://gitcode.com/Ascend/msopprof/blob/26.2.0/docs/zh/user_guide/msopprof_user_guide.md#命令参考)指定其他命令参数。
 
     ```shell
     msopprof add
@@ -54,7 +54,7 @@ Kernel直调场景，详细信息可参考《Ascend C算子开发指南》中“
     )
     ```
 
-4. 使用如下命令完成msopprof simulator性能数据、流水图和热点图数据的采集，也可参考[msopprof simulator模式命令](https://gitcode.com/Ascend/msopprof/blob/master/docs/zh/user_guide/msopprof_simulator_user_guide.md#命令参考)指定其他命令参数。
+4. 使用如下命令完成msopprof simulator性能数据、流水图和热点图数据的采集，也可参考[msopprof simulator模式命令](./msopprof_simulator_user_guide.md#命令参考)指定其他命令参数。
 
     > [!NOTE]
     > 
@@ -70,7 +70,7 @@ Kernel直调场景，详细信息可参考《Ascend C算子开发指南》中“
     [INFO] Profiling running finished. All task success.
     ```
 
-6. 分别查看算子上板和仿真的性能数据，可将采集得到的visualize\_data.bin文件导入MindStudio Insight，具体导入操作请参考《MindStudio Insight用户指南》的“[导入性能数据](https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/user_guide/basic_operations.md#导入数据)”章节。<a id="导入数据"></a>
+6. 分别查看算子上板和仿真的性能数据，可将采集得到的visualize\_data.bin文件导入MindStudio Insight，具体导入操作请参考《MindStudio Insight用户指南》的“[导入性能数据](https://gitcode.com/Ascend/msinsight/blob/26.2.0/docs/zh/user_guide/basic_operations.md#导入数据)”章节。<a id="导入数据"></a>
 
     > [!NOTE]
     > 
@@ -82,7 +82,7 @@ Kernel直调场景，详细信息可参考《Ascend C算子开发指南》中“
 
 展示如何使用msOpProf工具采集API调用单算子的性能数据，以自定义算子工程和aclnn单算子API调用为例。
 
-单算子API调用场景，详细信息可参考《Ascend C算子开发指南》中“工程化算子开发 \>  [单算子API调用](https://www.hiascend.com/document/detail/zh/canncommercial/latest/programug/Ascendcopdevg/atlas_ascendc_10_0070.html)”章节。
+单算子API调用场景，详细信息可参考《Ascend C算子开发指南》中“工程化算子开发 \>  [单算子API调用](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/latest/programug/Ascendcopdevg/docs/zh/guide/programming_guide/advanced_programming/aclnn_operator_development/invocation/single_operator_api_call.md)”章节。
 
 **前期准备**
 
@@ -263,7 +263,7 @@ PyTorch框架算子调用场景下，进行性能数据采集的操作步骤与[
 
 > [!NOTE]
 > 
-> CATLASS DSL支持范围与triton支持范围一致，目前仅支持Ascend 950PR&950DT 系列产品，不支持-g，代码热点图功能以及代码行映射能力。
+> CATLASS DSL支持范围与triton支持范围一致，目前仅支持Ascend 950PR&950DT系列产品，不支持-g，代码热点图功能以及代码行映射能力。
 
 **操作步骤**
 
@@ -372,7 +372,7 @@ PyTorch框架算子调用场景下，进行性能数据采集的操作步骤与[
 
 展示如何使用msOpProf工具来上板调优一个MC2算子，并生成通算流水图。
 
-本示例以Ascend CL单算子调用为例，其他调用场景请参见《[Ascend C算子开发指南](https://www.hiascend.com/document/detail/zh/canncommercial/latest/programug/Ascendcopdevg/atlas_ascendc_map_10_0002.html)》。
+本示例以Ascend CL单算子调用为例，其他调用场景请参见《[Ascend C算子开发指南](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/latest/programug/Ascendcopdevg/docs/zh/guide/getting_started/ascend_c_overview_and_learning_path.md)》。
 
 **前期准备**
 
@@ -381,7 +381,7 @@ PyTorch框架算子调用场景下，进行性能数据采集的操作步骤与[
 
 **操作步骤**
 
-1. 请参考[算子编译部署](https://www.hiascend.com/document/detail/zh/mindstudio/82RC1/ODtools/Operatordevelopmenttools/atlasopdev_16_0024.html)，完成算子的编译部署。
+1. 请参考[算子编译部署](https://gitcode.com/Ascend/msopgen/blob/26.2.0/docs/zh/user_guide/msopgen_user_guide.md)，完成算子的编译部署。
     1. 在算子编译文件op\_kernel目录下的CMakeLists.txt中引入以下编译选项，使能MC2算子的AIC打点和代码行映射功能。
 
         ```shell

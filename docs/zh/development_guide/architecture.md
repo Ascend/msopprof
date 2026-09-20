@@ -732,7 +732,7 @@ struct MsprofAicpuHcclTaskInfo {
 
 **限制**
 
-1. Atlas 推理系列产品，Atlas A2 系列产品中寄存器上限为32
+1. Atlas 推理系列产品，Atlas A2系列产品中寄存器上限为32
 2. 基于只有Scalar流水中的指令中会包含DST，其他指令认为只包含SRC
 
 可视化计算部分
@@ -886,7 +886,7 @@ FUZZ：当前对所有对外接口都进行FUZZ测试
 3. 运行环境
 
     由于当前仓中mockcpp版本限制，因此UT需要在x86机器上进行
-    由于当前支持的机器类型有Atlas A2 系列产品、Atlas A3 系列产品、Atlas 推理系列产品，所以ST需要在这三类机器上运行。
+    由于当前支持的机器类型有Atlas A2系列产品、Atlas A3系列产品、Atlas 推理系列产品，所以ST需要在这三类机器上运行。
 
 ## 5. 运行视图
 

@@ -3,7 +3,7 @@
 ## 环境约束
 
 - msOpProf工具的使用依赖CANN包中的msopprof可执行文件，该文件中的接口使用和msprof op一致，该文件为CANN包自带，无需单独安装。
-- 如果要使用MindStudio Insight工具查看msOpProf工具输出的文件时，需要单独安装MindStudio Insight软件包，安装步骤可参见[MindStudio Insight安装指南](https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/install_guide/mindstudio_insight_install_guide.md)。
+- 如果要使用MindStudio Insight工具查看msOpProf工具输出的文件时，需要单独安装MindStudio Insight软件包，安装步骤可参见[MindStudio Insight安装指南](https://gitcode.com/Ascend/msinsight/blob/26.2.0/docs/zh/install_guide/mindstudio_insight_install_guide.md)。
 
 ## 运行约束
 

@@ -8,7 +8,7 @@
 msOpProf 工具用于采集和分析运行在昇腾 AI 处理器上的算子的关键性能指标，用户可根据输出的性能数据，快速定位算子的软、硬件性能瓶颈，提升算子性能的分析效率。
 本文档基于入门教程中开发的简易加法算子，演示 msOpProf 工具的核心功能，帮助初学者直观体会其在算子开发过程中带来的高效性与便捷性。
 
-本章节以您已完成<a href="https://gitcode.com/Ascend/msot/blob/master/docs/zh/quick_start/op_tool_quick_start.md" target="_blank">《算子开发工具链快速入门》</a>的全流程操作为前提；若尚未体验，建议先完成该指南以获得更佳的学习效果。
+本章节以您已完成<a href="https://gitcode.com/Ascend/msot/blob/26.2.0/docs/zh/quick_start/op_tool_quick_start.md" target="_blank">《算子开发工具链快速入门》</a>的全流程操作为前提；若尚未体验，建议先完成该指南以获得更佳的学习效果。
 
 ## 2. 操作步骤
 
@@ -20,7 +20,7 @@ msOpProf 工具用于采集和分析运行在昇腾 AI 处理器上的算子的�
 #### 2.1.1 安装 CANN 容器环境
 
 ✅ **请严格按以下指南完成环境安装：**  
-👉 **<a href="https://gitcode.com/Ascend/msot/blob/master/docs/zh/quick_start/installation_guide.md" target="_blank">《昇腾 AI 算子开发工具链学习环境安装指南》</a>**
+👉 **<a href="https://gitcode.com/Ascend/msot/blob/26.2.0/docs/zh/quick_start/installation_guide.md" target="_blank">《昇腾 AI 算子开发工具链学习环境安装指南》</a>**
 
 > ⏱️ **外网可达环境下预计耗时：约 3 分钟**  
 > 安装完成后，您将获得一个预装所有算子工具、示例代码和依赖库的标准化容器环境。
@@ -38,7 +38,7 @@ msOpProf 工具用于采集和分析运行在昇腾 AI 处理器上的算子的�
 
 ### 2.2【前提】算子工程准备完成
 
-按照<a href="https://gitcode.com/Ascend/msot/blob/master/docs/zh/quick_start/op_tool_quick_start.md#23开发构建算子工程msopgen" target="_blank">《算子开发工具链快速入门》</a>中 2.3 节操作，完成算子工程准备。
+按照<a href="https://gitcode.com/Ascend/msot/blob/26.2.0/docs/zh/quick_start/op_tool_quick_start.md#23开发构建算子工程msopgen" target="_blank">《算子开发工具链快速入门》</a>中 2.3 节操作，完成算子工程准备。
 
 ### 2.3【调优】分析算子性能（msOpProf）
 
@@ -122,12 +122,12 @@ msopprof simulator --soc-version=Ascendxxxyy --output=./msopprof_output_sim ./ex
 
 ##### 2.3.4.1 安装 MindStudio Insight
 
-请参考<a href="https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/install_guide/mindstudio_insight_install_guide.md" target="_blank">《MindStudio Insight工具文档》</a>安装 Insight 工具。
+请参考<a href="https://gitcode.com/Ascend/msinsight/blob/26.2.0/docs/zh/install_guide/mindstudio_insight_install_guide.md" target="_blank">《MindStudio Insight工具文档》</a>安装 Insight 工具。
 
 ##### 2.3.4.2 用 MindStudio Insight 查看
 
 安装后是单机程序，简单操作如下：点击左上角 Import Data，将 visualize_data.bin 导入，然后打开 Details 页面，即可看到很多详细图表。
-详细操作及图表具体含义请参考<a href="https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/user_guide/basic_operations.md" target="_blank">《MindStudio Insight工具文档》</a>学习。
+详细操作及图表具体含义请参考<a href="https://gitcode.com/Ascend/msinsight/blob/26.2.0/docs/zh/user_guide/basic_operations.md" target="_blank">《MindStudio Insight工具文档》</a>学习。
 
 #### 2.3.5 恢复被修改的文件
 
