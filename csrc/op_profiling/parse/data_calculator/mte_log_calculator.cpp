@@ -45,6 +45,10 @@ PluginErrorCode MteLogCalculator::Entry()
     // 计算六种类型的每个时间点上的吞吐率
     for (Parse::MteLogInstrMap &mteLogInstrMap : *mteLogInstrMapVecPtr) {
         for (const auto &mteLogPair : mteLogInstrMap) {
+            // 未匹配非GM接口日志，无法确定吞吐率分类
+            if (mteLogPair.second.instrType == MteLogInstrType::END) {
+                continue;
+            }
             // maxReqTs = -1 表示没有和GM交互
             if (SafeEqual(mteLogPair.second.maxReqTs, -1.0f, 0.0f)) {
                 continue;

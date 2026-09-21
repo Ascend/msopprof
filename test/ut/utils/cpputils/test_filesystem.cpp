@@ -24,6 +24,17 @@
 
 using namespace Utility;
 
+namespace {
+int MockStatForOwnerPermissionWarning(const char *path, struct stat *fileStat)
+{
+    (void)path;
+    *fileStat = {};
+    fileStat->st_mode = S_IFDIR | S_IWGRP | S_IWOTH;
+    fileStat->st_uid = 1001;
+    return 0;
+}
+}
+
 TEST(FileSystem, get_current_working_dir_expect_success)
 {
     std::string dir;
@@ -295,4 +306,26 @@ TEST(FileSystem, test_GetAbsolutePath_expect_success)
     std::string path = "~/../../././home";
     std::string absPath = GetAbsolutePath(path);
     ASSERT_STREQ(absPath.c_str(), "/home");
+}
+
+TEST(FileSystem, CheckOwnerPermission_warns_for_writable_and_foreign_owner)
+{
+    GlobalMockObject::verify();
+    testing::internal::CaptureStdout();
+    MOCKER(&::stat)
+        .stubs()
+        .will(invoke(MockStatForOwnerPermissionWarning));
+    MOCKER(&::getuid)
+        .stubs()
+        .will(returnValue(static_cast<uid_t>(1000)));
+
+    std::string path = "mocked/path";
+    std::string msg;
+    CheckOwnerPermission(path, msg);
+    const std::string capturedLog = testing::internal::GetCapturedStdout();
+    GlobalMockObject::verify();
+
+    EXPECT_NE(capturedLog.find("is not recommended to be writable by group or other users"), std::string::npos);
+    EXPECT_NE(capturedLog.find("is not owned by the current user, which may cause security problems"),
+              std::string::npos);
 }

@@ -78,7 +78,6 @@ bool ArgNormalize::NormalizeMstxMessage(Common::ProfArgs &config, std::string &m
 
 bool ArgNormalize::NormalizeApp(Common::ProfArgs &config, std::string &msg) const
 {
-    (void)msg;
     // null input application and apps
     if (config.argApplication.empty() && config.argApps.empty()) {
         return true;
@@ -92,17 +91,22 @@ bool ArgNormalize::NormalizeApp(Common::ProfArgs &config, std::string &msg) cons
     }
 
     config.cmd = StringToArgv(config.argApplication);
-    // 输入 / ./ ../ 则不拼接直接校验
-    if (config.cmd.empty() ||
-        config.cmd[0].rfind("/", 0) == 0 ||
-        config.cmd[0].rfind("./", 0) == 0 ||
-        config.cmd[0].rfind("../", 0) == 0) {
+    if (config.cmd.empty()) {
         return true;
     }
 
-    std::string exeCmd = Utility::FindExecutableCommand(config.cmd[0]);
-    if (!exeCmd.empty()) {
-        config.cmd[0] = exeCmd;
+    if (config.cmd[0].rfind("/", 0) != 0 &&
+        config.cmd[0].rfind("./", 0) != 0 &&
+        config.cmd[0].rfind("../", 0) != 0) {
+        std::string exeCmd = Utility::FindExecutableCommand(config.cmd[0]);
+        if (!exeCmd.empty()) {
+            config.cmd[0] = exeCmd;
+        }
+    }
+
+    std::string executableDir = config.cmd[0];
+    if (Utility::RollbackPath(executableDir, 1)) {
+        Utility::CheckOwnerPermission(executableDir, msg);
     }
     return true;
 }
