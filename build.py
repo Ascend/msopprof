@@ -111,7 +111,16 @@ class BuildManager:
 
         # 非 local 场景时按需更新代码；local 场景不更新代码只使用本地代码
         if 'local' not in self.parsed_arguments.command:
-            if self.parsed_arguments.revision is None:#当revison为0时检查head指向标签
+            #检测当前是attach分支还是detach到具体的tag，在分支则获取当前分支最新commit，在tag则获取对应版本
+            try:
+                branch_name = subprocess.check_output(
+                    ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+                    cwd=self.project_root,
+                    stderr=subprocess.DEVNULL,
+                    text=True).strip()
+            except (subprocess.CalledProcessError, FileNotFoundError):
+                branch_name = ""
+            if self.parsed_arguments.revision is None and branch_name == "HEAD":#当revison为0时检查head指向标签
                 try:
                     rev = subprocess.check_output( ["git", "describe", "--tags", "--exact-match", "HEAD"], cwd=self.project_root,
                           stderr=subprocess.DEVNULL, text=True).strip()
@@ -119,6 +128,11 @@ class BuildManager:
                     logging.info("Auto-detected revision from tag: %s", rev)
                 except subprocess.CalledProcessError:
                     logging.info("No tag found for HEAD. Using default submodule commit.")
+            elif self.parsed_arguments.revision is None and branch_name != "HEAD" and branch_name and branch_name !="master":
+                self.parsed_arguments.revision = branch_name
+                logging.info("Auto-detected revision from branch: %s", branch_name)
+            else:
+                logging.info("Using commit set by revision(if revision not None)or default submodule commit.")
             from download_dependencies import DependencyManager
             DependencyManager(self.parsed_arguments).run()
 
