@@ -14,6 +14,8 @@
  * See the Mulan PSL v2 for more details.
  * ------------------------------------------------------------------------- */
 
+#include <cstdlib>
+#include <fstream>
 #include <iterator>
 #include <string>
 #include <vector>
@@ -28,6 +30,37 @@ const std::string caseFileWrongDType = "test/ut/resources/config_json/test_dtype
 const std::string caseFileNoParamDesc = "test/ut/resources/config_json/test_nodesc.json";
 const std::string caseFileLargeShape = "test/ut/resources/config_json/test_shape.json";
  const std::string caseNormal = "test/ut/resources/config_json/test_normal.json";
+
+ namespace {
+ std::string MakeJsonParserTestDir() {
+     char path[] = "/tmp/msopprof_json_parser_XXXXXX";
+     char *result = mkdtemp(path);
+     return result == nullptr ? "" : result;
+ }
+ }
+
+ TEST(JsonParser, test_ParseKernelPath_only_extracts_valid_kernel_file) {
+     std::string root = MakeJsonParserTestDir();
+     ASSERT_FALSE(root.empty());
+     std::string kernelPath = root + "/kernel.o";
+     std::ofstream(kernelPath, std::ios::out | std::ios::binary).put('\0');
+     std::string configPath = root + "/config.json";
+     std::ofstream(configPath) << nlohmann::json({{"kernel_path", kernelPath}}).dump();
+
+     // 参数阶段只读取 kernel_path，不要求 test_cases 等完整执行字段。
+     std::string parsedKernelPath;
+     EXPECT_TRUE(ParseKernelPath(configPath, parsedKernelPath));
+     EXPECT_EQ(parsedKernelPath, kernelPath);
+
+     std::string wrongTypeConfig = root + "/wrong_type.json";
+     std::ofstream(wrongTypeConfig) << nlohmann::json({{"kernel_path", 1}}).dump();
+     EXPECT_FALSE(ParseKernelPath(wrongTypeConfig, parsedKernelPath));
+
+     std::string missingKernelConfig = root + "/missing_kernel.json";
+     std::ofstream(missingKernelConfig) << nlohmann::json({{"kernel_path", root + "/missing.o"}}).dump();
+     EXPECT_FALSE(ParseKernelPath(missingKernelConfig, parsedKernelPath));
+     std::experimental::filesystem::remove_all(root);
+ }
 
 /**
  * |  用例集  | JsonParser
@@ -60,7 +93,7 @@ const std::string caseFileLargeShape = "test/ut/resources/config_json/test_shape
     // Check json file Permission failed
     std::vector<CaseConfig> checkJsonFilePermissionFailedRes = ParseRunConfigJson(caseFileWrongDType);
     EXPECT_EQ(checkJsonFilePermissionFailedRes.size(), 0);
-    
+
     GlobalMockObject::verify();
 }
 

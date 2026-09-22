@@ -136,10 +136,11 @@ TEST(InstrParser, test_a5_two_dump_versions_should_preserve_expected_detail) {
     EXPECT_TRUE(mergeInfo->at(2).detail.empty());
 }
 
-TEST(InstrParser, test_a5_extend_params_should_supply_warp_schedule_and_gpr_count) {
+TEST(InstrParser, test_a5_extend_params_should_supply_warp_schedule_and_register_list) {
     SimDataParserConfig config = GetSimConfig(ChipProductType::ASCEND950PR_9599, true);
     InstrLogParser instrParser{config, "core0.veccore0"};
-    const std::string detail = R"({"core_type":"AIV0","gpr_count":2,"sch_id":3,"warp_id":7})";
+    const std::string detail = R"({"core_type":"AIV0","register_list":["Rd:2","Rn:3"],"sch_id":3,"warp_id":7})";
+    // 实时回调使用不带 “|R” 的 register_list，同时携带调度器和 warp 信息。
     instrParser.ParseLine("[info] [00000120] (PC: 0x9000d0d348) RVECST   : "
                           "(Binary: 0x120800041c100480 ) (ID: 000042) SIMT_STS  " +
             detail,
@@ -164,7 +165,27 @@ TEST(InstrParser, test_a5_extend_params_should_supply_warp_schedule_and_gpr_coun
 
     Common::ProfMetricsAbilityConfig metricsConfig;
     CalCulateDetail(dataCenter, ChipProductType::ASCEND950PR_9599, metricsConfig, 1);
+    // register_list 中的目标和源寄存器编号不同，活跃集合中有两个寄存器。
     EXPECT_EQ(mergeInfo->front().gprCount, 2);
+}
+
+TEST(InstrParser, test_a5_legacy_register_list_should_calculate_gpr_count) {
+    MergeInfo instr;
+    // 旧离线日志带 “|R” 后缀，也应进入与实时 JSON 相同的活跃寄存器计算。
+    instr.detail = "[PEX:7|P],[Rn:5|R],[Rd:5|R]";
+    std::vector<MergeInfo> instrList{instr};
+    DataCenter dataCenter;
+    auto detailTable = Utility::MakeShared<InstrDetailTable>(instrList);
+    ASSERT_TRUE(dataCenter.DataTableRegister(detailTable));
+
+    Common::ProfMetricsAbilityConfig metricsConfig;
+    CalCulateDetail(dataCenter, ChipProductType::ASCEND950PR_9599, metricsConfig, 1);
+
+    auto mergeInfo = detailTable->GetColumnData<MergeInfo>(InstrDetailTable::MERGE_INFO);
+    ASSERT_TRUE(mergeInfo != nullptr);
+    ASSERT_EQ(mergeInfo->size(), 1U);
+    // Rn:5 与 Rd:5 指向同一物理编号，不能重复计数。
+    EXPECT_EQ(mergeInfo->front().gprCount, 1);
 }
 
 TEST(InstrParser, test_dfx_region_json_detail_should_create_user_mark_without_nop_dependency) {

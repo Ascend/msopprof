@@ -254,7 +254,7 @@ void PrintSimulatorHelp(void)
         << "                                              PipeUtilization is required." << std::endl
         << "      --mstx {true,false}                       Enable mstx API [default: false]." << std::endl
         << "      --mstx-include <RANGE>                Specify the mstx range to collect." << std::endl
-        << "      --soc-version <VERSION>               Simulator version; not effective in config mode." << std::endl
+        << "      --soc-version <VERSION>               Simulator version; required for Ascend950." << std::endl
         << "      --core-id <ID>                        Specify the id of cores to parse." << std::endl
         << "      --timeout <MINUTES>                   Application timeout (1-2880 minutes)." << std::endl
         << "      --dump {true,false}                       Enable native dump for A2/A3, or instruction dump "

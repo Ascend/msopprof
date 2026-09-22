@@ -27,8 +27,9 @@ namespace Parse {
 
 const std::map<ChipProductType, std::regex> patternMap = {
     {ChipProductType::ASCEND310P_SERIES,
-     std::regex(R"(X(\d{1,2})|x[a-z]:0x(\d{1,2})|x[a-z]:(\d{1,2})|x\[(\d{1,2})\])")},
-    {ChipProductType::ASCEND950_SERIES, std::regex(R"(R([a-z0-9]{1,2}):([0-9a-f]{1,2})\|R)")},
+        std::regex(R"(X(\d{1,2})|x[a-z]:0x(\d{1,2})|x[a-z]:(\d{1,2})|x\[(\d{1,2})\])")},
+    // A5 实时 JSON 的 register_list 不带 “|R”，旧版离线文本带该后缀，二者统一匹配。
+    {ChipProductType::ASCEND950_SERIES, std::regex(R"(R([a-z0-9]{1,2}):([0-9a-f]{1,2})(?:\|R)?)")},
     {ChipProductType::ASCEND910B_SERIES, std::regex(R"(X(\d{1,2}))")},
     {ChipProductType::ASCEND910_93_SERIES, std::regex(R"(X(\d{1,2}))")},
 };
@@ -72,7 +73,7 @@ private:
         const MergeInfo &mergeInfo);
     std::regex patternOfA2_ = std::regex(R"(X(\d{1,2}))");
     std::regex patternOfA300_ =  std::regex(R"(X(\d{1,2})|x[a-z]:0x(\d{1,2})|x[a-z]:(\d{1,2})|x\[(\d{1,2})\])");
-    std::regex patternOfA5_ = std::regex(R"(R([a-z0-9]{1,2}):([0-9a-f]{1,2})\|R)");
+    std::regex patternOfA5_ = std::regex(R"(R([a-z0-9]{1,2}):([0-9a-f]{1,2})(?:\|R)?)");
     std::regex pattern_;
 };
 }

@@ -44,6 +44,7 @@ public:
     std::string mstxInclude_;
     bool kill_{false};
     bool dump_ {true};
+    // dump文件解析还是实时回调解析 的模式标志
     bool rawCallbackDump_ {false};
     std::string kernelName_;
     std::vector<std::string> cmd_;

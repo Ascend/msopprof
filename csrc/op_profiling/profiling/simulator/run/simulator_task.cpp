@@ -32,6 +32,7 @@ using namespace std;
 namespace Profiling {
 bool SimulatorTask::Run()
 {
+    // 实时模式先注册回调，再启动注入消息处理线程和子进程，避免丢失启动阶段的仿真数据。
     RegisterRunningEvent();
     string socInfo;
     if (!isSetSocVersion) {
@@ -64,6 +65,7 @@ bool SimulatorTask::RuntimeToTargetLib(std::map<std::string, std::string> &env, 
         LogError("Sym link failed when dispose ca path");
         return false;
     }
+    // kernel-launcher 固定依赖 libruntime.so，这里让它先加载 msopprof 注入库。
     std::string soName = JoinPath({runtimePath, "libruntime.so"});
     std::string ldEnv = env["LD_LIBRARY_PATH"];
     if (IsExist(soName)) {
@@ -75,6 +77,7 @@ bool SimulatorTask::RuntimeToTargetLib(std::map<std::string, std::string> &env, 
     }
     env["LD_LIBRARY_PATH"] = runtimePath;
     if (!ldEnv.empty()) {
+        // 注入目录只提供入口库，原搜索路径仍负责解析仿真 Runtime、PEM 等后续依赖。
         env["LD_LIBRARY_PATH"] += ":" + ldEnv;
     }
     LogDebug("Symbol link runtime to simulator success, so path is %s, simulator path is %s",
@@ -99,9 +102,11 @@ bool SimulatorTask::PreProcess()
     }
     profMessage_.pmSamplingEnable = pmSamplingEnable_;
     profMessage_.mstxProfConfig.isMstxEnable = isMstxEnable;
+    // 配置生成根据最终 LD_LIBRARY_PATH 区分 A5 camodel 实时模式和 lib 离线模式。
     CreateCamodelConfig(pmSamplingEnable_);
     unsetenv("ASCEND_RT_VISIBLE_DEVICES");
     if (opRunMode == OpRunnerMode::RUN_KERNEL) {
+        // 将用户 config 解析后的 kernel 信息转换为 kernel-launcher 使用的内部 JSON。
         nlohmann::json jsonData;
         if (!GenOpConfig(jsonData)) {
             return false;

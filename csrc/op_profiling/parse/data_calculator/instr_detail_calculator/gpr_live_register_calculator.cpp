@@ -14,8 +14,6 @@
  * See the Mulan PSL v2 for more details.
  * ------------------------------------------------------------------------- */
 
-
-#include <limits>
 #include "gpr_live_register_calculator.h"
 #include "common/defs.h"
 #include "json.hpp"
@@ -23,39 +21,6 @@
 
 namespace Profiling {
 namespace Parse {
-
-namespace {
-constexpr char const *A5_GPR_COUNT = "gpr_count";
-
-bool GetA5GprCount(const std::string &detail, int &gprCount)
-{
-    const auto detailJson = nlohmann::json::parse(detail, nullptr, false);
-    if (detailJson.is_discarded() || !detailJson.is_object()) {
-        return false;
-    }
-    const auto iter = detailJson.find(A5_GPR_COUNT);
-    if (iter == detailJson.end()) {
-        return false;
-    }
-    if (iter->is_number_unsigned()) {
-        const uint64_t value = iter->get<uint64_t>();
-        if (value > static_cast<uint64_t>(std::numeric_limits<int>::max())) {
-            return false;
-        }
-        gprCount = static_cast<int>(value);
-        return true;
-    }
-    if (!iter->is_number_integer()) {
-        return false;
-    }
-    const int64_t value = iter->get<int64_t>();
-    if (value < 0 || value > std::numeric_limits<int>::max()) {
-        return false;
-    }
-    gprCount = static_cast<int>(value);
-    return true;
-}
-}
 
 using FunctionType = std::function<void(std::vector<std::string>&, std::vector<std::string>&,
                                         const std::vector<uint16_t>&, std::vector<std::string>&)>;
@@ -318,7 +283,7 @@ const std::map<std::string, FunctionType> InstrToFunctionMap {
 
 PluginErrorCode GPRLiveRegisterCalculator::Entry()
 {
-    // key is register name ,value is instr last used index
+    // 所有平台共用活跃区间算法：key 为寄存器编号，value 为该寄存器最后一次使用的指令下标。
     std::map<std::string, uint32_t> registerWithIndex;
 
     std::shared_ptr<InstrDetailTable> instrDetailTable = dataCenter_.GetDbPtr<InstrDetailTable>();
@@ -328,18 +293,11 @@ PluginErrorCode GPRLiveRegisterCalculator::Entry()
     }
     auto mergeInfo = *instrDetailTable->GetColumnData<MergeInfo>(InstrDetailTable::MERGE_INFO);
     for (size_t i = 0; i < instrDetailTable->GetSize(); i++) {
-        int gprCount = 0;
-        // New A5 callbacks report the count directly in extend_params_json. Keep register-list calculation as the
-        // fallback for legacy dump details.
-        if (IsChipSeriesTypeValid(chipType_, ChipProductType::ASCEND950_SERIES) &&
-            GetA5GprCount(mergeInfo[i].detail, gprCount)) {
-            instrDetailTable->UpdateColumnValue(InstrDetailTable::GPR_COUNT, i, gprCount);
-            continue;
-        }
         auto instrName = mergeInfo[i].name;
         std::vector<std::string> dstRegisters;
         std::vector<std::string> srcRegisters;
         if (IsChipSeriesTypeValid(chipType_, ChipProductType::ASCEND950_SERIES)) {
+            // A5 从 register_list 或旧文本提取角色；其他平台按指令名对应的操作数位置表拆分。
             GetDstAndSrcRegisterA5(dstRegisters, srcRegisters, mergeInfo[i]);
         } else {
             GetDstAndSrcRegister(dstRegisters, srcRegisters, mergeInfo[i]);
@@ -440,15 +398,33 @@ void GPRLiveRegisterCalculator::UpdateDstRegister(InstrDetailTable &instrDetailT
 void GPRLiveRegisterCalculator::GetDstAndSrcRegisterA5(std::vector<std::string> &dstRegisters,
     std::vector<std::string> &srcRegisters, const MergeInfo &mergeInfo)
 {
-    const std::string &detail = mergeInfo.detail;
-    // detail : Px:0|P], [Rm:7|R], [Rn:8|R], [Rn1:9|R], [Rd:b|R],  [Rd1:c|R],  [Rd2:d|R]
+    std::string detail = mergeInfo.detail;
+    // 同时兼容实时 JSON：{"register_list":["Rm:7","Rn:8","Rd:b"]}
+    // 和旧离线文本：[Rm:7|R], [Rn:8|R], [Rd:b|R]。
+    const auto detailJson = nlohmann::json::parse(detail, nullptr, false);
+    if (!detailJson.is_discarded()) {
+        if (!detailJson.is_object()) {
+            return;
+        }
+        const auto registerList = detailJson.find("register_list");
+        if (registerList == detailJson.end() || !registerList->is_array()) {
+            return;
+        }
+        detail.clear();
+        for (const auto &registerItem : *registerList) {
+            if (!registerItem.is_string()) {
+                continue;
+            }
+            detail.append(registerItem.get<std::string>()).append(",");
+        }
+    }
     std::sregex_iterator it(detail.begin(), detail.end(), pattern_);
     std::sregex_iterator end;
 
     for (; it != end; ++it) {
         std::smatch match = *it;
-        std::string letter = match[1].str();  // 提取字母（如 "m", "n", "d", "d1")
-        std::string number = match[2].str();  // 提取gpr（如 "4", "d"）
+        std::string letter = match[1].str(); // 提取角色，如 m、n、d、d1。
+        std::string number = match[2].str(); // 提取十六进制 GPR 编号，如 4、d。
         if (letter.empty()) {
             continue;
         }

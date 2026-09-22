@@ -450,6 +450,16 @@ bool GetFileSuffix(const std::string &file, std::string &suffix)
     return true;
 }
 
+std::string GetParentPath(const std::string &path) {
+    size_t pos = path.find_last_of('/');
+    return pos == std::string::npos ? "" : path.substr(0, pos);
+}
+
+std::string GetFileName(const std::string &path) {
+    size_t pos = path.find_last_of('/');
+    return pos == std::string::npos ? path : path.substr(pos + 1);
+}
+
 bool Mkdir(std::string const &path, mode_t mode, bool ignoreExist)
 {
     // not thread safe. Mkdir same path concurrently may cause problem

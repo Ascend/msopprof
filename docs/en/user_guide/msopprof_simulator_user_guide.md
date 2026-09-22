@@ -39,6 +39,7 @@ msOpProf demonstrates single-operator tuning capabilities such as instruction pi
 **Preparing the environment**
 
 - Configure related environment variables by referring to the [MindStudio Ops Profiler Installation Guide](../install_guide/msopprof_install_guide.md).
+- The default simulator library directory varies by platform. For Ascend 950PR/950DT, you must specify the chip type using `--soc-version`; `LD_LIBRARY_PATH` is not used to select the simulator. If the application binary links the simulator libraries in `${INSTALL_DIR}/tools/simulator/dav_3510/lib` through `DT_RPATH` or `DT_RUNPATH`, that `lib` directory is used. Otherwise, the `camodel` directory under the simulator selected by `--soc-version` is used. Atlas A2 and Atlas A3 use `${INSTALL_DIR}/tools/simulator/<soc-version>/lib` by default and can still use `LD_LIBRARY_PATH` when `--soc-version` is omitted.
 - To use MindStudio Insight for viewing, install the MindStudio Insight software package separately. For download links, see the [MindStudio Insight Installation Guide](https://gitcode.com/Ascend/msinsight/blob/26.1.0/docs/en/install_guide/mindstudio_insight_install_guide.md).
 - For Atlas A2 training products/Atlas A2 inference products, if you want to use the [template library](https://gitcode.com/cann/catlass/blob/master/scripts/build.sh) for simulation, add the `--simulator` option to the compilation script to compile the operator in simulator mode. For details, see this [sample](https://gitcode.com/cann/catlass/blob/master/docs/en/1_Practice/evaluation/performance_tools.md).
 
@@ -189,8 +190,8 @@ msprof op simulator --soc-version=Ascendxxxyy --output=/home/projects/output /ho
 </tr>
 <tr id="zh-cn_topic_0000002016036877_row14335144923717"><td class="cellrowborder" valign="top" width="25.232523252325233%" headers="mcps1.2.4.1.1 "><p id="zh-cn_topic_0000002016036877_p13335144910371">--soc-version</p>
 </td>
-<td class="cellrowborder" valign="top" width="63.02630263026302%" headers="mcps1.2.4.1.2 "><p id="zh-cn_topic_0000002016036877_p3169521144911">Use this parameter or the <code>LD_LIBRARY_PATH</code> environment variable to specify the simulator type. The details are as follows: </p>
-<ul id="zh-cn_topic_0000002016036877_ul137711927194111"><li><code>--soc-version</code>: specifies the simulator type in <code>--application</code> and <code>--export</code> modes. For details about the value range, see the simulator type in the <code><span id="ph15854163318419">${INSTALL_DIR}</span>/tools/simulator</code> directory. </li><li><code>LD_LIBRARY_PATH</code> environment variable: specifies the emulator type in <code>--config</code> mode or when <code>--soc-version</code> is not used.<pre class="code_wrap" id="zh-cn_topic_0000002016036877_zh-cn_topic_0000001752643572_screen1774042011344">export LD_LIBRARY_PATH=<span id="ph585510335411">${INSTALL_DIR}</span>/tools/simulator/Ascend<em id="i6855163310419">xxxyy</em>/lib:$LD_LIBRARY_PATH </pre>
+<td class="cellrowborder" valign="top" width="63.02630263026302%" headers="mcps1.2.4.1.2 "><p id="zh-cn_topic_0000002016036877_p3169521144911">Specifies the simulator type. For details about the value range, see the simulator types in <code><span id="ph15854163318419">${INSTALL_DIR}</span>/tools/simulator</code>. This parameter is mandatory for Ascend 950PR/950DT in <code>--application</code>, <code>--config</code>, and <code>--export</code> modes, and the chip type is not inferred from <code>LD_LIBRARY_PATH</code>. Atlas A2 and Atlas A3 can still use <code>LD_LIBRARY_PATH</code> when this parameter is omitted:</p>
+<ul id="zh-cn_topic_0000002016036877_ul137711927194111"><li><pre class="code_wrap" id="zh-cn_topic_0000002016036877_zh-cn_topic_0000001752643572_screen1774042011344">export LD_LIBRARY_PATH=<span id="ph585510335411">${INSTALL_DIR}</span>/tools/simulator/Ascend<em id="i6855163310419">xxxyy</em>/lib:$LD_LIBRARY_PATH </pre>
 <p id="p18405124210413">Replace <code>${INSTALL_DIR}</code> with the file storage path after the CANN software is installed. For example, if the installation is performed by the <code>root</code> user, the default file storage path is <code>/usr/local/Ascend/cann</code>.</p>
 </li></ul>
 </td>
@@ -345,11 +346,10 @@ Configure msopprof simulator, and then perform the following steps to enable the
 
         > [!NOTE]
         >
-        > When using `--config`, you can import environment variables only via `LD_LIBRARY_PATH`. The `--soc-version` parameter is not supported.
+        > For Ascend 950PR/950DT, you must specify the chip type using `--soc-version`. For Atlas A2 and Atlas A3, you can continue to select the simulator using `LD_LIBRARY_PATH`.
 
         ```shell
-        export LD_LIBRARY_PATH=${INSTALL_DIR}/tools/simulator/Ascendxxxyy/lib:$LD_LIBRARY_PATH # xxxyy indicates the type of the processor used by the user.
-        msprof op simulator --config=./add_test.json --output=./output_data
+        msprof op simulator --soc-version=Ascendxxxyy --config=./add_test.json --output=./output_data # xxxyy indicates the type of the processor used by the user.
         ```
 
 2. After the command is executed, a folder named `OPPROF__{timestamp}___XXX_` is generated in the specified `--output` directory. An example of the folder structure is as follows:
