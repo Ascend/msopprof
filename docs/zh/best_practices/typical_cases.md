@@ -17,7 +17,7 @@
 
 3. 对于MTE2搬运效率的提升有多种方式，此处以开启Ascend C算子的double buffer机制为例。
 
-    算子核函数中，可通过将TPipe中InitBuffer的第二个参数（BUFFER\_NUM）值从1修改为2，开启double buffer，InitBuffer的使用可参考《Ascend C算子开发接口》中的“基础API \> 内存管理与同步控制 \> TPipe \>  [InitBuffer](https://www.hiascend.com/document/detail/zh/canncommercial/latest/API/ascendcopapi/atlasascendc_api_07_0110.html)”章节。
+    算子核函数中，可通过将TPipe中InitBuffer的第二个参数（BUFFER\_NUM）值从1修改为2，开启double buffer，InitBuffer的使用可参考《Ascend C算子开发接口》中的“基础API \> 内存管理与同步控制 \> TPipe \>  [InitBuffer](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/latest/API/ascendcopapi/docs/zh/api/SIMD-API/basic_api/resource_management/TPipe/InitBuffer.md)”章节。
 
     ```shell
     constexpr int32_t BUFFER_NUM = 2;        # tensor num for each queue
@@ -40,7 +40,7 @@
 
 **前期准备**
 
-准备算子工程，并在算子代码中添加mstx扩展接口确定范围级重放的范围，具体请参见[mstx扩展功能](../user_guide/extended_functions.md#mstx扩展功能)和《[MindStudio mstx API参考](https://www.hiascend.com/document/detail/zh/mindstudio/82RC1/API/mstxAPIReference/msprof_tx_0001.html)》。
+准备算子工程，并在算子代码中添加mstx扩展接口确定范围级重放的范围，具体请参见[mstx扩展功能](../user_guide/extended_functions.md#mstx扩展功能)和《[MindStudio mstx API参考](https://gitcode.com/Ascend/mstx/blob/26.2.0/docs/zh/api_reference/README.md)》。
 
 > [!NOTE]
 > 
@@ -48,7 +48,7 @@
 > - 每一个重放范围能采集的算子数量受[OpBasicInfo（算子基础信息）](../user_guide/./msopprof_performance_data.md#opbasicinfo算子基础信息)中算子Block Dim数量限制，建议不超过50个。
 > - 使用该功能时，不支持与--aic-metrics=MemoryDetail、--aic-metrics=TimelineDetail及--aic-metrics=Source同时使能；不建议与--kill=on同时使能，否则可能导致采集的算子数据缺失。
 > - 在进行范围级重放时，执行算子SynchronizeStream可能会失败，建议在mstxRangeEnd接口调用结束后再执行。
-> - 该功能仅适用于Atlas A3 系列产品、Atlas A2 系列产品以及Ascend 950PR&950DT 系列产品。
+> - 该功能仅适用于Atlas A3系列产品、Atlas A2系列产品以及Ascend 950PR&950DT系列产品。
 
 **注意事项**
 

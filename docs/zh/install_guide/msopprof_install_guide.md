@@ -115,7 +115,7 @@ msopprof --help
 1. 下载脚本。
 
    ```bash
-   curl -O https://inst.obs.cn-north-4.myhuaweicloud.com/26.1.0/ms_install.py
+   curl -O https://inst.obs.cn-north-4.myhuaweicloud.com/26.2.0/ms_install.py
    ```
 
    > [!NOTE]
