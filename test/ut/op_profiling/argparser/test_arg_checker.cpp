@@ -22,6 +22,7 @@
 
 #include "filesystem.h"
 #include "ascend_helper.h"
+#include "json_parser.h"
 #include "common/prof_args.h"
 #include "common/hal_helper.h"
 #include "filesystem.h"
@@ -48,6 +49,49 @@ public:
 private:
     std::string origin_;
 };
+
+class LdLibraryPathSetter {
+public:
+    explicit LdLibraryPathSetter(const std::string &value) {
+        const char *env = getenv("LD_LIBRARY_PATH");
+        isSet_ = env != nullptr;
+        origin_ = env == nullptr ? "" : env;
+        setenv("LD_LIBRARY_PATH", value.c_str(), 1);
+    }
+    ~LdLibraryPathSetter() {
+        if (isSet_) {
+            setenv("LD_LIBRARY_PATH", origin_.c_str(), 1);
+        } else {
+            unsetenv("LD_LIBRARY_PATH");
+        }
+    }
+
+private:
+    bool isSet_{false};
+    std::string origin_;
+};
+
+namespace {
+bool ParseA5KernelPathStub(const std::string &, std::string &kernelPath) {
+    kernelPath = "./a5_kernel.o";
+    return true;
+}
+
+bool ParseOtherKernelPathStub(const std::string &, std::string &kernelPath) {
+    kernelPath = "./other_kernel.o";
+    return true;
+}
+
+bool DetectA5KernelStub(const std::string &, bool &isAscend950) {
+    isAscend950 = true;
+    return true;
+}
+
+bool DetectOtherKernelStub(const std::string &, bool &isAscend950) {
+    isAscend950 = false;
+    return true;
+}
+} // namespace
 
 TEST(ArgChecker, args_with_onboard_run_mode_expect_check_success)
 {
@@ -442,6 +486,7 @@ TEST(ArgChecker, args_with_sim_soc_version_check_success)
     ASSERT_TRUE(checker1.CheckSimSocVersion(args, msg));
 
     ArgChecker checker2("simulator");
+    LdLibraryPathSetter ldLibraryPathSetter("");
     args.argSocVersion = { "" };
     args.runMode = { "simulator" };
     ASSERT_TRUE(checker2.CheckSimSocVersion(args, msg));
@@ -455,10 +500,94 @@ TEST(ArgChecker, args_with_sim_soc_version_in_chip_product_success)
         .stubs()
         .will(returnValue(true));
     ArgChecker checker("simulator");
-    args.cmd = { "./app" };
+    args.argConfig = {"./config.json"};
     args.runMode = { "simulator" };
     args.argSocVersion = { "Ascend950DT_9573" };
     ASSERT_TRUE(checker.CheckSimSocVersion(args, msg));
+    GlobalMockObject::verify();
+}
+
+TEST(ArgChecker, args_with_ascend950_from_ld_library_path_requires_soc_version) {
+    AscendEnvSetter ascendHomeSetter("/tmp");
+    LdLibraryPathSetter ldLibraryPathSetter("/tmp/tools/simulator/dav_3510/lib");
+    ProfArgs args;
+    args.runMode = "simulator";
+    std::string msg;
+    ArgChecker checker("simulator");
+
+    ASSERT_FALSE(checker.CheckSimSocVersion(args, msg));
+    ASSERT_TRUE(msg.find("Ascend950 simulator requires --soc-version") != std::string::npos);
+}
+
+TEST(ArgChecker, args_with_ascend950_binary_lib_path_requires_soc_version) {
+    GlobalMockObject::verify();
+    LdLibraryPathSetter ldLibraryPathSetter("");
+    ProfArgs args;
+    args.runMode = "simulator";
+    args.cmd = {"./a5_operator"};
+    std::string msg;
+    ArgChecker checker("simulator");
+    MOCKER(&Utility::GetAscend950SimulatorLibPath)
+        .expects(once())
+        .will(returnValue(true));
+
+    ASSERT_FALSE(checker.CheckSimSocVersion(args, msg));
+    ASSERT_TRUE(msg.find("Ascend950 simulator requires --soc-version") != std::string::npos);
+    GlobalMockObject::verify();
+}
+
+TEST(ArgChecker, config_with_ascend950_kernel_requires_soc_version) {
+    GlobalMockObject::verify();
+    ProfArgs args;
+    args.runMode = "simulator";
+    args.argConfig = "./config.json";
+    std::string msg;
+    // config 在完整解析前只提取 kernel_path，并通过 ELF 结果强制 A5 显式指定 SoC。
+    MOCKER(&Utility::ParseKernelPath).expects(once()).will(invoke(ParseA5KernelPathStub));
+    MOCKER(&Utility::DetectAscend950Kernel).expects(once()).will(invoke(DetectA5KernelStub));
+    MOCKER(&Utility::GetSocVersionFromEnvVar).stubs().will(returnValue(false));
+    ArgChecker checker("simulator");
+
+    EXPECT_FALSE(checker.CheckSimSocVersion(args, msg));
+    EXPECT_NE(msg.find("Ascend950 simulator requires --soc-version"), std::string::npos);
+    GlobalMockObject::verify();
+}
+
+TEST(ArgChecker, config_with_other_valid_kernel_keeps_legacy_soc_behavior) {
+    GlobalMockObject::verify();
+    ProfArgs args;
+    args.runMode = "simulator";
+    args.argConfig = "./config.json";
+    std::string msg;
+    // 非 A5 的合法 ELF 不改变旧逻辑：未指定 SoC 仍可继续进入后续校验。
+    MOCKER(&Utility::ParseKernelPath).expects(once()).will(invoke(ParseOtherKernelPathStub));
+    MOCKER(&Utility::DetectAscend950Kernel).expects(once()).will(invoke(DetectOtherKernelStub));
+    MOCKER(&Utility::GetSocVersionFromEnvVar).stubs().will(returnValue(false));
+    ArgChecker checker("simulator");
+
+    EXPECT_TRUE(checker.CheckSimSocVersion(args, msg));
+    GlobalMockObject::verify();
+}
+
+TEST(ArgChecker, config_with_invalid_kernel_path_or_elf_is_rejected) {
+    GlobalMockObject::verify();
+    ProfArgs args;
+    args.runMode = "simulator";
+    args.argConfig = "./config.json";
+    std::string msg;
+    std::string kernelPath = "./invalid.o";
+    MOCKER(&Utility::ParseKernelPath)
+        .stubs()
+        .with(any(), outBound(kernelPath))
+        .will(returnValue(false))
+        .then(returnValue(true));
+    MOCKER(&Utility::DetectAscend950Kernel).expects(once()).will(returnValue(false));
+    ArgChecker checker("simulator");
+
+    EXPECT_FALSE(checker.CheckSimSocVersion(args, msg));
+    EXPECT_NE(msg.find("valid kernel_path"), std::string::npos);
+    EXPECT_FALSE(checker.CheckSimSocVersion(args, msg));
+    EXPECT_NE(msg.find("kernel ELF header"), std::string::npos);
     GlobalMockObject::verify();
 }
 

@@ -51,6 +51,7 @@ Profiling::TaskPtr OpSimProf::GetTask() {
 }
 
 std::unique_ptr<DataParse> OpSimProf::GetDataParser() {
+    // dump_ 由 SimulatorTask 最终选库结果确定：lib 读取离线 dump，camodel 消费已汇总的实时回调数据。
     return MakeUnique<SimDataParse>(socVersion_, exportPath_, coreId_, aicMetrics_, dump_, kernelName_);
 }
 

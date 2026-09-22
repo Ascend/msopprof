@@ -185,6 +185,25 @@ bool GetJsonData(const std::string &jsonPath, nlohmann::json &jsonData)
     return true;
 }
 
+bool ParseKernelPath(const std::string &configPath, std::string &kernelPath) {
+    kernelPath.clear();
+    nlohmann::json jsonData;
+    // SoC 参数校验发生在完整 config 解析之前，因此这里只读取识别平台所需的 kernel_path。
+    // 文件大小、权限和字段类型沿用完整解析流程的校验，避免异常 config 绕过参数检查。
+    if (!CheckInputFileValid(configPath, "json", MAX_JSON_FILE_SIZE, "json config") ||
+        !GetJsonData(configPath, jsonData) ||
+        !CheckRequiredParamsJson(jsonData, {JSON_KEY.at(JsonType::KERNEL_PATH)})) {
+        return false;
+    }
+    jsonData[JSON_KEY.at(JsonType::KERNEL_PATH)].get_to(kernelPath);
+    if (kernelPath.empty()) {
+        LogError("Json config error, kernel_path is empty.");
+        return false;
+    }
+    // 不转换为相对于 config 的路径，保持现有完整解析中相对于当前工作目录的语义。
+    return CheckInputFileValid(kernelPath, "kernel", GetSystemAvailableMemory(), "kernel");
+}
+
 size_t GetSize(const std::vector<int64_t>& shape, const std::string& dType)
 {
     std::vector<uint64_t> temp;

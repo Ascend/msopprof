@@ -287,6 +287,8 @@ void CopyFolder(const std::string &fromPath, const std::string &toPath, const st
     const std::function<void(const std::string&, const std::string&)>& func = nullptr, int depth = MAX_DEPTH);
 bool CopyFile(const std::string &srcPath, const std::string &destPath);
 bool GetFileSuffix(const std::string &file, std::string &suffix);
+std::string GetParentPath(const std::string &path);
+std::string GetFileName(const std::string &path);
 bool Mkdir(std::string const &path, mode_t mode = DIR_DEFAULT_MODE, bool ignoreExist = true);
 bool CheckFolder(const std::string &path, std::string &errorMsg, bool ignoreEmpty = false,
     const std::function<bool(const std::string&, std::vector<std::string>&, std::string&)>& fileChecker = nullptr);

@@ -69,6 +69,8 @@ OpProf::OpProf(const Common::ProfArgs &args)
     kernelConfig_ = args.kernelConfig;
     ChipProductType chipType = GetChipType(args);
     if (args.runMode == "simulator" && chipType == ChipProductType::ASCEND950_SERIES) {
+        // A5 的 camodel 目录提供实时回调通道，此时 --dump 仅控制回调数据是否额外落盘；
+        // 直接二进制是否切换到 lib 离线模式由 SimulatorTask 根据实际 ELF 依赖最终决定。
         auto librarySource = Utility::GetSimulatorLibrarySource(
             Utility::GetSimulatorLibrarySearchPath(args.argSocVersion));
         if (librarySource == Utility::SimulatorLibrarySource::CAMODEL) {

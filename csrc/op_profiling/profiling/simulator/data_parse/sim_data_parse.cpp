@@ -73,6 +73,7 @@ void SimDataParse::ParseKernelFile(const std::string &kernelDir, const std::stri
             continue;
         }
         if (dump_) {
+            // lib 离线模式按执行序号目录逐个解析；camodel 实时模式的数据已由回调解析器写入目标结构。
             if (!regex_match(fileName, orderPattern)) {
                 continue;
             }

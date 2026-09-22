@@ -212,6 +212,66 @@ TEST(SimulatorTask, Run_with_argDump_on_success)
     ASSERT_TRUE(simulatorTask.GetExecutionStatus() == ExecStatus::STOPPED);
 }
 
+TEST(SimulatorTask, Ascend950_without_binary_lib_path_defaults_to_soc_camodel) {
+    GlobalMockObject::verify();
+    const std::string camodelPath = "/tmp/tools/simulator/dav_3510/camodel";
+    MOCKER(&Utility::GetSimulatorLibrarySearchPath).stubs().will(returnValue(camodelPath));
+    Common::ProfArgs args;
+    args.runMode = "simulator";
+    args.argSocVersion = "Ascend950PR_9599";
+    args.cmd = {"/bin/true"};
+    Profiling::OpSimProf opSimProf(args);
+
+    SimulatorTask simulatorTask("test", opSimProf);
+
+    // 未检测到应用二进制指向 dav_3510/lib 时，A5 使用 camodel 实时解析通道。
+    ASSERT_FALSE(opSimProf.dump_);
+    ASSERT_EQ(simulatorTask.env["LD_LIBRARY_PATH"], camodelPath);
+    ASSERT_EQ(simulatorTask.env["ENABLE_CA_LOG_TRANS"], "true");
+    GlobalMockObject::verify();
+}
+
+TEST(SimulatorTask, CreateCamodelConfig_skips_config_for_ascend950_camodel) {
+    GlobalMockObject::verify();
+    Common::ProfArgs args;
+    Profiling::OpSimProf opSimProf(args);
+    SimulatorTask simulatorTask("test", opSimProf);
+    simulatorTask.simSocVersion = "Ascend950PR_9599";
+    simulatorTask.env["LD_LIBRARY_PATH"] = "/tmp/tools/simulator/dav_3510/camodel";
+    MOCKER(&Utility::GetAscendHomePath).stubs().will(returnValue(true));
+    MOCKER(&Utility::GetSimulatorLibrarySource)
+        .expects(once())
+        .will(returnValue(Utility::SimulatorLibrarySource::CAMODEL));
+    MOCKER(&Profiling::Task::CreateConfigFile).expects(never());
+
+    simulatorTask.CreateCamodelConfig(false);
+
+    ASSERT_EQ(simulatorTask.env.count("CAMODEL_CONFIG_PATH"), 0);
+    GlobalMockObject::verify();
+}
+
+TEST(SimulatorTask, CreateCamodelConfig_creates_config_for_ascend950_lib) {
+    GlobalMockObject::verify();
+    Common::ProfArgs args;
+    Profiling::OpSimProf opSimProf(args);
+    SimulatorTask simulatorTask("test", opSimProf);
+    simulatorTask.simSocVersion = "Ascend950PR_9599";
+    // lib 离线模式生成配置成功后，应把生成目录传给子进程。
+    simulatorTask.camodelConfigDir_ = "/tmp/generated-config";
+    simulatorTask.env["LD_LIBRARY_PATH"] = "/tmp/tools/simulator/dav_3510/lib";
+    MOCKER(&Utility::GetAscendHomePath).stubs().will(returnValue(true));
+    MOCKER(&Utility::GetSimulatorLibrarySource)
+        .expects(once())
+        .will(returnValue(Utility::SimulatorLibrarySource::LIB));
+    MOCKER(&Profiling::Task::CreateConfigFile).expects(once()).will(returnValue(true));
+
+    simulatorTask.CreateCamodelConfig(false);
+
+    ASSERT_EQ(simulatorTask.env.count("CAMODEL_CONFIG_PATH"), 1);
+    ASSERT_EQ(simulatorTask.env.at("CAMODEL_CONFIG_PATH"), simulatorTask.camodelConfigDir_);
+    GlobalMockObject::verify();
+}
+
 TEST(SimulatorTask, Run_with_faild)
 {
     GlobalMockObject::verify();

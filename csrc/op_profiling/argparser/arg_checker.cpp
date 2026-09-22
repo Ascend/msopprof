@@ -24,6 +24,7 @@
 #include "filesystem.h"
 #include "common/hal_helper.h"
 #include "common/defs.h"
+#include "json_parser.h"
 #include "log.h"
 
 using namespace Common;
@@ -107,6 +108,11 @@ ArgChecker::ArgChecker(const std::string &runMode)
 {
     checkers_.emplace_back(&ArgChecker::CheckRunModeValid);
     checkers_.emplace_back(&ArgChecker::CheckApplicationValid);
+    if (runMode == "simulator") {
+        // Check the explicit simulator selection before any metric or dump check can infer a SoC from
+        // LD_LIBRARY_PATH. Ascend950 simulation must be selected by --soc-version.
+        checkers_.emplace_back(&ArgChecker::CheckSimSocVersion);
+    }
     checkers_.emplace_back(&ArgChecker::CheckOutputPathValid);
     checkers_.emplace_back(&ArgChecker::CheckKernelNameValid);
     checkers_.emplace_back(&ArgChecker::CheckLaunchCount);
@@ -117,7 +123,6 @@ ArgChecker::ArgChecker(const std::string &runMode)
     checkers_.emplace_back(&ArgChecker::CheckDump);
     if (runMode == "simulator") {
         checkers_.emplace_back(&ArgChecker::CheckExportPathValid);
-        checkers_.emplace_back(&ArgChecker::CheckSimSocVersion);
         checkers_.emplace_back(&ArgChecker::CheckTimeout);
     } else {
         checkers_.emplace_back(&ArgChecker::CheckLaunchSkipBeforeMatch);
@@ -480,11 +485,42 @@ bool ArgChecker::CheckMstxInclude(const Common::ProfArgs &config, std::string &m
 
 bool ArgChecker::CheckSimSocVersion(const Common::ProfArgs &config, std::string &msg) const
 {
-    if (config.runMode != "simulator" || config.argSocVersion.empty()) {
+    if (config.runMode != "simulator") {
         return true;
     }
-    if (!config.argConfig.empty()) {
-        msg = "--soc-version is not effective in config mode";
+    if (config.argSocVersion.empty()) {
+        bool ascend950FromConfig = false;
+        if (!config.argConfig.empty()) {
+            std::string kernelPath;
+            // 完整 config 会在参数检查之后解析；这里提前读取 kernel_path，防止 A5 config 借助
+            // 非 A5 的 LD_LIBRARY_PATH 绕过 --soc-version 强制校验。
+            if (!ParseKernelPath(config.argConfig, kernelPath)) {
+                msg = "Failed to get a valid kernel_path from --config";
+                return false;
+            }
+            // DetectAscend950Kernel 的返回值表示 ELF 是否可读，输出参数才表示是否为 A5。
+            // 合法但未识别的 e_flags 继续沿用旧行为，避免扩大 A2/A3 的兼容性影响。
+            if (!DetectAscend950Kernel(kernelPath, ascend950FromConfig)) {
+                msg = "Failed to read the kernel ELF header from --config";
+                return false;
+            }
+        }
+        std::string inferredSocVersion;
+        bool ascend950FromEnvironment =
+            GetSocVersionFromEnvVar(inferredSocVersion) && StartsWith(inferredSocVersion, "Ascend950");
+        std::string binaryLibrarySearchPath;
+        bool ascend950FromBinary =
+            !config.cmd.empty() && GetAscend950SimulatorLibPath(config.cmd.front(), binaryLibrarySearchPath);
+        if (ascend950FromConfig || ascend950FromEnvironment || ascend950FromBinary) {
+            msg = "Ascend950 simulator requires --soc-version and does not infer the SoC from LD_LIBRARY_PATH "
+                  "or the application/config binary";
+            return false;
+        }
+        return true;
+    }
+    // A2/A3 仿真器的 config 模式沿用历史行为，不允许指定 --soc-version；A5 必须显式指定。
+    if (!config.argConfig.empty() && !StartsWith(config.argSocVersion, "Ascend950")) {
+        msg = "--soc-version is not effective in A2/A3 config mode";
         return false;
     }
     std::string ascendHomePath;

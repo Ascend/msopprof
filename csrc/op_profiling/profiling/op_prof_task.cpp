@@ -73,8 +73,7 @@ bool Task::ReadConfigFile(const std::string &fileName, const std::map<std::strin
         return false;
     }
     std::string line;
-    // create new config file only when need to update camodel l2cache/multi-thread config,
-    // otherwise use config in simulator/lib
+    // 只有需要修改多线程或缓存配置时才生成新文件，否则沿用 simulator/lib 中的原始配置。
     while (getline(file, line)) {
         for (const auto &pair: replaceStrMap) {
             if (line.find(pair.first) != std::string::npos) {
@@ -265,14 +264,12 @@ bool Task::CheckIfNeedAppend(const std::string &fileName, const std::string &par
     return needUpdate;
 }
 
-void Task::CreateCamodelConfig(bool pmSamplingEnable)
-{
+void Task::CreateCamodelConfig(bool pmSamplingEnable) {
     std::string ascendHomePath;
     if (simSocVersion.empty() || !Utility::GetAscendHomePath(ascendHomePath)) {
         return;
     }
-    camodelLibDir_ = JoinPath({ascendHomePath, "tools/simulator",
-                               Utility::GetSimulatorDirName(simSocVersion), "lib"});
+    camodelLibDir_ = JoinPath({ascendHomePath, "tools/simulator", Utility::GetSimulatorDirName(simSocVersion), "lib"});
 
     bool isSetConfig = false;
     auto seriesType = GetProductSeriesType(simSocVersion);
@@ -313,10 +310,14 @@ void Task::CreateCamodelConfig(bool pmSamplingEnable)
             isSetConfig = CreateConfigFile("config.json", {{"\"flush_level\": 3", "\"flush_level\": 2"}});
         }
     } else if (seriesType == ChipProductType::ASCEND950_SERIES) {
-        // camodel目录为在线回调解析模式,指令数据走DvcInstrLogV2回调通道,不依赖flush_level配置;
-        // 且camodel库会将CAMODEL_CONFIG_PATH目录当文件读取并打出"Is a directory"告警,因此该模式下跳过
-        std::string searchPath = Utility::GetSimulatorLibrarySearchPath(simSocVersion);
-        if (Utility::GetSimulatorLibrarySource(searchPath) != Utility::SimulatorLibrarySource::CAMODEL) {
+        // A5 camodel 使用 DvcInstrLogV2 在线回调，不依赖 flush_level；同时它会把
+        // CAMODEL_CONFIG_PATH 目录当作文件读取并告警，因此实时模式不生成也不设置该配置。
+        // lib 模式仍走离线 dump，需要生成配置并把 flush_level 从 3 调整为 2。
+        auto ldLibraryPath = env.find("LD_LIBRARY_PATH");
+        std::string simulatorLibrarySearchPath = ldLibraryPath == env.end() ?
+            Utility::GetSimulatorLibrarySearchPath("") : ldLibraryPath->second;
+        if (Utility::GetSimulatorLibrarySource(simulatorLibrarySearchPath) !=
+            Utility::SimulatorLibrarySource::CAMODEL) {
             isSetConfig = CreateConfigFile("config.json", {{"\"flush_level\": 3", "\"flush_level\": 2"}});
         }
     }
@@ -343,6 +344,7 @@ bool Task::CreateTaskDir(const std::string &path) const
 void Task::RegisterRunningEvent()
 {
     if (!needRegisterEvent_ || realTimeDataParser_ == nullptr) { return; }
+    // A5 camodel 实时模式把不同数据类型通过注入事件分流到同一个 RealTimeDataParser。
     const bool enableCacheAndCcu = realTimeDataParser_->IsCacheAndCcuSupported();
     ProfStub::InjectionEvent::Instance().RegisterPacketHandler(
         {ProfPacketType::INSTR_LOG, [&](const std::shared_ptr<ProfStub::Packet>& pkt, size_t) {
@@ -396,6 +398,7 @@ void Task::RegisterRunningEvent()
             std::string kernelOutputPath = pkt->GetPayload().collectLogStart.outputPath;
             std::string kernelName = pkt->GetPayload().collectLogStart.kernelName;
             if (!kernelOutputPath.empty() && !kernelName.empty()) {
+                // 收到采集开始事件后再为当前 kernel 启动解析，保证输出目录和 kernel 名称一致。
                 isCaLogTransStartSuc_ = true;
                 realTimeDataParser_->Start(kernelOutputPath, kernelName);
             }
@@ -405,6 +408,7 @@ void Task::RegisterRunningEvent()
     ProfStub::InjectionEvent::Instance().RegisterPacketHandler(
         {ProfPacketType::PROF_FINISH, [&](const std::shared_ptr<ProfStub::Packet>& pkt, size_t) {
             (void)pkt;
+            // 仿真结束事件负责冲刷剩余回调数据，Run() 中再次 Stop 可安全兜底异常退出路径。
             realTimeDataParser_->Stop();
             return "SUC";
         }}

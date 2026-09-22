@@ -18,8 +18,10 @@
 
 #include <algorithm>
 #include <cstdlib>
+#include <set>
 #include <unistd.h>
 
+#include "elf_helper.h"
 #include "filesystem.h"
 #include "log.h"
 
@@ -28,6 +30,42 @@ namespace Utility {
 namespace {
 constexpr char const *RUNTIME_CAMODEL_SO = "libruntime_camodel.so";
 constexpr char const *PEM_DAVINCI_SO = "libpem_davinci.so";
+constexpr char const *DRV_CAMODEL_SO = "libnpu_drv_camodel.so";
+constexpr Elf64_Half HIIPU_MACHINE = 0x1029;
+// CANN 9.2 中已验证的 dav-3510 ELF 标志：0x990000 用于内置 Ascend950 kernel，
+// 0x9a0000 用于当前 ASC 编译器生成的 dav-3510 kernel。
+const std::set<Elf64_Word> ASCEND950_KERNEL_FLAGS = {0x990000, 0x9a0000};
+const std::set<std::string> SIMULATOR_NEEDED_LIBRARIES = {
+    RUNTIME_CAMODEL_SO,
+    DRV_CAMODEL_SO,
+    PEM_DAVINCI_SO,
+};
+
+std::string ExpandOrigin(const std::string &searchPath, const std::string &binaryPath) {
+    std::string binaryParent = GetParentPath(binaryPath);
+    std::string expandedPath = ReplaceSubStr(searchPath, "${ORIGIN}", binaryParent);
+    return ReplaceSubStr(expandedPath, "$ORIGIN", binaryParent);
+}
+
+bool GetSimulatorLibPathFromDynamicInfo(
+    const ElfDynamicInfo &dynamicInfo, const std::string &binaryPath, std::string &librarySearchPath) {
+    // 通用层只返回 ELF 原始信息；依赖库白名单和 dav_3510 目录判断属于 Ascend 仿真业务。
+    bool hasSimulatorDependency = std::any_of(
+        dynamicInfo.neededLibraries.begin(), dynamicInfo.neededLibraries.end(), [](const std::string &neededLibrary) {
+            return SIMULATOR_NEEDED_LIBRARIES.count(GetFileName(neededLibrary)) != 0;
+        });
+    if (!hasSimulatorDependency) {
+        return false;
+    }
+    for (const auto &libraryPath : dynamicInfo.searchPaths) {
+        std::string expandedLibraryPath = ExpandOrigin(libraryPath, binaryPath);
+        if (GetSimulatorLibrarySource(expandedLibraryPath) == SimulatorLibrarySource::LIB) {
+            librarySearchPath = expandedLibraryPath;
+            return true;
+        }
+    }
+    return false;
+}
 
 std::string GetSoFromSearchPath(const std::string &librarySearchPath, const std::string &soName)
 {
@@ -35,7 +73,7 @@ std::string GetSoFromSearchPath(const std::string &librarySearchPath, const std:
     while (begin <= librarySearchPath.size()) {
         size_t end = librarySearchPath.find(':', begin);
         std::string path = librarySearchPath.substr(begin, end - begin);
-        // An empty LD_LIBRARY_PATH component means the current working directory.
+        // LD_LIBRARY_PATH 中的空路径项表示当前工作目录，搜索时需要保留该语义。
         if (path.empty()) {
             path = ".";
         }
@@ -51,17 +89,6 @@ std::string GetSoFromSearchPath(const std::string &librarySearchPath, const std:
     return "";
 }
 
-std::string GetParentPath(const std::string &path)
-{
-    size_t pos = path.find_last_of('/');
-    return pos == std::string::npos ? "" : path.substr(0, pos);
-}
-
-std::string GetFileName(const std::string &path)
-{
-    size_t pos = path.find_last_of('/');
-    return pos == std::string::npos ? path : path.substr(pos + 1);
-}
 }
 
 bool GetAscendHomePath(std::string &ascendHomePath)
@@ -149,7 +176,7 @@ bool GetSocVersionFromEnvVar(std::string &socVersion)
     SplitString(pathFromEnv, ':', envs);
 
     std::smatch pathMatch;
-    std::regex pattern("(Ascend\\d{3}[0-9a-zA-Z_]{0,8}|dav_\\d{4})/lib");
+    std::regex pattern("(Ascend\\d{3}[0-9a-zA-Z_]{0,8}|dav_\\d{4})/(lib|camodel)");
     RollbackPath(ascendHomePath, 1);
     for (const std::string &path: envs) {
         if (!StartsWith(path, ascendHomePath)) {
@@ -208,9 +235,13 @@ std::string GetSimulatorLibrarySearchPath(const std::string &socVersion)
         return "";
     }
     std::string simulatorName = GetSimulatorDirName(socVersion);
-    // A5 默认从 camodel 目录加载仿真库，使能在线实时解析；其余平台仍使用 lib 目录
+    // A5 默认从 camodel 目录加载仿真库并启用实时回调解析；其余平台仍使用 lib 目录。
     std::string libraryDir = StartsWith(socVersion, "Ascend950") ? "camodel" : "lib";
     return JoinPath({ascendHomePath, "tools/simulator", simulatorName, libraryDir});
+}
+
+std::string GetSimulatorRuntimePath(const std::string &librarySearchPath) {
+    return GetSoFromSearchPath(librarySearchPath, RUNTIME_CAMODEL_SO);
 }
 
 SimulatorLibrarySource GetSimulatorLibrarySource(const std::string &librarySearchPath)
@@ -218,7 +249,7 @@ SimulatorLibrarySource GetSimulatorLibrarySource(const std::string &librarySearc
     if (librarySearchPath.empty()) {
         return SimulatorLibrarySource::UNKNOWN;
     }
-    std::string runtimePath = GetSoFromSearchPath(librarySearchPath, RUNTIME_CAMODEL_SO);
+    std::string runtimePath = GetSimulatorRuntimePath(librarySearchPath);
     std::string pemPath = GetSoFromSearchPath(librarySearchPath, PEM_DAVINCI_SO);
     if (runtimePath.empty() || pemPath.empty()) {
         return SimulatorLibrarySource::UNKNOWN;
@@ -237,6 +268,40 @@ SimulatorLibrarySource GetSimulatorLibrarySource(const std::string &librarySearc
         return SimulatorLibrarySource::LIB;
     }
     return SimulatorLibrarySource::UNKNOWN;
+}
+
+bool GetAscend950SimulatorLibPath(const std::string &binaryPath, std::string &librarySearchPath) {
+    librarySearchPath.clear();
+    std::string realBinaryPath = Realpath(binaryPath);
+    if (realBinaryPath.empty()) {
+        return false;
+    }
+    // 这里解析的是宿主应用的动态依赖和 RPATH/RUNPATH，用于识别它实际链接的仿真器目录。
+    // kernel .o 的平台识别由 DetectAscend950Kernel 读取 e_flags，二者用途不同。
+    ElfDynamicInfo dynamicInfo;
+    std::string detectedSearchPath;
+    if (!ReadElfDynamicInfo(realBinaryPath, dynamicInfo) ||
+        !GetSimulatorLibPathFromDynamicInfo(dynamicInfo, realBinaryPath, detectedSearchPath)) {
+        return false;
+    }
+    std::string runtimePath = GetSimulatorRuntimePath(detectedSearchPath);
+    std::string libraryPath = GetParentPath(runtimePath);
+    if (GetFileName(libraryPath) != "lib" || GetFileName(GetParentPath(libraryPath)) != "dav_3510") {
+        return false;
+    }
+    librarySearchPath = detectedSearchPath;
+    return true;
+}
+
+bool DetectAscend950Kernel(const std::string &kernelPath, bool &isAscend950) {
+    isAscend950 = false;
+    Elf64_Ehdr header{};
+    if (!ReadElfHeader(kernelPath, header)) {
+        return false;
+    }
+    // 精确匹配已经验证的 dav-3510 编码；其他合法 flags 保持原有兼容行为，不按数值范围推断。
+    isAscend950 = header.e_machine == HIIPU_MACHINE && ASCEND950_KERNEL_FLAGS.count(header.e_flags) != 0;
+    return true;
 }
 
 }  // namespace Utility

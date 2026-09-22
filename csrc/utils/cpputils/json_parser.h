@@ -35,6 +35,7 @@ std::vector<CaseConfig> ParseRunConfigJson(const std::string &jsonFile,
 bool IsJsonDataTypeValid(const nlohmann::json &jsonData, CfgDataType requiredType);
 bool IsJsonDataTypeValid(const nlohmann::json &jsonData, const std::string& cfgKeyName);
 bool GetJsonData(const std::string &jsonPath, nlohmann::json &jsonData);
+bool ParseKernelPath(const std::string &configPath, std::string &kernelPath);
 size_t GetSize(const std::vector<int64_t>& shape, const std::string& dType);
 bool IsParamDescValid(const nlohmann::json &param);
 bool ParseParamDesc(const nlohmann::json &singleTestCase, std::vector<OpRunner::Param> &params);

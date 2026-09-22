@@ -204,8 +204,7 @@ TEST(RealTimeDataParseTest, test_collect_a5_instr_log_with_decode_detail)
     EXPECT_TRUE(instrMap.at(2816).front().xnValue.empty());
 }
 
-TEST(RealTimeDataParseTest, test_a5_extend_params_should_supply_warp_schedule_and_gpr_count)
-{
+TEST(RealTimeDataParseTest, test_a5_extend_params_should_supply_warp_schedule_and_register_list) {
     RealTimeSimParseContext context;
     context.chipType = ChipProductType::ASCEND950PR_9599;
     RealTimeDataParser parser(context);
@@ -223,8 +222,8 @@ TEST(RealTimeDataParseTest, test_a5_extend_params_should_supply_warp_schedule_an
 
     Common::DvcInstrLogV2 completeLog = poppedLog;
     completeLog.time = 120;
-    const std::string completeDetail =
-        R"({"core_type":"AIV0","gpr_count":2,"sch_id":3,"warp_id":7})";
+    const std::string completeDetail = R"({"core_type":"AIV0","register_list":["Rd:2","Rn:3"],"sch_id":3,"warp_id":7})";
+    // 完整回调补齐 register_list、调度器和 warp，随后与 popped 记录合并。
     std::fill_n(completeLog.extendParamsJson, sizeof(completeLog.extendParamsJson), '\0');
     std::copy_n(completeDetail.c_str(), completeDetail.size(), completeLog.extendParamsJson);
 
@@ -249,6 +248,7 @@ TEST(RealTimeDataParseTest, test_a5_extend_params_should_supply_warp_schedule_an
     EXPECT_EQ(mergeInfo->front().schId, 3);
 
     CalCulateDetail(dataCenter, ChipProductType::ASCEND950PR_9599, context.metricsConfig, 1);
+    // 目标和源使用不同编号，合并后的活跃寄存器数量应为 2。
     EXPECT_EQ(mergeInfo->front().gprCount, 2);
 }
 
