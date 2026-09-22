@@ -178,7 +178,8 @@ void SubcoreTimelineVisualizer::CollectInstrEvents4SepTrace(std::vector<MergeInf
             AddProcessMetaData(coreJsonList, instr.pipe, pidMap_[instr.pipe]);
             preInstrOfPipes[tmpPid] = {0, 0};
         }
-        if (instr.endTick == preInstrOfPipes[tmpPid][1] && instr.startTick > preInstrOfPipes[tmpPid][0]) {
+        if (!instrsByPipe[tmpPid].empty() && instr.endTick == preInstrOfPipes[tmpPid][1] &&
+            instr.startTick > preInstrOfPipes[tmpPid][0]) {
             instrsByPipe[tmpPid].insert(instrsByPipe[tmpPid].end() - 1, instr);
         } else {
             instrsByPipe[tmpPid].emplace_back(instr);

@@ -85,3 +85,27 @@ TEST(MteLogCalculatorTest, test_entry_when_input_is_valid_and_expect_return_succ
     ASSERT_EQ((*mteThroughputChartPtr)[18][4], 0);
     ASSERT_EQ((*mteThroughputChartPtr)[18][5], 244.140625);
 }
+
+/**
+ * |  用例集  | MteLogCalculatorTest
+ * | 测试函数 | Entry
+ * |  用例名  | test_entry_when_instr_type_is_end_and_expect_skip_calculation
+ * | 用例描述 | 指令类型为END时，跳过吞吐率计算
+ */
+TEST(MteLogCalculatorTest, test_entry_when_instr_type_is_end_and_expect_skip_calculation)
+{
+    DataCenter dataCenter;
+    std::shared_ptr<std::vector<MteLogInstrMap>> mteLogInstrMapVecPtr = MakeShared<std::vector<MteLogInstrMap>>();
+    MteLogInstrMap mteLogInstrMap;
+    mteLogInstrMap[4].instrType = MteLogInstrType::END;
+    mteLogInstrMap[4].maxReqTs = 12.52;
+    mteLogInstrMap[4].reqTbl[111].ts = 12.52;
+    mteLogInstrMap[4].reqTbl[111].dataSize = 128;
+    mteLogInstrMapVecPtr->emplace_back(mteLogInstrMap);
+    dataCenter.DataTableRegister(mteLogInstrMapVecPtr);
+    MteLogCalculator mteLogCalculator(dataCenter, ChipProductType::ASCEND910B4);
+
+    ASSERT_TRUE(mteLogCalculator.Entry() == PluginErrorCode::SUCCESS);
+    std::shared_ptr<MteThroughputChart> mteThroughputChartPtr = dataCenter.GetDbPtr<MteThroughputChart>();
+    ASSERT_TRUE(mteThroughputChartPtr->empty());
+}

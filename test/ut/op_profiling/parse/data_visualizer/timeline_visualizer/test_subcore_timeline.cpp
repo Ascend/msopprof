@@ -187,6 +187,40 @@ TEST(SubcoreTimelineVisualizer, test_CollectInstrEvents4SepTrace_collect_json_su
 /**
 * |  用例集 | SubcoreTimelineVisualizer
 * | 测试函数 | CollectInstrEvents4SepTrace
+* |  用例名  | test_CollectInstrEvents4SepTrace_handles_empty_pipe_vector
+* | 用例描述 | 首条指令命中插入分支时不对空vector执行end()-1
+*/
+TEST(SubcoreTimelineVisualizer, test_CollectInstrEvents4SepTrace_handles_empty_pipe_vector)
+{
+    DataCenter dataCenter;
+    auto simData = GetSimData();
+    dataCenter.DataTableRegister(simData);
+    std::string output = "test/ut/resources/dump/output";
+    SimVisualizerConfig config = GetVisualizeConfig(output, ChipProductType::ASCEND310P1);
+
+    MergeInfo instr{};
+    instr.icacheTick = UINT64_MAX;
+    instr.startTick = 1;
+    instr.endTick = 0;
+    instr.pipe = "SCALAR";
+    instr.name = "scalar_mov_xd_imme16";
+    instr.detail = "x[0]=0x0,imme16:0x1";
+    instr.warpId = DEFAULT_INT_VALUE;
+    instr.schId = DEFAULT_INT_VALUE;
+
+    SubcoreTimelineVisualizer core(dataCenter, config);
+    std::vector<MergeInfo> mergeVec {instr};
+    std::vector<nlohmann::json> coreJsonList;
+    std::set<std::string> pipeSet;
+    core.CollectInstrEvents4SepTrace(mergeVec, coreJsonList, pipeSet);
+
+    ASSERT_FALSE(coreJsonList.empty());
+    EXPECT_EQ(coreJsonList.back().at("name"), instr.name);
+}
+
+/**
+* |  用例集 | SubcoreTimelineVisualizer
+* | 测试函数 | CollectInstrEvents4SepTrace
 * |  用例名  | test_CollectInstrEvents4SepTrace_should_generate_flow_for_camodel_json_flags
 * | 用例描述 | 测试分核流水图可以匹配camodel JSON格式的SET_FLAG和WAIT_FLAG
 */

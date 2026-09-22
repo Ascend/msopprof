@@ -83,6 +83,10 @@ void LcclTimelineParser::ProcessAicoreData(const vector<LcclDumpLogInfo> &aicore
     // add aicore api dot
     map<pair<uint32_t, uint32_t>, LcclInfo> operationMap;
     for (const auto& item: aicoreTimeStamps) {
+        if (LOG_ID_MAP.find(item.logId) == LOG_ID_MAP.end()) {
+            LogWarn("Invalid Lccl logId: %u, blockId: %u", item.logId, item.blockId);
+            continue;
+        }
         dotBlockIds.insert(item.blockId);
         pair<uint32_t, uint32_t> logBlockPair = {item.logId, item.blockId};
         auto it = operationMap.find(logBlockPair);

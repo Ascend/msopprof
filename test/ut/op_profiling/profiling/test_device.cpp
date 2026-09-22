@@ -1636,6 +1636,29 @@ TEST(DeviceDataParse, HotSpot_GenLine2Encodings_expect_true)
     GlobalMockObject::verify();
 }
 
+TEST(DeviceDataParse, HotSpot_GenLine2Encodings_skips_ranges_larger_than_kernel)
+{
+    GlobalMockObject::verify();
+    HotSpotFunctionGenerator hotSpotFunctionGenerator({"Ascend910B4", "", 0, true, false, false});
+    hotSpotFunctionGenerator.bbCalls_[10] = std::make_pair(18, 0);
+    std::map<std::string, std::vector<Encoding>> line2Encodings;
+    MOCKER(&Utility::IsReadable)
+        .stubs()
+        .will(returnValue(true));
+    MOCKER(&Utility::GetFileSize)
+        .stubs()
+        .will(returnValue(static_cast<size_t>(4)));
+    MOCKER(&HotSpotFunctionGenerator::GenAddr2Lines)
+        .stubs()
+        .will(returnValue(true));
+
+    testing::internal::CaptureStdout();
+    EXPECT_TRUE(hotSpotFunctionGenerator.GenLine2Encodings("mocked-kernel", line2Encodings));
+    const std::string capturedLog = testing::internal::GetCapturedStdout();
+    GlobalMockObject::verify();
+    EXPECT_NE(capturedLog.find("Skip invalid bbbmap address range"), std::string::npos);
+}
+
 TEST(DeviceDataParse, HotSpot_GenAddr2Lines_expect_true)
 {
     HotSpotFunctionGenerator hotSpotFunctionGenerator({"Ascend910B4", "", 0, true, false, false});

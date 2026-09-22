@@ -295,8 +295,12 @@ std::string GetAbsolutePath(std::string const &path)
     std::string absPath = path;
     std::string currentPath;
     if (!path.empty() && path[0] == USER_HOME) {
-        auto homeDir = std::getenv("HOME");
-        absPath = homeDir + absPath.substr(1);
+        const char *homeDir = std::getenv("HOME");
+        if (homeDir == nullptr || homeDir[0] == '\0') {
+            LogError("HOME is not set, cannot expand path: %s", path.c_str());
+            return "";
+        }
+        absPath = std::string(homeDir) + absPath.substr(1);
     }
     if (absPath.rfind(PATH_SEP, 0) == std::string::npos) {
         if (!GetCurrentWorkingDir(currentPath)) {

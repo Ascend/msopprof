@@ -1138,6 +1138,26 @@ TEST(LcclTimelineParser, test_lccl_process_data_correct)
 
 /**
  * |  用例集  | LcclTimelineParser
+ * | 测试函数 | LcclTimelineParser::ProcessAicoreData
+ * |  用例名  | test_lccl_process_data_skips_invalid_log_id
+ * | 用例描述 | 非法logId记录被忽略，不进入AICORE时间线
+ */
+TEST(LcclTimelineParser, test_lccl_process_data_skips_invalid_log_id)
+{
+    unique_ptr<DataHandler> handler = Utility::MakeUnique<DataHandlerOf910B>();
+    shared_ptr<Visualize::OpBasicInfo> opBasicInfoPtr = Utility::MakeShared<Visualize::OpBasicInfo>(handler);
+    shared_ptr<Visualize::BasicPmu> basicPmuPtr = Utility::MakeShared<Visualize::BasicPmu>(handler);
+    LcclTimelineParser parser{0, opBasicInfoPtr, basicPmuPtr};
+
+    vector<LcclDumpLogInfo> aicoreTimeStamps = {
+        {UINT32_MAX, 0, 48117105578953},
+        {UINT32_MAX, 0, 48117105578999},
+    };
+    EXPECT_NO_THROW(parser.ProcessAicoreData(aicoreTimeStamps));
+}
+
+/**
+ * |  用例集  | LcclTimelineParser
  * | 测试函数 | LcclTimelineParser::TimelineToJson
  * |  用例名  | test_generate_lccl_timeline_correct
  * | 用例描述 | 测试LCCL算子通算流水图可正确生成traceEvents输出

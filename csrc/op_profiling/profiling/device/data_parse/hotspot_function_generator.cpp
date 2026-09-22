@@ -693,11 +693,22 @@ bool HotSpotFunctionGenerator::GenLine2Encodings(const std::string &kernelPath,
     ChipProductType chipType = GetProductTypeBySocVersion(socVersion_);
     if (IsChipSeriesTypeValid(chipType, ChipProductType::ASCEND910_93_SERIES) ||
         IsChipSeriesTypeValid(chipType, ChipProductType::ASCEND910B_SERIES)) {
+        const uint64_t kernelFileSize = Utility::GetFileSize(kernelPath);
         for (const auto &item : bbCalls_) {
             uint64_t begin = item.first;
             uint64_t end = item.second.first;
-            for (uint64_t addr = begin; addr <= end; addr += INSTR_SIZE) {
+            if (begin <= end && end - begin > kernelFileSize) {
+                Utility::LogWarn("Skip invalid bbbmap address range [%llu, %llu] for kernel size %llu",
+                                 static_cast<unsigned long long>(begin), static_cast<unsigned long long>(end),
+                                 static_cast<unsigned long long>(kernelFileSize));
+                continue;
+            }
+            for (uint64_t addr = begin; addr <= end;) {
                 addrVec.emplace_back(std::to_string(addr));
+                if (end - addr < INSTR_SIZE) {
+                    break;
+                }
+                addr += INSTR_SIZE;
             }
         }
     } else if (IsChipSeriesTypeValid(chipType, ChipProductType::ASCEND950_SERIES)) {
