@@ -99,6 +99,33 @@ class BuildManager:
                     logging.info("Archiving artifact: %s -> %s", artifact, destination)
                     shutil.copy2(artifact, destination)
 
+    def _remote_branch_exists(self, branch_name):
+    #联网查询 origin 上是否存在该分支（exit 0=有，2=没有）
+        try:
+            result = subprocess.run(
+            ["git", "ls-remote", "--exit-code", "--heads", "origin",
+             f"refs/heads/{branch_name}"],
+            cwd=self.project_root,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            # 防止远端要凭据时卡住/弹交互
+            env={**os.environ, "GIT_TERMINAL_PROMPT": "0"},)
+        except FileNotFoundError:
+            logging.info("Branch check skipped: the 'git' command was not found while checking")
+            return False
+        if result.returncode == 0:
+            return True
+        if result.returncode == 2:
+            return False          # 明确不存在
+        logging.warning("ls-remote failed for branch '%s' (exit=%s)", branch_name, result.returncode)
+        logging.warning(
+            "Failed to access the remote repository 'origin' when checking branch '%s'. "
+            "This may be caused by two reasons: "
+            "1) lack of network connectivity or a proxy/firewall blocking access; "
+            "2) missing, invalid, or expired credentials/token for the remote. "
+            "Branch check is skipped; Build.py gonna falling back to the default submodule commit.")
+        return False
+
     def run(self):
         os.chdir(self.project_root)
 
@@ -129,8 +156,11 @@ class BuildManager:
                 except subprocess.CalledProcessError:
                     logging.info("No tag found for HEAD. Using default submodule commit.")
             elif self.parsed_arguments.revision is None and branch_name != "HEAD" and branch_name and branch_name !="master":
-                self.parsed_arguments.revision = branch_name
-                logging.info("Auto-detected revision from branch: %s", branch_name)
+                if self._remote_branch_exists(branch_name):
+                    self.parsed_arguments.revision = f"origin/{branch_name}"
+                    logging.info("Auto-detected revision from branch: %s", branch_name)
+                else:
+                    logging.info("Branch '%s' not found on origin; skip revision.", branch_name)
             else:
                 logging.info("Using commit set by revision(if revision not None)or default submodule commit.")
             from download_dependencies import DependencyManager
