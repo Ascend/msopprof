@@ -167,12 +167,7 @@ void SimPcToCode::CalCycles(const std::vector<MergeInfo> &instrList, Serializati
 void SimPcToCode::Statistic(const std::string &coreName, SimData &data)
 {
     auto instrPtr = data.instrs;
-    auto userMarkPtr = data.userMarks;
     std::vector<MergeInfo> instrs = *instrPtr->GetColumnData<MergeInfo>(Parse::InstrDetailTable::MERGE_INFO);
-    if (userMarkPtr != nullptr) {
-        std::vector<MergeInfo> userMark = userMarkPtr->userMarkInstrs;
-        instrs.insert(instrs.end(), userMark.begin(), userMark.end());
-    }
     sort(instrs.begin(), instrs.end(),
         [](MergeInfo &instr1, MergeInfo &instr2) {
             if (instr1.endTick != instr2.endTick) {
