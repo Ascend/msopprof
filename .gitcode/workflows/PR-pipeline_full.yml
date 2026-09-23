@@ -14,7 +14,8 @@ on:
     comments: [ '^compile$' ]
 
 env:
-  REPO_NAME: ${{ atomgit.event.repository.name }}
+  org_name: Ascend
+  REPO_NAME: msopprof
   REMOTE_URL: ${{ atomgit.repositoryurl }}
   PR_ID: ${{ atomgit.event.pull_request.number }}
 
@@ -24,6 +25,7 @@ permissions:
   id-token: write
   pr: write
   note: write
+  action: read
 
 stages:
   stage_0:
@@ -92,7 +94,7 @@ stages:
             uses: cann/.gitcode/actions/pre-pipeline@689551d6b29a77d8c2a005b8f1b3883db24820ef
             with:
               owner: ${{ env.org_name }}
-              repo: ${{ atomgit.event.repository.name }}
+              repo: ${{ env.REPO_NAME }}
               pr_number: ${{ atomgit.event.pull_request.number }}
               token: ${{ secrets.GIT_TOKEN }}
               apply_label: 'true'
@@ -207,7 +209,7 @@ post:
           uses: cann/.gitcode/actions/query-pipeline@689551d6b29a77d8c2a005b8f1b3883db24820ef
           with:
             owner: ${{ env.org_name }}
-            repo: ${{ atomgit.event.repository.name }}
+            repo: ${{ env.REPO_NAME }}
             run_id: ${{ atomgit.workflow_run_id }}
             token: ${{ secrets.GIT_TOKEN }}
             pr_number: ${{ atomgit.event.pull_request.number }}
