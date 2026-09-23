@@ -63,6 +63,7 @@ msOpProf demonstrates single-operator tuning capabilities such as instruction pi
 - You need to ensure the execution security of executable files or applications.
     - You are advised to restrict the operation permission on executable files or applications to avoid privilege escalation risks.
     - Avoid high-risk operations (such as deleting files, deleting directories, changing passwords, and running privilege escalation commands) to prevent security risks.
+- When simulation is started for an Ascend 950DT series product, if a `log` directory exists in the operator directory or the simulation is interrupted during execution, some simulator runtime logs may be written to the directory. These logs do not affect users and can be deleted directly.
 
 ## Command Reference
 

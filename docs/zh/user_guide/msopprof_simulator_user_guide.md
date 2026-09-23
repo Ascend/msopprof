@@ -66,6 +66,7 @@ MindStudio Ops Profiler（算子调优工具，msOpProf）用于采集和分析�
     - 不建议进行高危操作（删除文件、删除目录、修改密码及提权命令等），避免安全风险。
 - 仿真器库的默认加载目录因平台而异：Ascend 950PR&950DT系列产品必须通过`--soc-version`指定芯片类型，不支持通过`LD_LIBRARY_PATH`选择仿真器。此时，若应用程序二进制通过`DT_RPATH`链接`${INSTALL_DIR}/tools/simulator/<soc-version>/lib`目录下的仿真库，则使用该`lib`目录；其他情况使用`--soc-version`所指定仿真器下的`camodel`目录。Atlas A2系列产品和Atlas A3系列产品默认加载`${INSTALL_DIR}/tools/simulator/<soc-version>/lib`目录；未指定`--soc-version`时，仍可通过`LD_LIBRARY_PATH`指定仿真器库。
 - Ascend 950PR&950DT系列产品支持npu模式编译或sim模式编译的AscendC算子运行仿真，若算子以npu模式编译，则使用`${INSTALL_DIR}/tools/simulator/<soc-version>/camodel`目录仿真器运行仿真，若以sim模式编译，则根据编译时链接的仿真库动态选择仿真器。
+- Ascend950DT系列产品拉起仿真，若算子目录下存在log目录或者仿真运行过程中中断程序，可能会写入部分仿真器运行日志，对用户无需感知，可以直接删除。
 
 ## 命令参考
 

@@ -41,6 +41,9 @@ public:
 
         simSocVersion = profConfig->socVersion_;
         isSetSocVersion = IsSetSocVersion(simSocVersion);
+        if (Utility::StartsWith(simSocVersion, "Ascend950DT")) {
+            env["soc_version"] = "Ascend950DT";
+        }
         auto it = SOC_STRING_TO_CHIP_PRODUCT.find(simSocVersion);
         auto chipType = (it == SOC_STRING_TO_CHIP_PRODUCT.end()) ? ChipProductType::UNKNOWN_PRODUCT_TYPE : it->second;
         // 显式 SoC 决定默认仿真器搜索目录；未显式指定时保留用户当前的 LD_LIBRARY_PATH。
@@ -108,6 +111,8 @@ public:
 
 private:
     bool PreProcess();
+    bool PrepareAscend950DtLogDir(std::string &logPath, bool &removeLogDir) const;
+    void CleanupAscend950DtLogDir(const std::string &logPath, bool removeLogDir) const;
     bool RuntimeToTargetLib(
         std::map<std::string, std::string> &env, const std::string &runtimePath, const std::string &targetPath) const;
     bool pmSamplingEnable_ = false;

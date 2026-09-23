@@ -46,6 +46,11 @@ bool SimulatorTask::Run()
     if (!PreProcess()) {
         return false;
     }
+    std::string ascend950DtLogPath;
+    bool removeAscend950DtLogDir = false;
+    if (!PrepareAscend950DtLogDir(ascend950DtLogPath, removeAscend950DtLogDir)) {
+        return false;
+    }
     Task::execStatus = ExecStatus::RUNNING;
     ProfStub::InjectionEvent::Instance().StartDisposeClientAsk(profMessage_, profConfig_);
     bool ret = OpRunner::RunOpBinary(cmd, env, timeout_);
@@ -54,7 +59,32 @@ bool SimulatorTask::Run()
         realTimeDataParser_->Stop();
     }
     Task::execStatus = ExecStatus::STOPPED;
+    CleanupAscend950DtLogDir(ascend950DtLogPath, removeAscend950DtLogDir);
     return ret;
+}
+
+bool SimulatorTask::PrepareAscend950DtLogDir(std::string &logPath, bool &removeLogDir) const {
+    if (!Utility::StartsWith(simSocVersion, "Ascend950DT")) {
+        return true;
+    }
+    std::string workingDir;
+    if (!GetCurrentWorkingDir(workingDir)) {
+        LogError("Failed to get working directory when preparing Ascend950DT log directory");
+        return false;
+    }
+    logPath = JoinPath({workingDir, "log"});
+    bool logDirExisted = IsExist(logPath);
+    if (!CreateTaskDir(logPath)) {
+        return false;
+    }
+    removeLogDir = !logDirExisted;
+    return true;
+}
+
+void SimulatorTask::CleanupAscend950DtLogDir(const std::string &logPath, bool removeLogDir) const {
+    if (removeLogDir) {
+        RemoveAll(logPath);
+    }
 }
 
 bool SimulatorTask::RuntimeToTargetLib(std::map<std::string, std::string> &env, const std::string &runtimePath,
