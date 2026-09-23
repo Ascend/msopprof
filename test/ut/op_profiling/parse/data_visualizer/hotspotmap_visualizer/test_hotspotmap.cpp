@@ -32,6 +32,45 @@ using namespace Profiling;
 using namespace std;
 
 namespace Visualize {
+namespace {
+constexpr uint64_t HOTSPOT_INSTR_PC = 0x10f86000;
+constexpr uint64_t HOTSPOT_USER_MARK_PC = 0x1195e004;
+const std::string HOTSPOT_SOURCE_FILE = "test/ut/resources/op_test/add_custom/add_custom.cpp";
+
+SimData CreateHotspotDataWithUserMark() {
+    MergeInfo instr{};
+    instr.icacheTick = UINT64_MAX;
+    instr.ccuTick = UINT64_MAX;
+    instr.pc = HOTSPOT_INSTR_PC;
+    instr.startTick = 10;
+    instr.endTick = 12;
+    instr.pipe = "VECTOR";
+    instr.name = "VADD";
+    std::vector<MergeInfo> instrs{instr};
+    auto instrPtr = Utility::MakeShared<InstrDetailTable>(instrs);
+
+    MergeInfo userMark{};
+    // These values would enable scalar-cycle output if UserMark entered hotspot statistics.
+    userMark.icacheTick = 0;
+    userMark.ccuTick = 1;
+    userMark.pc = HOTSPOT_USER_MARK_PC;
+    userMark.startTick = 20;
+    userMark.endTick = 30;
+    userMark.pipe = USER_MARK;
+    userMark.name = "Mark 0x1";
+    UserMarkStruct userMarkStruct{{}, {userMark}};
+    auto userMarkPtr = Utility::MakeShared<UserMarkStruct>(userMarkStruct);
+    return {instrPtr, nullptr, userMarkPtr};
+}
+
+Pc2CodeMap CreateHotspotPc2Code() {
+    Pc2CodeMap pc2Code;
+    pc2Code.Insert(HOTSPOT_INSTR_PC, {HOTSPOT_SOURCE_FILE + ":1"});
+    pc2Code.Insert(HOTSPOT_USER_MARK_PC, {HOTSPOT_SOURCE_FILE + ":2"});
+    return pc2Code;
+}
+}
+
 /**
 * |  用例集 | HotSpot
 * | 测试函数 | Entry
@@ -253,6 +292,38 @@ TEST(DataVisualize, SimPcToCode_statistic) {
     simPcToCode.GetInstrInfo();
     simPcToCode.CalCulate();
     ASSERT_EQ(simPcToCode.cores_.size(), 1);
+}
+
+/**
+* |  用例集  | DataVisualize
+* | 测试函数 | Statistic
+* |  用例名  | SimPcToCode_should_ignore_usermark_for_all_chip_types
+* | 用例描述 | 指令热点不统计UserMark，行为不依赖芯片类型
+*/
+TEST(DataVisualize, SimPcToCode_should_ignore_usermark_for_all_chip_types) {
+    const std::string output = "build_ut/test/ut/hotspot_usermark_pc_output";
+    const std::string coreName = "core0";
+    std::vector<std::string> cores = {coreName};
+    DataCenter dataCenter;
+    SimData data = CreateHotspotDataWithUserMark();
+    ASSERT_TRUE(Utility::MkdirRecusively(JoinPath({output, coreName})));
+
+    Pc2CodeMap a5Pc2Code = CreateHotspotPc2Code();
+    SimVisualizerConfig a5Config{output, a5Pc2Code, 1, ChipProductType::ASCEND950PR_9599};
+    SimPcToCode a5PcToCode{a5Config, dataCenter, cores};
+    a5PcToCode.Statistic(coreName, data);
+    EXPECT_EQ(a5PcToCode.instrInfoMap_.Count(HOTSPOT_INSTR_PC), 1U);
+    EXPECT_EQ(a5PcToCode.instrInfoMap_.Count(HOTSPOT_USER_MARK_PC), 0U);
+    EXPECT_FALSE(a5PcToCode.GetScalarCyc());
+
+    Pc2CodeMap a2Pc2Code = CreateHotspotPc2Code();
+    SimVisualizerConfig a2Config{output, a2Pc2Code, 1, ChipProductType::ASCEND910B1};
+    SimPcToCode a2PcToCode{a2Config, dataCenter, cores};
+    a2PcToCode.Statistic(coreName, data);
+    EXPECT_EQ(a2PcToCode.instrInfoMap_.Count(HOTSPOT_INSTR_PC), 1U);
+    EXPECT_EQ(a2PcToCode.instrInfoMap_.Count(HOTSPOT_USER_MARK_PC), 0U);
+    EXPECT_FALSE(a2PcToCode.GetScalarCyc());
+    std::experimental::filesystem::remove_all(output);
 }
 
 /**
@@ -564,5 +635,37 @@ TEST(DataVisualize, SimCodeToPc_statistic_should_run_no_error) {
     simCodeToPc.Statistic(coreName, data);
     simCodeToPc.CalCulate();
     ASSERT_EQ(simCodeToPc.cores_.size(), 1);
+}
+
+/**
+* |  用例集  | DataVisualize
+* | 测试函数 | Statistic
+* |  用例名  | SimCodeToPc_should_ignore_usermark_for_all_chip_types
+* | 用例描述 | 代码行热点不统计UserMark，行为不依赖芯片类型
+*/
+TEST(DataVisualize, SimCodeToPc_should_ignore_usermark_for_all_chip_types) {
+    const std::string output = "build_ut/test/ut/hotspot_usermark_code_output";
+    const std::string coreName = "core0";
+    std::vector<std::string> cores = {coreName};
+    DataCenter dataCenter;
+    SimData data = CreateHotspotDataWithUserMark();
+    ASSERT_TRUE(Utility::MkdirRecusively(JoinPath({output, coreName})));
+
+    Pc2CodeMap a5Pc2Code = CreateHotspotPc2Code();
+    SimVisualizerConfig a5Config{output, a5Pc2Code, 1, ChipProductType::ASCEND950PR_9599};
+    SimCodeToPc a5CodeToPc{a5Config, dataCenter, cores};
+    a5CodeToPc.Statistic(coreName, data);
+    ASSERT_EQ(a5CodeToPc.codeInfoMap_.count(HOTSPOT_SOURCE_FILE), 1U);
+    EXPECT_EQ(a5CodeToPc.codeInfoMap_.at(HOTSPOT_SOURCE_FILE).count("1"), 1U);
+    EXPECT_EQ(a5CodeToPc.codeInfoMap_.at(HOTSPOT_SOURCE_FILE).count("2"), 0U);
+
+    Pc2CodeMap a2Pc2Code = CreateHotspotPc2Code();
+    SimVisualizerConfig a2Config{output, a2Pc2Code, 1, ChipProductType::ASCEND910B1};
+    SimCodeToPc a2CodeToPc{a2Config, dataCenter, cores};
+    a2CodeToPc.Statistic(coreName, data);
+    ASSERT_EQ(a2CodeToPc.codeInfoMap_.count(HOTSPOT_SOURCE_FILE), 1U);
+    EXPECT_EQ(a2CodeToPc.codeInfoMap_.at(HOTSPOT_SOURCE_FILE).count("1"), 1U);
+    EXPECT_EQ(a2CodeToPc.codeInfoMap_.at(HOTSPOT_SOURCE_FILE).count("2"), 0U);
+    std::experimental::filesystem::remove_all(output);
 }
 }
