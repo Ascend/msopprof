@@ -16,6 +16,7 @@
 
 #include <unistd.h>
 #include <sys/stat.h>
+#include <stdlib.h>
 #include <gtest/gtest.h>
 #include <experimental/filesystem>
 #include "mockcpp/mockcpp.hpp"
@@ -46,6 +47,33 @@ using namespace Common;
 using namespace Serialization;
 using namespace std;
 using json = nlohmann::json;
+
+namespace {
+std::string MakeSimulatorRunDir() {
+    char path[] = "/tmp/msopprof_simulator_run_XXXXXX";
+    char *result = mkdtemp(path);
+    return result == nullptr ? "" : result;
+}
+
+class WorkingDirectoryGuard {
+public:
+    explicit WorkingDirectoryGuard(const std::string &workingDir) {
+        changed_ = GetCurrentWorkingDir(originalWorkingDir_) && ChangeWorkingDir(workingDir);
+    }
+
+    ~WorkingDirectoryGuard() {
+        if (changed_) {
+            ChangeWorkingDir(originalWorkingDir_);
+        }
+    }
+
+    bool IsChanged() const { return changed_; }
+
+private:
+    bool changed_ = false;
+    std::string originalWorkingDir_;
+};
+}
 
 string GOLDEN_INSTR_LOG_910B_LOGICID = "[info] [00001679] (PC: 0x126cf340) SCALAR   : (Binary: 0x02dc0880) MOV_XD_SPR  XD:X14=0x1, SPR:SUBBLOCKID,\n"
                                        "[info] [00001623] (PC: 0x126cf2dc) SCALAR   : (Binary: 0x02161880) MOV_XD_SPR  XD:X11=0, SPR:BLOCKID, ";
@@ -228,6 +256,63 @@ TEST(SimulatorTask, Ascend950_without_binary_lib_path_defaults_to_soc_camodel) {
     ASSERT_FALSE(opSimProf.dump_);
     ASSERT_EQ(simulatorTask.env["LD_LIBRARY_PATH"], camodelPath);
     ASSERT_EQ(simulatorTask.env["ENABLE_CA_LOG_TRANS"], "true");
+    GlobalMockObject::verify();
+}
+
+TEST(SimulatorTask, Ascend950DT_sets_soc_version_and_removes_temporary_log_directory) {
+    GlobalMockObject::verify();
+    const std::string camodelPath = "/tmp/tools/simulator/dav_3510/camodel";
+    MOCKER(&Utility::GetSimulatorLibrarySearchPath).stubs().will(returnValue(camodelPath));
+    Common::ProfArgs args;
+    args.runMode = "simulator";
+    args.argSocVersion = "Ascend950DT_9573";
+    Profiling::OpSimProf opSimProf(args);
+    SimulatorTask simulatorTask("test", opSimProf);
+
+    ASSERT_EQ(simulatorTask.env.count("soc_version"), 1);
+    ASSERT_EQ(simulatorTask.env.at("soc_version"), "Ascend950DT");
+
+    const std::string runDir = MakeSimulatorRunDir();
+    ASSERT_FALSE(runDir.empty());
+    {
+        WorkingDirectoryGuard workingDirectoryGuard(runDir);
+        ASSERT_TRUE(workingDirectoryGuard.IsChanged());
+        std::string logPath;
+        bool removeLogDir = false;
+        ASSERT_TRUE(simulatorTask.PrepareAscend950DtLogDir(logPath, removeLogDir));
+        ASSERT_TRUE(IsDir(JoinPath({runDir, "log"})));
+        ASSERT_TRUE(removeLogDir);
+        simulatorTask.CleanupAscend950DtLogDir(logPath, removeLogDir);
+        ASSERT_FALSE(IsExist(JoinPath({runDir, "log"})));
+    }
+    RemoveAll(runDir);
+    GlobalMockObject::verify();
+}
+
+TEST(SimulatorTask, Ascend950DT_preserves_existing_log_directory) {
+    GlobalMockObject::verify();
+    const std::string camodelPath = "/tmp/tools/simulator/dav_3510/camodel";
+    MOCKER(&Utility::GetSimulatorLibrarySearchPath).stubs().will(returnValue(camodelPath));
+    Common::ProfArgs args;
+    args.runMode = "simulator";
+    args.argSocVersion = "Ascend950DT_9573";
+    Profiling::OpSimProf opSimProf(args);
+    SimulatorTask simulatorTask("test", opSimProf);
+
+    const std::string runDir = MakeSimulatorRunDir();
+    ASSERT_FALSE(runDir.empty());
+    ASSERT_TRUE(MkdirRecusively(JoinPath({runDir, "log"})));
+    {
+        WorkingDirectoryGuard workingDirectoryGuard(runDir);
+        ASSERT_TRUE(workingDirectoryGuard.IsChanged());
+        std::string logPath;
+        bool removeLogDir = false;
+        ASSERT_TRUE(simulatorTask.PrepareAscend950DtLogDir(logPath, removeLogDir));
+        ASSERT_FALSE(removeLogDir);
+        simulatorTask.CleanupAscend950DtLogDir(logPath, removeLogDir);
+        ASSERT_TRUE(IsDir(JoinPath({runDir, "log"})));
+    }
+    RemoveAll(runDir);
     GlobalMockObject::verify();
 }
 
