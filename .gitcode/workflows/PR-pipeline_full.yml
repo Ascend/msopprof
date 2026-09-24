@@ -198,7 +198,7 @@ stages:
         with:
           IMAGE_FLAG: "mindstudio-st-msot:26.1.0-0702"
           runs_on_arch: "arm64"
-          ARTIFACT_NAME: "msopprof-run-arm"
+          # ARTIFACT_NAME: "msopprof-run-arm"
 
 post:
   jobs:

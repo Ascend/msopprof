@@ -22,7 +22,7 @@ on:
         required: true
         type: string
       ARTIFACT_NAME:
-        required: true
+        required: false
         type: string
 
 jobs:
@@ -30,19 +30,19 @@ jobs:
     name: JOB_smoke
     # l0_ascend_msprof_communication 用例需要双卡 NPU，单卡 runner 上失败属环境限制，不阻断流水线
     continue-on-error: true
-    env:
-      ARTIFACT_NAME: ${{ format('{0}-{1}', inputs.ARTIFACT_NAME, atomgit.run_number) }}
+    # env:
+    #   ARTIFACT_NAME: ${{ format('{0}-{1}', inputs.ARTIFACT_NAME, atomgit.run_number) }}
     select: selected_by_default
-    runs-on: [ self-hosted, npu=32 ]
+    runs-on: [ self-hosted, cpu=32 ]
     container:
       image: swr.cn-north-4.myhuaweicloud.com/mindstudio-image/${{ inputs.IMAGE_FLAG }}
       options: --user root
     steps:
-      - name: Download artifacts
-        uses: download-artifact
-        with:
-          name: ${{ env.ARTIFACT_NAME }}
-          path: artifacts
+      # - name: Download artifacts
+      #   uses: download-artifact
+      #   with:
+      #     name: ${{ env.ARTIFACT_NAME }}
+      #     path: artifacts
       - name: PreSmoke
         run: |
           set -ex
