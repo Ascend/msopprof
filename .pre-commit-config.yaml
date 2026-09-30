@@ -12,7 +12,9 @@ repos:
     rev: v4.6.0
     hooks:
       - id: trailing-whitespace
+        exclude: ^(test|package)/
       - id: end-of-file-fixer
+        exclude: ^(test|package)/
       - id: check-yaml
         args: ["--allow-multiple-documents"]
       - id: check-added-large-files
@@ -26,6 +28,7 @@ repos:
     rev: v2.4.1
     hooks:
       - id: codespell
+        exclude: ^(test|package)/
         args: [
             "-L",
             "CANN,cann,NNAL,nnal,ASCEND,ascend,EnQue,CopyIn,ArchType,AND,ND,tbe,copyin,alog,thirdparty,nd,datas,Datas,DEPENDEES",
@@ -39,6 +42,7 @@ repos:
     hooks:
       - id: typos
         args: ["--force-exclude", "--config", "pre-commit/typos.toml"]
+        exclude: ^(test|package)/
 
   #--------------- C++ 核心检查 ---------------------------------------------
   - repo: https://gitcode.com/pre-commit-clang/mirrors-clang-format
