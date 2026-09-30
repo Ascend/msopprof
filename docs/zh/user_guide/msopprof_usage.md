@@ -86,7 +86,7 @@ Kernel直调场景，详细信息可参考《Ascend C算子开发指南》中“
 
 **前期准备**
 
-- 单击[自定义算子工程样例](https://gitcode.com/cann/asc-devkit/tree/master/examples/01_simd_cpp_api/02_features/00_compilation/custom_op/)，获取自定义算子工程。
+- 单击[自定义算子工程样例](https://gitcode.com/cann/asc-devkit/tree/9.0.0/examples/01_simd_cpp_api/02_features/00_compilation/custom_op/)，获取自定义算子工程。
 
 - 分别参考msopprof模式用户指南的“[使用前准备](../user_guide/msopprof_user_guide.md#使用前准备)”和msopprof simulator模式用户指南的“[使用前准备](../user_guide/msopprof_simulator_user_guide.md#使用前准备)”完成相关环境变量配置，为采集算子上板和仿真调优数据做准备。
 
