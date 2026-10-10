@@ -507,7 +507,7 @@ trace.json文件可分别通过Chrome浏览器和MindStudio Insight展示，visu
     ![](../figures/仿真流水图展示scalar耗时.png "scalar耗时展示")
 
     - 通过设置`--aic-metrics=overhead`来控制scalar头开销功能是否使能。
-    - scalar头开销的时间可以划分为cache和ccu两部分开销。cache_time标识指令从icache发出到进入IQ的时间，ccu_time表示指令从进入IQ到pop出去的时间。
+    - scalar头开销的时间可以划分为cache和ccu两部分开销。cache_time表示指令从icache发出到进入IQ的时间，ccu_time表示指令从进入IQ到pop出去的时间。
 
     **图 3**  同步指令连线展示<a id="同步指令连线展示"></a>
     ![](../figures/同步指令连线展示.png "同步指令连线展示")
