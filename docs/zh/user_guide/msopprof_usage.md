@@ -28,7 +28,7 @@ Kernel直调场景，详细信息可参考《Ascend C算子开发指南》中“
     ```
 
     > [!NOTE]
-    > 
+    >
     > 本示例中可执行文件的名称（add）仅为示例，具体以当前工程中用户实际编译的脚本为准。
 
 2. 使用如下命令完成msopprof上板性能数据和精细化调优数据的采集，也可参考[msopprof模式命令](https://gitcode.com/Ascend/msopprof/blob/master/docs/zh/user_guide/msopprof_user_guide.md#命令参考)指定其他命令参数。
@@ -57,7 +57,7 @@ Kernel直调场景，详细信息可参考《Ascend C算子开发指南》中“
 4. 使用如下命令完成msopprof simulator性能数据、流水图和热点图数据的采集，也可参考[msopprof simulator模式命令](./msopprof_simulator_user_guide.md#命令参考)指定其他命令参数。
 
     > [!NOTE]
-    > 
+    >
     > 参数 `--soc-version` 的值可通过执行以下命令获取：`python3 -c "import acl; print(acl.get_soc_name())"`。
 
     ```shell
@@ -73,7 +73,7 @@ Kernel直调场景，详细信息可参考《Ascend C算子开发指南》中“
 6. 分别查看算子上板和仿真的性能数据，可将采集得到的visualize\_data.bin文件导入MindStudio Insight，具体导入操作请参考《MindStudio Insight用户指南》的“[导入性能数据](https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/user_guide/basic_operations.md#导入数据)”章节。<a id="导入数据"></a>
 
     > [!NOTE]
-    > 
+    >
     > 其它算子调用场景下获取的性能数据文件，可使用相同方式查看。
 
 ## 采集API调用单算子的性能数据
@@ -112,11 +112,11 @@ Kernel直调场景，详细信息可参考《Ascend C算子开发指南》中“
     ```shell
     msopprof execute_add_op
     ```
-    
+
 4. 使用如下命令完成msopprof simulator性能数据、流水图和热点图数据的采集。
 
     > [!NOTE]
-    > 
+    >
     > 参数 `--soc-version` 的值可通过执行以下命令获取：`python3 -c "import acl; print(acl.get_soc_name())"`。
 
     ```shell
@@ -155,7 +155,7 @@ PyTorch框架算子调用场景下，进行性能数据采集的操作步骤与[
 
     import triton
     import triton.language as tl
-    
+
     M : tl.constexpr = 128
     N : tl.constexpr = 32
 
@@ -181,7 +181,7 @@ PyTorch框架算子调用场景下，进行性能数据采集的操作步骤与[
 3. 使用如下命令完成msopprof simulator性能数据、流水图和热点图数据的采集。
 
     > [!NOTE]
-    > 
+    >
     > 参数 `--soc-version` 的值可通过执行以下命令获取：`python3 -c "import acl; print(acl.get_soc_name())"`。
 
     ```shell
@@ -189,7 +189,7 @@ PyTorch框架算子调用场景下，进行性能数据采集的操作步骤与[
     ```
 
     > [!NOTE]
-    > 
+    >
     > 该样例算子已经去除了其它非triton算子的冗余计算，仅保留一个需要采集仿真性能的triton算子add_kernel，可极大节约仿真运行的整体耗时。即使指定了--kernel-name的情况下，仿真器仍会按照算子顺序依次运行，因此建议仿真运行前减少非必要的算子。
 
 ## 采集catlass算子的性能数据
@@ -237,7 +237,7 @@ PyTorch框架算子调用场景下，进行性能数据采集的操作步骤与[
 4. 使用如下命令完成msopprof simulator性能数据、流水图和热点图数据的采集。
 
     > [!NOTE]
-    > 
+    >
     > 参数 `--soc-version` 的值可通过执行以下命令获取：`python3 -c "import acl; print(acl.get_soc_name())"`。
 
     ```shell
@@ -262,7 +262,7 @@ PyTorch框架算子调用场景下，进行性能数据采集的操作步骤与[
 - 分别参考msopprof模式用户指南的“[使用前准备](../user_guide/msopprof_user_guide.md#使用前准备)”和msopprof simulator模式用户指南的“[使用前准备](../user_guide/msopprof_simulator_user_guide.md#使用前准备)”完成相关环境变量配置，为采集算子上板和仿真调优数据做准备。
 
 > [!NOTE]
-> 
+>
 > CATLASS DSL支持范围与triton支持范围一致，目前仅支持Ascend 950PR&950DT系列产品，不支持-g，代码热点图功能以及代码行映射能力。
 
 **操作步骤**
@@ -359,7 +359,7 @@ PyTorch框架算子调用场景下，进行性能数据采集的操作步骤与[
 3. 使用如下命令完成msopprof simulator性能数据、流水图和热点图数据的采集。
 
     > [!NOTE]
-    > 
+    >
     > 参数 `--soc-version` 的值可通过执行以下命令获取：`python3 -c "import acl; print(acl.get_soc_name())"`。
 
     ```shell
@@ -382,7 +382,7 @@ PyTorch框架算子调用场景下，进行性能数据采集的操作步骤与[
 **操作步骤**
 
 1. 请参考[算子编译部署](https://gitcode.com/Ascend/msopgen/blob/master/docs/zh/user_guide/msopgen_user_guide.md)，完成算子的编译部署。
-    1. 在算子编译文件op\_kernel目录下的CMakeLists.txt中引入以下编译选项，使能MC2算子的AIC打点和代码行映射功能。
+    1. 在算子编译文件op\_kernel目录下的CMakeLists.txt中引入以下编译选项，使能PrintTimeStamp自定义打点和代码行映射功能。
 
         ```shell
         add_ops_compile_options(ALL OPTIONS -DASCENDC_TIME_STAMP_ON -g)
@@ -397,7 +397,7 @@ PyTorch框架算子调用场景下，进行性能数据采集的操作步骤与[
 2. 使用msOpProf采集MC2算子的性能数据。
 
     ```shell
-    msopprof --output=$HOME/projects/output $HOME/projects/MyApp blockdim 1   # --output为可选参数,$HOME/projects/MyApp为使用的app,blockdim 1为用户app的可选参数 
+    msopprof --output=$HOME/projects/output $HOME/projects/MyApp blockdim 1   # --output为可选参数,$HOME/projects/MyApp为使用的app,blockdim 1为用户app的可选参数
     ```
 
 3. 界面生成以下目录结构和性能数据文件，具体请参见[msopprof模式用户指南](../user_guide/msopprof_user_guide.md)。

@@ -89,8 +89,8 @@ msopprof --output=$HOME/projects/output $HOME/projects/MyApp/out/main blockdim 1
 |--kill|选项包括开启（on）和关闭（off），默认情况下设置为关闭（off），关闭该功能。<br>若用户配置--kill=on使能该功能，用户程序将会在采集完--launch-count设置的算子数量后，自动停止程序。<br>注意事项：<br><ul><li>配置--kill=on后，可能会出现因用户程序提前结束而引发的错误日志，用户需自行评估是否使用该功能。</li><li>若用户程序为多进程，--kill参数的配置只对子进程生效。</li><li>使用该参数会造成最后一个被执行的通算融合算子无法正常获取接口调用流水，具体请参见[通算流水图](#通算流水图)。</li><li>不建议与`--replay-mode=range`同时使能，否则可能导致采集的算子数据缺失。</li></ul>|否|
 |--mstx|该参数决定算子调优工具是否使能用户代码程序中使用的mstx API。<br>默认为off，表示关闭对mstx API的使能。<br>若用户配置--mstx=on，算子调优工具将会使能用户代码程序中使用的mstx API。具体举例如下：`msopprof --mstx=on ./add_custom`<br>注意事项：<ul><li>当前已支持mstx API中的mstxRangeStartA和mstxRangeEnd接口，功能为使能算子调优的指定区间，具体参数介绍请参见《MindStudio mstx API参考》中的[mstxRangeStartA](https://gitcode.com/Ascend/mstx/blob/master/docs/zh/api_reference/Common/mstxRangeStartA.md)和[mstxRangeEnd](https://gitcode.com/Ascend/mstx/blob/master/docs/zh/api_reference/Common/mstxRangeEnd.md)接口。</li><li>配合`--replay-mode=range`使用时，mstxRangeStartA和mstxRangeEnd接口需成对调用，不支持交叉调用。每一对mstx API中包含的算子为一个重放范围，该重放范围内算子的Stream不能改变。同时，能采集的算子数量受[OpBasicInfo（算子基础信息）](./msopprof_performance_data.md#opbasicinfo算子基础信息)中算子Block Dim数量限制（建议不超过50个）。</li></ul>|否|
 |--mstx-include|该参数支持在算子调优工具使能mstx API的情况下，仅使能用户指定mstx API。<br>若不配置，则默认使能所有用户代码中使用的mstx API。<br>若配置，--mstx-include只使能用户指定的mstx API。--mstx-include的输入为用户调用mstx函数时传入的message字符串，使用"\|"拼接多个字符串。具体举例如下：`--mstx=on --mstx-include="hello\|hi" //仅使能用户传入mstx函数中message参数为hello和hi的mstx API`<br>注意事项：<ul><li>不可单独配置，需要与--mstx配合使用。</li><li>仅支持message为A-Z a-z 0-9 _这些字符，使用"\|"进行拼接。</li></ul>|否|
-|--replay-mode|算子数据采集的重放模式，可配置为kernel/application/range，默认为kernel。<ul><li>若配置为application，代表是应用级重放，整个应用会进行多次重放。application模式下，单独使能部分aic-metrics可能会导致visualize_data.bin文件中部分数据丢失，若需要查看完整的visualize_data.bin数据，建议添加Default到--aic-metrics以采集完整的可视化数据。</li><li>若配置为kernel，代表是核函数级重放，指定采集范围的单个算子的核函数进行多次重放。</li><li>若配置为range，代表是范围级重放，指定范围内的多算子整体进行多次重放。可以指定多个范围，范围之间相互独立。</li>注意事项：<li>kernel模式和range模式会清除L2cache数据，而application模式不会清理L2cache数据。</li><li>多卡多算子的场景不支持配置为application。</li><li>范围级重放需配合`--mstx=on`一起使用，且仅适用于Atlas A3系列产品和Atlas A2系列产品以及Ascend 950PR&950DT系列产品。</li><li>范围级重放不支持采集MC2和LCCL类型的通算融合算子，且Atlas A2系列产品不支持与--kill=on、--aic-metrics=MemoryDetail、--aic-metrics=TimelineDetail及--aic-metrics=Source同时使能。Ascend 950PR&950DT系列产品不支持与--kill=on、--aic-metrics=PcSampling、Source、Roofline、PipeTimeline、InstrTimeline同时使能。</li></ul>|否|
-|--warm-up|当部分算子使用msOpProf采集时，会达不到芯片提频的最小任务耗时产生降频，从而会对交付件的结果产生一定影响。在该情况下，可用`--warm-up`指定预热次数，提前提升**AI处理器**的运行频率，使上板数据更准确。<br>注意事项：<ul><li>默认值为5，取值范围为[0,500]。</li><li>此参数对MC2算子不生效。</li><li>当开启范围级别重放时，--warm-up次数至少为1，不得设置--warm-up=0。</li></ul>|否|
+|--replay-mode|算子数据采集的重放模式，可配置为kernel/application/range，默认为kernel。<ul><li>若配置为application，代表是应用级重放，整个应用会进行多次重放。application模式下，单独使能部分aic-metrics可能会导致visualize_data.bin文件中部分数据丢失，若需要查看完整的visualize_data.bin数据，建议添加Default到--aic-metrics以采集完整的可视化数据。</li><li>若配置为kernel，代表是核函数级重放，指定采集范围的单个算子的核函数进行多次重放。</li><li>若配置为range，代表是范围级重放，指定范围内的多算子整体进行多次重放。可以指定多个范围，范围之间相互独立。</li>注意事项：<li>kernel模式和range模式会清除L2cache数据，而application模式不会清理L2cache数据。</li><li>多卡多算子的场景不支持配置为application。</li><li>范围级重放需配合`--mstx=on`一起使用，且仅适用于Atlas A3系列产品和Atlas A2系列产品以及Ascend 950PR&950DT系列产品。</li><li>范围级重放不支持采集基于AICPU通信的MC2算子和LCCL算子，且Atlas A3系列产品和Atlas A2系列产品不支持与--kill=on、--aic-metrics=MemoryDetail、TimelineDetail、Source同时使能。Ascend 950PR&950DT系列产品不支持与--kill=on、--aic-metrics=PcSampling、Source、Roofline、PipeTimeline、InstrTimeline同时使能。</li></ul>|否|
+|--warm-up|当部分算子使用msOpProf采集时，会达不到芯片提频的最小任务耗时产生降频，从而会对交付件的结果产生一定影响。在该情况下，可用`--warm-up`指定预热次数，提前提升**AI处理器**的运行频率，使上板数据更准确。<br>注意事项：<ul><li>默认值为5，取值范围为[0,500]。</li><li>此参数对基于AICPU通信的MC2算子不生效。</li><li>当开启范围级别重放时，--warm-up次数至少为1，不得设置--warm-up=0。</li></ul>|否|
 |--output|收集到的性能数据的存放路径，默认在当前目录下保存性能数据。<br>需确保群组和其他组的用户不具备--output指定输出路径的上一级目录的写入权限。同时，需要确保--output指定目录的上一级目录属主为当前用户。|否|
 |--dump|控制仿真器dump文件是否生成。<br>选项包括开启（on）和关闭（off），默认情况下设置为关闭（off），即不生成仿真器dump文件。<br>注意事项：<ul><li>此参数仅在使用--aic-metrics=TimelineDetail选项时有效，且仅针对Atlas A2系列产品及Atlas A3系列产品生效，不支持Atlas推理系列产品和Ascend 950PR&950DT系列产品。</li><li>此参数仅适用于单进程场景，不支持两个算子同时运行的场景。</li></ul>|否|
 |--core-id|该参数适用于算子分布均匀的情况时，可使用--core-id参数指定部分逻辑核的id，解析部分核的仿真数据。<br>核id的取值范围为[0,49]。<br>注意事项：<ul><li>若要解析多个核的仿真数据时，需要使用符号"\|"进行拼接。例如，--core-id="0\|31"表示解析核id为0和31的仿真数据。</li><li>此参数仅在使用`--aic-metrics=TimelineDetail`选项时有效，仅作用于[指令流水图](./msopprof_simulator_user_guide.md#指令流水图)和[算子代码热点图](#算子代码热点图)，仅适用于Atlas A2系列产品、Atlas A3系列产品及Ascend 950PR&950DT系列产品。</li></ul>|否|
@@ -188,7 +188,7 @@ msOpProf工具协助用户定位算子内存、算子代码以及算子指令的
 
         > [!NOTE]
         >
-        > - 对多卡并行的通算融合算子（MC2或LCCL算子）进行调优时，结果目录下会存在若干以Device ID为名的子目录，这取决于定义时指定的NPU数量，每个NPU的调优结果会分别存放在对应的Device ID目录下。
+        > - 对多卡并行的算子进行调优时，结果目录下会存在若干以Device ID为名的子目录，这取决于定义时指定的NPU数量，每个NPU的调优结果会分别存放在对应的Device ID目录下。
         > - xxx_yyy.csv中的xxx代表该算子生成的指标种类名，例如L2Cache，具体指标种类可参考[**表 4**  msOpProf模式文件介绍](#msOpProf模式文件介绍)中的csv文件介绍。
 
         ```text
@@ -198,7 +198,7 @@ msOpProf工具协助用户定位算子内存、算子代码以及算子指令的
           ├── OpName0                // OpName0为采集算子名称
           │ ├── 0                    // 表示算子调度顺序
           │ │ ├──dump                // 与单算子含义一致，存放过程件的文件夹
-          │ │ └──xxx_yyy.csv        // xxx代表该算子生成的指标种类名，例如L2Cache，yyy为csv文件的时序后缀，例如L2Cache_20240603022812284.csv
+          │ │ └──xxx_yyy.csv         // xxx代表该算子生成的指标种类名，例如L2Cache，yyy为csv文件的时序后缀，例如L2Cache_20240603022812284.csv
           │ │ └──visualize_data.bin
           ├── OpName1
           │ ├── 0
@@ -210,7 +210,7 @@ msOpProf工具协助用户定位算子内存、算子代码以及算子指令的
           │ │ ├── dump
           │ │ └── xxx_yyy.csv
           │ │ └──visualize_data.bin
-          │ │ └── trace.json         // 此文件仅适用于MC2和LCCL类型通算融合算子
+          │ │ └── trace.json         // 此文件仅适用于流水图存在的场景
         ```
 
     - 采集单卡多算子场景。
@@ -269,8 +269,6 @@ msOpProf工具协助用户定位算子内存、算子代码以及算子指令的
     >
     > - visualize\_data.bin可通过MindStudio Insight工具进行可视化展示，具体使用方法请参考[MindStudio Insight算子调优](https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/user_guide/operator_tuning.md)。
     > - msOpProf的热点函数功能仅支持Atlas A2系列产品。
-    > - 当前，仅支持生成MC2和LCCL类型通算融合算子的[通算流水图](#通算流水图)。
-    > - MC2和LCCL类型通算融合算子不支持生成[Cache热力图](#cache热力图)和[算子代码热点图](#算子代码热点图)，且不支持Atlas推理系列产品。
     > - 单位GB/s表示每秒传输1GB的数据量。
 
 4. 将visualize_data.bin文件导入MindStudio Insight后，将会展示[计算内存热力图](#计算内存热力图)、[Roofline瓶颈分析图](#roofline瓶颈分析图)、[Cache热力图](#cache热力图)、[流水图](#流水图)和[算子代码热点图](#算子代码热点图)。
@@ -546,7 +544,7 @@ Roofline分析视图分析算子的性能百分比，并提供以下客观分析
 - 添加`-g`编译选项会在生成的二进制文件中附带调试信息，建议限制带有调试信息的用户程序的访问权限，确保只有授权人员可以访问该二进制文件。
 - 若不使用`llvm-symbolizer`组件提供的相关功能，输入msOpProf的程序编译时不包含-g即可，msOpProf工具则不会调用`llvm-symbolizer`组件的相关功能。
 <!-- npu="310p" id7 -->
-- Cache热力图功能不适用于Atlas推理系列产品。
+- Cache热力图功能仅适用于Atlas A3系列产品和Atlas A2系列产品。
 <!-- end id7 -->
 - MC2算子和LCCL算子均不支持生成Cache热力图。
 
@@ -575,7 +573,7 @@ Cache热力图界面显示如下。
 |---|---|---|
 |[Pipe流水图](#pipe流水图)|展示算子各个Pipe的运行情况|需通过参数`--aic-metrics=PipeTimeline`开启|
 |[指令流水图](#指令流水图)|展示指令耗时以及指令PC、调用栈等信息|需通过参数`--aic-metrics=InstrTimeline`开启|
-|[通算流水图](#通算流水图)|展示通算运行情况、指令耗时等信息|当前仅支持MC2和LCCL类型的通算融合算子以及使能了PrintTimeStamp的通算类算子|
+|[通算流水图](#通算流水图)|展示通算运行情况、指令耗时等信息|当前仅支持基于AICPU通信的MC2算子、LCCL算子以及使能了PrintTimeStamp的通算类算子|
 |[Warp流水图](#warp流水图)|展示各warp的耗时情况|当前仅支持SIMT类型|
 
 ### Pipe流水图
@@ -649,57 +647,74 @@ MindStudio Insight具体操作和详细字段解释请参考《MindStudio Insigh
 
 #### 功能说明
 
-通过msOpProf运行模式对通算融合算子进行调优后，生成的trace.json和visualize\_data.bin文件可通过MindStudio Insight进行可视化呈现，能够直观看到通算运行情况、指令耗时等信息，协助开发者识别通算瓶颈。支持通过AscendC API进行性能打点，采集代码在算子block上的实际耗时情况，用于通算算子性能的分析和优化。当前仅支持MC2和LCCL类型的通算融合算子以及使能了PrintTimeStamp的通算类算子。
+通过msOpProf运行模式对通算融合算子进行调优后，生成的trace.json和visualize\_data.bin文件可通过MindStudio Insight进行可视化呈现，能够直观看到通算运行情况、指令耗时等信息，协助开发者识别通算瓶颈。支持通过AscendC API进行性能打点，采集代码在算子block上的实际耗时情况，用于通算算子性能的分析和优化。当前仅支持基于AICPU通信的MC2算子、LCCL算子以及使能了PrintTimeStamp的通算类算子。
 
 **注意事项**
 
-- MindStudio Insight具体操作和详细字段解释请参考《MindStudio Insight算子调优》的“[时间线（Timeline）](https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/user_guide/operator_tuning.md#%E6%97%B6%E9%97%B4%E7%BA%BF%EF%BC%88timeline%EF%BC%89)”章节。
+- trace.json文件可分别通过Chrome浏览器和MindStudio Insight展示，visualize_data.bin文件仅可通过MindStudio Insight展示。MindStudio Insight具体操作和详细字段解释请参考《MindStudio Insight算子调优》的“[时间线（Timeline）](https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/user_guide/operator_tuning.md#%E6%97%B6%E9%97%B4%E7%BA%BF%EF%BC%88timeline%EF%BC%89)”章节。
 - 添加`-g`编译选项会在生成的二进制文件中附带调试信息，建议限制带有调试信息的用户程序的访问权限，确保只有授权人员可以访问该二进制文件。
-- 上板流水图功能在KFC场景中使用时，需要注意遵循相关接口使用规则，部分场景下Cube侧的数据无法呈现，需要结合KFC相关接口原理查看算子打点数据。
+- 通算流水图功能在KFC场景中使用时，需要注意遵循相关接口使用规则，部分场景下Cube侧的数据无法呈现，需要结合KFC相关接口原理查看算子打点数据。
+- "基于AICPU通信的MC2算子"特指AICPU kernel与AICore kernel成对下发，且AICPU kernel名以"Mc2AicpuKernel"结尾的MC2算子。
 
 #### 使用说明
 
-trace.json文件可分别通过Chrome浏览器和MindStudio Insight展示，visualize_data.bin文件仅可通过MindStudio Insight展示。
+- 主要功能
 
-通过AscendC API进行性能打点具体用法请参照《Ascend C算子开发接口》中的“调试接口>上板打印>[PrintTimeStamp](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/latest/API/ascendcopapi/docs/zh/api/SIMD-API/basic_api/debug_interface/onboard_print/PrintTimeStamp.md)”章节。该功能可结合`--custom-input`参数，将PrintTimeStamp的descid在通算流水图上映射成自定义字符串进行展示。未开启参数`--custom-input`展示图可参见[通算流水图-2](#通算流水图-2)，开启后展示图可参见[通算流水图-3](#通算流水图-3)。json示例文件参考如下<a id="json示例文件"></a>，字段详情请参见下表：
+    - 展示算子在AI CPU和AI CORE的耗时掩盖情况，用于评估通算融合算子的性能。
+    - 展示算子在AI CPU上的不同通信轮次的流水，仅基于AICPU通信的MC2算子支持。
+    - 展示算子在各BLOCK上的运行时间及关键接口调用流水。也可以通过使用同一个descid的PrintTimeStamp自定义打点kernel代码片段或关键API，在算子kernel侧进行两次标识，工具会绘制出这两个标识之间，每个block上该算子的运行耗时情况。
+    - 展示通过HCCL通信的算子在多卡间运行时的集合通信流水及集合通信任务流水，仅基于AICPU通信的MC2算子支持。
 
-```json
-{
-    "mc2_trace_config":{
-        "enable_block_time":false,
-        "descid_display":{
-            "65541":"all_gather",
-            "0X10006":"end",
-            "0X10007":"start"
-        }
-    }
-}
-```
+        > [!NOTE]
+        >
+        > - 基于AICPU通信的MC2算子，会默认展示支持对Atlas A2系列产品的AllReduce、AllGather、ReduceScatter、AlltoAll等接口及Atlas A3系列产品的AllGather、ReduceScatter、AlltoAllV等接口进行调用，具体介绍请参见《Ascend C算子开发接口》中的“高阶API \> Hccl \>  [Hccl Kernel侧接口](https://www.hiascend.com/document/detail/zh/canncommercial/latest/API/ascendcopapi/atlasascendc_api_07_0869.html)”章节，添加`-g`编译选项后，单击具体接口将会关联代码行调用栈。
+        > - 不同类型通算算子的具体支持情况请参考[**表 8**  关键字段说明](#关键字段说明)。
+        > - 仅Atlas A2、Atlas A3及Ascend 950PR&950DT系列产品支持该功能。
 
-|字段|说明|
-|---|---|
-|mc2_trace_config|MC2算子流水配置。|
-|enable_block_time|是否展示各block运行时间详情，默认true。|
-|descid_display|descid展示名称映射列表，PrintTimeStamp接口传入的descid将展示为映射的字符串，descid支持10进制和16进制两种字符串，映射名称支持a-zA-Z0-9-_和空格，最长64个字符，支持最多1024个映射。|
+- 关键字段
 
-- Chrome浏览器
-
-    在Chrome浏览器中输入“chrome://tracing”地址，并将生成的通算流水图文件（trace.json）拖到空白处打开，键盘上输入快捷键（W：放大，S：缩小，A：左移，D：右移）可进行查看。关键字段说明如[**表 8**  关键字段说明](#关键字段说明)。
+    通算流水图关键字段说明如[**表 8**  关键字段说明](#关键字段说明)，其中其他通算算子只有在使能PrintTimeStamp的情况下才会呈现通算流水图。
 
     **表 8**  关键字段说明<a id="关键字段说明"></a>
 
-    |字段名|字段功能|MC2算子|LCCL算子|ASC通算算子|
+    |字段名|字段功能|基于AICPU通信的MC2算子|LCCL算子|其他通算算子|
     |---|---|---|---|--------|
-    |AI CORE|算子在AI CORE上的整体运行情况。|支持|支持|不支持|
+    |AI CORE|算子在AI CORE上的整体运行情况。|支持|支持|支持|
     |AI CPU|算子在AI CPU上的整体运行情况。|支持|不支持|不支持|
     |TURN|算子在AI CPU上不同通信轮次的流水。|支持|不支持|不支持|
     |HCCL|通过HCCL通信的算子在多卡间的集合通信流水。|支持|不支持|不支持|
     |HCCL TASK|通过HCCL通信的算子在多卡间的集合通信任务执行流水。|支持|不支持|不支持|
-    |AscendC API|展示用户通过AscendC API在每个block上的运行耗时情况|支持|不支持|支持|
+    |BLOCK|展示各BLOCK上的运行时间以及用户通过AscendC API自定义的流水耗时情况|支持|支持|支持|
 
-- MindStudio Insight
+- 通过PrintTimeStamp API增加自定义打点
 
-    将生成的trace.json文件或visualize\_data.bin文件可导入MindStudio Insight进行可视化呈现。
+    通过AscendC API进行性能打点具体用法请参照《Ascend C算子开发接口》中的“调试接口>上板打印>[PrintTimeStamp](https://www.hiascend.com/document/detail/zh/canncommercial/latest/API/ascendcopapi/atlasascendc_api_07_00002.html)”章节。该功能可结合`--custom-input`参数，将PrintTimeStamp的descid在通算流水图上映射成自定义字符串进行展示。未开启参数`--custom-input`展示图可参见[通算流水图-2](#通算流水图-2)，开启后展示图可参见[通算流水图-3](#通算流水图-3)。json示例文件参考如下<a id="json示例文件"></a>，字段详情请参见下表：
+
+    ```json
+    {
+        "mc2_trace_config":{
+            "enable_block_time":false,
+            "descid_display":{
+                "65541":"all_gather",
+                "0X10006":"end",
+                "0X10007":"start"
+            }
+        }
+    }
+    ```
+
+    |字段|说明|
+    |---|---|
+    |mc2_trace_config|MC2算子流水配置。|
+    |enable_block_time|是否展示各block运行时间详情，默认true。|
+    |descid_display|descid展示名称映射列表，PrintTimeStamp接口传入的descid将展示为映射的字符串，descid支持10进制和16进制两种字符串，映射名称支持a-zA-Z0-9-_和空格，最长64个字符，支持最多1024个映射。|
+
+    > [!NOTE]
+    >
+    > - PrintTimeStamp自定义打点本身有性能开销，仅用于查看相对流水，不可用于算子耗时统计。
+    > - 使能了 PrintTimeStamp 打点后，部分 AscendC 的接口自带打点，这些打点与用户 kernel 里的自定义打点共享打印空间 buffer。当打点个数多或密集时，可能造成 buffer 数据无法及时搬出，形成一条很长的流水，此时打点数据无效，可使用 [aclrtDeviceSetLimit](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/latest/API/runtimeapi/aclcppdevg_03_2287.html) 接口增大打印空间 buffer 容量。其中limit参数使用ACL_RT_DEV_LIMIT_SIMD_PRINTF_FIFO_SIZE_PER_CORE：<br>
+    该参数用于控制每个Core上SIMD算子可以Printf打印的空间大小，单位Byte。默认值为32768Byte（即32K）。<br>
+    设置为ACL_RT_DEV_LIMIT_SIMD_PRINTF_FIFO_SIZE_PER_CORE类型时，value取值必须是8Byte的整数倍，如果传入的不是8Byte的整数倍，则接口内部会自动向上取整，确保其为8Byte的整数倍。value的取值范围为[1024, 67108864]Byte，即[1KB, 64MB]。
 
     **图 11-1**  通算流水图-1
 
@@ -712,18 +727,6 @@ trace.json文件可分别通过Chrome浏览器和MindStudio Insight展示，visu
     **图 11-3**  通算流水图-3 <a id="通算流水图-3"></a>
 
     ![](../figures/msopprof-3.png)
-
-    - 展示算子在AI CPU和AI CORE的耗时掩盖情况，用于评估通算融合算子的性能。
-    - 展示算子在AI CPU上的不同通信轮次的流水。
-    - 展示算子在各BLOCK上的运行时间及关键接口调用流水。
-    - 展示通过HCCL通信的算子在多卡间运行时的集合通信流水及集合通信任务流水。
-    - 通过使用同一个descid的打点API，在算子kernel侧进行两次标识，工具会绘制出这两个标识之间，每个block上该算子的运行耗时情况。
-
-        > [!NOTE]
-        >
-        > - MC2算子支持对Atlas A2系列产品的AllReduce、AllGather、ReduceScatter、AlltoAll等接口及Atlas A3系列产品的AllGather、ReduceScatter、AlltoAllV等接口进行调用，具体介绍请参见《Ascend C算子开发接口》中的“高阶API \> Hccl \>  [Hccl Kernel侧接口](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/latest/API/ascendcopapi/docs/zh/api/SIMD-API/adv_api/HCCL_communication/HCCL_Kernel/HCCL_usage.md)”章节，添加`-g`编译选项后，单击具体接口将会关联代码行调用栈。
-        > - MC2算子和LCCL算子及普通通算算子的支持情况请参考[**表 8**  关键字段说明](#关键字段说明)。
-        > - Ascend 950PR&950DT系列产品支持打点流水图功能。
 
 ### Warp流水图
 

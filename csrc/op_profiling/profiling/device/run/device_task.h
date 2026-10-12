@@ -87,18 +87,20 @@ public:
             cmd.emplace_back(Utility::JoinPath({Utility::GetMsopprofPath(), Path::KERNEL_LAUNCHER_PATH_FROM_MSOPPROF}));
         }
         profConfig_ = {outputPath, kernelName_, profMaxTimes_, profSkipTimes_};
+        enabledDbiTypes_ = BuildEnabledDbiTypes();
     }
     ~DeviceTask() override = default;
     bool Run() override;
 
 private:
     bool PreProcess();
-    void ProcessApplication(uint32_t count);
     uint32_t GetReplayTimes();
+    std::vector<ProfDBIType> BuildEnabledDbiTypes() const;
 
     std::string kernelName_;
     std::string instrTimelinePipe_;
-    std::vector<ProfDBIType> dbiTypes;
+    std::vector<ProfDBIType> appModeDbiTypes_;
+    std::vector<ProfDBIType> enabledDbiTypes_;
     Common::ProfMetricsAbilityConfig metrics_{};
     Common::ChipType chipType_{Common::ChipType::END_TYPE};
     uint16_t profMaxTimes_ {1};

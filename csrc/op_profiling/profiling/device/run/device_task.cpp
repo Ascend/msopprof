@@ -17,7 +17,6 @@
 #include "device_task.h"
 
 #include <set>
-#include <unordered_map>
 #include <cmath>
 #include <sys/mman.h>
 #include <fcntl.h>
@@ -35,6 +34,9 @@ using namespace Common;
 using namespace std;
 
 namespace Profiling {
+uint32_t DbiTypeToFlag(ProfDBIType type) {
+    return type == ProfDBIType::AS_IS ? 0U : (1U << static_cast<uint32_t>(type));
+}
 
 bool DeviceTask::Run() {
     LogInfo("Running device task: %s", taskName.c_str());
@@ -67,7 +69,8 @@ bool DeviceTask::Run() {
             break;
         }
         if (replayMode_ == ReplayMode::APPLICATION) {
-            ProcessApplication(i);
+            profMessage_.replayCount = i;
+            profMessage_.dbiFlag = DbiTypeToFlag(appModeDbiTypes_[i]);
             LogDebug("Application mode count is %lu, dbiFlag is 0x%x", profMessage_.replayCount, profMessage_.dbiFlag);
         }
         if (!ProfStub::InjectionEvent::Instance().StartDisposeClientAsk(profMessage_, profConfig_)) {
@@ -90,23 +93,23 @@ bool DeviceTask::Run() {
     return taskRes;
 }
 
-void DeviceTask::ProcessApplication(uint32_t count) {
-    static const unordered_map<ProfDBIType, uint32_t> dbiFlagMap = {
-        {ProfDBIType::OPERAND_RECORD, DBI_FLAG_OPERAND_RECORD},
-        {ProfDBIType::MEMORY_CHART, DBI_FLAG_MEMORY_CHART},
-        {ProfDBIType::INSTR_PROF_START, DBI_FLAG_INSTR_PROF_START},
-        {ProfDBIType::INSTR_PROF_END, DBI_FLAG_INSTR_PROF_END},
-        {ProfDBIType::INSTR_PROF_DFX, DBI_FLAG_INSTR_PROF_DFX},
-        {ProfDBIType::BB_COUNT, DBI_FLAG_BB_COUNT},
-        {ProfDBIType::WARP_TIMELINE, DBI_FLAG_WARP_TIMELINE},
-    };
-    profMessage_.replayCount = count;
-    auto it = dbiFlagMap.find(dbiTypes[count]);
-    if (it != dbiFlagMap.end()) {
-        profMessage_.dbiFlag = it->second;
-    } else {
-        profMessage_.dbiFlag = 0;
+std::vector<ProfDBIType> DeviceTask::BuildEnabledDbiTypes() const {
+    const bool isA5 = chipType_ == ChipType::ASCEND950;
+    const std::map<ProfDBIType, bool> dbiTypeMap = {
+        {ProfDBIType::OPERAND_RECORD, isA5 && metrics_.HasEnabledPmu()}, // 使能pmu时才会使用到OperandRecord桩数据
+        {ProfDBIType::WARP_TIMELINE, isA5},
+        {ProfDBIType::MEMORY_CHART, metrics_.isMemoryDetail},
+        {ProfDBIType::INSTR_PROF_START, metrics_.pcSamplingEnable},
+        {ProfDBIType::INSTR_PROF_END, metrics_.pipeTimelineEnable},
+        {ProfDBIType::INSTR_PROF_DFX, metrics_.instrTimelineEnable},
+        {ProfDBIType::BB_COUNT, metrics_.isSource}};
+    std::vector<ProfDBIType> types;
+    for (const auto &pair : dbiTypeMap) {
+        if (pair.second) {
+            types.emplace_back(pair.first);
+        }
     }
+    return types;
 }
 
 uint32_t DeviceTask::GetReplayTimes() {
@@ -121,26 +124,11 @@ uint32_t DeviceTask::GetReplayTimes() {
         replayTimes = std::max(aivMaxTimes, aicMaxTimes);
         replayTimes = std::max(replayTimes, 1U);
         for (uint32_t i = 0; i < replayTimes; i++) {
-            dbiTypes.emplace_back(ProfDBIType::AS_IS);
+            appModeDbiTypes_.emplace_back(ProfDBIType::AS_IS);
         }
-        if (chipType_ == ChipType::ASCEND950) {
-            dbiTypes.emplace_back(ProfDBIType::OPERAND_RECORD);
-            dbiTypes.emplace_back(ProfDBIType::WARP_TIMELINE);
+        for (ProfDBIType type : enabledDbiTypes_) {
+            appModeDbiTypes_.emplace_back(type);
             replayTimes++;
-            replayTimes++;
-        }
-        const std::map<ProfDBIType, bool> dbiTypeMap = {
-            {ProfDBIType::MEMORY_CHART,     metrics_.isMemoryDetail},
-            {ProfDBIType::INSTR_PROF_START, metrics_.pcSamplingEnable},
-            {ProfDBIType::INSTR_PROF_END,   metrics_.pipeTimelineEnable},
-            {ProfDBIType::INSTR_PROF_DFX,   metrics_.instrTimelineEnable},
-            {ProfDBIType::BB_COUNT,         metrics_.isSource}
-        };
-        for (const auto& pair : dbiTypeMap) {
-            if (pair.second) {
-                dbiTypes.emplace_back(pair.first);
-                replayTimes++;
-            }
         }
     }
     LogDebug("Replay mode %d, replay times is %u", replayMode_, replayTimes);
@@ -169,14 +157,11 @@ bool DeviceTask::PreProcess() {
     if (metrics_.isKernelScale) {
         profMessage_.useProfileMode = true;
     }
-    profMessage_.dbiFlag = chipType_ == ChipType::ASCEND950 ?
-        (DBI_FLAG_OPERAND_RECORD | DBI_FLAG_WARP_TIMELINE) : 0;
-    profMessage_.dbiFlag |= metrics_.isMemoryDetail ? DBI_FLAG_MEMORY_CHART : 0;
-    profMessage_.dbiFlag |= metrics_.pcSamplingEnable ? DBI_FLAG_INSTR_PROF_START : 0;
-    profMessage_.dbiFlag |= metrics_.pipeTimelineEnable ? DBI_FLAG_INSTR_PROF_END : 0;
-    profMessage_.dbiFlag |= metrics_.isSource ? DBI_FLAG_BB_COUNT : 0;
+    profMessage_.dbiFlag = 0;
+    for (ProfDBIType type : enabledDbiTypes_) {
+        profMessage_.dbiFlag |= DbiTypeToFlag(type);
+    }
     if (metrics_.instrTimelineEnable) {
-        profMessage_.dbiFlag |= DBI_FLAG_INSTR_PROF_DFX;
         if (strcpy_s(profMessage_.instrTimelinePipe, sizeof(profMessage_.instrTimelinePipe), instrTimelinePipe_.c_str()) != 0) {
             LogError("Subprocess control message generate failed");
             return false;

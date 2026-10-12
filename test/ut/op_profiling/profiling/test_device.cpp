@@ -612,6 +612,64 @@ TEST(DeviceTask, test_GetReplayTimes_success_in_application_replay_mode_950)
     ASSERT_EQ(deviceTask.GetReplayTimes(), 13);
 }
 
+/**
+ * |  用例集  | DeviceTask
+ * | 测试函数 | DeviceTask::BuildEnabledDbiTypes
+ * |  用例名  | test_BuildEnabledDbiTypes_success_on_950_without_pmu
+ * | 用例描述 | 测试950芯片未使能PMU时，只包含WarpTimeline插桩
+ */
+TEST(DeviceTask, test_BuildEnabledDbiTypes_success_on_950_without_pmu) {
+    GlobalMockObject::verify();
+    MOCKER(&Common::HalHelper::GetPlatformType).stubs().will(returnValue(Common::ChipType::ASCEND950));
+    ProfArgs args;
+    args.argAicMetrics = ProfMetricsAbilityConfig(false);
+    OpDeviceProf opDeviceProf(args);
+    DeviceTask deviceTask{"DeviceProf", opDeviceProf};
+    std::vector<ProfDBIType> expected = {ProfDBIType::WARP_TIMELINE};
+    ASSERT_EQ(deviceTask.BuildEnabledDbiTypes(), expected);
+}
+
+/**
+ * |  用例集  | DeviceTask
+ * | 测试函数 | DeviceTask::BuildEnabledDbiTypes
+ * |  用例名  | test_BuildEnabledDbiTypes_success_on_950_with_default_pmu
+ * | 用例描述 | 测试950芯片使用默认PMU配置时，包含OperandRecord和WarpTimeline插桩
+ */
+TEST(DeviceTask, test_BuildEnabledDbiTypes_success_on_950_with_default_pmu) {
+    GlobalMockObject::verify();
+    MOCKER(&Common::HalHelper::GetPlatformType).stubs().will(returnValue(Common::ChipType::ASCEND950));
+    ProfArgs args;
+    OpDeviceProf opDeviceProf(args);
+    DeviceTask deviceTask{"DeviceProf", opDeviceProf};
+    std::vector<ProfDBIType> expected = {ProfDBIType::OPERAND_RECORD, ProfDBIType::WARP_TIMELINE};
+    ASSERT_EQ(deviceTask.BuildEnabledDbiTypes(), expected);
+}
+
+/**
+ * |  用例集  | DeviceTask
+ * | 测试函数 | DeviceTask::BuildEnabledDbiTypes
+ * |  用例名  | test_BuildEnabledDbiTypes_success_on_950_with_all_metrics
+ * | 用例描述 | 测试950芯片使能全部指标时，返回全部插桩类型列表
+ */
+TEST(DeviceTask, test_BuildEnabledDbiTypes_success_on_950_with_all_metrics) {
+    GlobalMockObject::verify();
+    MOCKER(&Common::HalHelper::GetPlatformType).stubs().will(returnValue(Common::ChipType::ASCEND950));
+    ProfMetricsAbilityConfig metrics;
+    metrics.isMemoryDetail = true;
+    metrics.pcSamplingEnable = true;
+    metrics.pipeTimelineEnable = true;
+    metrics.instrTimelineEnable = true;
+    metrics.isSource = true;
+    ProfArgs args;
+    args.argAicMetrics = metrics;
+    OpDeviceProf opDeviceProf(args);
+    DeviceTask deviceTask{"DeviceProf", opDeviceProf};
+    std::vector<ProfDBIType> expected = {ProfDBIType::OPERAND_RECORD, ProfDBIType::MEMORY_CHART,
+        ProfDBIType::INSTR_PROF_START, ProfDBIType::INSTR_PROF_END, ProfDBIType::INSTR_PROF_DFX, ProfDBIType::BB_COUNT,
+        ProfDBIType::WARP_TIMELINE};
+    ASSERT_EQ(deviceTask.BuildEnabledDbiTypes(), expected);
+}
+
 TEST(DeviceDataParse, Execute_Success)
 {
     std::string sourceDir = "test/ut/resources/op_profiling/device910B";
