@@ -85,10 +85,6 @@ You are welcome to contribute to the community. If you have any questions or sug
 
 ## 🙏 Acknowledgements
 
-This tool is jointly developed by the following Huawei departments:   
-🔹 Ascend Computing MindStudio Development Department   
-🔹 Ascend Computing Ecosystem Enablement Department   
-🔹 Huawei Cloud AI Compute Service  
-🔹 Compiler Technologies Lab, 2012 Labs  
-🔹 Markov Lab, 2012 Labs   
-Thank you to everyone in the community for your PRs. We warmly welcome your contributions.
+This tool is jointly contributed by Huawei Technologies Co., Ltd. and developers.
+
+Thanks for every PR from the community, and contributions are welcome.
