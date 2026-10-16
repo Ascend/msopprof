@@ -26,7 +26,7 @@ The purpose of this document is to design the modules for the operator developme
 | DFX function     | Early process termination                                  | Allows users to end the operator process at a scheduled time.                                                                                                                                                                           | On-board tuning                   |
 | DFX function     | Specified simulator version                                | Allows users to set the simulator version directly.                                                                                                                                                                                     | Simulation tuning                 |
 
- **Detailed features of the code hot spot map**
+ **Detailed Features of the Code Hot Spot Map**
 
 | Feature                                                                            | msOpProf      | msOpProf Simulator |
 | ---------------------------------------------------------------------------------- | ------------- | ------------------ |
@@ -175,13 +175,13 @@ The interaction model for on-board tuning data parsing is as follows.
 5. `OpBasicInfo`: Contains basic operator data such as name and type.
 6. `BasicPmu`: Contains PMU data for each block and memory information.
 7. `PmuCalculator`: Contains a large number of PMU metric calculation formulas.
-8. `CachelineHeatMap`/`MC2TimelineParser`/`StorageAccess` Layer: Metric-specific classes that generate results for cache heatmaps, MC2 pipeline charts, and computing memory heatmaps using common base data.
+8. `CachelineHeatMap`/`MC2TimelineParser`/`StorageAccess` Layer: classes for various metric dimensions, providing the specific metrics to be presented as required.
 9. Cache heat maps, MC2 communication pipeline charts, and computing memory heat maps are obtained, calculated, and assembled from public basic data for presentation.
 10. `DataVisualize`: Populates and displays profile data for various metrics according to the data structure of the visualization module, producing `visualize_data.bin` for display in MindStudio Insight.
 
 ###### 4.1.2.4.2 Simulation Parsing
 
-**1. Parsing dump Files**
+**1. Parsing Dump Files**
 
 Simulation parsing is divided into three steps: parsing, calculation, and visualization. Data is parsed and calculated per core, with each core data stored in a separate `DataCenter` object. After calculation, data from all cores is merged into a single `DataCenter` object for visualization. Since Insight requires a pipeline chart to parse correctly, the pipeline chart (for the whole core and individual cores) is calculated first, followed by the hot spot map.
 
@@ -208,7 +208,7 @@ This module is primarily used to save parsed data to the drive in a specific for
 
 ##### 4.1.3.4 Software Implementation Unit Design
 
-**Code hot spot map**
+**Code Hot Spot Map**
 The hot spot map performs three main tasks:
 
 1. Writing the integrated code hot spot map to the `visualize_data.bin` file
@@ -220,12 +220,12 @@ The hot spot map performs three main tasks:
 
 ![image](./architecture_figures/aa18e26188739b739a336b9f02b81b93_741x620.png)
 
-**Per-core pipeline chart**
+**Per-Core Pipeline Chart**
 The per-core pipeline chart generates a corresponding JSON file for each core. The processing logic for `UserMark` is modified to parse `UserMark` data separately from `DataCenter` and generate per-core JSON files directly in the corresponding core directories.
 
 ![image](./architecture_figures/42ce072b0176e22468f44988463b9602_634x732.png)
 
-**Integrated core pipeline chart**
+**Integrated Core Pipeline Chart**
 
 ![image](./architecture_figures/0445179afe113aca20d9c881bb2e7971_599x563.png)
 
@@ -263,7 +263,7 @@ Responsible for data transmission and communication between basic components (op
 
 ##### 4.1.5.4 Software Implementation Unit Design
 
-Before starting each task, `msopt` defines an `InjectEvent` class to manage requests from the operator side. It calls communication interface methods to receive messages and constructs a `packet` object based on the message type. `InjectEvent` provides a registration interface for external classes to register `Process` methods. When a message is parsed, the corresponding `packet` object is passed to the registered `Process` method for handling.
+Before starting each task, `msopt` defines an `InjectEvent` class to manage requests from the operator side. It calls communication interface methods to receive messages and constructs a `packet` object based on the message type; the `packet` object invokes different parse functions according to the message type and stores the parsed data in its own class variables. `InjectEvent` provides a registration interface for external classes to register `Process` methods. When a message is parsed, the corresponding `packet` object is passed to the registered `Process` method for handling.
 
 ![image](./architecture_figures/c1018e879215315155a838be67be24af_887x556.png)
 
@@ -275,7 +275,7 @@ Before starting each task, `msopt` defines an `InjectEvent` class to manage requ
 
 The plugin module implements hijacking for transfer interfaces, recording their original behavior.
 
-**Interface list**
+**Interface List**
 
 ```C++
 // All GM-related interfaces
@@ -349,7 +349,7 @@ N/A
 
 The collection module focuses on interfaces for external interaction, such as interfaces with the simulator.
 
-**Interface list**
+**Interface List**
 
 ```C++
 void DvcSetLogLevel(const uint32_t file_print_level, const uint32_t screen_print_level, const uint32_t flush_level)
@@ -504,8 +504,8 @@ The plugin records original interface information on the device and stores it in
 
 ![image](./architecture_figures/f02a02a67847d793c2ca85ddeebd034b_971x438.png)
 
-**a.** Records are grouped by block, with each block recording its own data. The first 8 bytes of each block indicate the total number of records, with each additional record incrementing the count by 1, followed by *n* memory records.
-**b.** To ensure successful writing to GM, each block requires 512Bytes of padding.
+**a.** Records are grouped by block, with each block recording its own data. The first 8 bytes of each block indicate the total number of records, with each additional record incrementing the count by 1, followed by *n* memory records. The parsing module parses them one by one according to the record count.
+**b.** To ensure successful writing to GM, each block requires 512 bytes of padding.
 **c.** A maximum of 100 blocks of data can be stored.
 Note: The `set_nd_para` bit is set for some special interfaces, such as `copy_matrix_cc_to_gm_f32`. Before calling `copy_matrix_cc_to_gm_f32`, a user calls `set_nd_para` to set the pre-information. All subsequent calls to `copy_matrix_cc_to_gm_f32` will use this pre-information. The logic here is to reserve the `nd_para` position. Once the user calls the `set_nd_para` interface, the information is recorded. If the interface is called again, the information is updated.
 
@@ -642,10 +642,10 @@ struct MsprofAicpuHcclTaskInfo {
     double durationEstimated;
     uint64_t srcAddr;
     uint64_t dstAddr;
-    uint64_t dataSize; // bytes
-    uint32_t dataType; // data type {0: INT8, 1: INT16, 2: INT32, 3: FP16, 4:FP32, 5:INT64, 6:UINT64}
-    uint32_t linkType; // link type {0: 'OnChip', 1: 'HCCS', 2: 'PCIe', 3: 'RoCE'}
-    uint32_t transportType; // transport type {0: SDMA, 1: RDMA, 2:LOCAL}
+    uint64_t dataSize; // Bytes
+    uint32_t dataType; // Data type {0: INT8, 1: INT16, 2: INT32, 3: FP16, 4:FP32, 5:INT64, 6:UINT64}
+    uint32_t linkType; // Link type {0: 'OnChip', 1: 'HCCS', 2: 'PCIe', 3: 'RoCE'}
+    uint32_t transportType; // Transport type {0: SDMA, 1: RDMA, 2:LOCAL}
     uint32_t rdmaType; // RDMA type {0: RDMASendNotify, 1:RDMASendPayload}
     uint32_t taskId;
     uint16_t streamId;
@@ -674,13 +674,13 @@ N/A
 | --application              | Executable file                                                                                                     | The execute permission is required.                                                                                                                                                                                                                                    | On-board and simulation |
 | --config                   | Absolute or relative path of the binary file `*.o` generated after operator compilation                             | The file permission must be ensured.                                                                                                                                                                                                                                   | On-board and simulation |
 | --kernel-name              | Name of the operator to collect                                                                                     | The value can contain a maximum of 1024 characters from letters, numbers, and underscore (_).                                                                                                                                                                          | On-board and simulation |
-| --launch-count             | Number of operators to collect                                                                                      | The value is an integer ranging from 1 to 100.                                                                                                                                                                                                                         | On-board and simulation |
-| --launch-skip-before-match | Number of operators to skip                                                                                         | The value is an integer ranging from 1 to 1001.                                                                                                                                                                                                                        | On-board                |
+| --launch-count             | Number of operators to collect                                                                                      | The value is an integer ranging from 1 to 5000.                                                                                                                                                                                                                         | On-board and simulation |
+| --launch-skip-before-match | Number of operators to skip                                                                                         | The value is an integer ranging from 0 to 1000.                                                                                                                                                                                                                        | On-board                |
 | --aic-metrics              | Enables collection of operator performance metrics.                                                                 | The meanings vary by on-board and simulation mode.                                                                                                                                                                                                                     | On-board and simulation |
 | --kill                     | Automatically stops the user program after the number of operators set by `--launch-count` is collected.            | The value can be `on` or `off`.                                                                                                                                                                                                                                        | On-board and simulation |
 | --mstx                     | Specifies whether the operator tuning component enables the msTX APIs used in the user code program.                | The value can be `on` or `off`.                                                                                                                                                                                                                                        | On-board and simulation |
 | --mstx-include             | Enables only the msTX APIs specified by the user.                                                                   | This parameter must be used with `--mstx`. The message can only contain letters, digits, and underscores (_). Use vertical bars (\|) to combine multiple messages.                 | On-board and simulation |
-| --replay-mode              | This option specifies the replay mode of operator data collection.  | The value can be `kernel` or `application`. | On-board                |
+| --replay-mode              | This option specifies the replay mode of operator data collection. The value can be `kernel`, `application`, or `range`. The default value is `kernel`. | The value can be `kernel`, `application`, or `range`.| On-board                |
 | --warm-up                  | Number of warm-up times.                                                                                            | The default value is 5. The value range is [0, 500].                                                                                                                                                                                                                   | On-board                |
 | --output                   | Path for storing the collected profile data. By default, the profile data is stored in the current directory.       | Ensure that users in the group and other groups do not have the write permission on the parent directory of the path specified by `--output`. In addition, ensure that the owner of the parent directory of the directory specified by `--output` is the current user. | On-board and simulation |
 | --dump                     | Specifies whether to generate the dump file of the simulator.                                                       | The value can be `on` or `off`.                                                                                                                                                                                                                                        | On-board and simulation |
@@ -733,7 +733,7 @@ The algorithm flow is shown in the figure, with a complexity of `O(N × M)`, whe
 
 **Constraints**
 
-1. The register limit is 32 for Atlas inference products and Atlas A2 training/inference products.
+1. The register limit is 32 for Atlas inference products and Atlas A2 products.
 2. Assume that only instructions in the Scalar pipeline contain DST. Others contain only SRC.
 
 Visualization calculation:
@@ -767,33 +767,34 @@ Communication files with basic components must have strict permission controls.
 
 ##### 4.5.3.1 Identification of High-Risk Modules
 
-| Module                   | Interface Description                                                                              | Security Measure                                                                                                  | Code Directory                                                                                |
+| Module                   | Interface Description                                                                              | High-Risk Module Analysis in the Design Domain                                                                    | Code Directory                                                                                |
 | ------------------------ | -------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
 | Parameter parsing module | Parses and records CLI parameters.                                                        | Validate paths, permissions, and nature of input files and processes.                                             | src/op_profiling/argparser/arg_checker.cpp                                                    |
-| Data parsing module      | Parses raw profile data from the collection module and writes the final profile data to the drive. | Validate raw data file permissions and content. Implement strict permission controls on output performance files. | src/op_profiling/profiling/device/data_parse; src/op_profiling/profiling/simulator/data_parse |
+| Data parsing module      | Parses raw profile data from the collection module and writes the final profile data to the drive. | Validate raw data file permissions and content. Implement strict permission controls on output performance files. | src/op_profiling/profiling/device/data_parse, src/op_profiling/profiling/simulator/data_parse |
 | Communication module     | Manages communication between basic components and the tool side.                                  | Uses anonymous sockets so that socket files are not written to the drive.                                         | src/op_profiling/communication                                                                |
 
 ##### 4.5.3.2 Identification of High-Risk APIs
 
 > The following table lists the APIs identified as high-risk and explains the rationale.
 
-| API               | API Description              | Security Measure                                                                                                              | Code Directory                                  | Language | Remarks |
+| API               | API Description              | High-Risk Interface Function Analysis                                                                                         | Code Directory                                  | Language | Remarks |
 | ----------------- | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- | -------- | ------- |
 | ArgChecker::Check | Parses all input parameters. | Implement comprehensive check on all parameters because different types of input parameters have different validation points. | src/op_profiling/argparser/arg_checker.cpp->L56 | C++      |         |
+| ................. | ............................ | ............................................................................................................................. | ............................................... | ........ | ....... |
 
 #### 4.5.4 Implementation of Security Defenses
 
-**1. Data protection**
+**1. Data Protection**
 N/A
 
-**2. Module dependencies and third-party libraries**
+**2. Module Dependencies and Third-Party Libraries**
 Tool parameters are centrally validated by the `argsChecker` module. Any newly added input must have validation logic implemented in this module.
 
-**3. Error handling**
+**3. Error Handling**
 The system validates input file paths, permissions, symbolic links, illegal characters, write permission, and ownership. If the validation fails, the process terminates immediately.
 Output files are written to the drive with permissions of at least 750 for directories, 640 for files, and 400 for read-only files. If drive writing fails, an error log is generated.
 
-**4. Logging and auditing**
+**4. Logging and Auditing**
 
 1. Do not print file paths in logs.
 2. Do not print ERROR level information during normal operation.
@@ -826,7 +827,7 @@ FUZZ: Performs fuzz testing on all external interfaces.
 | IT    | Integration test | Instrumentation module                               | Ensures that the instrumentation module works correctly across all operators and records memory information.                |
 | IT    | Integration test | Collection module                                    | Verifies the integrity and correctness of collected data.                                                                   |
 | IT    | Integration test | Parsing module                                       | Tests whether the parsing module correctly parses raw data and generates deliverables.                                      |
-| ST    | System test      | Operator type                                       | Covers scenarios for PyTorch, aclnn, and so on, ensuring that performance files are generated correctly.                    |
+| ST    | System test      | Operator type                                       | Covers scenarios for <<<>>>, PyTorch, aclnn, and so on, ensuring that performance files are generated correctly.            |
 | ST    | System test      | Launch modes                                         | Ensures correct data file generation for multi-operator, multi-process, and single-process multi-threaded launch scenarios. |
 
 #### 4.6.5 Key Testing Solutions
@@ -886,7 +887,7 @@ FUZZ: Performs fuzz testing on all external interfaces.
 3. Runtime environment
 
     UT requires x86 machines due to `mockcpp` version limits.
-    ST must run on supported devices: Atlas A2 training/inference products, Atlas A3 training/inference products, and Atlas inference products.
+    ST must run on supported devices: Atlas A2 products, Atlas A3 products, and Atlas inference products.
 
 ## 5. Runtime View
 
@@ -906,13 +907,16 @@ Pay attention to file permissions, memory usage, and execution time during on-bo
 
 ##### 5.1.1.3.1 On-board Profiling
 
-**Hijacking logic**
+**Hijacking Logic**
+
 The main hijacked functions (runtime interfaces corresponding to `aclrt` interfaces) are listed.
 
 ![image](./architecture_figures/1a12bc5385fc2d2751bf3684dc8ef711_606x314.png)
 
-Note: For Atlas inference products, the runtime channel must be opened before hardware interfaces are enabled. The design aligns with msProf by using `dlopen` on `libprof.so` and passing the open command.
-**Handling process**
+Note: For Atlas inference products, the runtime channel must be opened before hardware interfaces are enabled. The design aligns with msProf by using `dlopen` on `libprof.so` and passing the open command, and the channel is opened by prof calling the switch.
+
+**Handling Process**
+
 The tuning tool depends on `libmsopprof_injection.so`. The tool side must notify the child process whether to start simulation or on-board profiling before launching the operator process. (The simulation mode is used as an example.)
 
 ![image](./architecture_figures/428ea3fa9e3357494c0695c49c79c5e5_756x348.png)
@@ -923,7 +927,7 @@ The tuning tool depends on `libmsopprof_injection.so`. The tool side must notify
 4. The user calls `KernelLaunch*`. The stub creates a `ProfDataCollect` object and requests a storage path from the server. If collection is required, the `.o` data corresponding to the handle is copied to the specified path. `rtKernelLaunch` continues, and simulator profile data is also copied to that path.
    On-board profiling follows a similar flow but without recording `.o` information. In the `ProfData` interface, instead of copying data, `KernelReplay` is executed.
 
-**Replay process**
+**Replay Process**
 Currently, there are kernel-level replay, application-level replay, and range-level replay.
 
 1. Kernel-level replay:
@@ -931,7 +935,7 @@ Currently, there are kernel-level replay, application-level replay, and range-le
 
    ![image](./architecture_figures/33e097268e3e2fec3e00bf7d3f11943b_802x293.png)
 2. Application-level replay:
-   Retains L2 cache state from previous operators. Each process launch collects one round of PMU data. Since multiple process launches are used, no memory backup is required.
+   Kernel-level replay flushes the L2 cache, whereas application-level replay retains the L2 cache state from previous operators. Each process launch collects one round of PMU data. Since multiple process launches are used, no memory backup is required.
 3. Range-level replay:
    Enabled via `--replay-mode=range --mstx=on`. The operator range is defined by `mstxRangeStartA` and `mstxRangeEnd`. The target operators within this range are executed multiple times (replayed). Implementation uses `aclmdlRICaptureBegin`, `aclmdlRICaptureEnd`, and `aclmdlRIExecuteAsync`. The tool (basic component) calls `aclmdlRICaptureBegin` when the user calls `mstxRangeStartA`, and calls `aclmdlRICaptureEnd` when the user calls `mstxRangeEnd` to start capturing operators. The tool then runs the task using `aclmdlRIExecuteAsync` and repeatedly calls `aclmdlRIExecuteAsync` to implement replay.
 
@@ -939,7 +943,7 @@ Currently, there are kernel-level replay, application-level replay, and range-le
 
 ##### 5.1.1.3.2 Simulation Collection
 
-**Hijacking logic**
+**Hijacking Logic**
 
 ![image](./architecture_figures/1f3babf8f320f45808062c10f4829f0c_676x393.png)
 
@@ -947,7 +951,7 @@ Simulation library dependencies:
 
 ![image](./architecture_figures/4f2aa7604d013cd8200e9d3dec0e0cb3_554x139.png)
 
-**Processing logic**
+**Processing Logic**
 
 1. Interaction with Camodel
 
@@ -958,12 +962,12 @@ Simulation library dependencies:
 2. Interaction with the tool
 
    a. Profile data is sent back to the tool side for parsing. A queue mechanism and a dedicated thread are used for transmission to minimize latency from large data volumes.
-   b. For multiple operators, only one is parsed at a time to manage memory. Communication requests can be used to parse target operators while unrelated operators are running, reducing end-to-end time.
+   b. For multiple operators, only one is parsed at a time to manage memory. However, in a full network, a customer generally collects only one operator, so in this scenario communication requests can be used to parse target operators while unrelated operators are running, reducing end-to-end time.
    The sequence diagram shows high parallelism between the tool, operator, and simulator.
 
    ![image](./architecture_figures/c05e7daabb8ce6bfefaf9d7f981b3510_616x909.png)
 
-**Dynamic instrumentation**
+**Dynamic Instrumentation**
 
 Function call relationships:
 
@@ -982,14 +986,14 @@ The tuning component requires multiple instrumentation passes to implement diffe
 
    The current solution is to first insert the BBCount stub, run `kernelLaunch` and synchronization to record the required information, then refresh all parameters, and re-run `kernelLaunch` and synchronization with the second stub.
 
-**MC2 operator task pipeline rendering**
+**MC2 Operator Task Pipeline Rendering**
 
 ![image](./architecture_figures/ee49ee40ab6421501678387083daf5bd_1010x619.png)
 
 1. The operator tuning component launches the MC2 operator program. Before the operator main program executes, it first calls the `MsprofRegisterCallBack` interface in `profapi.so`. The basic component needs to hijack this interface to register the tuning switch callback function, enabling the reporting of MC2 AI Core tasks and communication tasks.
 2. Communication tasks are reported by calling the `MsprofReportAdditionalInfo` interface in `profapi.so`. The tool needs to hijack this and save the communication task pipeline binary file.
 3. Operator kernel function replay is performed, ensuring thread synchronization across all devices at the beginning and end of each replay. During the final replay, the binary file containing HCCL pipeline and AI CPU task pipeline data is recorded.
-4. After the operator kernel function replay, the AI Core task pipeline is reported by calling the `MsprofReportAdditionalInfo` interface in `profapi.so`. The tool needs to hijack this and save the AI Core task pipeline binary file.
+4. After the operator kernel function replay, the AI Core task pipeline is reported by calling the `MsprofReportAddtionalInfo` interface in `profapi.so`. The tool needs to hijack this and save the AI Core task pipeline binary file.
 
 #### 5.1.2 Parsing Module
 
@@ -1005,7 +1009,7 @@ Ensure that the permissions of the files written to the drive comply with securi
 
 ###### 5.1.2.3.1 Simulation
 
-**Simulation code hot spot map**
+**Simulation Code Hot Spot Map**
 
 ![image](./architecture_figures/97bc6c3118b9d9963b644bf344bc47a9_1190x591.png)
 
@@ -1015,7 +1019,7 @@ Visualization calculation:
 2. New column **GPR Count**: The number of registers occupied per code line in the code bar is the value of registers occupied by all instructions contained in that line.
 3. New columns **UB Conflict Read** and **UB Conflict Write**: Read/write conflicts per code line in the code bar is the sum of read/write conflicts of all instructions contained in that line. The instruction bar uses the actual data volume of the instruction itself.
 
-**MC2 instruction pipeline rendering**
+**MC2 Instruction Pipeline Rendering**
 
 ![image](./architecture_figures/4d3d83b9ba3452f568ca875a6fba0f22_600x543.png)
 
@@ -1029,7 +1033,7 @@ MC2 operators run on multiple devices. Therefore, the artifacts collected by the
 
 ###### 5.1.2.3.2 On-board
 
-**Real-time parsing**
+**Real-time Parsing**
 
 1. When a task is started, the `MteParser` object is initialized, and the `MtePlugin` and `DataCenter` objects are constructed accordingly.
 
@@ -1041,9 +1045,10 @@ MC2 operators run on multiple devices. Therefore, the artifacts collected by the
 
    ![image](./architecture_figures/3cb0ff74e5f415ca79f81475417e9b8c_549x424.png)
 
-   **Dump file parsing**
+   **Dump File Parsing**
+
    The overall process can be viewed as three stages: parsing, calculation, and visualization. After the input data is validated, the file is first parsed with core granularity, and the data on each core is parsed and registered into `DataCenter`. After this step, `DataCenter` contains complete instruction, ICache, and `userMark` data information.
-   In the plugin-based calculation, further calculations are performed on the instruction details in each `DataCenter` to obtain data such as `gpr` and `ubread`, and the corresponding data values in the `DataCenter` are updated. After this step, all information for subsequent visualization is available.
+   In the plugin-based calculation, further calculations are performed on the instruction details in each `DataCenter` to obtain data such as `gpr` and `ubread`, and the corresponding data values in the `DataCenter` are updated. After this step, all information for subsequent visualization is available. After the calculation is complete, the data of each core is aggregated into one `DataCenter` to facilitate visualization.
    The visualization step parses the data in the `DataCenter`, extracts the corresponding data, and calculates the hot spot map and pipeline chart. Currently, MindStudio Insight has constraints requiring that the pipeline chart be rendered before the hot spot map for correct display.
 
    ![image](./architecture_figures/c25a835f49bbef90ca85052b158dcc94_543x598.png)

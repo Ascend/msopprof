@@ -1,3 +1,4 @@
+
 # MindStudio Ops Profiler Quick Start
 
 <br>
@@ -7,7 +8,7 @@
 The msOpProf performance analysis tool is used to collect and analyze key performance metrics of operators running on Ascend AI Processors. You can efficiently locate software and hardware performance bottlenecks of operators based on the output performance data, thereby enhancing the overall efficiency of operator performance analysis.
 This document demonstrates the core functions of msOpProf based on the simple addition operator developed in the introductory tutorial. It helps beginners intuitively experience the efficiency and convenience that the tool brings to the operator development process.
 
-This document assumes that you have completed all operations in <a href="https://gitcode.com/Ascend/msot/blob/26.1.0/docs/en/quick_start/op_tool_quick_start.md" target="_blank">Operator Development Toolchain Quick Start</a>. If you have not done so, complete that guide first for a better learning experience.
+This document assumes that you have completed all operations in <a href="https://atomgit.com/Ascend/msot/blob/26.2.0/docs/en/quick_start/op_tool_quick_start.md" target="_blank">Operator Development Toolchain Quick Start</a>. If you have not done so, complete that guide first for a better learning experience.
 
 ## 2. Procedure
 
@@ -19,7 +20,7 @@ This tutorial **supports only** standardized CANN container environments. It is 
 #### 2.1.1 Installing the CANN Container Environment
 
 ✅ **Strictly follow the guide to complete the environment installation:**
-👉 **the <a href="https://gitcode.com/Ascend/msot/blob/26.1.0/docs/en/quick_start/installation_guide.md" target="_blank">Ascend AI Operator Development Toolchain Learning Environment Installation Guide</a>**
+👉 **the <a href="https://atomgit.com/Ascend/msot/blob/26.2.0/docs/en/quick_start/installation_guide.md" target="_blank">Ascend AI Operator Development Toolchain Learning Environment Installation Guide</a>**
 
 > ⏱️ **Estimated time in an environment with external network access: about 3 minutes**
 > After the installation, you will get a standardized container environment with all operator tools, sample code, and dependent libraries preinstalled.
@@ -37,7 +38,7 @@ Before the hands-on experience, **copy the entire script and paste it into the t
 
 ### 2.2 [Prerequisite] Completing Operator Project Preparation
 
-Follow section 2.3 in <a href="https://gitcode.com/Ascend/msot/blob/26.1.0/docs/en/quick_start/op_tool_quick_start.md#23-development-building-the-operator-project-msopgen" target="_blank">Operator Development Toolchain Quick Start</a> to complete the operator project preparation.
+Follow section 2.3 in <a href="https://atomgit.com/Ascend/msot/blob/26.2.0/docs/en/quick_start/op_tool_quick_start.md#23-development-building-the-operator-project-msopgen" target="_blank">Operator Development Toolchain Quick Start</a> to complete the operator project preparation.
 
 ### 2.3 [Tuning] Analyzing Operator Performance (msOpProf)
 
@@ -86,11 +87,11 @@ msopprof --output=./msopprof_output_npu ./execute_add_op
 ##### 2.3.2.2 Performance Collection on Simulator
 
 > [!NOTE]
-> 
-> The value of the `--soc-version` parameter can be obtained by running `python3 -c "import acl; print(acl.get_soc_name())"`.
+>
+> The value of the `--soc-version` parameter can be obtained by running `python3 -c "import acl; print(acl.get_soc_name())"`. xxxyy indicates the type of the processor actually used.
 
 ```shell
-msopprof simulator --soc-version={Ascendxxxyy} --output=./msopprof_output_sim ./execute_add_op
+msopprof simulator --soc-version=Ascendxxxyy --output=./msopprof_output_sim ./execute_add_op
 ```
 
 #### 2.3.3 Viewing Performance Data Results
@@ -121,12 +122,12 @@ The aforementioned `.bin` file can be opened using the MindStudio Insight tool t
 
 ##### 2.3.4.1 Installing MindStudio Insight
 
-Refer to the <a href="https://gitcode.com/Ascend/msinsight/blob/26.1.0/docs/en/install_guide/mindstudio_insight_install_guide.md" target="_blank">MindStudio Insight Tool Documentation</a> to install the tool.
+Refer to the <a href="https://atomgit.com/Ascend/msinsight/blob/26.2.0/docs/en/install_guide/mindstudio_insight_install_guide.md" target="_blank">MindStudio Insight Tool Documentation</a> to install the tool.
 
 ##### 2.3.4.2 Viewing with MindStudio Insight
 
 MindStudio Insight is a standalone application after installation. Perform the following operations: click **Import Data** in the upper left corner, import `visualize_data.bin`, and then open the **Details** page to see various detailed charts.
-For detailed operations and the specific meanings of the charts, refer to the <a href="https://gitcode.com/Ascend/msinsight/blob/26.1.0/docs/en/user_guide/basic_operations.md" target="_blank">MindStudio Insight Tool Documentation</a>.
+For detailed operations and the specific meanings of the charts, refer to the <a href="https://atomgit.com/Ascend/msinsight/blob/26.2.0/docs/en/user_guide/basic_operations.md" target="_blank">MindStudio Insight Tool Documentation</a>.
 
 #### 2.3.5 Restoring Modified Files
 

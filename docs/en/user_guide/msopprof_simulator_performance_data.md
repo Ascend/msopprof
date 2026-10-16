@@ -85,7 +85,7 @@ The `visualize_data.bin` file is a visualization file for presenting simulation 
 
 ![](../figures/msopprof-simulator-source-code-page.png "Operator code hot spot map")
 
-For the import operation in MindStudio Insight, see [Importing Profile Data](https://gitcode.com/Ascend/msinsight/blob/26.1.0/docs/en/user_guide/basic_operations.md#importing-data) in the *MindStudio Insight User Guide*.
+For the import operation in MindStudio Insight, see [Importing Profile Data](https://atomgit.com/Ascend/msinsight/blob/26.2.0/docs/en/user_guide/basic_operations.md#importing-data) in the *MindStudio Insight User Guide*.
 
 ---
 
@@ -108,4 +108,4 @@ The `trace.json` file can be viewed in the following ways:
 >
 > - The `trace.json` file of a single core displays only the instruction pipeline of that core.
 > - The summary `trace.json` file displays the instruction pipeline chart summary of all cores.
-> - If you only need to focus on the performance of some operators, invoke the `TRACE_START` and `TRACE_STOP` interfaces in a single core and add `-DASCENDC_TRACE_ON` to the compilation configuration file. This generates pipeline chart information in the specified range. For details about the interfaces, see [Operator Debugging APIs](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/910/API/ascendcopapi/docs/api/Utils-API/%E8%B0%83%E6%B5%8B%E6%8E%A5%E5%8F%A3/TRACE_START.md) in the *Ascend C Operator Development API*.
+> - If you only need to focus on the performance of some operators, invoke the `TRACE_START` and `TRACE_STOP` interfaces in a single core and add `-DASCENDC_TRACE_ON` to the compilation configuration file. This generates pipeline chart information in the specified range. For details about the interfaces, see [TRACE_START](https://www.hiascend.com/document/detail/en/CANNCommunityEdition/latest/API/ascendcopapi/docs/en/api/Utils-API/tuning_interface/TRACE_START.md) and [TRACE_STOP](https://www.hiascend.com/document/detail/en/CANNCommunityEdition/latest/API/ascendcopapi/docs/en/api/Utils-API/tuning_interface/TRACE_STOP.md) in the *Ascend C Operator Development API*.

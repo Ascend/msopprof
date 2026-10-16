@@ -26,39 +26,41 @@ echo 2 > /proc/sys/kernel/randomize_va_space
 
  2. Proper permission control is essential during installation and use. For details, see the following table.
 
-## File Permission Reference 
+    **File Permission Reference**
 
-| Type                              | Maximum Linux Permissions|
-| ---------------------------------- | ------------------- |
-| Home directory                        | 750 (rwxr-x---)   |
-| Program files (including scripts and library files)    | 550 (r-xr-x---)   |
-| Program file directory                      | 550 (r-xr-x---)   |
-| Configuration files                          | 640 (rw-r-----)   |
-| Configuration file directory                      | 750 (rwxr-x---)   |
-| Log files (recorded or archived)    | 440 (r--r-----)   |
-| Log files (being recorded)                | 640 (rw-r-----)   |
-| Log file directory                      | 750 (rwxr-x---)   |
-| Debug files                         | 640 (rw-r-----)   |
-| Debug file directory                     | 750 (rwxr-x---)   |
-| Temporary file directory                      | 750 (rwxr-x---)   |
-| Maintenance and upgrade file directory                  | 770 (rwxrwx---)   |
-| Service data files                        | 640 (rw-r-----)   |
-| Service data file directory                  | 750 (rwxr-x---)   |
-| Key components, private keys, certificates, and ciphertext file directory| 700 (rwx------)   |
-| Key components, private keys, certificates, and ciphertext files    | 600 (rw-------)   |
-| Interfaces and scripts for encryption and decryption            | 500 (r-x------)   |
+    | Type                              | Maximum Linux Permissions|
+    | ---------------------------------- | ------------------- |
+    | Home directory                        | 750 (rwxr-x---)   |
+    | Program files (including scripts and library files)    | 550 (r-xr-x---)   |
+    | Program file directory                      | 550 (r-xr-x---)   |
+    | Configuration files                          | 640 (rw-r-----)   |
+    | Configuration file directory                      | 750 (rwxr-x---)   |
+    | Log files (recorded or archived)    | 440 (r--r-----)   |
+    | Log files (being recorded)                | 640 (rw-r-----)   |
+    | Log file directory                      | 750 (rwxr-x---)   |
+    | Debug files                         | 640 (rw-r-----)   |
+    | Debug file directory                     | 750 (rwxr-x---)   |
+    | Temporary file directory                      | 750 (rwxr-x---)   |
+    | Maintenance and upgrade file directory                  | 770 (rwxrwx---)   |
+    | Service data files                        | 640 (rw-r-----)   |
+    | Service data file directory                  | 750 (rwxr-x---)   |
+    | Key components, private keys, certificates, and ciphertext file directory| 700 (rwx------)   |
+    | Key components, private keys, certificates, and ciphertext files    | 600 (rw-------)   |
+    | Interfaces and scripts for encryption and decryption            | 500 (r-x------)   |
 
-## Vulnerability Security Statement 
+## Vulnerability Security Statement
 
 For details, see [MindStudio Vulnerability Handling Mechanism Description](./vulnerability_handling_procedure.md).
 
 ## Data Security
 
-1. During tool use, some functions related to code lines may access customer operator code. If the operator code must remain confidential and cannot be leaked, delete the corresponding deliverables in a timely manner after use to prevent information leakage.
+During tool use, some functions related to code lines may access customer operator code. If the operator code must remain confidential and cannot be leaked, delete the corresponding deliverables in a timely manner after use to prevent information leakage.
 
 ## Build Security
 
-This tool supports building from source. During the build process, the system downloads third-party dependencies, executes shell build scripts, and generates temporary program files and build directories. To reduce security risks, you can perform permission control on files within the source code directory. During the build process, you can modify build scripts as needed to avoid security risks and ensure the security of the build results.
+- This tool supports building from source. During the build process, the system downloads third-party dependencies, executes shell build scripts, and generates temporary program files and build directories. To reduce security risks, you can perform permission control on files within the source code directory. During the build process, you can modify build scripts as needed to avoid security risks and ensure the security of the build results.
+
+- This repository provides reference configurations for VS Code and devcontainers to facilitate development and debugging. Use them only for development and debugging of this repository in a secure debugging environment. In addition, check the security of the configurations yourself and adjust them based on actual requirements.
 
 ## Runtime Security
 
@@ -66,9 +68,11 @@ This tool supports building from source. During the build process, the system do
 
 2. If an exception occurs during operation, the tool will exit the process and print error messages. This is expected behavior. You are advised to locate the specific cause of the error based on the error prompts, such as by viewing log files or result files generated during the collection and parsing process.
 
-3. During tool use, no security validation is performed on the user-input programs. You need to ensure the security of the programs.
+3. During tool use, the tool checks the owner and the write permissions for `group` and `others` of the directory containing the user-input program, and outputs an alert when an anomaly is detected. This check is not equivalent to validating the program content. You must still ensure that the program is secure and trustworthy.
 
 4. During operation, the tool loads `.so` files from `LD_LIBRARY_PATH`. Before using the tool, ensure that the content of the `LD_LIBRARY_PATH` environment variable is secure and trustworthy, that the paths it points to do not involve symbolic links, and that the permissions and owners meet security expectations and cannot be tampered with by third parties. Otherwise, there is a risk of arbitrary code injection.
+
+5. When the collected MTE logs are incomplete and the instruction type cannot be determined, the tool skips the throughput calculation for that instruction and does not display the related data. You are advised to ensure that the log collection is complete.
 
 ## Public Network Addresses
 

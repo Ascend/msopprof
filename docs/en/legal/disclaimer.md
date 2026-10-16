@@ -11,4 +11,4 @@
 
 ## To Data Owners
 
-If you do not want your model or dataset to be mentioned in this tool, or if you wish to update its description, please submit an issue on GitCode. We will delete or update your description according to your request. Thank you for your understanding and contribution to this tool.
+If you do not want your model or dataset to be mentioned in this tool, or if you wish to update its description, please submit an issue on AtomGit. We will delete or update your description according to your request. Thank you for your understanding and contribution to this tool.

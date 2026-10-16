@@ -4,7 +4,7 @@
 
 ## 1. Contribution Process and Specifications
 
-Before the development, familiarize yourself with the contribution process and specifications. For details, see [Contribution Process and Specifications](https://gitcode.com/Ascend/msot/blob/master/docs/en/common/contribute_workflow.md).
+Before the development, familiarize yourself with the contribution process and specifications. For details, see [Contribution Process and Specifications](https://atomgit.com/Ascend/msot/blob/26.2.0/docs/en/common/contribute_workflow.md).
 
 ## 2. Development Guide
 

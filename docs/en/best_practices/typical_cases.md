@@ -4,12 +4,12 @@
 
 **Overview**
 
-This section demonstrates how to use the instruction pipeline charts of the msOpProf tool to analyze operator bottlenecks and optimize the performance of Vector operators.
+This section demonstrates how to use the instruction pipeline charts of the msOpProf tool to analyze operator bottlenecks and optimize operator performance.
 
 **Procedure**
 
-1. Import the `visualize_data.bin` file obtained from the operator simulation profile to MindStudio Insight by referring to the [msOpProf Simulator User Guide](../user_guide/msopprof_simulator_user_guide.md). For details, see [Importing Profile Data](https://gitcode.com/Ascend/msinsight/blob/26.1.0/docs/en/user_guide/basic_operations.md#importing-data) in the *MindStudio Insight User Guide*. <a id="import-data"></a>
-2. View the operator instruction pipeline chart.
+1. Import the `visualize_data.bin` file obtained from the operator simulation profile to MindStudio Insight by referring to the [msOpProf Simulator User Guide](../user_guide/msopprof_simulator_user_guide.md). For details, see [Importing Profile Data](https://atomgit.com/Ascend/msinsight/blob/26.2.0/docs/en/user_guide/basic_operations.md#importing-data) in the *MindStudio Insight User Guide*. <a id="import-data"></a>
+2. Take a Vector operator snippet as an example and view the operator instruction pipeline chart.
 
     It can be found that the MTE2 pipeline does not execute the transfer instruction during VADD computation, making it the performance bottleneck of the operator. To optimize operator performance, the transfer efficiency of the MTE2 pipeline needs to be improved.
 
@@ -40,7 +40,7 @@ This section demonstrates how to use the msOpProf tool and the msTX APIs to impl
 
 **Preparations**
 
-Prepare the operator project and add msTX extended APIs to the operator code to define the range for range-level replay. For details, see [msTX Extended Functions](../user_guide/extended_functions.md#mstx-extended-functions) and the [MindStudio msTX API Reference](https://gitcode.com/Ascend/mstx/blob/26.1.0/docs/en/api_reference/README.md).
+Prepare the operator project and add msTX extended APIs to the operator code to define the range for range-level replay. For details, see [msTX Extended Functions](../user_guide/extended_functions.md#mstx-extended-functions) and the [MindStudio msTX API Reference](https://atomgit.com/Ascend/mstx/blob/26.2.0/docs/en/api_reference/README.md).
 
 > [!NOTE]
 >
@@ -89,10 +89,10 @@ mstx.range_end(range2_id)
     1. Run the following command to enable a single msTX API range. The following command performs range-level replay for `range1`.
 
         ```shell
-        msprof op --replay-mode=range --mstx=on --mstx-include="range1" --launch-count=10 python3 test.py
+        msopprof --replay-mode=range --mstx=on --mstx-include="range1" --launch-count=10 python3 test.py
         ```
 
-    2. The tool generates the tuning data of the `Sub` and `Mul` operators, and the L2 cache information between the two operators is retained. For details about the profile files, see [Table 2 msopprof files](../user_guide/msopprof_user_guide.md#usage-description).
+    2. The tool generates the tuning data of the `Sub` and `Mul` operators, and the L2 cache information between the two operators is retained. For details about the profile files, see [Table 4 msOpProf mode files](../user_guide/msopprof_user_guide.md#tool-usage).
 
         ```tex
         OPPROF_{timestamp}_XXX
@@ -112,10 +112,10 @@ mstx.range_end(range2_id)
     1. Run the following command to enable all msTX APIs:
 
         ```shell
-        msprof op --replay-mode=range --mstx=on --launch-count=10 python3 test.py
+        msopprof --replay-mode=range --mstx=on --launch-count=10 python3 test.py
         ```
 
-    2. The tool executes range-level replay for `range1` and `range2` sequentially, generating tuning data for `Sub`, `Mul`, `Div`, `Abs`, and `Add` operators. The L2 cache information during each replay is retained, but the L2 cache information during two replays is independent of each other. However, because `range2` and `range3` overlap, only the first range takes effect, and `range3` is invalid. For details about the profile files, see [Table 2 msopprof files](../user_guide/msopprof_user_guide.md#usage-description).
+    2. The tool executes range-level replay for `range1` and `range2` sequentially, generating tuning data for `Sub`, `Mul`, `Div`, `Abs`, and `Add` operators. The L2 cache information during each replay is retained, but the L2 cache information during two replays is independent of each other. However, because `range2` and `range3` overlap, only the first range takes effect, and `range3` is invalid. For details about the profile files, see [Table 4 msOpProf mode files](../user_guide/msopprof_user_guide.md#tool-usage).
 
         ```tex
         OPPROF_{timestamp}_XXX

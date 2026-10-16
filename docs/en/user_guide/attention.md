@@ -3,7 +3,7 @@
 ## Environment Constraints
 
 - msOpProf depends on the `msopprof` executable file in the CANN package. The API usage in this file is the same as that in `msprof op`. This file is provided by the CANN package and does not need to be installed separately.
-- To use the MindStudio Insight tool to view files output by msOpProf, you need to install the MindStudio Insight software package separately. For installation steps, see the [MindStudio Insight Installation Guide](https://gitcode.com/Ascend/msinsight/blob/26.1.0/docs/en/install_guide/mindstudio_insight_install_guide.md).
+- To use the MindStudio Insight tool to view files output by msOpProf, you need to install the MindStudio Insight software package separately. For installation steps, see the [MindStudio Insight Installation Guide](https://atomgit.com/Ascend/msinsight/blob/26.2.0/docs/en/install_guide/mindstudio_insight_install_guide.md).
 
 ## Running Constraints
 
@@ -18,8 +18,8 @@
 
 ## Security Precautions
 
-- You need to ensure the execution security of executable files or applications.
-  - You are advised to restrict the operation permission on executable files or applications to avoid privilege escalation risks.
+- You need to ensure the execution security of executable files or applications (*application*).
+  - You are advised to restrict the operation permission on executable files or applications (*application*) to avoid privilege escalation risks.
   - Avoid high-risk operations (such as deleting files, deleting directories, changing passwords, and running privilege escalation commands) to prevent security risks.
 - The tool loads shared libraries (`.so` files) from `LD_LIBRARY_PATH` while running. Before using the tool, ensure that the `LD_LIBRARY_PATH` environment variable is safe and trustworthy, the paths it points to do not involve soft links, and the permissions and owners of the paths meet security expectations and cannot be tampered with by third parties. Otherwise, arbitrary code injection may occur.
 

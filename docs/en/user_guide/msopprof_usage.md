@@ -6,14 +6,14 @@
 
 This section demonstrates how to use msOpProf to collect profile data of Ascend C operators invoked through the kernel launch method, using the kernel call operator `<<<>>>` as an example.
 
-For more details on kernel launch scenarios, refer to [Kernel Launch Operator Development](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/910/programug/Ascendcopdevg/docs/guide/%E7%BC%96%E7%A8%8B%E6%8C%87%E5%8D%97/%E9%99%84%E5%BD%95/%E5%9F%BA%E4%BA%8E%E6%A0%B7%E4%BE%8B%E5%B7%A5%E7%A8%8B%E5%AE%8C%E6%88%90Kernel%E7%9B%B4%E8%B0%83.md) in the *Ascend C Operator Development Guide*.
+For more details on kernel launch scenarios, refer to [Direct Kernel Invocation Based on a Sample Project](https://www.hiascend.com/document/detail/en/CANNCommunityEdition/latest/programug/Ascendcopdevg/docs/en/guide/programming_guide/appendix/completing_kernel_launch_based_on_sample_project.md) in the *Ascend C Operator Development Guide*.
 
 **Prerequisites**
 
-- Click [Add Sample](https://gitcode.com/cann/asc-devkit/tree/9.0.0/examples/01_simd_cpp_api/00_introduction/01_add/basic_api_tque_add) to obtain the sample project, using the Add vector addition operator as an example.
+- Click [Add Sample](https://atomgit.com/cann/asc-devkit/tree/9.0.0/examples/01_simd_cpp_api/00_introduction/01_add/basic_api_tque_add) to obtain the sample project, using the Add vector addition operator as an example.
 
     ```shell
-    git clone https://gitcode.com/cann/asc-devkit.git -b 9.0.0
+    git clone https://atomgit.com/cann/asc-devkit.git -b 9.0.0
     ```
 
 - Refer to [Preparations](../user_guide/msopprof_user_guide.md#preparations) in the msOpProf mode user guide and [Preparations](../user_guide/msopprof_simulator_user_guide.md#preparations) in the msOpProf simulator mode user guide to configure the relevant environment variables for collecting operator on-board and simulation tuning data.
@@ -31,10 +31,10 @@ For more details on kernel launch scenarios, refer to [Kernel Launch Operator De
     >
     > The executable file name (`add`) in this example is for illustration only. Use the actual file name based on the compilation script in your current project.
 
-2. Run the following command to collect on-board profile data and detailed tuning data using msOpProf. You can also refer to the [msOpProf mode commands](https://gitcode.com/Ascend/msopprof/blob/26.1.0/docs/en/user_guide/msopprof_user_guide.md#command-reference) for other command options.
+2. Run the following command to collect on-board profile data and detailed tuning data using msOpProf. You can also refer to the [msOpProf mode commands](https://atomgit.com/Ascend/msopprof/blob/26.2.0/docs/en/user_guide/msopprof_user_guide.md#command-reference) for other command options.
 
     ```shell
-    msprof op add
+    msopprof add
     ```
 
 3. Modify the `CMakeLists.txt` compilation file of the sample project to build an operator executable file that can run on the simulator. After compilation, the executable file `add_sim` is generated in the project directory.
@@ -42,7 +42,7 @@ For more details on kernel launch scenarios, refer to [Kernel Launch Operator De
     ```shell
     target_compile_options(add_sim PRIVATE
         $<$<COMPILE_LANGUAGE:ASC>:--npu-arch=dav-XXXX>          # Select the corresponding npu-arch parameter based on the actual NPU hardware architecture
-        -g                                                      # Enable this compilation option for code hotspot analysis and other features
+        -g                                                      # Enable this compilation option for code hot spot analysis and other features
         -O2
     )
     target_link_directories(add_sim PRIVATE
@@ -54,14 +54,14 @@ For more details on kernel launch scenarios, refer to [Kernel Launch Operator De
     )
     ```
 
-4. Run the following command to collect msOpProf simulator profile data, pipeline charts, and hotspot data. You can also refer to the [msOpProf simulator mode commands](https://gitcode.com/Ascend/msopprof/blob/26.1.0/docs/en/user_guide/msopprof_simulator_user_guide.md#command-reference) for other command options.
+4. Run the following command to collect msOpProf simulator profile data, pipeline charts, and hot spot data. You can also refer to the [msOpProf simulator mode commands](./msopprof_simulator_user_guide.md#command-reference) for other command options.
 
     > [!NOTE]
-    > 
+    >
     > The value of the `--soc-version` parameter can be obtained by running the following command: `python3 -c "import acl; print(acl.get_soc_name())"`.
 
     ```shell
-    msprof op simulator --soc-version=Ascendxxxyy add_sim
+    msopprof simulator --soc-version=Ascendxxxyy add_sim
     ```
 
 5. The following screen output indicates that operator profile data collection is successful.
@@ -70,7 +70,7 @@ For more details on kernel launch scenarios, refer to [Kernel Launch Operator De
     [INFO] Profiling running finished. All task success.
     ```
 
-6. To view the on-board and simulation profile data, import the collected `visualize_data.bin` file into MindStudio Insight. For detailed import instructions, refer to [Importing Data](https://gitcode.com/Ascend/msinsight/blob/26.1.0/docs/en/user_guide/basic_operations.md#importing-data) in the *MindStudio Insight User Guide*.
+6. To view the on-board and simulation profile data, import the collected `visualize_data.bin` file into MindStudio Insight. For detailed import instructions, refer to [Importing Data](https://atomgit.com/Ascend/msinsight/blob/26.2.0/docs/en/user_guide/basic_operations.md#importing-data) in the *MindStudio Insight User Guide*.<a id="import-data"></a>
 
     > [!NOTE]
     >
@@ -82,17 +82,17 @@ For more details on kernel launch scenarios, refer to [Kernel Launch Operator De
 
 This section demonstrates how to use msOpProf to collect profile data of a single operator invoked through an API call, using a custom operator project and an ACLNN single operator API call as examples.
 
-For more details on single operator API call scenarios, refer to the **Engineering Operator Development** > [Single Operator API Call](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/910/programug/Ascendcopdevg/docs/guide/%E7%BC%96%E7%A8%8B%E6%8C%87%E5%8D%97/%E9%AB%98%E7%BA%A7%E7%BC%96%E7%A8%8B/Aclnn%E7%AE%97%E5%AD%90%E5%B7%A5%E7%A8%8B%E5%8C%96%E5%BC%80%E5%8F%91/%E5%8D%95%E7%AE%97%E5%AD%90API%E8%B0%83%E7%94%A8.md) in the *Ascend C Operator Development Guide*.
+For more details on single operator API call scenarios, refer to the **Engineering Operator Development** > [Single Operator API Call](https://www.hiascend.com/document/detail/en/CANNCommunityEdition/latest/programug/Ascendcopdevg/docs/en/guide/programming_guide/advanced_programming/aclnn_operator_development/single_operator_api_call.md) in the *Ascend C Operator Development Guide*.
 
 **Prerequisites**
 
-- Click [Custom Operator Project Sample](https://gitcode.com/cann/asc-devkit/tree/9.0.0/examples/01_simd_cpp_api/02_features/00_compilation/custom_op/) to obtain a custom operator project.
+- Click [Custom Operator Project Sample](https://atomgit.com/cann/asc-devkit/tree/9.0.0/examples/01_simd_cpp_api/02_features/00_compilation/custom_op/) to obtain a custom operator project.
 
 - Refer to [Preparations](../user_guide/msopprof_user_guide.md#preparations) in the msOpProf mode user guide and [Preparations](../user_guide/msopprof_simulator_user_guide.md#preparations) in the msOpProf simulator mode user guide to configure the relevant environment variables for collecting operator on-board and simulation tuning data.
 
 **Procedure**
 
-1. Based on the [sample project instructions](https://gitcode.com/cann/asc-devkit/blob/9.0.0/examples/01_simd_cpp_api/02_features/00_compilation/custom_op/README.md), complete the compilation, packaging, and deployment of the custom operator.
+1. Based on the [sample project instructions](https://atomgit.com/cann/asc-devkit/blob/9.0.0/examples/01_simd_cpp_api/02_features/00_compilation/custom_op/README.md), complete the compilation, packaging, and deployment of the custom operator.
 
     ```shell
     mkdir -p build && cd build
@@ -100,7 +100,7 @@ For more details on single operator API call scenarios, refer to the **Engineeri
     ./custom_opp_*.run
     ```
 
-2. Based on the [ACLNN single operator API call sample](https://gitcode.com/cann/asc-devkit/blob/9.0.0/examples/01_simd_cpp_api/02_features/01_invocation/aclnn_invocation/README.md), build the operator executable file. After compilation, the executable file `execute_add_op` is generated in the project directory. This file can run on both Ascend devices and the simulator.
+2. Based on the [ACLNN single operator API call sample](https://atomgit.com/cann/asc-devkit/blob/9.0.0/examples/01_simd_cpp_api/02_features/01_invocation/aclnn_invocation/README.md), build the operator executable file. After compilation, the executable file `execute_add_op` is generated in the project directory. This file can run on both Ascend devices and the simulator.
 
     ```shell
     mkdir -p build; cd build
@@ -110,24 +110,24 @@ For more details on single operator API call scenarios, refer to the **Engineeri
 3. Run the following command to collect on-board profile data and detailed tuning data using msOpProf.
 
     ```shell
-    msprof op execute_add_op
+    msopprof execute_add_op
     ```
     
-4. Run the following command to collect msOpProf simulator profile data, pipeline charts, and hotspot data.
+4. Run the following command to collect msOpProf simulator profile data, pipeline charts, and hot spot data.
 
     > [!NOTE]
-    > 
+    >
     > The value of the `--soc-version` parameter can be obtained by running the following command: `python3 -c "import acl; print(acl.get_soc_name())"`.
 
     ```shell
-    msprof op simulator --soc-version=Ascendxxxyy execute_add_op
+    msopprof simulator --soc-version=Ascendxxxyy execute_add_op
     ```
 
 ## Collecting Profile Data of PyTorch Framework Operators
 
 **Overview**
 
-For scenarios involving single operator invocation through the PyTorch framework, refer to the `OpPlugin` plugin in the [TorchNPU Supporting Software Libraries](https://www.hiascend.com/document/detail/en/Pytorch/2610/userguide/SuppLib/FrameworkPTAdapter/26.1.0/en/supported_suites_and_third_party_libraries/supported_suites_and_third_party_libraries.md).
+For scenarios involving single operator invocation through the PyTorch framework, refer to the `OpPlugin` plugin in the [TorchNPU Supporting Software Libraries](https://atomgit.com/Ascend/docs/blob/master/FrameworkPTAdapter/26.1.0/en/supported_suites_and_third_party_libraries/supported_suites_and_third_party_libraries.md).
 
 In PyTorch framework operator invocation scenarios, the procedure for collecting profile data is essentially the same as that for the [Triton operator collection scenario](#collecting-profile-data-of-triton-operators).
 
@@ -139,7 +139,7 @@ This section demonstrates how to use msOpProf to collect profile data of Triton 
 
 **Prerequisites**
 
-- Click [triton-ascend Quick Start](https://gitcode.com/Ascend/triton-ascend/blob/main/docs/en/quick_start.md) to complete the installation and configuration of Triton and the Triton-Ascend plugin.
+- Click [triton-ascend Quick Start](https://atomgit.com/Ascend/triton-ascend/blob/main/docs/en/quick_start.md) to complete the installation and configuration of Triton and the Triton-Ascend plugin.
 
 - Prepare a Triton operator implementation file. If you have not prepared a Triton operator yet, refer to the example in the procedure below.
 
@@ -175,17 +175,17 @@ This section demonstrates how to use msOpProf to collect profile data of Triton 
 2. Run the following command to collect on-board profile data and detailed tuning data using msOpProf.
 
     ```shell
-    msprof op python3 test_add.py
+    msopprof python3 test_add.py
     ```
 
-3. Run the following command to collect msOpProf simulator profile data, pipeline charts, and hotspot data.
+3. Run the following command to collect msOpProf simulator profile data, pipeline charts, and hot spot data.
 
     > [!NOTE]
-    > 
+    >
     > The value of the `--soc-version` parameter can be obtained by running the following command: `python3 -c "import acl; print(acl.get_soc_name())"`.
 
     ```shell
-    msprof op simulator --soc-version=Ascendxxxyy python3 test_add.py
+    msopprof simulator --soc-version=Ascendxxxyy python3 test_add.py
     ```
 
     > [!NOTE]
@@ -200,17 +200,17 @@ This section demonstrates how to use msOpProf to collect profile data of CATLASS
 
 **Prerequisites**
 
-- Click [CATLASS Community](https://gitcode.com/cann/catlass) to obtain the sample project.
+- Click [CATLASS Community](https://atomgit.com/cann/catlass) to obtain the sample project.
 
     ```shell
-    git clone https://gitcode.com/cann/catlass.git -b v1.5.0
+    git clone https://atomgit.com/cann/catlass.git -b v1.5.0
     ```
 
 - Refer to [Preparations](../user_guide/msopprof_user_guide.md#preparations) in the msOpProf mode user guide and [Preparations](../user_guide/msopprof_simulator_user_guide.md#preparations) in the msOpProf simulator mode user guide to configure the relevant environment variables for collecting operator on-board and simulation tuning data.
 
 **Procedure**
 
-1. Follow the [CATLASS Quick Start](https://gitcode.com/cann/catlass/blob/master/docs/en/1_Practice/01_quick_start.md) example to prepare the environment and compile the operator on-board executable file, using the `basic_matmul` sample as an example.
+1. Follow the [CATLASS Quick Start](https://atomgit.com/cann/catlass/blob/master/docs/en/1_Practice/01_quick_start.md) example to prepare the environment and compile the operator on-board executable file, using the `basic_matmul` sample as an example.
 
     ```shell
     bash scripts/build.sh 00_basic_matmul
@@ -222,7 +222,7 @@ This section demonstrates how to use msOpProf to collect profile data of CATLASS
     # Switch to the build output directory
     cd output/bin
     # ./00_basic_matmul m n k [deviceId]
-    msprof op ./00_basic_matmul 256 512 1024 0
+    msopprof ./00_basic_matmul 256 512 1024 0
     ```
 
 3. Add the `--simulator` option to the build script to compile the operator simulator executable file. Then, load the simulator binary path as prompted.
@@ -234,17 +234,136 @@ This section demonstrates how to use msOpProf to collect profile data of CATLASS
     export LD_PRELOAD=/usr/local/Ascend/ascend-toolkit/latest/tools/simulator/Ascendxxxyy/lib/libruntime_camodel.so:/usr/local/Ascend/ascend-toolkit/latest/tools/simulator/Ascendxxxyy/lib/libnpu_drv_camodel.so
     ```
 
-4. Run the following command to collect msOpProf simulator profile data, pipeline charts, and hotspot data.
+4. Run the following command to collect msOpProf simulator profile data, pipeline charts, and hot spot data.
 
     > [!NOTE]
-    > 
+    >
     > The value of the `--soc-version` parameter can be obtained by running the following command: `python3 -c "import acl; print(acl.get_soc_name())"`.
 
     ```shell
     # Switch to the build output directory
     cd output/bin
     # Executable name | Matrix m n k | Device ID (optional)
-    msprof op simulator --soc-version=Ascendxxxyy ./00_basic_matmul 256 512 1024 0
+    msopprof simulator --soc-version=Ascendxxxyy ./00_basic_matmul 256 512 1024 0
+    ```
+
+## Collecting Profile Data of CATLASS DSL Operators
+
+**Overview**
+
+This section demonstrates how to use msOpProf to collect profile data of CATLASS DSL operators. For an introduction to CATLASS DSL, refer to the [CATLASS DSL Community Documentation](https://atomgit.com/cann/catlass/blob/master/python/tla_dsl/README.md).
+
+**Prerequisites**
+
+- Click [CATLASS DSL Quick Start](https://atomgit.com/cann/catlass/blob/master/python/tla_dsl/docs/en/quick_start.md) to complete the environment configuration and source code build.
+
+- Prepare a CATLASS DSL operator implementation file. If you have not prepared a CATLASS DSL operator yet, refer to the example in the procedure below.
+
+- Refer to [Preparations](../user_guide/msopprof_user_guide.md#preparations) in the msOpProf mode user guide and [Preparations](../user_guide/msopprof_simulator_user_guide.md#preparations) in the msOpProf simulator mode user guide to configure the relevant environment variables for collecting operator on-board and simulation tuning data.
+
+> [!NOTE]
+>
+> CATLASS DSL supports the same scope as Triton. Currently, only Atlas 950PR&950DT products are supported. The `-g` option, the code hot spot analysis feature, and the code line mapping capability are not supported.
+
+**Procedure**
+
+1. Prepare a basic CATLASS DSL operator sample `catlass_dsl_matmul.py`.
+
+    ```python
+    # catlass_dsl_matmul.py
+    from catlass import tla
+    from catlass.tla.runtime import from_dlpack
+    import torch
+    import torch_npu
+
+    M, K, N = 16, 16, 16
+
+    @tla.kernel
+    def matmul_kernel(a: tla.Tensor, b: tla.Tensor, c: tla.Tensor) -> None:
+        l0c_data_ready = tla.flag("l0c_data_ready", tla.arch.CUBE, tla.arch.FIX)
+        l1_loaded = tla.flag("l1_loaded", tla.arch.MTE2, tla.arch.MTE1)
+        l0_loaded = tla.flag("l0_loaded", tla.arch.MTE1, tla.arch.CUBE)
+
+        l1a_ptr = tla.allocate(M * K, tla.Float16, tla.AddressSpace.l1, 512)
+        l1b_ptr = tla.allocate(K * N, tla.Float16, tla.AddressSpace.l1, 512)
+        l0a_ptr = tla.allocate(M * K, tla.Float16, tla.AddressSpace.l0a, 512)
+        l0b_ptr = tla.allocate(K * N, tla.Float16, tla.AddressSpace.l0b, 512)
+        l0c_ptr = tla.allocate(M * N, tla.Float32, tla.AddressSpace.l0c, 512)
+
+        with tla.cube():
+            # GM -> L1
+            l1_a = tla.make_tensor_like(l1a_ptr, a, tla.arch.zN)
+            l1_b = tla.make_tensor_like(l1b_ptr, b, tla.arch.zN)
+            tla.copy(l1_a, a)
+            tla.copy(l1_b, b)
+
+            tla.set_flag(l1_loaded)
+            tla.wait_flag(l1_loaded)
+
+            # L1 -> L0A / L0B
+            l0_a = tla.make_tensor_like(l0a_ptr, l1_a, tla.arch.zN)
+            l0_b = tla.make_tensor_like(l0b_ptr, l1_b, tla.arch.nZ)
+            l0_c = tla.make_tensor_like(l0c_ptr, c, tla.arch.L0Clayout)
+            tla.copy(l0_a, l1_a)
+            tla.copy(l0_b, l1_b)
+
+            tla.set_flag(l0_loaded)
+            tla.wait_flag(l0_loaded)
+
+            # Cube: C = A x B
+            tla.mmad(l0_c, l0_a, l0_b, init_c=True)
+
+            # L0C -> GM
+            tla.set_flag(l0c_data_ready)
+            tla.wait_flag(l0c_data_ready)
+            tla.copy(c, l0_c)
+
+    def main() -> int:
+        torch.npu.set_device(0)
+        torch.manual_seed(0)
+        a = torch.rand(M, K, dtype=torch.float16, device="cpu") * 10.0 - 5.0
+        b = torch.rand(K, N, dtype=torch.float16, device="cpu") * 10.0 - 5.0
+        c = torch.rand(M, N, dtype=torch.float32, device="cpu") * 10.0 - 5.0
+        ref = a.float() @ b.float()
+
+        a = a.contiguous().npu()
+        b = b.contiguous().npu()
+        c = c.contiguous().npu()
+        a_tensor = from_dlpack(a, layout_tag=tla.arch.RowMajor, origin_shape=(M, K))
+        b_tensor = from_dlpack(b, layout_tag=tla.arch.RowMajor, origin_shape=(K, N))
+        c_tensor = from_dlpack(c, layout_tag=tla.arch.RowMajor, origin_shape=(M, N))
+
+        artifact = tla.compile(
+            matmul_kernel,
+            a_tensor,
+            b_tensor,
+            c_tensor,
+            options="--npu-arch 3510",
+        )
+        artifact(a_tensor, b_tensor, c_tensor, block_num=1)
+        torch.npu.synchronize()
+
+        passed = torch.allclose(c.cpu(), ref)
+        print("Passed." if passed else "Failed.")
+
+    main()
+
+    ```
+
+2. Run the following command to collect on-board profile data and detailed tuning data using msOpProf.
+
+    ```shell
+    msopprof python3 catlass_dsl_matmul.py
+    ```
+
+3. Run the following command to collect msOpProf simulator profile data, pipeline charts, and hot spot data.
+
+    > [!NOTE]
+    >
+    > The value of the `--soc-version` parameter can be obtained by running the following command: `python3 -c "import acl; print(acl.get_soc_name())"`.
+
+    ```shell
+    msopprof simulator --soc-version=Ascendxxxyy python3 catlass_dsl_matmul.py
     ```
 
 ## Collecting Profile Data of MC2 Operators
@@ -253,7 +372,7 @@ This section demonstrates how to use msOpProf to collect profile data of CATLASS
 
 This section demonstrates how to use msOpProf to tune an MC2 operator on the board and generate a communication and computing pipeline chart.
 
-This example uses the Ascend CL single operator invocation as an example. For other invocation scenarios, refer to the [Ascend C Operator Development Guide](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/910/programug/Ascendcopdevg/docs/guide/%E5%85%A5%E9%97%A8%E6%95%99%E7%A8%8B/Ascend-C%E6%A6%82%E8%BF%B0%E4%B8%8E%E5%AD%A6%E4%B9%A0%E8%B7%AF%E5%BE%84.md).
+This example uses the Ascend CL single operator invocation as an example. For other invocation scenarios, refer to the [Ascend C Operator Development Guide](https://www.hiascend.com/document/detail/en/CANNCommunityEdition/latest/programug/Ascendcopdevg/docs/en/guide/getting_started/ascend_c_overview_and_learning_path.md).
 
 **Prerequisites**
 
@@ -262,7 +381,7 @@ This example uses the Ascend CL single operator invocation as an example. For ot
 
 **Procedure**
 
-1. Refer to [Operator Compilation and Deployment](https://gitcode.com/Ascend/msopgen/blob/26.1.0/docs/en/user_guide/msopgen_user_guide.md) to complete the compilation and deployment of the operator.
+1. Refer to [Operator Compilation and Deployment](https://atomgit.com/Ascend/msopgen/blob/26.2.0/docs/en/user_guide/msopgen_user_guide.md) to complete the compilation and deployment of the operator.
      1. In the `CMakeLists.txt` file located in the `op_kernel` directory of the operator compilation files, add the following compilation options to enable the AIC timestamping and code line mapping features for the MC2 operator.
 
         ```shell
@@ -278,7 +397,7 @@ This example uses the Ascend CL single operator invocation as an example. For ot
 2. Use msOpProf to collect profile data of the MC2 operator.
 
     ```shell
-    msprof op --output=$HOME/projects/output $HOME/projects/MyApp blockdim 1   # The --output option is optional; $HOME/projects/MyApp is the app; blockdim 1 is an optional parameter for the user app 
+    msopprof --output=$HOME/projects/output $HOME/projects/MyApp blockdim 1   # The --output option is optional; $HOME/projects/MyApp is the app; blockdim 1 is an optional parameter for the user app 
     ```
 
 3. The following directory structure and profile data files are generated. For details, refer to the [msOpProf mode user guide](../user_guide/msopprof_user_guide.md).

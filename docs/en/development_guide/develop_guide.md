@@ -1,133 +1,78 @@
-# MindStudio Ops Profiler Development Environment Setup, Compilation, and UT Methods
+# msOpProf Development Guide
 
 <br>
 
-## 1. Background Knowledge Required
+## 1. Prerequisites
+
+### 1.1 Prerequisite Knowledge
 
 For details about the code framework and core process, see the [msOpProf Architecture Design Specifications](./architecture.md).
 
-## 2. Development Environment Setup
+### 1.2 Environment Preparation
 
-Set up the environment by referring to the [Operator Tool Development Environment Setup Guide](https://gitcode.com/Ascend/msot/blob/master/docs/en/common/dev_env_setup.md).
+Follow the [msOpProf Installation Guide — Source Installation](../install_guide/msopprof_install_guide.md#231-environment-setup) to set up the build and test environment.
 
-## 3. Building and Packaging
+> **Note:** The environment image build method and the supporting software versions are maintained by the *MindStudio Unified Build Image Creation Guide* and are not redefined in this repository.
 
-There are two methods, each with its own advantages and disadvantages:
+## 2. Build
 
-| Method| Application Scenario| Advantages| Disadvantages|
-|------|---------|------|------|
-| One-click script| Initial build and CI/CD pipeline| Zero configuration, one-step setup| Steps cannot be executed independently.|
-| Step-by-step script| Routine development and incremental build| Flexibility and efficiency| Multiple steps are required.|
+Choose one of the following build methods as needed:
 
-### 3.1 Method 1: One-click Script
+| Method | Application Scenario | Features |
+|------|---------|------|
+| One-click script | Initial build and CI/CD pipeline | Zero configuration, completes the entire process in one step |
+| Step-by-step build | Routine development and incremental build | Executes individual steps as needed, which is more efficient. |
 
-```shell
-python build.py
+### 2.1 One-Click Script
+
+Run the following command in the project root directory:
+
+```bash
+python3 build.py
 ```
 
-### 3.2 Method 2: Step-by-Step Script
+The script automatically completes the entire process of downloading dependencies, building, and packaging.
 
-#### 3.2.1 Downloading Dependencies
+### 2.2 Step-by-Step Build
 
-```shell
-python download_dependencies.py
+#### Downloading Dependencies
+
+```bash
+python3 download_dependencies.py
 ```
 
-#### 3.2.2 Building and Packaging
+#### Building
 
-##### 3.2.2.1 Starting Build
-
-Run the following commands to start the build:
-
-```shell
-mkdir build
-cd build
-cmake ../cmake   # The current command builds and packages the .run file at the same time. If you only need to build without packaging, run cmake ..
-make -j$(nproc)  # -j indicates the number of parallel build jobs, which can be specified as required. If nproc is unavailable, manually enter a number (for example, -j8)
+```bash
+python3 build.py local
 ```
 
-> [!NOTE]
-> 
-> **Debug version build**   
-> To perform GDB or VS Code graphical breakpoint debugging, build the debug version. The procedure is as follows:  
-> Add `-DCMAKE_BUILD_TYPE=Debug` when running the preceding CMake command, for example, `cmake ../cmake -DCMAKE_BUILD_TYPE=Debug`.
+#### Build Artifacts
 
-If the generation time of the `mindstudio-opprof_xxx_xxx.run` file in the `output` directory is updated to the current build time, the building and packaging are successful.
+After a successful build, the output is generated in the `artifacts` directory.
 
-##### 3.2.2.2 Build Result Description
+#### Build Cleanup
 
-The build result is generated in the `output` directory:
+To perform a full rebuild, delete the build directory and run the preceding steps again:
 
-```text
-output/
-|-- bin                                                  # Executable binary file, which can directly call the tuning function
-|-- filelist.csv                                         # Configuration file for packaging the .run package
-|-- lib64                                                # Various dynamic and static libraries
-|-- mindstudio-opprof/                                   # Directory for packing the .run package
-|-- mindstudio-opprof_xxx_xxx.run                        # Installation package
-|-- parser_install.sh                                    # Public script for parsing .run package installation
-|-- version.info                                         # Version information
-```
-
-#### 3.2.3 Cleanup/Rebuild
-
-Delete the build directory and perform [3.2.2.1](#3221-starting-build).  
-
-```shell
+```bash
 rm -rf build
 ```
 
-## 4. Running UT
+## 3. Unit Tests
 
-### 4.1 Method 1: One-Click Script
+### 3.1 Running Tests
 
-```shell
-python build.py test
+```bash
+python3 build.py test
 ```
 
-### 4.2 Method 2: Step-by-Step Script
+A command return code of 0 with no failed test cases indicates that the unit tests pass. If any `FAILED` case exists, locate the cause of the failure from the logs.
 
-#### 4.2.1 Downloading Dependencies
+### 3.2 Cleaning the Test Environment
 
-```shell
-python download_dependencies.py test
+Delete the UT build directory and run the tests again:
+
+```bash
+rm -rf build_ut
 ```
-
-#### 4.2.2 Running UT
-
-> [!NOTE]
-> 
-> **CMake entry description for UT**   
-> The UT build uses `CMakeLists.txt` in the root directory (that is, `cmake ..` instead of `cmake ../cmake`) of the project. Only the test and dependency are built, and the .run packaging process is not included.
-
-```shell
-mkdir build_ut
-cd build_ut
-cmake .. -DBUILD_TESTS=ON
-make -j$(nproc) # -j indicates the number of parallel build jobs, which can be specified as required. If nproc is unavailable, manually enter a number (for example, -j8)
-./test/ut/msopt_test --gtest_output=xml:test_detail.xml
-```
-
-If the number of executed test cases is the same as the number of passed test cases, the test is successful. The output is similar to the following:
-
-```text
-[==========] 526 tests from 75 test cases ran. (24571 ms total)
-[  PASSED  ] 526 tests.
-```
-
-#### 4.2.3 Cleanup/Rebuild
-
-Delete the build directory and perform [4.2.2](#422-running-ut).  
-
-```shell
-rm -rf build_ut  
-```
-
-## 5. FAQ
-
-### 5.1 Why Is No `.run` Package Generated When I Run the `make` Command During Building?  
-
-It is possible that `cmake ..` is used when running the `cmake` command. The `cmake` command is described as follows:  
-
-- `cmake ..`: Only the current project is built. The `make install` command installs the project to the `output/` directory, but does not call `makeself`. Therefore, no `mindstudio-opprof-xxx.run` file is generated.
-- `cmake ../cmake`: The "super build" of `cmake/CMakeLists.txt` is used. The project is built and installed first, and then `parser.py` and `makeself` are executed to generate the .run file in the `output/` directory.

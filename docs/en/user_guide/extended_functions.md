@@ -72,7 +72,7 @@ For example, the JSON configuration file is named `add_test.json`. Developers ca
 |mode|Test mode.<br> - Onboard: `onboard`<br> - Performance simulation: `ca`|string|Yes|
 |device_id|ID of the AI processor used for running. The default value is 0.|int|No|
 |tiling_key|Tiling key of the current dynamic operator.|uint64|No|
-|magic|Operator type.<br> - Cube operator: `RT_DEV_BINARY_MAGIC_ELF_AICUBE`<br> - Vector operator: `RT_DEV_BINARY_MAGIC_ELF_AIVEC`<br> - Mixed fusion operator: `RT_DEV_BINARY_MAGIC_ELF` (only for Atlas A3 training products, Atlas A3 inference products, Atlas A2 training products, and Atlas A2 inference products)|string|Yes|
+|magic|Operator type.<br> - Cube operator: `RT_DEV_BINARY_MAGIC_ELF_AICUBE`<br> - Vector operator: `RT_DEV_BINARY_MAGIC_ELF_AIVEC`<br> - Mixed fusion operator: `RT_DEV_BINARY_MAGIC_ELF` (only for Atlas A3 products and Atlas A2 products)|string|Yes|
 |test_cases|Test data. This can be a list, with each element containing a test case. For details, see [**Table 2** test_cases parameters](#test_cases_parameters).|list|Yes|
 
 > [!NOTE]
@@ -169,7 +169,7 @@ For example, the JSON configuration file is named `add_test.json`. Developers ca
 <td class="cellrowborder" valign="top" width="22.832283228322833%" headers="mcps1.2.7.1.1 "><p id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_p6828121843">-</p>
 </td>
 <td class="cellrowborder" valign="top" width="36.22362236223623%" headers="mcps1.2.7.1.2 "><p id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_p324215055915">Path of the input data .bin file.</p>
-<ul id="ul1083781334916"><li>When <span class="parmvalue" id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_parmvalue47675439188"><code>param_type</code></span> is set to <code>input</code>, <code>data_path</code> or <code>value_range</code> must be set, and <code>data_path</code> has a higher priority. </li><li>To set an empty <code>data_path</code> in the JSON file, set <code>"data_path":"null"</code>. For details about the JSON file, see <a href="#json-configuration-file-description">JSON Configuration Description</a>.</li></ul>
+<ul id="ul1083781334916"><li>When <span class="parmvalue" id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_parmvalue47675439188"><code>param_type</code></span> is set to <code>input</code>, <code>data_path</code> must be specified. </li><li>If the input is not in file form, set <code>"data_path"</code> to <code>"data_path":"null"</code>. For details about the JSON file, see <a href="#json-configuration-file-description">JSON Configuration Description</a>.</li></ul>
 </td>
 <td class="cellrowborder" valign="top" width="10.09100910091009%" headers="mcps1.2.7.1.3 "><p id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_p135676171515">string</p>
 </td>
@@ -249,19 +249,18 @@ For example, the JSON configuration file is named `add_test.json`. Developers ca
 </tbody>
 </table>
 
-> [!NOTICE]
+> [!NOTE]
 >
 > - The number of parameter values in `output` must be the same as that in `input`. Otherwise, test case generation fails.
 >    For example, if `input` supports two types, `output` must also support two types.
->    Similarly, the number of values of `type`, `shape`, or `value_range` in each `input` or `output` must be the same.
-> - The number of parameter values in each `input` of an operator must be the same. Otherwise, test case generation fails.
->    The number of values of `type`, `shape`, and `value_range` in each `input` must be the same.
+>    Similarly, the number of values of `type` and `shape` in each `input` or `output` must be the same.
+> - The number of parameter values in each `input` of an operator must be the same. Otherwise, test case generation fails. The number of values of `type` and `shape` in each `input` must be the same.
 
 ## msTX Extended Functions
 
 **msTX API Overview**
 
-MindStudio provides the msTX profiling API, which enables users to embed custom markers within their applications. These markers allow for the precise identification of critical code segments during performance analysis. For details, see [**Table 1** C/C++ msTX API list](#c-mstx-api-list) and [**Table 2** Python msTX API list](#python-mstx-api-list). For further details about the API usage, see [MindStudio msTX API Reference](https://gitcode.com/Ascend/mstx/blob/26.1.0/docs/en/api_reference/README.md).
+MindStudio provides the msTX profiling API, which enables users to embed custom markers within their applications. These markers allow for the precise identification of critical code segments during performance analysis. For details, see [**Table 1** C/C++ msTX API list](#c-mstx-api-list) and [**Table 2** Python msTX API list](#python-mstx-api-list). For further details about the API usage, see [MindStudio Tools Extension Library API Reference](https://atomgit.com/Ascend/mstx/blob/26.2.0/docs/en/api_reference/README.md).
 
 **Table 1** C/C++ msTX API list<a id="c-mstx-api-list"></a>
 
@@ -285,7 +284,7 @@ MindStudio provides the msTX profiling API, which enables users to embed custom 
 
     > [!NOTE]
     >
-    > - This sample project does not support Atlas A3 training products.
+    > - This sample project does not support Atlas A3 products.
     > - Replace `${INSTALL_DIR}` with the file storage path after CANN is installed. For example, if the installation is performed by the `root` user, the default file storage path is `/usr/local/Ascend/cann`.
 
     - Add the `libms_tools_ext.so` library file located at `${INSTALL_DIR}/lib64/libms_tools_ext.so` to the `CMakeLists.txt` file at `${git_clone_path}/samples/operator/ascendc/0_introduction/1_add_frameworklaunch/AclNNInvocation/src/CMakeLists.txt`.
@@ -314,7 +313,7 @@ MindStudio provides the msTX profiling API, which enables users to embed custom 
 
 **Example**
 
-After msOpProf is started, run the `msprof op --mstx=on --mstx-include=range1 --launch-count=2 python cal.py` command. This command will profile the operators defined within the `range1` scope, specifically the `sub` and `mul` operators.
+After msOpProf is started, run the `msopprof --mstx=on --mstx-include=range1 --launch-count=2 python cal.py` command. This command will profile the operators defined within the `range1` scope, specifically the `sub` and `mul` operators.
 
 ```python
 import mstx
