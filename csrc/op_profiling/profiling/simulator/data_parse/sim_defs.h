@@ -92,6 +92,8 @@ struct InstrParseInfo {
     std::string detail;
     SpReg spStatus;
     std::string xnValue;
+    // 指令binary，用于在反汇编map中查找对应的指令+细节
+    std::string binary;
 };
 
 struct InstrParseInfoForRealTime : public InstrParseInfo {

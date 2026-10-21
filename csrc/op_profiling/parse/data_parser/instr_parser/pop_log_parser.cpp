@@ -17,6 +17,7 @@
 
 #include "pop_log_parser.h"
 #include "filesystem.h"
+#include "instr_encoding/instr_disassembler.h"
 
 using namespace Utility;
 
@@ -160,6 +161,8 @@ void PopLogParser::ParseLine(const std::string &line, MatchMode matchMode)
     poppedInstrParseInfo.name = lineMatch[instrPoppedRuleNamePos_["name"]].str();
     poppedInstrParseInfo.detail =
         GetCompleteDetail(line, lineMatch[instrPoppedRuleNamePos_["detail"]].str(), matchMode);
+    poppedInstrParseInfo.binary = Encode::InstrDisassembler::NormalizeBinary(
+        lineMatch[instrPoppedRuleNamePos_["binary"]].str());
     poppedInstrParseInfo.spStatus = {};
     poppedInstrParseInfo.gprCount = 0;
     poppedInstrParseInfo.realStallCyc = 0;

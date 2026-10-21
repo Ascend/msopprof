@@ -18,6 +18,8 @@
 #include "hotspotmap_visualizer.h"
 #include <iostream>
 #include "parse/data_visualizer/utility.h"
+#include "log.h"
+#include "instr_encoding/instr_disassembler.h"
 
 using namespace Utility;
 using namespace Serialization;
@@ -33,6 +35,16 @@ PluginErrorCode HotSpotMapVisualizer::Entry()
     std::vector<std::string> coreVec;
     for (auto &coreNameWithData: *dataMapPtr) {
         coreVec.emplace_back(coreNameWithData.first);
+    }
+    // 使用CANN llvm-objdump反汇编算子.o，构建 binary -> 指令+细节 映射，用于热点图Source列展示
+    const std::string &kernelPath = dataVisualizerConfig_.GetKernelPath();
+    if (!kernelPath.empty()) {
+        auto disassembler = std::make_shared<Encode::InstrDisassembler>();
+        if (disassembler->Init(kernelPath)) {
+            dataVisualizerConfig_.SetDisassembler(disassembler);
+        } else {
+            LogDebug("Failed to init instr disassembler, kernel path is %s", kernelPath.c_str());
+        }
     }
     SimPcToCode simPcToCode(dataVisualizerConfig_, dataCenter_, coreVec);
     simPcToCode.CalCulate();

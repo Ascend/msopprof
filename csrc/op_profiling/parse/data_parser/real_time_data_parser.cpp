@@ -22,14 +22,15 @@
 #include "sim_data_parser.h"
 #include "sim_dump_parser.h"
 #include "ustring.h"
+#include "instr_encoding/instr_disassembler.h"
 namespace Profiling {
 namespace Parse {
 using namespace Utility;
 const char *const CORE = "core";
 const std::regex INSTR_PATTERN(
-    R"(\(PC: 0x[0-9a-f]{1,16}\)\s*([A-Za-z0-3_]+)\s*\:\s*\(Binary\: 0x[0-9a-f]{8}\)\s*([0-9a-zA-Z_-]*))");
+    R"(\(PC: 0x[0-9a-f]{1,16}\)\s*([A-Za-z0-3_]+)\s*\:\s*\(Binary\: (0x[0-9a-f]{8})\)\s*([0-9a-zA-Z_-]*))");
 const std::regex A5_INSTR_PATTERN(
-    R"(\(PC:\s*0x[0-9a-fA-F]{1,16}\)\s*([A-Za-z0-9_]+)\s*:\s*\(Binary:\s*0x[0-9a-fA-F ]{8,34}\)\s*\(ID:\s*([0-9]{1,20})\)\s*([0-9a-zA-Z_-]+).*)");
+    R"(\(PC:\s*0x[0-9a-fA-F]{1,16}\)\s*([A-Za-z0-9_]+)\s*:\s*\(Binary:\s*(0x[0-9a-fA-F ]{8,34})\)\s*\(ID:\s*([0-9]{1,20})\)\s*([0-9a-zA-Z_-]+).*)");
 struct PairHash {
 public:
     size_t operator()(const std::pair<uint32_t, uint32_t>& p) const
@@ -164,7 +165,7 @@ bool GetA5InstrParseInfo(const Common::DvcInstrLogV2 &dvcInstrLog, InstrParseInf
         return false;
     }
     uint64_t instrId = 0;
-    if (!StoullConverter(lineMatch[2].str(), instrId)) {
+    if (!StoullConverter(lineMatch[3].str(), instrId)) {
         return false;
     }
     coreName = GetCoreName(dvcInstrLog.coreId, dvcInstrLog.subCoreId);
@@ -173,16 +174,19 @@ bool GetA5InstrParseInfo(const Common::DvcInstrLogV2 &dvcInstrLog, InstrParseInf
     }
     const std::string detail = ReadFixedString(dvcInstrLog.extendParamsJson);
     instrParseInfo = {dvcInstrLog.time, dvcInstrLog.pc, instrId, DEFAULT_INT_VALUE, DEFAULT_INT_VALUE,
-        lineMatch[1].str(), lineMatch[3].str(), detail, {}, ""};
+        lineMatch[1].str(), lineMatch[4].str(), detail, {}, "",
+        Encode::InstrDisassembler::NormalizeBinary(lineMatch[2].str())};
     return true;
 }
 }
 
 void RealTimeDataParser::SetInstrLog(const Common::DvcInstrLog &dvcInstrLog)
 {
+    // smatch 的迭代器指向该字符串内部缓冲区，必须让它存活到本函数结束，否则为悬垂指针
+    const std::string decodeDescr(dvcInstrLog.decodeDescr);
     std::smatch lineMatch;
-    if (!GetInstrDetail(dvcInstrLog.decodeDescr, lineMatch)) {
-        LogWarn("Set instr log failed, can not match object target format, describe is %s", dvcInstrLog.decodeDescr);
+    if (!GetInstrDetail(decodeDescr, lineMatch)) {
+        LogWarn("Set instr log failed, can not match object target format, describe is %s", decodeDescr.c_str());
         return;
     }
     const std::string &coreName = GetCoreName(dvcInstrLog.coreId, dvcInstrLog.subCoreId);
@@ -190,19 +194,22 @@ void RealTimeDataParser::SetInstrLog(const Common::DvcInstrLog &dvcInstrLog)
         LogWarn("Set instr log failed, core name is empty");
         return;
     }
-    // index 1 is name, index 2 is detail
-    InstrParseInfoForRealTime instrParseInfo = {{dvcInstrLog.time, dvcInstrLog.pc, 0, DEFAULT_INT_VALUE,
-        DEFAULT_INT_VALUE, lineMatch[1].str(), lineMatch[2].str(), dvcInstrLog.execDescr, {}},
+    // index 1 is pipe, index 2 is binary, index 3 is name
+    InstrParseInfoForRealTime instrParseInfo = {
+        {dvcInstrLog.time, dvcInstrLog.pc, 0, DEFAULT_INT_VALUE, DEFAULT_INT_VALUE, lineMatch[1].str(),
+            lineMatch[3].str(), dvcInstrLog.execDescr, {}, "",
+            Encode::InstrDisassembler::NormalizeBinary(lineMatch[2].str())},
         coreName};
     realTimeInstrParser_.SetInstrLog(instrParseInfo);
 }
 
 void RealTimeDataParser::SetPopInstrLog(const Common::DvcInstrLog &dvcInstrLog)
 {
+    // smatch 的迭代器指向该字符串内部缓冲区，必须让它存活到本函数结束，否则为悬垂指针
+    const std::string decodeDescr(dvcInstrLog.decodeDescr);
     std::smatch lineMatch;
-    if (!GetInstrDetail(dvcInstrLog.decodeDescr, lineMatch)) {
-        LogWarn("Set pop instr log failed, can not match object target format, describe is %s",
-                dvcInstrLog.decodeDescr);
+    if (!GetInstrDetail(decodeDescr, lineMatch)) {
+        LogWarn("Set pop instr log failed, can not match object target format, describe is %s", decodeDescr.c_str());
         return;
     }
     const std::string &coreName = GetCoreName(dvcInstrLog.coreId, dvcInstrLog.subCoreId);
@@ -211,7 +218,8 @@ void RealTimeDataParser::SetPopInstrLog(const Common::DvcInstrLog &dvcInstrLog)
         return;
     }
     PoppedInstrParseInfo poppedInstrParseInfo({dvcInstrLog.time, dvcInstrLog.pc, 0, DEFAULT_INT_VALUE,
-        DEFAULT_INT_VALUE, lineMatch[1].str(), lineMatch[2].str(), dvcInstrLog.execDescr, {}});
+        DEFAULT_INT_VALUE, lineMatch[1].str(), lineMatch[3].str(), dvcInstrLog.execDescr, {}, "",
+        Encode::InstrDisassembler::NormalizeBinary(lineMatch[2].str())});
     PoppedInstrParseInfoForRealTime instrParseInfo(poppedInstrParseInfo, coreName);
     realTimeInstrParser_.SetPopInstrLog(instrParseInfo);
 }
@@ -305,12 +313,13 @@ void RealTimeDataParser::ProcessAfterKernelExit()
     auto systemCores = static_cast<uint32_t>(std::thread::hardware_concurrency() * MAX_THREAD_USAGE_RATIO);
     std::string simulatorPath = JoinPath({outputPath_, "simulator"});
     Mkdir(simulatorPath);
+    std::string kernelPath = JoinPath({dumpPath, Common::AICORE_KERNEL_NAME});
     if (pc2codePtr == nullptr) {
         Pc2CodeMap empty;
         LogWarn("Can not get kernel file of %s. code information will be missing", outputPath_.c_str());
-        Visualizedata(simulatorPath, context_.chipType, empty, InteDataCenterPtr, systemCores);
+        Visualizedata(simulatorPath, context_.chipType, empty, InteDataCenterPtr, systemCores, kernelPath);
     } else  {
-        Visualizedata(simulatorPath, context_.chipType, *pc2codePtr, InteDataCenterPtr, systemCores);
+        Visualizedata(simulatorPath, context_.chipType, *pc2codePtr, InteDataCenterPtr, systemCores, kernelPath);
     }
 }
 

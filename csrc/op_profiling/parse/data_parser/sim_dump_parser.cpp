@@ -53,7 +53,8 @@ void AnalySisFileByCore(Profiling::Parse::DataCenter &dataCenter, const SimParse
 }
 
 void VisualizeByPlugin(const std::string &outputPath, ChipProductType chipType, Pc2CodeMap &pc2Code,
-                       std::shared_ptr<Profiling::Parse::DataCenter> &dataCenterPtr, uint32_t systemCores)
+                       std::shared_ptr<Profiling::Parse::DataCenter> &dataCenterPtr, uint32_t systemCores,
+                       const std::string &kernelPath)
 {
     constexpr uint32_t visualPlugin = 2;
     auto mapPtr = dataCenterPtr->GetDbPtr<std::map<std::string, SimData>>();
@@ -64,14 +65,14 @@ void VisualizeByPlugin(const std::string &outputPath, ChipProductType chipType, 
     const uint32_t coreSize = mapPtr->size();
     uint32_t visualThread = systemCores < coreSize ? 1 : (systemCores - coreSize + visualPlugin - 1) / visualPlugin;
     Profiling::Parse::PluginManager timelinePluginManager(visualPlugin);
-    Profiling::Parse::SimVisualizerConfig config {outputPath, pc2Code, visualThread, chipType};
+    Profiling::Parse::SimVisualizerConfig config {outputPath, pc2Code, visualThread, chipType, kernelPath};
     timelinePluginManager.AddPlugin<Profiling::Parse::CoreTimeLineVisualizer>(*dataCenterPtr, config);
     timelinePluginManager.AddPlugin<Profiling::Parse::SubcoreTimelineVisualizer>(*dataCenterPtr, config);
     std::vector<PluginErrorCode> results;
     timelinePluginManager.RunAllPlugins(results);
 
     // 可视化存在依赖，必须现有流水图后有热点图，后续可视化修改后直接把热点图添加到上面manager即可
-    Profiling::Parse::SimVisualizerConfig config2 {outputPath, pc2Code, systemCores, chipType};
+    Profiling::Parse::SimVisualizerConfig config2 {outputPath, pc2Code, systemCores, chipType, kernelPath};
     Profiling::Parse::PluginManager hotSpotPluginManager(visualPlugin);
     hotSpotPluginManager.AddPlugin<Profiling::Parse::HotSpotMapVisualizer>(*dataCenterPtr, config2);
     std::vector<PluginErrorCode> results2;
@@ -97,7 +98,8 @@ void GetphyCoreName(const Profiling::Parse::DataCenter &dataCenter, std::string 
 }
 
 void Visualizedata(const std::string &outputPath, ChipProductType chipType, Pc2CodeMap &pc2code,
-                   std::shared_ptr<Profiling::Parse::DataCenter> &dataCneterPtr, uint32_t systemCores)
+                   std::shared_ptr<Profiling::Parse::DataCenter> &dataCneterPtr, uint32_t systemCores,
+                   const std::string &kernelPath)
 {
     auto simDataPtr = dataCneterPtr->GetDbPtr<std::map<std::string, SimData>>();
     if (simDataPtr == nullptr) {
@@ -108,7 +110,7 @@ void Visualizedata(const std::string &outputPath, ChipProductType chipType, Pc2C
         const std::string &coreName = coreWithData.first;
         Mkdir(JoinPath({outputPath, coreName}));
     }
-    VisualizeByPlugin(outputPath, chipType, pc2code, dataCneterPtr, systemCores);
+    VisualizeByPlugin(outputPath, chipType, pc2code, dataCneterPtr, systemCores, kernelPath);
 }
 
 std::set<uint64_t> CollectPcFromCore(const std::shared_ptr<Profiling::Parse::DataCenter> &dataCenterPtr)

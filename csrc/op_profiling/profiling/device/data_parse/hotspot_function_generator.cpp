@@ -24,6 +24,7 @@
 #include "cmd_execute.h"
 #include "ustring.h"
 #include "instr_encoding/instr_encoding.h"
+#include "instr_encoding/instr_disassembler.h"
 #include "pc_process.h"
 #include "tlv_parse.h"
 #include "ustring.h"
@@ -429,6 +430,13 @@ bool HotSpotFunctionGenerator::ProcessEncoding(const std::string &kernelPath,
         return false;
     }
 
+    // 构建反汇编 binary->指令+细节 映射，Source列展示完整反汇编指令
+    disassembler_ = Utility::MakeShared<Encode::InstrDisassembler>();
+    if (disassembler_ == nullptr || !disassembler_->Init(kernelPath)) {
+        Utility::LogDebug("Failed to init instr disassembler for source, kernel path is %s", kernelPath.c_str());
+        disassembler_ = nullptr;
+    }
+
     for (size_t i = 0; i < instrEncodingVec.size(); ++i) {
         uint64_t pc = instrEncodingVec[i].pc;
         if (!IsObjKernelPcAddr(pc)) {
@@ -436,6 +444,14 @@ bool HotSpotFunctionGenerator::ProcessEncoding(const std::string &kernelPath,
         }
         Encoding newEncoding = {pc, instrEncodingVec[i].pipe, instrEncodingVec[i].name, "", 0, 0,
                                 0, 0, 0, {0, 0, 0, 0, 0, 0, 0, 0, 0}};
+        if (disassembler_ != nullptr) {
+            const std::string binary = Encode::InstrDisassembler::EncodingToBinary(
+                instrEncodingVec[i].enc.low64, instrEncodingVec[i].enc.high64, instrEncodingVec[i].bitType);
+            const std::string disasm = disassembler_->GetDisassembly(binary);
+            if (!disasm.empty()) {
+                newEncoding.source = disasm;
+            }
+        }
         if ((IsChipSeriesTypeValid(chipType, ChipProductType::ASCEND910B_SERIES) ||
             IsChipSeriesTypeValid(chipType, ChipProductType::ASCEND910_93_SERIES)) &&
             l2CachePtr != nullptr) {

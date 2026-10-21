@@ -79,6 +79,15 @@ void SimPcToCode::UpdatePCStat(const MergeInfo &selectedInstr, const std::string
         Utility::LogWarn("Core index error, core name:%s", coreName.c_str());
         return;
     }
+    // Source列优先展示反汇编后的指令+细节，未命中时按照原样展示name+detail
+    std::string instr = selectedInstr.name + " " + selectedInstr.detail;
+    const auto &disassembler = simConfig_.GetDisassembler();
+    if (disassembler != nullptr) {
+        const std::string disasm = disassembler->GetDisassembly(selectedInstr.binary);
+        if (!disasm.empty()) {
+            instr = disasm;
+        }
+    }
     std::lock_guard<std::mutex> lock(instrInfoMutex_);
     // 多线程操作instrInfoMap_第一次创建数据可能因为key存在失败，需要另外处理
     bool res = false;
@@ -86,7 +95,7 @@ void SimPcToCode::UpdatePCStat(const MergeInfo &selectedInstr, const std::string
         InstrInfo instrInfo;
         InitNewInstrInfo(instrInfo);
         instrInfo.addr = GetPc2String(selectedInstr.pc);
-        instrInfo.instr = selectedInstr.name + " " + selectedInstr.detail;
+        instrInfo.instr = instr;
         instrInfo.pipe = selectedInstr.pipe;
         instrInfo.cceCode = GetAscendCInnerCode(selectedInstr.pc);
         instrInfo.gprCount[coreIndex] = selectedInstr.gprCount;
@@ -107,7 +116,7 @@ void SimPcToCode::UpdatePCStat(const MergeInfo &selectedInstr, const std::string
     }
     auto sourceCore = instrSourceCoreIndex_.find(selectedInstr.pc);
     if (sourceCore == instrSourceCoreIndex_.end() || static_cast<size_t>(coreIndex) < sourceCore->second) {
-        instrInfoMap_[selectedInstr.pc].instr = selectedInstr.name + " " + selectedInstr.detail;
+        instrInfoMap_[selectedInstr.pc].instr = instr;
         instrSourceCoreIndex_[selectedInstr.pc] = static_cast<size_t>(coreIndex);
     }
     if (!res) {

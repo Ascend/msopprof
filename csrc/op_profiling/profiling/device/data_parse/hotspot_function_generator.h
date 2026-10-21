@@ -33,6 +33,7 @@
 #include "profiling/device/data_visualize/biu_timeline.h"
 #include "tlv_parse.h"
 #include "log.h"
+#include "instr_encoding/instr_disassembler.h"
 
 namespace Profiling {
 
@@ -310,6 +311,7 @@ private:
     std::map<std::string, uint64_t> beginAddr_;
     std::map<std::string, uint64_t> endAddr_;
     std::unordered_set<std::string> skipKeys_;
+    std::shared_ptr<Encode::InstrDisassembler> disassembler_;
 };
 
 }

@@ -18,6 +18,7 @@
 #include "instr_log_parser.h"
 #include "filesystem.h"
 #include "json.hpp"
+#include "instr_encoding/instr_disassembler.h"
 
 using namespace Utility;
 namespace Profiling {
@@ -280,6 +281,8 @@ void InstrLogParser::ParseLine(const std::string &line, MatchMode matchMode)
     instrInfo.pipe = lineMatch[instrRuleNamePos_["pipe"]].str();
     instrInfo.name = lineMatch[instrRuleNamePos_["name"]].str();
     instrInfo.detail = GetCompleteDetail(line, lineMatch[instrRuleNamePos_["detail"]].str(), matchMode);
+    instrInfo.binary = Encode::InstrDisassembler::NormalizeBinary(
+        lineMatch[instrRuleNamePos_["binary"]].str());
     instrInfo.spStatus = {};
     instrInfo.warpId = DEFAULT_INT_VALUE;
     instrInfo.schId = DEFAULT_INT_VALUE;
