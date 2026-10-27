@@ -31,7 +31,7 @@ For more details on kernel launch scenarios, refer to [Direct Kernel Invocation 
     >
     > The executable file name (`add`) in this example is for illustration only. Use the actual file name based on the compilation script in your current project.
 
-2. Run the following command to collect on-board profile data and detailed tuning data using msOpProf. You can also refer to the [msOpProf mode commands](https://atomgit.com/Ascend/msopprof/blob/26.2.0/docs/en/user_guide/msopprof_user_guide.md#command-reference) for other command options.
+2. Run the following command to collect on-board profile data and detailed tuning data using msOpProf. You can also refer to the [msOpProf mode commands](./msopprof_user_guide.md#command-reference) for other command options.
 
     ```shell
     msopprof add
@@ -263,7 +263,7 @@ This section demonstrates how to use msOpProf to collect profile data of CATLASS
 
 > [!NOTE]
 >
-> CATLASS DSL supports the same scope as Triton. Currently, only Atlas 950PR&950DT products are supported. The `-g` option, the code hot spot analysis feature, and the code line mapping capability are not supported.
+> CATLASS DSL supports the same scope as Triton. Currently, only Ascend 950PR&950DT products are supported. The `-g` option, the code hot spot analysis feature, and the code line mapping capability are not supported.
 
 **Procedure**
 

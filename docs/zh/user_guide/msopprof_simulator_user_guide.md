@@ -146,7 +146,7 @@ msopprof simulator --soc-version=Ascendxxxyy --output=/home/projects/output /hom
 </tr>
 <tr id="zh-cn_topic_0000002016036877_row61391251175519"><td class="cellrowborder" valign="top" width="25.232523252325233%" headers="mcps1.2.4.1.1 "><p id="zh-cn_topic_0000002016036877_p8263535194219">--core-id</p>
 </td>
-<td class="cellrowborder" valign="top" width="63.02630263026302%" headers="mcps1.2.4.1.2 "><p id="zh-cn_topic_0000002016036877_p6422922184820">该参数适用于算子分布均匀的情况时，可使用--core-id参数指定部分逻辑核的id，解析部分核的仿真数据。</p>
+<td class="cellrowborder" valign="top" width="63.02630263026302%" headers="mcps1.2.4.1.2 "><p id="zh-cn_topic_0000002016036877_p6422922184820">该参数适用于算子分布均匀的情况，可使用--core-id参数指定部分逻辑核的id，解析部分核的仿真数据。</p>
 <p id="zh-cn_topic_0000002016036877_p12184631113">核id的取值范围为[0,49]。</p>
 <p id="p64136401232">若要解析多个核的仿真数据时，需要使用符号"|"进行拼接。例如，--core-id="0|31"表示解析核id为0和31的仿真数据。</p>
 <p id="p112723421038">--core-id设置对PMSampling参数不生效，PMSampling参数解析全部核。</p>
@@ -392,7 +392,7 @@ msOpProf工具协助用户定位算子内存、算子代码以及算子指令的
         ```text
         └──OPPROF_{timestamp}_XXX
         ├── OpName1           // OpName1为采集算子名称
-        │ ├── 0               // 表示算子调度到的顺序
+        │ ├── 0               // 表示算子调度的顺序
         │ │ ├── dump          // 与单算子含义一致，存放过程件的文件夹
         │ │ └──simulator      // 与单算子simulator文件夹内容一致,但simulator文件夹中的csv文件均会增加时序后缀,例如core*_code_exe_20240429111143146.csv
         │ ├── 1

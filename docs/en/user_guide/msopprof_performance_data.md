@@ -69,7 +69,7 @@ The key fields are as follows.
 <!-- end id2 -->
 
 <!-- npu="950" id3 -->
-**Atlas 950PR and 950DT products**
+**Ascend 950PR and 950DT products**
 
 **Figure 3** ArithmeticUtilization.csv file
 
@@ -148,7 +148,7 @@ The key fields are as follows.
 <!-- end id5 -->
 
 <!-- npu="950" id6 -->
-**Atlas 950PR and 950DT products**
+**Ascend 950PR and 950DT products**
 
 **Figure 3** L2Cache.csv file
 
@@ -265,7 +265,7 @@ The key fields are as follows.
 <!-- end id8 -->
 
 <!-- npu="950" id9 -->
-**Atlas 950PR and 950DT products**
+**Ascend 950PR and 950DT products**
 
 **Figure 3** Memory.csv file
 
@@ -316,7 +316,7 @@ The key fields are as follows.
 The unit is GB/s, indicating that 1 GB data is transmitted per second.
 
 <!-- npu="950,A3,910b" id10 -->
-**Atlas A3 products, Atlas A2 products, and Atlas 950PR and 950DT products**
+**Atlas A3 products, Atlas A2 products, and Ascend 950PR and 950DT products**
 
 **Figure 1** MemoryL0.csv file
 
@@ -420,7 +420,7 @@ The key fields are as follows.
 <!-- end id13 -->
 
 <!-- npu="950" id14 -->
-**Atlas 950PR and 950DT products**
+**Ascend 950PR and 950DT products**
 
 **Figure 3** MemoryUB.csv file
 
@@ -462,7 +462,7 @@ The key fields are as follows.
 |Op Type|Operator type.|
 |Task Duration(us)|Task duration, including the time for scheduling a task to the AI processor, execution time on the AI processor, and response completion time. The unit is μs.|
 |Block Dim|Number of task splits, which corresponds to the number of cores used for task running and the number of logical cores for operator execution set by the developer.|
-|Mix Block Dim|For operators that execute simultaneously on both Cube and Vector cores, `blockDim` of the primary AI processor is recorded in the `Block Dim` field, which indicates the number of Cube cores, while `blockDim` of the secondary AI processor is recorded here, which indicates the number of Vector cores. **N/A** indicates that the operator is a non-mixed fusion operator. This parameter applies only to Atlas A3 products, Atlas A2 products, and Atlas 950PR and 950DT products.|
+|Mix Block Dim|For operators that execute simultaneously on both Cube and Vector cores, `blockDim` of the primary AI processor is recorded in the `Block Dim` field, which indicates the number of Cube cores, while `blockDim` of the secondary AI processor is recorded here, which indicates the number of Vector cores. **N/A** indicates that the operator is a non-mixed fusion operator. This parameter applies only to Atlas A3 products, Atlas A2 products, and Ascend 950PR and 950DT products.|
 |Device ID|ID of the AI processor used for running.|
 |PID|ID of the process used for running the operator.|
 |Current Freq|Current operating frequency of the AI processor.|
@@ -561,7 +561,7 @@ The key fields are as follows.
 <!-- end id16 -->
 
 <!-- npu="950" id17 -->
-**Atlas 950PR and 950DT products**
+**Ascend 950PR and 950DT products**
 
 **Figure 3** PipeUtilization.csv file
 
@@ -674,7 +674,7 @@ The key fields are as follows.
 <!-- end id19 -->
 
 <!-- npu="950" id20 -->
-**Atlas 950PR and 950DT products**
+**Ascend 950PR and 950DT products**
 
 **Figure 3** ResourceConflictRatio.csv file
 
