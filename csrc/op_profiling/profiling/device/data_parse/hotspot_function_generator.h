@@ -45,7 +45,7 @@ struct Encoding {
     uint64_t calls;
     uint32_t l2cacheHit;
     uint32_t l2cacheMiss;
-    int processBytes;
+    uint64_t processBytes;
     uint32_t gprCount;
     std::vector<uint64_t> pcSampling;
     std::vector<RecordStatus> gprStatus;
@@ -57,7 +57,7 @@ public:
     float l2cacheHitRate;
     float samplingPercentNotIssue;
     float samplingPercentAllSample;
-    int processBytes;
+    uint64_t processBytes;
     uint32_t gprCount;
     std::vector<uint64_t> pcSampling;
 

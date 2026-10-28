@@ -1662,6 +1662,59 @@ TEST(DeviceDataParse, HotSpot_UpdateProcessBytes_expect_true)
     ASSERT_TRUE(hotSpotFunctionGenerator.encodings_[10].processBytes == 20);
 }
 
+
+TEST(DeviceDataParse, HotSpot_ProcessBytesLargeTotals)
+{
+    constexpr uint64_t gib = 1024ULL * 1024 * 1024;
+    constexpr uint64_t chunkBytes = 64 * 1024;
+    for (uint64_t total : {2 * gib - 1, 2 * gib, 3 * gib, 4 * gib, 5 * gib}) {
+        HotSpotFunctionGenerator generator({"Ascend910B4", "", 0, true, false, false});
+        Encoding encoding {};
+        encoding.addr = 10;
+        generator.encodings_[10] = encoding;
+        std::vector<Common::MemRecord> records;
+        for (uint64_t remaining = total; remaining > 0;) {
+            Common::MemRecord record {};
+            record.pc = 10;
+            record.blockId = records.size() % 32;
+            record.src = MemType::GM;
+            record.dst = MemType::UB;
+            record.srcMemSize = std::min(remaining, chunkBytes);
+            record.dstMemSize = record.srcMemSize;
+            remaining -= record.srcMemSize;
+            records.emplace_back(record);
+        }
+        generator.UpdateProcessBytes(records);
+        ASSERT_EQ(generator.encodings_.at(10).processBytes, total);
+        InstrInfo info;
+        info.processBytes = generator.encodings_.at(10).processBytes;
+        nlohmann::json output;
+        info.AddCommonFieldsToJson(output);
+        auto restored = nlohmann::json::parse(output.dump());
+        EXPECT_EQ(restored["Process Bytes"].get<uint64_t>(), total);
+    }
+}
+
+TEST(DeviceDataParse, HotSpot_ProcessBytesCodeLineAndMissingData)
+{
+    constexpr uint64_t perInstructionBytes = 1536ULL * 1024 * 1024;
+    HotSpotFunctionGenerator generator({"Ascend910B4", "", 0, true, false, false});
+    Encoding first {};
+    first.addr = 10;
+    first.processBytes = perInstructionBytes;
+    Encoding second = first;
+    second.addr = 20;
+    CodeLine line;
+    ASSERT_TRUE(generator.GenCodeLine("1", {first, second, first}, line));
+    EXPECT_EQ(line.processBytes, 2 * perInstructionBytes);
+    nlohmann::json output;
+    line.AddCommonFieldsToJson(output);
+    EXPECT_EQ(output["Process Bytes"].get<uint64_t>(), 2 * perInstructionBytes);
+    InstrInfo empty;
+    empty.AddCommonFieldsToJson(output);
+    EXPECT_EQ(output["Process Bytes"].get<int64_t>(), -1);
+}
+
 TEST(DeviceDataParse, HotSpot_ProcessEncoding_expect_true)
 {
     GlobalMockObject::verify();

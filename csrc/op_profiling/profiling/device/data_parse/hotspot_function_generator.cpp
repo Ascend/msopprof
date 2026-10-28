@@ -300,7 +300,7 @@ void HotSpotFunctionGenerator::UpdateProcessBytes(const std::vector<Common::MemR
         Encoding &oneEncoding = item.second;
         auto it = mergedByPcMemRecordsMap.find(oneEncoding.addr);
         if (it != mergedByPcMemRecordsMap.end()) {
-            oneEncoding.processBytes = static_cast<int>(it->second);
+            oneEncoding.processBytes = it->second;
         }
     }
 }
