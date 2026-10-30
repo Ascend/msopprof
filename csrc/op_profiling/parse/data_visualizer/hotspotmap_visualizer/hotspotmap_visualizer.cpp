@@ -56,6 +56,10 @@ PluginErrorCode HotSpotMapVisualizer::Entry()
 
     CodeInstrData codeInstrData = {simPcToCode.GetStallCyc(), simPcToCode.GetScalarCyc() ,coreVec, files, instrInfoList};
     Serialization::ApiData::VisualizeApiData(dataVisualizerConfig_.GetOutputPath(), codeInstrData);
+    const auto &disassembler = dataVisualizerConfig_.GetDisassembler();
+    if (disassembler != nullptr) {
+        disassembler->LogUnmatchedPcs();
+    }
     PrintCoreInfo();
     return PluginErrorCode::SUCCESS;
 }

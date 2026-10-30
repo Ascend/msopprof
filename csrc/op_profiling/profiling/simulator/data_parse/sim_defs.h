@@ -19,6 +19,7 @@
 #define MSOPT_SIM_DEFS_H
 
 #include <string>
+#include "instr_encoding/instr_binary.h"
 #include <map>
 #include <utility>
 #include <vector>
@@ -93,7 +94,7 @@ struct InstrParseInfo {
     SpReg spStatus;
     std::string xnValue;
     // 指令binary，用于在反汇编map中查找对应的指令+细节
-    std::string binary;
+    Encode::InstrBinary binary;
 };
 
 struct InstrParseInfoForRealTime : public InstrParseInfo {

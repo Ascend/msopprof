@@ -175,7 +175,7 @@ bool GetA5InstrParseInfo(const Common::DvcInstrLogV2 &dvcInstrLog, InstrParseInf
     const std::string detail = ReadFixedString(dvcInstrLog.extendParamsJson);
     instrParseInfo = {dvcInstrLog.time, dvcInstrLog.pc, instrId, DEFAULT_INT_VALUE, DEFAULT_INT_VALUE,
         lineMatch[1].str(), lineMatch[4].str(), detail, {}, "",
-        Encode::InstrDisassembler::NormalizeBinary(lineMatch[2].str())};
+        Encode::InstrDisassembler::ParseBinary(lineMatch[2].str())};
     return true;
 }
 }
@@ -198,7 +198,7 @@ void RealTimeDataParser::SetInstrLog(const Common::DvcInstrLog &dvcInstrLog)
     InstrParseInfoForRealTime instrParseInfo = {
         {dvcInstrLog.time, dvcInstrLog.pc, 0, DEFAULT_INT_VALUE, DEFAULT_INT_VALUE, lineMatch[1].str(),
             lineMatch[3].str(), dvcInstrLog.execDescr, {}, "",
-            Encode::InstrDisassembler::NormalizeBinary(lineMatch[2].str())},
+            Encode::InstrDisassembler::ParseBinary(lineMatch[2].str())},
         coreName};
     realTimeInstrParser_.SetInstrLog(instrParseInfo);
 }
@@ -219,7 +219,7 @@ void RealTimeDataParser::SetPopInstrLog(const Common::DvcInstrLog &dvcInstrLog)
     }
     PoppedInstrParseInfo poppedInstrParseInfo({dvcInstrLog.time, dvcInstrLog.pc, 0, DEFAULT_INT_VALUE,
         DEFAULT_INT_VALUE, lineMatch[1].str(), lineMatch[3].str(), dvcInstrLog.execDescr, {}, "",
-        Encode::InstrDisassembler::NormalizeBinary(lineMatch[2].str())});
+        Encode::InstrDisassembler::ParseBinary(lineMatch[2].str())});
     PoppedInstrParseInfoForRealTime instrParseInfo(poppedInstrParseInfo, coreName);
     realTimeInstrParser_.SetPopInstrLog(instrParseInfo);
 }

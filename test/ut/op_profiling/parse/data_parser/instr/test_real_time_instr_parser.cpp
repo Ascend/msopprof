@@ -16,6 +16,7 @@
 
 
 #include <gtest/gtest.h>
+#include <thread>
 #include "mockcpp/mockcpp.hpp"
 
 #define private public
@@ -27,6 +28,7 @@
 #include "profiling/simulator/data_parse/sim_data_parse.h"
 #include "parse/plugin/plugin_manager.h"
 #include "parse/plugin/plugin_interface.h"
+#include "log.h"
 #undef protected
 #undef private
 #include "parse/data_table/instr_detail_table.h"
@@ -160,7 +162,7 @@ TEST(RealTimeInstrParser, test_set_instr_log_v1_should_extract_binary) {
     ASSERT_TRUE(instrPtr->TryPop(data));
     EXPECT_EQ(data.name, "ADD");
     EXPECT_EQ(data.pipe, "SCALAR");
-    EXPECT_EQ(data.binary, "003bd781");
+    EXPECT_EQ(data.binary, Encode::InstrDisassembler::ParseBinary("003bd781"));
 }
 
 /**
@@ -190,7 +192,7 @@ TEST(RealTimeInstrParser, test_set_pop_instr_log_v1_should_extract_binary) {
     ASSERT_TRUE(popPtr->TryPop(data));
     EXPECT_EQ(data.name, "MOV_XD_IMM");
     EXPECT_EQ(data.pipe, "SCALAR");
-    EXPECT_EQ(data.binary, "073a7fa0");
+    EXPECT_EQ(data.binary, Encode::InstrDisassembler::ParseBinary("073a7fa0"));
 }
 
 /**
@@ -222,7 +224,7 @@ TEST(RealTimeInstrParser, test_set_instr_log_v2_simt_should_concat_binary) {
     ASSERT_TRUE(instrPtr->TryPop(data));
     EXPECT_EQ(data.name, "SIMT_IADD_I");
     EXPECT_EQ(data.pipe, "RVECEX");
-    EXPECT_EQ(data.binary, "ffffffe80000000104060000000e005d");
+    EXPECT_EQ(data.binary, Encode::InstrDisassembler::ParseBinary("ffffffe80000000104060000000e005d"));
 }
 
 /**
@@ -239,18 +241,209 @@ TEST(InstrDisassembler, test_normalize_binary) {
     EXPECT_TRUE(Encode::InstrDisassembler::NormalizeBinary("").empty());
 }
 
-/**
- * |  用例集 | RealTimeInstrParser
- * | 测试函数 | EncodingToBinary
- * |  用例名  | test_encoding_to_binary
- * | 用例描述 | 把InstrEncoding解出的encoding转成反汇编map key：32/64/128位及非法位宽
- */
-TEST(InstrDisassembler, test_encoding_to_binary) {
-    EXPECT_EQ(Encode::InstrDisassembler::EncodingToBinary(0x073a7fa0, 0, Encode::EncodingType::BIT32), "073a7fa0");
-    EXPECT_EQ(Encode::InstrDisassembler::EncodingToBinary(0x06002e00029e065c, 0, Encode::EncodingType::BIT64),
-        "06002e00029e065c");
-    EXPECT_EQ(Encode::InstrDisassembler::EncodingToBinary(
-                  0x0e0e0010088e005d, 0xffffffff00000001, Encode::EncodingType::BIT128),
-        "ffffffff000000010e0e0010088e005d");
-    EXPECT_TRUE(Encode::InstrDisassembler::EncodingToBinary(0, 0, Encode::EncodingType::INVALID).empty());
+TEST(InstrDisassembler, test_from_encoding) {
+    const auto binary32 = Encode::InstrDisassembler::FromEncoding(0x073a7fa0, 0, Encode::EncodingType::BIT32);
+    EXPECT_EQ(binary32, Encode::InstrDisassembler::ParseBinary("073a7fa0"));
+    EXPECT_EQ(binary32.bitType, Encode::EncodingType::BIT32);
+    const auto binary64 = Encode::InstrDisassembler::FromEncoding(0x06002e00029e065c, 0, Encode::EncodingType::BIT64);
+    EXPECT_EQ(binary64, Encode::InstrDisassembler::ParseBinary("06002e00029e065c"));
+    EXPECT_EQ(binary64.bitType, Encode::EncodingType::BIT64);
+    const auto binary128 =
+        Encode::InstrDisassembler::FromEncoding(0x0e0e0010088e005d, 0xffffffff00000001, Encode::EncodingType::BIT128);
+    EXPECT_EQ(binary128, Encode::InstrDisassembler::ParseBinary("ffffffff000000010e0e0010088e005d"));
+    EXPECT_EQ(binary128.bitType, Encode::EncodingType::BIT128);
+    EXPECT_TRUE(Encode::InstrDisassembler::FromEncoding(0, 0, Encode::EncodingType::INVALID).empty());
+}
+
+TEST(InstrDisassembler, test_binary_matches_by_requested_width)
+{
+    const auto a = Encode::InstrDisassembler::ParseBinary("00000004000000030000000200000001");
+    const auto b = Encode::InstrDisassembler::ParseBinary("00000008000000070000000600000001");
+    EXPECT_TRUE(a.Matches(b, Encode::EncodingType::BIT32));
+    EXPECT_FALSE(a.Matches(b, Encode::EncodingType::BIT64));
+    EXPECT_FALSE(a.Matches(b));
+    EXPECT_FALSE(a == b);
+    EXPECT_FALSE(a.Matches(a, Encode::EncodingType::INVALID));
+    const auto c = Encode::InstrDisassembler::ParseBinary("00000008000000070000000200000001");
+    EXPECT_TRUE(a.Matches(c, Encode::EncodingType::BIT64));
+    EXPECT_FALSE(a.Matches(c));
+}
+
+TEST(InstrDisassembler, test_binary_parsing_and_hash)
+{
+    const auto binary = Encode::InstrDisassembler::ParseBinary("0x0e0e0010088e005d ffffffff00000001");
+    EXPECT_EQ(binary.words[0], 0x088e005dU);
+    EXPECT_EQ(binary.words[1], 0x0e0e0010U);
+    EXPECT_EQ(binary.words[2], 0x00000001U);
+    EXPECT_EQ(binary.words[3], 0xffffffffU);
+    EXPECT_EQ(binary.bitType, Encode::EncodingType::BIT128);
+    EXPECT_TRUE(Encode::InstrDisassembler::ParseBinary("123").empty());
+    EXPECT_TRUE(Encode::InstrDisassembler::ParseBinary("0000000g").empty());
+    EXPECT_TRUE(Encode::InstrDisassembler::ParseBinary(std::string(40, '0')).empty());
+    const auto narrow = Encode::InstrDisassembler::FromEncoding(~0ULL, ~0ULL, Encode::EncodingType::BIT32);
+    EXPECT_EQ(narrow.words[0], 0xffffffffU);
+    EXPECT_EQ(narrow.words[1], 0U);
+    EXPECT_EQ(narrow.words[2], 0U);
+    EXPECT_EQ(narrow.words[3], 0U);
+    auto same = narrow;
+    same.bitType = Encode::EncodingType::BIT128;
+    EXPECT_EQ(narrow, same);
+    EXPECT_EQ(Encode::InstrBinaryHash{}(narrow), Encode::InstrBinaryHash{}(same));
+}
+
+TEST(InstrDisassembler, test_lookup_uses_requested_width_index)
+{
+    Encode::InstrDisassembler disassembler;
+    for (auto type : {Encode::EncodingType::BIT32, Encode::EncodingType::BIT64,
+                      Encode::EncodingType::BIT128}) {
+        const auto key = Encode::InstrDisassembler::FromEncoding(1, 0, type);
+        const auto text = std::to_string(static_cast<int>(type));
+        disassembler.binary2Disasm_[static_cast<size_t>(type)][key] = text;
+        EXPECT_EQ(disassembler.GetDisassembly(key, type, 0x100), text);
+    }
+    const auto query = Encode::InstrDisassembler::ParseBinary("00000004000000030000000200000001");
+    EXPECT_EQ(disassembler.GetDisassembly(query, Encode::EncodingType::BIT32, 0x100), "0");
+    EXPECT_TRUE(disassembler.GetDisassembly(query, Encode::EncodingType::BIT64, 0x100).empty());
+    EXPECT_TRUE(disassembler.GetDisassembly(query, Encode::EncodingType::BIT128, 0x100).empty());
+    EXPECT_TRUE(disassembler.GetDisassembly(query, Encode::EncodingType::INVALID, 0x100).empty());
+}
+
+TEST(InstrDisassembler, test_truncated_binary_matches_unique_wider_instruction)
+{
+    Encode::InstrDisassembler disassembler;
+    const auto full64 = Encode::InstrDisassembler::ParseBinary("1234567800000001");
+    const auto full128 = Encode::InstrDisassembler::ParseBinary("abcdef01234567880000000300000002");
+    disassembler.binary2Disasm_[1][full64] = "instruction64";
+    disassembler.binary2Disasm_[2][full128] = "instruction128";
+    const auto low32 = Encode::InstrDisassembler::ParseBinary("00000001");
+    EXPECT_EQ(disassembler.GetDisassembly(low32, low32.bitType, 0x100), "instruction64");
+    const auto low128 = Encode::InstrDisassembler::ParseBinary("00000002");
+    EXPECT_EQ(disassembler.GetDisassembly(low128, low128.bitType, 0x100), "instruction128");
+    const auto low64 = Encode::InstrDisassembler::ParseBinary("0000000300000002");
+    EXPECT_EQ(disassembler.GetDisassembly(low64, low64.bitType, 0x100), "instruction128");
+    EXPECT_EQ(disassembler.GetDisassembly(full128, Encode::EncodingType::BIT128, 0x100), "instruction128");
+    EXPECT_TRUE(disassembler.GetDisassembly(low32, Encode::EncodingType::BIT128, 0x100).empty());
+    EXPECT_EQ(disassembler.GetDisassembly(low32, low32.bitType, 0x100), "instruction64");
+}
+
+TEST(InstrDisassembler, test_ambiguous_truncated_binary_is_not_matched)
+{
+    Encode::InstrDisassembler disassembler;
+    const auto a = Encode::InstrDisassembler::ParseBinary("1111111100000001");
+    const auto b = Encode::InstrDisassembler::ParseBinary("2222222200000001");
+    const auto c = Encode::InstrDisassembler::ParseBinary("11111111111111110000000300000002");
+    const auto d = Encode::InstrDisassembler::ParseBinary("22222222222222220000000300000002");
+    const auto e = Encode::InstrDisassembler::ParseBinary("3333333300000004");
+    const auto f = Encode::InstrDisassembler::ParseBinary("44444444444444444444444400000004");
+    disassembler.binary2Disasm_[1][a] = "a";
+    disassembler.binary2Disasm_[1][b] = "b";
+    disassembler.binary2Disasm_[2][c] = "c";
+    disassembler.binary2Disasm_[2][d] = "d";
+    disassembler.binary2Disasm_[1][e] = "e";
+    disassembler.binary2Disasm_[2][f] = "f";
+    for (const auto &text : {"00000001", "00000002", "00000004", "0000000300000002"}) {
+        const auto key = Encode::InstrDisassembler::ParseBinary(text);
+        EXPECT_TRUE(disassembler.GetDisassembly(key, key.bitType, 0x100).empty());
+    }
+    EXPECT_EQ(disassembler.unmatchedPcs_.count(0x100), 1U);
+    // Direct matches take precedence even when the same prefix exists in wider encodings.
+    const auto direct = Encode::InstrDisassembler::ParseBinary("00000001");
+    disassembler.binary2Disasm_[0][direct] = "direct";
+    EXPECT_EQ(disassembler.GetDisassembly(direct, direct.bitType, 0x200), "direct");
+    EXPECT_EQ(disassembler.unmatchedPcs_.count(0x200), 0U);
+}
+
+TEST(InstrDisassembler, test_all_direct_miss_pcs_are_recorded_and_drained)
+{
+    Encode::InstrDisassembler disassembler;
+    const auto full = Encode::InstrDisassembler::ParseBinary("1234567800000001");
+    disassembler.binary2Disasm_[1][full] = "recovered";
+    EXPECT_EQ(disassembler.GetDisassembly(full, full.bitType, 0x100), "recovered");
+    EXPECT_TRUE(disassembler.unmatchedPcs_.empty());
+    const auto truncated = Encode::InstrDisassembler::ParseBinary("00000001");
+    EXPECT_EQ(disassembler.GetDisassembly(truncated, truncated.bitType, 0x200), "recovered");
+    EXPECT_EQ(disassembler.GetDisassembly(truncated, truncated.bitType, 0x200), "recovered");
+    const auto missing = Encode::InstrDisassembler::ParseBinary("000000ff");
+    EXPECT_TRUE(disassembler.GetDisassembly(missing, missing.bitType, 0x300).empty());
+    EXPECT_TRUE(disassembler.GetDisassembly({}, Encode::EncodingType::INVALID, 0x400).empty());
+    EXPECT_EQ(disassembler.unmatchedPcs_.size(), 3U);
+    EXPECT_EQ(disassembler.unmatchedPcs_.count(0x200), 1U);
+    EXPECT_EQ(disassembler.unmatchedPcs_.count(0x300), 1U);
+    EXPECT_EQ(disassembler.unmatchedPcs_.count(0x400), 1U);
+    disassembler.LogUnmatchedPcs();
+    EXPECT_TRUE(disassembler.unmatchedPcs_.empty());
+    disassembler.LogUnmatchedPcs();
+    EXPECT_TRUE(disassembler.unmatchedPcs_.empty());
+}
+
+TEST(InstrDisassembler, test_debug_log_contains_each_direct_miss_pc_once) {
+    Encode::InstrDisassembler d;
+    auto &log = Utility::Log::GetLog();
+    auto level = log.lv_;
+    log.lv_ = Utility::LogLv::DEBUG;
+    const auto b = Encode::InstrDisassembler::ParseBinary("00000001");
+    d.GetDisassembly(b, b.bitType, 0xabc);
+    d.GetDisassembly(b, b.bitType, 0xabc);
+    testing::internal::CaptureStdout();
+    d.LogUnmatchedPcs();
+    d.LogUnmatchedPcs();
+    const auto output = testing::internal::GetCapturedStdout();
+    log.lv_ = level;
+    EXPECT_NE(output.find("[DEBUG]"), std::string::npos);
+    const auto pos = output.find("pc=0xabc");
+    ASSERT_NE(pos, std::string::npos);
+    EXPECT_EQ(output.find("pc=0xabc", pos + 1), std::string::npos);
+}
+TEST(InstrDisassembler, test_parallel_direct_misses) {
+    Encode::InstrDisassembler d;
+    const auto full = Encode::InstrDisassembler::ParseBinary("123456789abcdef00000000300000001");
+    d.binary2Disasm_[2][full] = "recovered";
+    const auto b = Encode::InstrDisassembler::ParseBinary("00000001");
+    std::vector<std::thread> workers;
+    for (int t = 0; t < 8; ++t) {
+        workers.emplace_back([&] {
+            for (int i = 0; i < 100; ++i) {
+                EXPECT_EQ(d.GetDisassembly(b, b.bitType, i % 16), "recovered");
+            }
+        });
+    }
+    for (auto &worker : workers) {
+        worker.join();
+    }
+    EXPECT_EQ(d.unmatchedPcs_.size(), 16U);
+    d.LogUnmatchedPcs();
+    EXPECT_TRUE(d.unmatchedPcs_.empty());
+}
+
+TEST(InstrDisassembler, test_truncated_index_is_built_on_first_partial_lookup) {
+    Encode::InstrDisassembler disassembler;
+    const auto full = Encode::InstrDisassembler::ParseBinary("123456789abcdef00000000300000001");
+    disassembler.binary2Disasm_[2][full] = "recovered";
+    EXPECT_EQ(disassembler.GetDisassembly(full, full.bitType, 0x100), "recovered");
+    EXPECT_FALSE(disassembler.truncatedIndexBuilt_);
+    const auto missing = Encode::InstrDisassembler::FromEncoding(0, 0, Encode::EncodingType::BIT128);
+    EXPECT_TRUE(disassembler.GetDisassembly(missing, missing.bitType, 0x200).empty());
+    EXPECT_FALSE(disassembler.truncatedIndexBuilt_);
+    EXPECT_TRUE(disassembler.truncated2Disasm_[0].empty());
+    EXPECT_TRUE(disassembler.truncated2Disasm_[1].empty());
+    const auto low32 = Encode::InstrDisassembler::ParseBinary("00000001");
+    EXPECT_EQ(disassembler.GetDisassembly(low32, low32.bitType, 0x300), "recovered");
+    EXPECT_TRUE(disassembler.truncatedIndexBuilt_);
+    const auto low64 = Encode::InstrDisassembler::ParseBinary("0000000300000001");
+    EXPECT_EQ(disassembler.GetDisassembly(low64, low64.bitType, 0x400), "recovered");
+}
+
+TEST(InstrDisassembler, test_lazy_truncated_indices_are_independent_between_instances) {
+    Encode::InstrDisassembler first;
+    Encode::InstrDisassembler second;
+    const auto fullA = Encode::InstrDisassembler::ParseBinary("1111111100000001");
+    const auto fullB = Encode::InstrDisassembler::ParseBinary("2222222200000001");
+    const auto low = Encode::InstrDisassembler::ParseBinary("00000001");
+    first.binary2Disasm_[1][fullA] = "first";
+    second.binary2Disasm_[1][fullB] = "second";
+    EXPECT_EQ(first.GetDisassembly(low, low.bitType, 0x100), "first");
+    EXPECT_TRUE(first.truncatedIndexBuilt_);
+    EXPECT_FALSE(second.truncatedIndexBuilt_);
+    EXPECT_EQ(second.GetDisassembly(low, low.bitType, 0x100), "second");
+    EXPECT_EQ(first.GetDisassembly(low, low.bitType, 0x100), "first");
 }

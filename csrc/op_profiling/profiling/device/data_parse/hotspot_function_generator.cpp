@@ -445,9 +445,9 @@ bool HotSpotFunctionGenerator::ProcessEncoding(const std::string &kernelPath,
         Encoding newEncoding = {pc, instrEncodingVec[i].pipe, instrEncodingVec[i].name, "", 0, 0,
                                 0, 0, 0, {0, 0, 0, 0, 0, 0, 0, 0, 0}};
         if (disassembler_ != nullptr) {
-            const std::string binary = Encode::InstrDisassembler::EncodingToBinary(
+            const auto binary = Encode::InstrDisassembler::FromEncoding(
                 instrEncodingVec[i].enc.low64, instrEncodingVec[i].enc.high64, instrEncodingVec[i].bitType);
-            const std::string disasm = disassembler_->GetDisassembly(binary);
+            const std::string disasm = disassembler_->GetDisassembly(binary, binary.bitType, pc);
             if (!disasm.empty()) {
                 newEncoding.source = disasm;
             }
@@ -462,6 +462,9 @@ bool HotSpotFunctionGenerator::ProcessEncoding(const std::string &kernelPath,
             }
         }
         encodings_[pc] = newEncoding;
+    }
+    if (disassembler_ != nullptr) {
+        disassembler_->LogUnmatchedPcs();
     }
     return true;
 }

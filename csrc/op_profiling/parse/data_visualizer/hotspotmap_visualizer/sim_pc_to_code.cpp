@@ -83,7 +83,7 @@ void SimPcToCode::UpdatePCStat(const MergeInfo &selectedInstr, const std::string
     std::string instr = selectedInstr.name + " " + selectedInstr.detail;
     const auto &disassembler = simConfig_.GetDisassembler();
     if (disassembler != nullptr) {
-        const std::string disasm = disassembler->GetDisassembly(selectedInstr.binary);
+        const std::string disasm = disassembler->GetDisassembly(selectedInstr.binary, selectedInstr.binary.bitType, selectedInstr.pc);
         if (!disasm.empty()) {
             instr = disasm;
         }

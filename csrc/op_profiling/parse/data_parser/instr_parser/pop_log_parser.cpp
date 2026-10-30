@@ -161,7 +161,7 @@ void PopLogParser::ParseLine(const std::string &line, MatchMode matchMode)
     poppedInstrParseInfo.name = lineMatch[instrPoppedRuleNamePos_["name"]].str();
     poppedInstrParseInfo.detail =
         GetCompleteDetail(line, lineMatch[instrPoppedRuleNamePos_["detail"]].str(), matchMode);
-    poppedInstrParseInfo.binary = Encode::InstrDisassembler::NormalizeBinary(
+    poppedInstrParseInfo.binary = Encode::InstrDisassembler::ParseBinary(
         lineMatch[instrPoppedRuleNamePos_["binary"]].str());
     poppedInstrParseInfo.spStatus = {};
     poppedInstrParseInfo.gprCount = 0;

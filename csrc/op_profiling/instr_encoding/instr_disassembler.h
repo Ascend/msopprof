@@ -18,6 +18,9 @@
 #define MSOPT_INSTR_DISASSEMBLER_H
 
 #include <cstdint>
+#include <array>
+#include <mutex>
+#include <set>
 #include <string>
 #include <unordered_map>
 
@@ -29,33 +32,48 @@ namespace Encode {
  * @brief 使用CANN自带的llvm-objdump对算子.o反汇编，得到 指令编码 -> 指令+细节 的映射。
  *
  * 只有CANN自带的反汇编系统才能正确反汇编算子.o，因此本类会优先查找CANN包下的
- * bisheng_compiler llvm-objdump。key为归一化后的指令binary，value为反汇编出的指令+细节。
+ * bisheng_compiler llvm-objdump。key为四段32位指令编码，按位宽分别建立索引，value为反汇编出的指令+细节。
  */
 class InstrDisassembler {
 public:
     InstrDisassembler() = default;
-    ~InstrDisassembler() = default;
+    ~InstrDisassembler();
 
     /*
      * @brief 反汇编算子.o并生成 binary -> 指令+细节 的映射
      *
+     * 每个实例只针对一个算子调用一次。
      * @param kernelPath 算子.o的路径
      * @return 是否成功生成映射
      */
     bool Init(const std::string &kernelPath);
-    void Clear();
 
     /*
-     * @brief 按归一化后的binary查找反汇编指令+细节
+     * @brief 按指定指令位宽查找反汇编指令+细节，并记录未直接命中的PC
      *
-     * @param binary 归一化后的指令编码，如 "073a7fa0" 或 "ffffffff000000010e0e0010088e005d"
+     * @param binary 从低位到高位保存的四段32位编码
+     * @param type 匹配位宽，32/64位查询忽略未参与匹配的高位字段
+     * @param pc 指令地址，用于汇总未直接命中的位置
+     * 同位宽未命中时，首次构建更宽指令的低位索引并复用；候选不唯一时返回空串。
      * @return 反汇编出的指令+细节；未命中返回空串
      */
-    std::string GetDisassembly(const std::string &binary) const;
+    std::string GetDisassembly(const InstrBinary &binary, EncodingType type, uint64_t pc) const;
+    // Print and drain the deduplicated PCs after all lookup workers have finished.
+    void LogUnmatchedPcs() const;
+
+    // Parse log binary once; split SIMT tokens are ordered low64 then high64.
+    static InstrBinary ParseBinary(const std::string &rawBinary);
+    // Zero unused words to keep equality and hashing consistent.
+    static InstrBinary FromEncoding(uint64_t low64, uint64_t high64, EncodingType type);
 
     bool IsValid() const
     {
-        return !binary2Disasm_.empty();
+        for (const auto &index : binary2Disasm_) {
+            if (!index.empty()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /*
@@ -68,24 +86,23 @@ public:
      */
     static std::string NormalizeBinary(const std::string &rawBinary);
 
-    /*
-     * @brief 把指令编码解析出的encoding值转换成反汇编map使用的binary字符串。
-     *
-     * 上板路径复用InstrEncoding解出的encoding(Enc128)，转换为与objdump输出一致、
-     * 可作为binary2Disasm_ key的归一化字符串。
-     *
-     * @param low64 低64位编码
-     * @param high64 高64位编码
-     * @param bitType 指令位宽
-     * @return 归一化后的binary字符串；非法位宽返回空串
-     */
-    static std::string EncodingToBinary(uint64_t low64, uint64_t high64, EncodingType bitType);
-
 private:
     static std::string GetObjdumpPath();
-    static bool ParseObjdumpLine(const std::string &line, std::string &binary, std::string &disasm);
+    static InstrBinary TruncateBinary(const InstrBinary &binary, EncodingType type);
+    void BuildTruncatedIndex() const;
+    std::string FindDisassembly(const InstrBinary &binary, EncodingType type, bool &directMatch) const;
+    static bool ParseObjdumpLine(const std::string &line, InstrBinary &binary, std::string &disasm);
 
-    std::unordered_map<std::string, std::string> binary2Disasm_;
+    // Separate widths prevent zero-extended encodings from aliasing.
+    using BinaryMap = std::unordered_map<InstrBinary, std::string, InstrBinaryHash>;
+    std::array<BinaryMap, 3> binary2Disasm_;
+    // References into the immutable full-width maps; nullptr marks an ambiguous prefix.
+    using TruncatedMap = std::unordered_map<InstrBinary, const std::string *, InstrBinaryHash>;
+    mutable std::array<TruncatedMap, 2> truncated2Disasm_;
+    mutable std::mutex truncatedIndexMutex_;
+    mutable bool truncatedIndexBuilt_ = false;
+    mutable std::mutex unmatchedPcsMutex_;
+    mutable std::set<uint64_t> unmatchedPcs_;
 };
 
 }
