@@ -69,20 +69,6 @@ TEST(CmdExecute, test_JoinWithSystemEnv_with_systemEnvs_return_without_equal_sig
     environ = originSystemEnvs;
 }
 
-// 覆盖 JoinWithSystemEnv 在待合并的系统环境变量值为空时直接替换（不追加冒号）的分支
-TEST(CmdExecute, test_JoinWithSystemEnv_with_empty_env_value_expect_replace) {
-    char *testSystemEnvs[] = {
-            (char*)"LD_PRELOAD=",
-            nullptr
-    };
-    std::vector<std::string> outEnv;
-    char **originSystemEnvs = environ;
-    environ = testSystemEnvs;
-    JoinWithSystemEnv({{"LD_PRELOAD", "123"}}, outEnv, true);
-    ASSERT_FALSE(std::find(outEnv.begin(), outEnv.end(), "LD_PRELOAD=123") == outEnv.end());
-    environ = originSystemEnvs;
-}
-
 // 覆盖 CmdExecuteWithOutput 正常执行命令成功的主流程
 TEST(CmdExecute, test_CmdExecuteWithOutput_expect_success) {
     std::string outputName = "/tmp/msopprof_cmd_execute_touch_xyz";

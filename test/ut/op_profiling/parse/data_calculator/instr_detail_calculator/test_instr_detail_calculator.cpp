@@ -382,3 +382,270 @@ TEST(InstrDetailCalculatorUt, test_UpdateSpReg_should_update_maskMode_when_encou
     SpReg goldenStatus {0, 0, 0, MaskMode::ELEMENT_COUNT_MODE};
     IsSpRegEqual(spRegStatus, goldenStatus);
 }
+
+// 测试GetMemOpInfo函数：A2上LOAD_2D指令详情缺少XM寄存器时，寄存器构造失败，返回false
+TEST(InstrDetailCalculatorUt, test_GetMemOpInfo_should_return_false_when_load_2d_detail_misses_xm_on_A2) {
+    InstrDetailConfig instrDetailContext {ChipProductType::ASCEND910B4};
+    DataCenter dataCenter;
+    TestInstrDetailCalculator testClass {dataCenter, instrDetailContext};
+    testClass.AttributeMapInit();
+
+    Profiling::MergeInfo mergeInfo;
+    mergeInfo.name = "LOAD_2D";
+    mergeInfo.detail = "Src:OUT, Dst:L0A, XD:X0=0x70000, XN:X0=0x113f9600, Dtype:B8,  id: 1";
+
+    MemOpInfo memOpInfo = {false, 0, 0, 0, 0, 0, 0, 0};
+    bool res = testClass.GetMemOpInfo(mergeInfo, memOpInfo);
+    ASSERT_FALSE(res);
+    ASSERT_FALSE(memOpInfo.isValid);
+}
+
+// 测试GetMemOpInfo函数：A2上LOAD_IMAGE指令详情合法时，解析成功并按块尺寸计算传输量
+TEST(InstrDetailCalculatorUt, test_GetMemOpInfo_should_return_true_when_load_image_detail_is_valid_on_A2) {
+    InstrDetailConfig instrDetailContext {ChipProductType::ASCEND910B4};
+    DataCenter dataCenter;
+    TestInstrDetailCalculator testClass {dataCenter, instrDetailContext};
+    testClass.AttributeMapInit();
+
+    Profiling::MergeInfo mergeInfo;
+    mergeInfo.name = "LOAD_IMAGE";
+    mergeInfo.detail = "Src:OUT, Dst:L1, XD:X0=0x70000, XS:X0=0x10010, XT:X0=0x10010, Dtype:F16,  id: 2";
+
+    MemOpInfo memOpInfo = {false, 0, 0, 0, 0, 0, 0, 0};
+    bool res = testClass.GetMemOpInfo(mergeInfo, memOpInfo);
+    ASSERT_TRUE(res);
+    // (horSize + lPad + rPad) * (verSize + topPad + botPad) = (16 + 0 + 0) * (1 + 1 + 0) = 32
+    MemOpInfo checkMemOpInfo = {true, 458752, 32, 32, 1, 1, 0};
+    IsMemOpInfoEqual(memOpInfo, checkMemOpInfo);
+}
+
+// 测试GetMemOpInfo函数：310P上load_src_to_smask指令详情缺少xtValue时，寄存器构造失败，返回false
+TEST(InstrDetailCalculatorUt, test_GetMemOpInfo_should_return_false_when_smask_detail_misses_xt_on_310P) {
+    InstrDetailConfig instrDetailContext {ChipProductType::ASCEND310P2};
+    DataCenter dataCenter;
+    TestInstrDetailCalculator testClass {dataCenter, instrDetailContext};
+    testClass.AttributeMapInit();
+
+    Profiling::MergeInfo mergeInfo;
+    mergeInfo.name = "load_src_to_smask";
+    mergeInfo.detail = "xd:2, xn:1, xt:0, xdValue:0x23000, xnValue:0x114f1000, srcIDValue:2";
+
+    MemOpInfo memOpInfo = {false, 0, 0, 0, 0, 0, 0, 0};
+    bool res = testClass.GetMemOpInfo(mergeInfo, memOpInfo);
+    ASSERT_FALSE(res);
+    ASSERT_FALSE(memOpInfo.isValid);
+}
+
+// 测试GetMemOpInfo函数：310P上mov_out_to_ub指令详情缺少xmValue时，寄存器构造失败，返回false
+TEST(InstrDetailCalculatorUt, test_GetMemOpInfo_should_return_false_when_mov_detail_misses_xm_on_310P) {
+    InstrDetailConfig instrDetailContext {ChipProductType::ASCEND310P1};
+    DataCenter dataCenter;
+    TestInstrDetailCalculator testClass {dataCenter, instrDetailContext};
+    testClass.AttributeMapInit();
+
+    Profiling::MergeInfo mergeInfo;
+    mergeInfo.name = "mov_out_to_ub";
+    mergeInfo.detail = "xd:2, xn:1, xm:0, xdValue:0x23000, xnValue:0x114f1000, srcIDValue:2";
+
+    MemOpInfo memOpInfo = {false, 0, 0, 0, 0, 0, 0, 0};
+    bool res = testClass.GetMemOpInfo(mergeInfo, memOpInfo);
+    ASSERT_FALSE(res);
+    ASSERT_FALSE(memOpInfo.isValid);
+}
+
+// 测试GetMemOpInfo函数：A2上ND2NZ指令的Dtype不在支持列表时，寄存器构造失败，返回false
+TEST(InstrDetailCalculatorUt, test_GetMemOpInfo_should_return_false_when_nd2nz_dtype_not_supported_on_A2) {
+    InstrDetailConfig instrDetailContext {ChipProductType::ASCEND910B4};
+    DataCenter dataCenter;
+    TestInstrDetailCalculator testClass {dataCenter, instrDetailContext};
+    testClass.AttributeMapInit();
+
+    Profiling::MergeInfo mergeInfo;
+    mergeInfo.name = "MOV_OUT_TO_L1_MULTI_ND2NZ";
+    mergeInfo.detail = "Src:OUT, Dst:L1, XD:X0=0x70000, XN:X0=0x113f9600, XM:X0=0x100010, XT:X0=0, Dtype:XYZ,  id: 1";
+
+    MemOpInfo memOpInfo = {false, 0, 0, 0, 0, 0, 0, 0};
+    bool res = testClass.GetMemOpInfo(mergeInfo, memOpInfo);
+    ASSERT_FALSE(res);
+    ASSERT_FALSE(memOpInfo.isValid);
+}
+
+// 测试GetMemOpInfo函数：A2上ALIGN指令的Src内存类型不在支持列表时，寄存器构造失败，返回false
+TEST(InstrDetailCalculatorUt, test_GetMemOpInfo_should_return_false_when_align_src_mem_type_invalid_on_A2) {
+    InstrDetailConfig instrDetailContext {ChipProductType::ASCEND910B4};
+    DataCenter dataCenter;
+    TestInstrDetailCalculator testClass {dataCenter, instrDetailContext};
+    testClass.AttributeMapInit();
+
+    Profiling::MergeInfo mergeInfo;
+    mergeInfo.name = "MOV_SRC_TO_DST_ALIGN";
+    mergeInfo.detail = "Src:GM, Dst:UB, XD:X0=0x70000, XN:X0=0x113f9600, XM:X0=0x100010, XT:X0=0, Dtype:B16,  id: 1";
+
+    MemOpInfo memOpInfo = {false, 0, 0, 0, 0, 0, 0, 0};
+    bool res = testClass.GetMemOpInfo(mergeInfo, memOpInfo);
+    ASSERT_FALSE(res);
+    ASSERT_FALSE(memOpInfo.isValid);
+}
+
+// 测试GetMemOpInfo函数：A2上ALIGN指令Src为UB时，blockNum按32B对齐向上取整
+TEST(InstrDetailCalculatorUt, test_GetMemOpInfo_should_align_block_num_when_align_src_is_ub_on_A2) {
+    InstrDetailConfig instrDetailContext {ChipProductType::ASCEND910B4};
+    DataCenter dataCenter;
+    TestInstrDetailCalculator testClass {dataCenter, instrDetailContext};
+    testClass.AttributeMapInit();
+
+    Profiling::MergeInfo mergeInfo;
+    mergeInfo.name = "MOV_SRC_TO_DST_ALIGN";
+    mergeInfo.detail = "Src:UB, Dst:OUT, XD:X0=0x70000, XN:X0=0x113f9600, XM:X0=0x100010, XT:X0=1, Dtype:B16,  id: 1";
+
+    MemOpInfo memOpInfo = {false, 0, 0, 0, 0, 0, 0, 0};
+    bool res = testClass.GetMemOpInfo(mergeInfo, memOpInfo);
+    ASSERT_TRUE(res);
+    // lenBurst = 16 按UB_ALIGN_SIZE对齐后 blockNum = 32，repeatStride = 32 + 1 * 32 = 64
+    MemOpInfo checkMemOpInfo = {true, 289379840, 458752, 32, 1, 1, 1, 64};
+    IsMemOpInfoEqual(memOpInfo, checkMemOpInfo);
+}
+
+// 测试GetMemOpInfo函数：A2上FIX_L0C_TO_DST使能NZ2ND且量化位数为16时，按nSize直接计算
+TEST(InstrDetailCalculatorUt, test_GetMemOpInfo_should_use_nsize_when_fixpipe_nz2nd_with_16bit_quant_on_A2) {
+    InstrDetailConfig instrDetailContext {ChipProductType::ASCEND910B4};
+    DataCenter dataCenter;
+    TestInstrDetailCalculator testClass {dataCenter, instrDetailContext};
+    testClass.AttributeMapInit();
+
+    Profiling::MergeInfo mergeInfo;
+    mergeInfo.name = "FIX_L0C_TO_DST";
+    // xm: nSize=32, mSize=4, dstStride=8; xt: quantPRE=1(f32->f16, 16bit), enNZ2ND=1
+    mergeInfo.detail = "Src:L0C, Dst:UB, XD:X0=0x70000, XN:X0=0x113f9600, XM:X0=0x800040200, "
+                       "XT:X0=0x80400000000, Dtype:B16,  id: 1";
+
+    MemOpInfo memOpInfo = {false, 0, 0, 0, 0, 0, 0, 0};
+    bool res = testClass.GetMemOpInfo(mergeInfo, memOpInfo);
+    ASSERT_TRUE(res);
+    // blockNum = nSize = 32, blockSize = 16 / 8 = 2, repeatTimes = mSize = 4, repeatStride = dstStride = 8
+    MemOpInfo checkMemOpInfo = {true, 289379840, 458752, 32, 2, 1, 4, 8};
+    IsMemOpInfoEqual(memOpInfo, checkMemOpInfo);
+}
+
+// 测试GetMemOpInfo函数：A2上FIX_L0C_TO_DST使能NZ2ND且量化位数为4时，nSize与dstStride减半
+TEST(InstrDetailCalculatorUt, test_GetMemOpInfo_should_halve_nsize_when_fixpipe_nz2nd_with_4bit_quant_on_A2) {
+    InstrDetailConfig instrDetailContext {ChipProductType::ASCEND910B4};
+    DataCenter dataCenter;
+    TestInstrDetailCalculator testClass {dataCenter, instrDetailContext};
+    testClass.AttributeMapInit();
+
+    Profiling::MergeInfo mergeInfo;
+    mergeInfo.name = "FIX_L0C_TO_DST";
+    // xm: nSize=32, mSize=4, dstStride=8; xt: quantPRE=21(s32->s4, 4bit), enNZ2ND=1
+    mergeInfo.detail = "Src:L0C, Dst:UB, XD:X0=0x70000, XN:X0=0x113f9600, XM:X0=0x800040200, "
+                       "XT:X0=0x85400000000, Dtype:B16,  id: 1";
+
+    MemOpInfo memOpInfo = {false, 0, 0, 0, 0, 0, 0, 0};
+    bool res = testClass.GetMemOpInfo(mergeInfo, memOpInfo);
+    ASSERT_TRUE(res);
+    // blockNum = nSize / 2 = 16, blockSize = 1, repeatTimes = 4, repeatStride = dstStride / 2 = 4
+    MemOpInfo checkMemOpInfo = {true, 289379840, 458752, 16, 1, 1, 4, 4};
+    IsMemOpInfoEqual(memOpInfo, checkMemOpInfo);
+}
+
+// 测试GetMemOpInfo函数：A2上FIX_L0C_TO_DST未量化且未使能NZ2ND时，走默认32位分支
+TEST(InstrDetailCalculatorUt, test_GetMemOpInfo_should_use_default_branch_when_fixpipe_no_quant_no_nz2nd_on_A2) {
+    InstrDetailConfig instrDetailContext {ChipProductType::ASCEND910B4};
+    DataCenter dataCenter;
+    TestInstrDetailCalculator testClass {dataCenter, instrDetailContext};
+    testClass.AttributeMapInit();
+
+    Profiling::MergeInfo mergeInfo;
+    mergeInfo.name = "FIX_L0C_TO_DST";
+    // xm: nSize=16, mSize=3, dstStride=16; xt: quantPRE=0(不在映射表, 32bit), enNZ2ND=0
+    mergeInfo.detail = "Src:L0C, Dst:UB, XD:X0=0x70000, XN:X0=0x113f9600, XM:X0=0x1000030100, "
+                       "XT:X0=0, Dtype:B16,  id: 1";
+
+    MemOpInfo memOpInfo = {false, 0, 0, 0, 0, 0, 0, 0};
+    bool res = testClass.GetMemOpInfo(mergeInfo, memOpInfo);
+    ASSERT_TRUE(res);
+    // blockNum = mSize * 32 / 8 / 2 = 6, repeatTimes = RoundUp(nSize, 16) = 1
+    MemOpInfo checkMemOpInfo = {true, 289379840, 458752, 6, 32, 1, 1, 16};
+    IsMemOpInfoEqual(memOpInfo, checkMemOpInfo);
+}
+
+// 测试GetMemOpInfo函数：A2上FIX_L0C_TO_DST为8bit量化且N维列数为偶数时，按channelMerge直接返回
+TEST(InstrDetailCalculatorUt, test_GetMemOpInfo_should_merge_channel_when_fixpipe_8bit_quant_with_even_column_on_A2) {
+    InstrDetailConfig instrDetailContext {ChipProductType::ASCEND910B4};
+    DataCenter dataCenter;
+    TestInstrDetailCalculator testClass {dataCenter, instrDetailContext};
+    testClass.AttributeMapInit();
+
+    Profiling::MergeInfo mergeInfo;
+    mergeInfo.name = "FIX_L0C_TO_DST";
+    // xm: nSize=32, mSize=5, dstStride=4; xt: quantPRE=8(s32->s8, 8bit), enNZ2ND=0
+    mergeInfo.detail = "Src:L0C, Dst:UB, XD:X0=0x70000, XN:X0=0x113f9600, XM:X0=0x400050200, "
+                       "XT:X0=0x2000000000, Dtype:B16,  id: 1";
+
+    MemOpInfo memOpInfo = {false, 0, 0, 0, 0, 0, 0, 0};
+    bool res = testClass.GetMemOpInfo(mergeInfo, memOpInfo);
+    ASSERT_TRUE(res);
+    // nColumn = 2 为偶数: blockNum = mSize = 5, repeatTimes = nColumn / 2 = 1, blockSize = 32, repeatStride = 4
+    MemOpInfo checkMemOpInfo = {true, 289379840, 458752, 5, 32, 1, 1, 4};
+    IsMemOpInfoEqual(memOpInfo, checkMemOpInfo);
+}
+
+// 测试GetMemOpInfo函数：A2上FIX_L0C_TO_DST为8bit量化且N维列数为奇数时，转换为16B块计算
+TEST(InstrDetailCalculatorUt, test_GetMemOpInfo_should_use_16b_block_when_fixpipe_8bit_quant_with_odd_column_on_A2) {
+    InstrDetailConfig instrDetailContext {ChipProductType::ASCEND910B4};
+    DataCenter dataCenter;
+    TestInstrDetailCalculator testClass {dataCenter, instrDetailContext};
+    testClass.AttributeMapInit();
+
+    Profiling::MergeInfo mergeInfo;
+    mergeInfo.name = "FIX_L0C_TO_DST";
+    // xm: nSize=16, mSize=5, dstStride=4; xt: quantPRE=8(s32->s8, 8bit), enNZ2ND=0
+    mergeInfo.detail = "Src:L0C, Dst:UB, XD:X0=0x70000, XN:X0=0x113f9600, XM:X0=0x400050100, "
+                       "XT:X0=0x2000000000, Dtype:B16,  id: 1";
+
+    MemOpInfo memOpInfo = {false, 0, 0, 0, 0, 0, 0, 0};
+    bool res = testClass.GetMemOpInfo(mergeInfo, memOpInfo);
+    ASSERT_TRUE(res);
+    // nColumn = 1 为奇数: blockSize = 16, repeatTimes = 0 * 2 + 1 = 1, repeatStride = 4 * 2 = 8
+    MemOpInfo checkMemOpInfo = {true, 289379840, 458752, 5, 16, 1, 1, 8};
+    IsMemOpInfoEqual(memOpInfo, checkMemOpInfo);
+}
+
+// 测试GetMemOpInfo函数：A2上FIX_L0C_TO_DST为4bit量化且未使能NZ2ND时，走int4ChannelMerge分支
+TEST(InstrDetailCalculatorUt, test_GetMemOpInfo_should_merge_channel_when_fixpipe_4bit_quant_no_nz2nd_on_A2) {
+    InstrDetailConfig instrDetailContext {ChipProductType::ASCEND910B4};
+    DataCenter dataCenter;
+    TestInstrDetailCalculator testClass {dataCenter, instrDetailContext};
+    testClass.AttributeMapInit();
+
+    Profiling::MergeInfo mergeInfo;
+    mergeInfo.name = "FIX_L0C_TO_DST";
+    // xm: nSize=64, mSize=2, dstStride=2; xt: quantPRE=21(s32->s4, 4bit), enNZ2ND=0
+    mergeInfo.detail = "Src:L0C, Dst:UB, XD:X0=0x70000, XN:X0=0x113f9600, XM:X0=0x200020400, "
+                       "XT:X0=0x5400000000, Dtype:B16,  id: 1";
+
+    MemOpInfo memOpInfo = {false, 0, 0, 0, 0, 0, 0, 0};
+    bool res = testClass.GetMemOpInfo(mergeInfo, memOpInfo);
+    ASSERT_TRUE(res);
+    // nColumn = 4: repeatTimes = 4 / 4 = 1, 再转16B块: blockSize = 16, repeatTimes = 1 * 2 + 1 = 3, repeatStride = 4
+    MemOpInfo checkMemOpInfo = {true, 289379840, 458752, 2, 16, 1, 3, 4};
+    IsMemOpInfoEqual(memOpInfo, checkMemOpInfo);
+}
+
+// 测试GetMemOpInfo函数：A2上FIX_L0C_TO_DST的Dst内存类型不在支持列表时，寄存器构造失败，返回false
+TEST(InstrDetailCalculatorUt, test_GetMemOpInfo_should_return_false_when_fixpipe_dst_mem_type_invalid_on_A2) {
+    InstrDetailConfig instrDetailContext {ChipProductType::ASCEND910B4};
+    DataCenter dataCenter;
+    TestInstrDetailCalculator testClass {dataCenter, instrDetailContext};
+    testClass.AttributeMapInit();
+
+    Profiling::MergeInfo mergeInfo;
+    mergeInfo.name = "FIX_L0C_TO_DST";
+    mergeInfo.detail = "Src:L0C, Dst:GM, XD:X0=0x70000, XN:X0=0x113f9600, XM:X0=0x800040200, "
+                       "XT:X0=0x80400000000, Dtype:B16,  id: 1";
+
+    MemOpInfo memOpInfo = {false, 0, 0, 0, 0, 0, 0, 0};
+    bool res = testClass.GetMemOpInfo(mergeInfo, memOpInfo);
+    ASSERT_FALSE(res);
+    ASSERT_FALSE(memOpInfo.isValid);
+}
