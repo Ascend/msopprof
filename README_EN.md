@@ -7,7 +7,7 @@
  [![License](https://badgen.net/badge/精确搜索/ReadTheDocs/blue)](https://mindstudio-operator-tools-docs.readthedocs.io/zh-cn/latest/)
  [![License](https://badgen.net/badge/AI问答/DeepWiki/blue)](https://deepwiki.com/mindstudio-docs/master)
  [![License](https://badgen.net/badge/AI问答/ZRead/blue)](https://zread.ai/mindstudio-docs/master)
- [![License](https://badgen.net/badge/昇腾社区/Community/blue)](https://www.hiascend.com/cn/developer/software/mindstudio)
+ [![License](https://badgen.net/badge/昇腾社区/Community/blue)](https://www.hiascend.com/eng/developer/software/mindstudio)
  [![License](https://badgen.net/badge/报告问题/Issues/blue)](https://gitcode.com/Ascend/msopprof/issues)
 
 </div>
@@ -85,10 +85,6 @@ You are welcome to contribute to the community. If you have any questions or sug
 
 ## 🙏 Acknowledgements
 
-This tool is jointly developed by the following Huawei departments:   
-🔹 Ascend Computing MindStudio Development Department   
-🔹 Ascend Computing Ecosystem Enablement Department   
-🔹 Huawei Cloud AI Compute Service  
-🔹 Compiler Technologies Lab, 2012 Labs  
-🔹 Markov Lab, 2012 Labs   
-Thank you to everyone in the community for your PRs. We warmly welcome your contributions.
+This tool is jointly contributed by Huawei Technologies Co., Ltd. and developers.
+
+Thanks for every PR from the community, and contributions are welcome.
