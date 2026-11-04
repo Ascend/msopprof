@@ -32,6 +32,12 @@
 
     ![](../figures/算子指令流水图2优化后.png)
 
+## C API SIMD VF 流水诊断案例
+
+[sample_simd_vf_double_buffer](../../../example/sample_simd_vf_double_buffer/README.md) 提供 `dav-3510` 上数值正确、存在性能瑕疵的 SIMD VF 流水诊断案例，包含 `[16,8192]` half、单核算子、输入/golden 生成、精度校验和数据契约测试。工程只提供待诊断实现，可作为 msagent 空泡分析 Skill 的输入，从本次仿真指令、同步与源码形成优化建议并通过最小实验验证。
+
+该工程使用 `__simd_vf__`，与 `example/sample_double_buffer` 的 TPipe/TQue VectorAdd 案例独立，不代表 SIMT 或全产品验证；构建、数据和分析步骤见案例 README。
+
 ## 配合mstx接口实现范围级重放
 
 **概述**
@@ -43,7 +49,7 @@
 准备算子工程，并在算子代码中添加mstx扩展接口确定范围级重放的范围，具体请参见[mstx扩展功能](../user_guide/extended_functions.md#mstx扩展功能)和《[MindStudio mstx API参考](https://gitcode.com/Ascend/mstx/blob/26.2.0/docs/zh/api_reference/README.md)》。
 
 > [!NOTE]
-> 
+>
 > - mstxRangeStartA和mstxRangeEnd接口需成对调用，不支持交叉调用。每一对mstx API中包含的算子为一个重放范围，该重放范围内算子的Stream不能改变。
 > - 每一个重放范围能采集的算子数量受[OpBasicInfo（算子基础信息）](../user_guide/./msopprof_performance_data.md#opbasicinfo算子基础信息)中算子Block Dim数量限制，建议不超过50个。
 > - 使用该功能时，不支持与--aic-metrics=MemoryDetail、--aic-metrics=TimelineDetail及--aic-metrics=Source同时使能；不建议与--kill=on同时使能，否则可能导致采集的算子数据缺失。
@@ -65,7 +71,7 @@
 import mstx
 import torch
 import torch_npu
- 
+
 x = torch.Tensor([1,2,3,4]).npu()
 y = torch.Tensor([1,2,3,4]).npu()
 
