@@ -6,7 +6,7 @@
 
 ### 1.1 Prerequisite Knowledge
 
-For details about the code framework and core process, see the [msOpProf Architecture Design Specifications](./architecture.md).
+For details about the code framework and core process, see the [msOpProf Architecture Design Specifications (Chinese)](https://gitcode.com/Ascend/msopprof/wiki/design%2Farchitecture.md).
 
 ### 1.2 Environment Preparation
 

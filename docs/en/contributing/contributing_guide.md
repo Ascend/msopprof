@@ -10,7 +10,7 @@ Before the development, familiarize yourself with the contribution process and s
 
 ### 2.1 Code Architecture
 
-For details about the overall architecture, code framework, and core design ideas of the tool, see [msOpProf Architecture Design Solution](../development_guide/architecture.md).
+For details about the overall architecture, code framework, and core design ideas of the tool, see [msOpProf Architecture Design Solution (Chinese)](https://gitcode.com/Ascend/msopprof/wiki/design%2Farchitecture.md).
 
 ### 2.2 Development Environment, Building, and Testing
 

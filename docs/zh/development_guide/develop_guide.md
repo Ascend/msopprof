@@ -6,7 +6,7 @@
 
 ### 1.1 知识准备
 
-请参考《[msOpProf 架构设计说明书](./architecture.md)》学习代码框架及核心流程。
+请参考《[msOpProf 架构设计说明书](https://gitcode.com/Ascend/msopprof/wiki/design%2Farchitecture.md)》学习代码框架及核心流程。
 
 ### 1.2 环境准备
 

@@ -10,7 +10,7 @@
 
 ### 2.1 代码架构说明
 
-介绍工具的整体架构、代码框架及核心设计思路等，详细请参见 [《msOpProf 架构设计说明书》](../development_guide/architecture.md)。
+介绍工具的整体架构、代码框架及核心设计思路等，详细请参见 [《msOpProf 架构设计说明书》](https://gitcode.com/Ascend/msopprof/wiki/design%2Farchitecture.md)。
 
 ### 2.2 开发环境与编译测试
 
