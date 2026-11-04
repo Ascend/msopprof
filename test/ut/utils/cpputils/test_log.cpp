@@ -25,6 +25,47 @@
 
 using namespace Utility;
 
+TEST(LogBoundary, truncation_emits_warning_and_null_output_is_ignored)
+{
+    auto &log = Log::GetLog();
+    const auto savedLevel = log.lv_;
+    FILE *savedOutput = log.fp_;
+    log.lv_ = LogLv::DEBUG;
+    testing::internal::CaptureStdout();
+    log.Printf("source/test.cpp", 12, "%s", LogLv::INFO, std::string(MAX_PRINT * 2, 'x').c_str());
+    const auto output = testing::internal::GetCapturedStdout();
+    EXPECT_NE(output.find("Log length reach limit, message truncated"), std::string::npos);
+    EXPECT_NE(output.find("source/test.cpp:12"), std::string::npos);
+    log.fp_ = nullptr;
+    EXPECT_NO_THROW(log.Printf("ignored", LogLv::ERROR));
+    log.fp_ = savedOutput;
+    log.lv_ = savedLevel;
+}
+
+TEST(LogBoundary, environment_level_accepts_valid_values_and_preserves_level_for_invalid_values)
+{
+    auto &log = Log::GetLog();
+    const auto savedLevel = log.lv_;
+    const char *previous = std::getenv("MSOPT_LOG_LEVEL");
+    const bool existed = previous != nullptr;
+    const std::string savedEnv = existed ? previous : "";
+    for (int i = 0; i < 4; ++i) {
+        EXPECT_EQ(setenv("MSOPT_LOG_LEVEL", std::to_string(i).c_str(), 1), 0);
+        log.SetLogLevelByEnvVar();
+        EXPECT_EQ(log.GetLogLv(), static_cast<LogLv>(i));
+    }
+    EXPECT_EQ(setenv("MSOPT_LOG_LEVEL", "invalid", 1), 0);
+    log.SetLogLevelByEnvVar();
+    EXPECT_EQ(log.GetLogLv(), LogLv::ERROR);
+    EXPECT_EQ(unsetenv("MSOPT_LOG_LEVEL"), 0);
+    log.SetLogLevelByEnvVar();
+    EXPECT_EQ(log.GetLogLv(), LogLv::ERROR);
+    if (existed) {
+        EXPECT_EQ(setenv("MSOPT_LOG_LEVEL", savedEnv.c_str(), 1), 0);
+    }
+    log.lv_ = savedLevel;
+}
+
 TEST(FileSystem, log_debug_with_default_log_level_warn_expect_NOT_output)
 {
     testing::internal::CaptureStdout();

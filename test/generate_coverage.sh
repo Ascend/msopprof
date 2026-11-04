@@ -14,10 +14,24 @@
 # MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 # See the Mulan PSL v2 for more details.
 # -------------------------------------------------------------------------
+set -euo pipefail
+
+CUR_DIR=$(dirname "$(readlink -f "$0")")
+TOP_DIR=$(readlink -f "${CUR_DIR}/..")
+
+# Keep the coverage gate in memory; the default mode still generates reports.
+if [ "${1:-}" = "--check" ]; then
+    cd "${TOP_DIR}"
+    # GCC may emit negative branch counters; warn without discarding line counts.
+    "${2:-python3}" -m gcovr --root "${TOP_DIR}" --filter 'csrc/' \
+        --object-directory "${TOP_DIR}/build_ut" \
+        --gcov-ignore-parse-errors negative_hits.warn_once_per_file \
+        --json-summary -j 8 "${TOP_DIR}/build_ut/test/ut/CMakeFiles/msopt_test.dir"
+    exit 0
+fi
+
 echo "***************Generate Coverage*****************"
 
-CUR_DIR=$(dirname $(readlink -f $0))
-TOP_DIR=${CUR_DIR}/..
 COVERAGE_PATH=${TOP_DIR}/build_ut/coverage
 
 if [ -d "${COVERAGE_PATH}" ]; then

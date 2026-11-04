@@ -116,6 +116,387 @@ TEST(OpDeviceProf, GetDataParser_expect_success)
     ASSERT_TRUE(opDeviceProf.GetDataParser().get() != nullptr);
 }
 
+TEST(DeviceDataHandler, request_count_rounds_up_and_handles_zero_alignment)
+{
+    EXPECT_EQ(DataHandlerOf91095::CalcRequest(0, 32), 0U);
+    EXPECT_EQ(DataHandlerOf91095::CalcRequest(32, 32), 1U);
+    EXPECT_EQ(DataHandlerOf91095::CalcRequest(33, 32), 2U);
+    EXPECT_EQ(DataHandlerOf91095::CalcRequest(33, 0), 0U);
+}
+
+TEST(DeviceDataHandler, operand_records_select_cube_and_vector_subblocks)
+{
+    DataHandler handler;
+    handler.operandRecords_.resize(6);
+    for (size_t i = 0; i < handler.operandRecords_.size(); ++i) {
+        handler.operandRecords_[i].simdMap[OperandType::DATA_S32].instructions = i + 1;
+    }
+    auto instructions = [&](uint16_t block, const std::string &subblock, const std::string &type) {
+        return handler.GetOperandRecordMap(block, subblock, type).simdMap[OperandType::DATA_S32].instructions;
+    };
+    EXPECT_EQ(instructions(0, "cube0", Common::OpType::CUBE), 3U);
+    EXPECT_EQ(instructions(1, "vector0", Common::OpType::MIX), 4U);
+    EXPECT_EQ(instructions(1, "vector1", Common::OpType::MIX), 5U);
+    EXPECT_EQ(instructions(3, "vector0", Common::OpType::VECTOR), 5U);
+    EXPECT_EQ(instructions(10, "cube0", Common::OpType::CUBE), 0U);
+}
+
+TEST(DeviceDataHandler, profile_file_order_is_numeric_with_lexical_ties)
+{
+    FileNameCompare less;
+    EXPECT_TRUE(less("DeviceProf2.bin", "DeviceProf10.bin"));
+    EXPECT_FALSE(less("DeviceProf10.bin", "DeviceProf2.bin"));
+    EXPECT_TRUE(less("DeviceProf2.a", "DeviceProf2.b"));
+    EXPECT_FALSE(less("DeviceProf2.bin", "DeviceProf2.bin"));
+    EXPECT_TRUE(less("a", "b"));
+    EXPECT_EQ(FileNameCompare::extractNumberFromFileName("DeviceProf123.bin"), 123);
+}
+
+TEST(DeviceDataHandler, basic_info_parses_flags_and_rejects_invalid_numeric_fields)
+{
+    DataHandler handler;
+    const std::string path = "test/ut/resources/coverage_basic_info.txt";
+    EXPECT_FALSE(handler.ParseBasicInfoFile(path));
+    ASSERT_TRUE(WriteFileByStream(path,
+        "malformed\nIs MC2=1\nIs Lccl=1\nHas Simt=1\nRun Soc Version=Ascend950\n"
+        "Block Dim=4\nCurrent Freq=1650\nRated Freq=1800\n"));
+    EXPECT_TRUE(handler.ParseBasicInfoFile(path));
+    EXPECT_TRUE(handler.GetMC2Flag());
+    EXPECT_TRUE(handler.GetLcclFlag());
+    EXPECT_TRUE(handler.GetHasSimt());
+    EXPECT_EQ(handler.blockDim_, 4U);
+    EXPECT_EQ(handler.curFreq_, 1650);
+    EXPECT_EQ(handler.socVersion_, "Ascend950");
+    ASSERT_TRUE(WriteFileByStream(path, "Block Dim=invalid\nCurrent Freq=invalid\nRated Freq=invalid\n"));
+    EXPECT_TRUE(handler.ParseBasicInfoFile(path));
+    EXPECT_EQ(handler.blockDim_, 4U);
+    EXPECT_EQ(handler.curFreq_, -1);
+    EXPECT_EQ(std::remove(path.c_str()), 0);
+}
+
+TEST(DeviceDataHandler, operand_binary_validates_size_and_accumulates_threads)
+{
+    DataHandler handler;
+    const std::string path = "test/ut/resources/coverage_operand.bin";
+    handler.ParseOperandRecords(path);
+    ASSERT_TRUE(WriteFileByStream(path, "bad"));
+    handler.ParseOperandRecords(path);
+    EXPECT_TRUE(handler.operandRecords_.empty());
+    std::vector<char> data(sizeof(OperandHeader) + sizeof(BlockOperandRecords), 0);
+    auto block = MakeUnique<BlockOperandRecords>();
+    *block = {};
+    block->simdRecord.records[0].instructions = 7;
+    block->simdRecord.records[0].operands = 14;
+    block->simtRecord[0].records[0].instructions = 3;
+    block->simtRecord[1].records[0].instructions = 5;
+    ASSERT_EQ(memcpy_s(data.data() + sizeof(OperandHeader), sizeof(BlockOperandRecords),
+                      block.get(), sizeof(BlockOperandRecords)), EOK);
+    WriteBinaryFile(path, data.data(), data.size());
+    handler.ParseOperandRecords(path);
+    ASSERT_EQ(handler.operandRecords_.size(), 1U);
+    auto type = static_cast<OperandType>(0);
+    EXPECT_EQ(handler.operandRecords_[0].simdMap.at(type).instructions, 7U);
+    EXPECT_EQ(handler.operandRecords_[0].simdMap.at(type).operands, 14U);
+    EXPECT_EQ(handler.operandRecords_[0].simtMap.at(type).instructions, 8U);
+    const uint64_t offset = 0x1234;
+    WriteBinaryFile(path, reinterpret_cast<const char *>(&offset), sizeof(offset));
+    handler.ParsePcSamplingRecords(path);
+    EXPECT_EQ(handler.pcOffsetByPcSampling_, offset);
+    EXPECT_EQ(std::remove(path.c_str()), 0);
+    handler.ParsePcSamplingRecords(path);
+}
+
+template<typename Record>
+void CheckDmaPadding()
+{
+    DBIParser parser("test/ut/resources");
+    Record record {};
+    record.src = 1024;
+    record.dst = 2048;
+    record.nBurst = 2;
+    record.srcStride = 1;
+    record.dstStride = 1;
+    MemRecord memory {};
+    const std::vector<uint64_t> scales = {32, 16, 8, 4, 2, 8, 4, 2};
+    for (size_t i = 0; i < scales.size(); ++i) {
+        record.padMode = static_cast<PadMode>(i + 1);
+        EXPECT_EQ(parser.CalcPadModeSize(record), 2 * MOV_LOCAL_BLOCK_SIZE / scales[i]);
+        EXPECT_TRUE(parser.ParseDmaMovWithPadMode(0, record, memory));
+        if (i < 5) {
+            EXPECT_EQ(memory.srcAddr, 1024U);
+            EXPECT_EQ(memory.srcMemSize, 2 * MOV_LOCAL_BLOCK_SIZE / scales[i]);
+            EXPECT_EQ(memory.dstMemSize, MOV_LOCAL_BLOCK_SIZE);
+        } else {
+            EXPECT_EQ(memory.dstAddr, 2048U);
+            EXPECT_EQ(memory.dstMemSize, 2 * MOV_LOCAL_BLOCK_SIZE / scales[i]);
+            EXPECT_EQ(memory.srcMemSize, MOV_LOCAL_BLOCK_SIZE);
+        }
+    }
+    record.padMode = static_cast<PadMode>(0);
+    EXPECT_EQ(parser.CalcPadModeSize(record), 2 * MOV_LOCAL_BLOCK_SIZE);
+    EXPECT_FALSE(parser.ParseDmaMovWithPadMode(0, record, memory));
+    EXPECT_EQ(parser.memoryChartMetrics_[0].invalidParam, 1U);
+}
+
+TEST(DeviceDataHandler, dma_and_mov_v2_padding_modes_preserve_transfer_sizes)
+{
+    CheckDmaPadding<DmaMovRecord>();
+    CheckDmaPadding<MovV2Record>();
+}
+
+TEST(HotSpotBoundary, source_and_instruction_json_distinguish_sampling_and_cache_metrics)
+{
+    GlobalMockObject::verify();
+    MOCKER(GetProductTypeBySocVersion).stubs().will(returnValue(ChipProductType::ASCEND950_SERIES));
+    CodeLine line;
+    line.line = 12;
+    line.pcSampling = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+    line.samplingPercentAllSample = 0.5f;
+    nlohmann::json json;
+    line.ToJson("test", json);
+    EXPECT_EQ(json["Line"], 12);
+    EXPECT_EQ(json["Process Bytes"], -1);
+    EXPECT_EQ(json["Stall Sampling(All Samples)"]["Details"]["Active"], 9);
+    EXPECT_EQ(json["Stall Sampling(Not Issue)"]["Details"].size(), 8U);
+    InstrInfo instr;
+    instr.addr = "0x10";
+    instr.processBytes = 64;
+    instr.pcSampling = line.pcSampling;
+    nlohmann::json instrJson;
+    instr.ToJson("test", instrJson);
+    EXPECT_EQ(instrJson["Address"], "0x10");
+    EXPECT_EQ(instrJson["Process Bytes"], 64);
+    EXPECT_TRUE(instrJson.contains("Stall Sampling(All Samples)"));
+    GlobalMockObject::verify();
+    MOCKER(GetProductTypeBySocVersion).stubs().will(returnValue(ChipProductType::ASCEND910B_SERIES));
+    line.l2cacheHitRate = 75.0f;
+    instr.l2cacheHitRate = 50.0f;
+    json.clear();
+    instrJson.clear();
+    line.ToJson("test", json);
+    instr.ToJson("test", instrJson);
+    EXPECT_EQ(json["L2Cache Hit Rate"], 75.0f);
+    EXPECT_EQ(instrJson["L2Cache Hit Rate"], 50.0f);
+    EXPECT_FALSE(json.contains("Stall Sampling(All Samples)"));
+    GlobalMockObject::verify();
+}
+
+TEST(HotSpotBoundary, extraction_allows_sampling_without_bbcount_but_requires_it_for_source)
+{
+    GlobalMockObject::verify();
+    HotSpotFunctionGenerator sampling({"", "", 0, true, true, false});
+    MOCKER(&HotSpotFunctionGenerator::ProcessBBCount).stubs().will(returnValue(false));
+    EXPECT_TRUE(sampling.ExtractData("test/ut/resources/missing_hotspot"));
+    EXPECT_FALSE(sampling.sourceEnable_);
+    EXPECT_EQ(sampling.startPc_, 0U);
+    EXPECT_EQ(sampling.startPcForPcSampling_, 0U);
+    HotSpotFunctionGenerator source({"", "", 0, true, false, false});
+    EXPECT_FALSE(source.ExtractData("test/ut/resources/missing_hotspot"));
+    EXPECT_TRUE(source.IsObjKernel("any"));
+    EXPECT_TRUE(source.IsObjKernelPcAddr(0));
+    GlobalMockObject::verify();
+}
+
+TEST(HotSpotBoundary, kernel_filter_includes_both_endpoints_and_excludes_unrelated_kernels)
+{
+    HotSpotFunctionGenerator generator({"", "kernel", 0, true, false, false});
+    generator.beginAddr_["kernel"] = 16;
+    generator.endAddr_["kernel"] = 32;
+    EXPECT_TRUE(generator.IsObjKernel("kernel"));
+    EXPECT_FALSE(generator.IsObjKernel("other"));
+    EXPECT_TRUE(generator.IsObjKernelPcAddr(16));
+    EXPECT_TRUE(generator.IsObjKernelPcAddr(32));
+    EXPECT_FALSE(generator.IsObjKernelPcAddr(15));
+    EXPECT_FALSE(generator.IsObjKernelPcAddr(33));
+}
+
+TEST(HotSpotBoundary, pipeline_propagates_extraction_calculation_and_visualization_failures)
+{
+    GlobalMockObject::verify();
+    HotSpotFunctionGenerator generator({"", "", 0, true, false, false});
+    MOCKER(&HotSpotFunctionGenerator::ExtractData).stubs().will(returnValue(false));
+    EXPECT_FALSE(generator.Process("unused", {}, nullptr));
+    GlobalMockObject::verify();
+    MOCKER(&HotSpotFunctionGenerator::ExtractData).stubs().will(returnValue(true));
+    MOCKER(&HotSpotFunctionGenerator::CalculateData).stubs().will(returnValue(false));
+    EXPECT_FALSE(generator.Process("unused", {}, nullptr));
+    GlobalMockObject::verify();
+    MOCKER(&HotSpotFunctionGenerator::ExtractData).stubs().will(returnValue(true));
+    MOCKER(&HotSpotFunctionGenerator::CalculateData).stubs().will(returnValue(true));
+    MOCKER(&HotSpotFunctionGenerator::VisualizeData).stubs().will(returnValue(false));
+    EXPECT_FALSE(generator.Process("unused", {}, nullptr));
+    GlobalMockObject::verify();
+}
+
+TEST(HotSpotBoundary, calculation_propagates_encoding_and_symbolization_failures)
+{
+    GlobalMockObject::verify();
+    HotSpotFunctionGenerator generator({"", "", 0, true, true, true});
+    std::map<std::string, std::vector<Encoding>> lines;
+    MOCKER(&HotSpotFunctionGenerator::ProcessEncoding).stubs().will(returnValue(false));
+    EXPECT_FALSE(generator.CalculateData("unused", {}, nullptr, lines));
+    GlobalMockObject::verify();
+    MOCKER(&HotSpotFunctionGenerator::ProcessEncoding).stubs().will(returnValue(true));
+    MOCKER(&HotSpotFunctionGenerator::UpdatePcSampling).stubs();
+    MOCKER(&HotSpotFunctionGenerator::UpdateProcessBytes).stubs();
+    MOCKER(&HotSpotFunctionGenerator::GenLine2Encodings).stubs().will(returnValue(false));
+    EXPECT_FALSE(generator.CalculateData("unused", {}, nullptr, lines));
+    GlobalMockObject::verify();
+}
+
+TEST(DeviceDataHandler, dbi_parameters_select_the_correct_mixed_subblock)
+{
+    DataHandlerOf91095 handler;
+    handler.memMapDetail_.resize(1);
+    auto &detail = handler.memMapDetail_[0];
+    detail.apiDataTransVolumeVec0["UB_TO_GM_DATA"] = 32;
+    detail.apiDataTransVolumeVec1["UB_TO_GM_DATA"] = 64;
+    detail.ApiDataTransVolume_["UB_TO_GM_DATA"] = 96;
+    handler.isAic_ = true;
+    handler.isAiv_ = true;
+    CalculateParams params {};
+    handler.PrepareDbiParams(params, 0, "vector0");
+    EXPECT_TRUE(params.hasDbiUBToGMData);
+    EXPECT_EQ(params.dbiUBToGMData, 32U);
+    handler.PrepareDbiParams(params, 0, "vector1");
+    EXPECT_EQ(params.dbiUBToGMData, 64U);
+    handler.isAiv_ = false;
+    handler.PrepareDbiParams(params, 0, "cube0");
+    EXPECT_EQ(params.dbiUBToGMData, 96U);
+    detail.ApiDataTransVolume_.clear();
+    params = {};
+    handler.PrepareDbiParams(params, 0, "cube0");
+    EXPECT_FALSE(params.hasDbiUBToGMData);
+}
+
+TEST(DeviceDataHandler, gm_transfer_statistics_round_requests_and_keep_blocks_separate)
+{
+    DataHandlerOf910B handler;
+    handler.memMapDetail_.resize(2);
+    handler.memMapDetail_[0].blockId = 0;
+    handler.memMapDetail_[1].blockId = 1;
+    std::vector<MemRecord> records;
+    for (auto destination : {MemType::L0A, MemType::L0B, MemType::L1}) {
+        MemRecord record {};
+        record.src = MemType::GM;
+        record.dst = destination;
+        record.srcMemSize = 129;
+        record.blockId = 0;
+        records.push_back(record);
+    }
+    auto extra = records[0];
+    extra.srcMemSize = 1;
+    records.push_back(extra);
+    std::map<uint64_t, std::map<std::string, uint64_t>> sizes;
+    handler.Statics(records, sizes);
+    EXPECT_EQ(sizes[0][GM_TO_L0A_DATA], 130U);
+    EXPECT_EQ(sizes[0][GM_TO_L0B_DATA], 129U);
+    EXPECT_EQ(sizes[0][GM_TO_L1_DATA], 129U);
+    EXPECT_EQ(sizes[1][GM_TO_L0A_DATA], 0U);
+    EXPECT_GT(handler.memMapDetail_[0].ApiDataTransVolume_[GM_TO_L0A], 1U);
+}
+
+namespace {
+bool MockSymbolizerBoundaryLines(SymbolizerParser *parser, std::string, std::vector<std::string>)
+{
+    parser->offset2Lines_ = {{"10", "source.cpp", 12, "kernel", {}},
+        {"10", "source.cpp", 12, "kernel", {}}, {"14", "source.cpp", 13, "kernel", {}},
+        {"18", "ascend-toolkit/internal.cpp", 1, "internal", {}}};
+    return true;
+}
+}
+
+TEST(HotSpotBoundary, symbolization_deduplicates_source_lines_and_accumulates_block_calls)
+{
+    GlobalMockObject::verify();
+    HotSpotFunctionGenerator generator({"", "", 0, true, false, false});
+    generator.encodings_[0x10] = {};
+    generator.encodings_[0x14] = {};
+    generator.bbCalls_[0x10] = {0x14, 7};
+    MOCKER(&SymbolizerParser::Parse).stubs().will(invoke(MockSymbolizerBoundaryLines));
+    std::unordered_map<uint64_t, std::vector<std::string>> lines;
+    EXPECT_TRUE(generator.GenAddr2Lines("unused", {}, lines));
+    EXPECT_EQ(lines[0x10], (std::vector<std::string>{"source.cpp:12"}));
+    EXPECT_EQ(generator.fileLineCalls_["source.cpp"][12], 7U);
+    EXPECT_EQ(generator.encodings_[0x14].calls, 7U);
+    EXPECT_EQ(generator.encodings_[0x10].cceCode, "source.cpp:12");
+    generator.bbCalls_.clear();
+    lines.clear();
+    EXPECT_TRUE(generator.GenAddr2Lines("unused", {}, lines));
+    EXPECT_EQ(generator.encodings_[0x10].calls, 0U);
+    generator.encodings_.clear();
+    lines.clear();
+    EXPECT_FALSE(generator.GenAddr2Lines("unused", {}, lines));
+    GlobalMockObject::verify();
+}
+
+namespace {
+bool MockRegisterStream(TlvParser *parser)
+{
+    parser->pcNumCount_ = {{0x10, 8}, {0x20, 0}, {0x30, 4}};
+    return true;
+}
+}
+
+TEST(HotSpotBoundary, register_generation_updates_matching_instructions_and_propagates_failures)
+{
+    GlobalMockObject::verify();
+    HotSpotFunctionGenerator generator({"", "", 0, true, false, false});
+    MOCKER(&Utility::CmdExecute).stubs().will(returnValue(false));
+    EXPECT_FALSE(generator.GenTlvdata("unused", "unused"));
+    GlobalMockObject::verify();
+    MOCKER(&Utility::CmdExecute).stubs().will(returnValue(true));
+    MOCKER(&::chmod).stubs().will(returnValue(-1));
+    EXPECT_FALSE(generator.GenTlvdata("unused", "unused"));
+    GlobalMockObject::verify();
+    MOCKER(&Utility::CmdExecute).stubs().will(returnValue(true));
+    MOCKER(&::chmod).stubs().will(returnValue(0));
+    MOCKER(&TlvParser::ParseStream).stubs().will(returnValue(false));
+    EXPECT_FALSE(generator.GenTlvdata("unused", "unused"));
+    GlobalMockObject::verify();
+    MOCKER(&Utility::CmdExecute).stubs().will(returnValue(true));
+    MOCKER(&::chmod).stubs().will(returnValue(0));
+    MOCKER(&TlvParser::ParseStream).stubs().will(invoke(MockRegisterStream));
+    MOCKER(&TlvParser::CountPCNum).stubs().will(returnValue(true));
+    generator.encodings_[0x10] = {};
+    generator.encodings_[0x20] = {};
+    EXPECT_TRUE(generator.GenTlvdata("unused", "unused"));
+    EXPECT_EQ(generator.encodings_[0x10].gprCount, 8U);
+    EXPECT_EQ(generator.encodings_[0x20].gprCount, 0U);
+    EXPECT_EQ(generator.encodings_.count(0x30), 0U);
+    GlobalMockObject::verify();
+}
+
+TEST(HotSpotBoundary, visualization_stops_when_source_or_instruction_generation_fails)
+{
+    GlobalMockObject::verify();
+    HotSpotFunctionGenerator generator({"", "", 0, true, false, false});
+    std::map<std::string, std::vector<Encoding>> lines;
+    MOCKER(&HotSpotFunctionGenerator::GenCodeFiles).stubs().will(returnValue(false));
+    EXPECT_FALSE(generator.VisualizeData("unused", lines));
+    GlobalMockObject::verify();
+    MOCKER(&HotSpotFunctionGenerator::GenCodeFiles).stubs().will(returnValue(true));
+    MOCKER(&HotSpotFunctionGenerator::GenInstrInfos).stubs().will(returnValue(false));
+    EXPECT_FALSE(generator.VisualizeData("unused", lines));
+    GlobalMockObject::verify();
+}
+
+TEST(DeviceDataHandler, duration_310p_uses_start_and_end_record_times)
+{
+    GlobalMockObject::verify();
+    DataHandlerOf310P handler;
+    std::vector<char> bytes(HWTS_LENGTH * 2, 0);
+    MOCKER(&HwtsBean::GetTimeType).stubs()
+        .will(returnValue(Common::TimeType::START)).then(returnValue(Common::TimeType::END));
+    MOCKER(&HwtsBean::GetSystemTime).stubs().will(returnValue(uint64_t{100})).then(returnValue(uint64_t{200}));
+    uint64_t start = 0;
+    uint64_t end = 0;
+    handler.ParseDurationBin("", bytes, bytes.size(), start, end);
+    EXPECT_EQ(start, 100U);
+    EXPECT_EQ(end, 200U);
+    GlobalMockObject::verify();
+}
+
 TEST(DeviceDataParse, Parse_data_expect_failed)
 {
     GlobalMockObject::verify();

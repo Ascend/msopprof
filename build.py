@@ -15,6 +15,8 @@
 # See the Mulan PSL v2 for more details.
 # -------------------------------------------------------------------------
 import argparse
+import importlib.util
+import json
 import logging
 import multiprocessing
 import os
@@ -79,9 +81,34 @@ class BuildManager:
             content = re.sub(r'^Version=.*', f'Version={self.parsed_arguments.build_version}', content, flags=re.MULTILINE)
             version_file.write_text(content)
 
-    def _execute_command(self, command_sequence, timeout_seconds=36000, cwd=None):
+    def _execute_command(self, command_sequence, timeout_seconds=36000, cwd=None, capture_stdout=False):
         logging.info("Running: %s", " ".join(command_sequence))
-        subprocess.run(command_sequence, timeout=timeout_seconds, check=True, cwd=cwd)
+        return subprocess.run(command_sequence, timeout=timeout_seconds, check=True, cwd=cwd,
+                              stdout=subprocess.PIPE if capture_stdout else None, text=True)
+
+    def _check_ut_line_coverage(self):
+        result = self._execute_command(
+            ["bash", str(self.project_root / "test/generate_coverage.sh"), "--check", sys.executable],
+            capture_stdout=True)
+        summary = json.loads(result.stdout)
+        total, covered = summary["line_total"], summary["line_covered"]
+        if (type(total) is not int or type(covered) is not int
+                or total <= 0 or not 0 <= covered <= total):
+            raise RuntimeError("Invalid csrc UT line coverage data")
+        logging.info("csrc UT line coverage: %.2f%% (%d/%d), required: 80%%",
+                     covered * 100.0 / total, covered, total)
+        if covered * 100 < total * 80:
+            raise RuntimeError("csrc UT line coverage is below the required 80%")
+
+    def _ensure_gcovr(self):
+        if importlib.util.find_spec("gcovr") is None:
+            self._execute_command([sys.executable, "-m", "pip", "install", "gcovr>=8"])
+        result = self._execute_command([sys.executable, "-m", "gcovr", "--version"], capture_stdout=True)
+        version = re.search(r"\bgcovr\s+(\d+)\.", result.stdout)
+        if version is None or int(version.group(1)) < 8:
+            raise RuntimeError(
+                "UT coverage requires gcovr >= 8. Install it in a dedicated test environment; "
+                "the existing installation will not be upgraded automatically.")
 
     def _archive_artifacts(self):
         """将产品构建产物归档到工程根目录的 artifacts 目录。"""
@@ -175,13 +202,19 @@ class BuildManager:
             unit_test_build_dir.mkdir(exist_ok=True)
             os.chdir(unit_test_build_dir)
 
-            self._execute_command(["pip", "install", "numpy"])
+            self._execute_command([sys.executable, "-m", "pip", "install", "numpy"])
+            self._ensure_gcovr()
             self._execute_command(["cmake", "..", "-DBUILD_TESTS=ON", "-DCMAKE_BUILD_TYPE=Debug"])
             self._execute_command(["make", "-j", str(self.build_jobs), "install"])
+
+            # Discard accumulated counters so coverage reflects this test run.
+            for counter in unit_test_build_dir.rglob("*.gcda"):
+                counter.unlink()
 
             os.environ['MSOPT_UT_RESOURCE'] = str((self.project_root / "test/ut/resources").resolve())
             os.environ['LD_LIBRARY_PATH'] = str(unit_test_build_dir) + os.pathsep + os.environ.get('LD_LIBRARY_PATH', '')
             self._execute_command(["./test/ut/msopt_test", "--gtest_output=xml:test_detail.xml"])
+            self._check_ut_line_coverage()
         else:
             # -------------------- 产品构建 --------------------
             product_build_dir = self.project_root / "build"

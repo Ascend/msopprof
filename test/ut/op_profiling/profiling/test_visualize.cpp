@@ -29,6 +29,7 @@
 #include "profiling/device/data_visualize/pmu_calculator.h"
 #include "profiling/device/data_visualize/timeline_parser/mc2_timeline_parser.h"
 #include "profiling/device/data_visualize/timeline_parser/lccl_timeline_parser.h"
+#include "profiling/device/data_visualize/timeline_parser/aicore_timeline_parser.h"
 #include "common/hal_helper.h"
 #undef private
 #undef protected
@@ -38,6 +39,131 @@ using namespace Profiling;
 using namespace Common;
 using namespace Utility;
 using namespace std;
+
+TEST(AicoreTimelineBoundary, descriptor_names_validate_numbers_types_length_and_characters)
+{
+    GlobalMockObject::verify();
+    std::unique_ptr<DataHandler> handler = MakeUnique<DataHandler>();
+    auto info = MakeShared<OpBasicInfo>(handler);
+    auto pmu = MakeShared<BasicPmu>(handler);
+    AicoreTimelineParser parser(0, info, pmu);
+    const auto savedNames = parser.descIdDisplay_;
+    parser.descIdDisplay_.clear();
+    parser.ParseDescIdDisplay(nlohmann::json::array());
+    nlohmann::json names = {{"65535", "first"}, {"0x10000", "second-name"},
+        {"bad", "ignored"}, {"65537", 123}, {"65538", std::string(65, 'a')}, {"65539", "bad!"}};
+    parser.ParseDescIdDisplay(names);
+    EXPECT_EQ(parser.descIdDisplay_.size(), 2U);
+    EXPECT_EQ(parser.descIdDisplay_[65535], "first");
+    EXPECT_EQ(parser.descIdDisplay_[65536], "second-name");
+    nlohmann::json excessive = nlohmann::json::object();
+    for (size_t i = 0; i < 1025; ++i) {
+        excessive[std::to_string(i)] = "entry";
+    }
+    parser.ParseDescIdDisplay(excessive);
+    EXPECT_EQ(parser.descIdDisplay_.size(), 2U);
+    parser.descIdDisplay_ = savedNames;
+}
+
+TEST(AicoreTimelineBoundary, paired_timestamps_emit_only_events_inside_block_duration)
+{
+    GlobalMockObject::verify();
+    std::unique_ptr<DataHandler> handler = MakeUnique<DataHandler>();
+    auto info = MakeShared<OpBasicInfo>(handler);
+    auto pmu = MakeShared<BasicPmu>(handler);
+    AicoreTimelineParser parser(100, info, pmu);
+    parser.aicpuFreq_ = 1000;
+    parser.blockDuration_[{"vector", 0}] = {100, 1000};
+    MsprofAicTimeStampInfoUpdate start {};
+    start.blockId = 0;
+    start.descId = TIME_STAMP_START;
+    start.syscyc = 200;
+    start.curPc = 16;
+    start.type = "vector";
+    auto end = start;
+    end.syscyc = 300;
+    auto ignored = start;
+    ignored.descId = 1;
+    auto outside = start;
+    outside.descId = TIME_STAMP_START + 1;
+    outside.syscyc = 1100;
+    auto outsideEnd = outside;
+    outsideEnd.syscyc = 1200;
+    parser.ProcessAicoreData({ignored, start, end, outside, outsideEnd});
+    auto json = parser.GetTimelineJson();
+    ASSERT_EQ(json.size(), 1U);
+    EXPECT_EQ(json[0]["ph"], "X");
+    EXPECT_EQ(json[0]["dur"], 100);
+    EXPECT_EQ(json[0]["args"]["code"], "");
+}
+
+TEST(AicoreTimelineBoundary, timestamp_core_types_support_old_and_new_device_formats)
+{
+    GlobalMockObject::verify();
+    std::unique_ptr<DataHandler> handler = MakeUnique<DataHandler>();
+    auto info = MakeShared<OpBasicInfo>(handler);
+    auto pmu = MakeShared<BasicPmu>(handler);
+    AicoreTimelineParser parser(0, info, pmu);
+    std::vector<MsprofAicTimeStampInfo> input = {{10, 0, TIME_STAMP_START, 4},
+        {20, CUBE_BLOCK_START_INDEX, TIME_STAMP_START, 8}};
+    std::vector<MsprofAicTimeStampInfoUpdate> output;
+    parser.GetTimeStampType(input, output);
+    ASSERT_EQ(output.size(), 2U);
+    EXPECT_EQ(output[0].type, AIV_BLOCK);
+    EXPECT_EQ(output[1].type, AIC_BLOCK);
+    EXPECT_EQ(output[1].blockId, 0U);
+    for (auto series : {ChipProductType::ASCEND950_SERIES, ChipProductType::ASCEND910B_SERIES}) {
+        parser.chipSeries_ = series;
+        input = {{10, (1U << 16) | 3, TIME_STAMP_START, 4},
+            {20, (25U << 16) | 4, TIME_STAMP_START, 8}};
+        output.clear();
+        parser.GetTimeStampType(input, output);
+        ASSERT_EQ(output.size(), 2U);
+        EXPECT_EQ(output[0].type, AIC_BLOCK);
+        EXPECT_EQ(output[1].type, AIV_BLOCK);
+        EXPECT_EQ(output[0].blockId, 3U);
+        EXPECT_EQ(output[1].blockId, 4U);
+    }
+}
+
+TEST(AicoreTimelineBoundary, custom_config_is_cached_and_timestamp_files_validate_records)
+{
+    GlobalMockObject::verify();
+    std::unique_ptr<DataHandler> handler = MakeUnique<DataHandler>();
+    auto info = MakeShared<OpBasicInfo>(handler);
+    auto pmu = MakeShared<BasicPmu>(handler);
+    const std::string root = "test/ut/resources/coverage_timestamps";
+    RemoveAll(root);
+    ASSERT_TRUE(MkdirRecusively(root + "/dump"));
+    const std::string config = root + "/config.json";
+    AicoreTimelineParser parser(100, info, pmu, config);
+    const auto savedNames = parser.descIdDisplay_;
+    const bool savedCache = parser.descIdDisplayCached_;
+    const bool savedEnabled = parser.enableBlockTime_;
+    parser.descIdDisplayCached_ = false;
+    ASSERT_TRUE(WriteFileByStream(config,
+        R"({"mc2_trace_config":{"enable_block_time":false,"descid_display":{"65535":"custom"}}})"));
+    parser.ParseCustomDotJson();
+    EXPECT_FALSE(parser.enableBlockTime_);
+    EXPECT_EQ(parser.descIdDisplay_[65535], "custom");
+    parser.ParseCustomDotJson();
+    parser.outputPath_ = root;
+    std::vector<MsprofAicTimeStampInfo> records;
+    EXPECT_FALSE(parser.GetTimeStamp(records));
+    ASSERT_TRUE(WriteFileByStream(root + "/dump/aic_timestamp.bin", "bad"));
+    EXPECT_FALSE(parser.GetTimeStamp(records));
+    const MsprofAicTimeStampInfo data[] = {{50, 0, TIME_STAMP_START, 4}, {200, 0, TIME_STAMP_START, 8}};
+    WriteBinaryFile(root + "/dump/aic_timestamp.bin", reinterpret_cast<const char *>(data), sizeof(data));
+    EXPECT_TRUE(parser.GetTimeStamp(records));
+    EXPECT_EQ(records.size(), 1U);
+    if (!records.empty()) {
+        EXPECT_EQ(records[0].syscyc, 200U);
+    }
+    parser.descIdDisplay_ = savedNames;
+    parser.descIdDisplayCached_ = savedCache;
+    parser.enableBlockTime_ = savedEnabled;
+    RemoveAll(root);
+}
 
 namespace {
 constexpr int64_t TEST_AICORE_FREQ = 1000;

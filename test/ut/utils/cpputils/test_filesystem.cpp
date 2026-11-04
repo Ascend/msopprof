@@ -25,6 +25,50 @@
 
 using namespace Utility;
 
+
+TEST(FileSystem, input_validation_checks_type_size_links_and_folder_contents)
+{
+    GlobalMockObject::verify();
+    const std::string root = "test/ut/resources/coverage_validation";
+    std::experimental::filesystem::remove_all(root);
+    EXPECT_TRUE(Mkdir(root));
+    EXPECT_TRUE(Mkdir(root));
+    EXPECT_FALSE(Mkdir(root, DIR_DEFAULT_MODE, false));
+    EXPECT_FALSE(Mkdir(root + "/missing/child"));
+    std::string error;
+    EXPECT_TRUE(CheckFolder("", error, true));
+    EXPECT_FALSE(CheckFolder("", error));
+    EXPECT_FALSE(CheckFolder(root + "/missing", error));
+    EXPECT_FALSE(CheckFolder(root, error));
+    const std::string file = root + "/input.cpp";
+    ASSERT_TRUE(WriteFileByStream(file, "content"));
+    EXPECT_FALSE(CheckInputFileValid(root, "cpp"));
+    EXPECT_FALSE(CheckInputFileValid(file, "unsupported"));
+    EXPECT_FALSE(CheckInputFileValid(file, "cpp", 1));
+    EXPECT_TRUE(CheckInputFileValid(file, "cpp", 7));
+    EXPECT_EQ(CheckAndReadFile(file, "cpp", 7), "content");
+    EXPECT_TRUE(CheckAndReadFile(file, "cpp", 1).empty());
+    EXPECT_TRUE(CheckFolder(root, error));
+    bool invoked = false;
+    EXPECT_FALSE(CheckFolder(root, error, false,
+        [&](const std::string &path, std::vector<std::string> &names, std::string &message) {
+            invoked = true;
+            EXPECT_EQ(path, root);
+            EXPECT_EQ(names, (std::vector<std::string>{"input.cpp"}));
+            message = "rejected";
+            return false;
+        }));
+    EXPECT_TRUE(invoked);
+    EXPECT_EQ(error, "rejected");
+    const std::string link = root + "/link";
+    ASSERT_EQ(symlink("input.cpp", link.c_str()), 0);
+    EXPECT_TRUE(IsSoftLinkRecursively(link));
+    EXPECT_TRUE(CheckInputFileValid(link, "cpp", 7));
+    EXPECT_FALSE(IsSoftLinkRecursively("////"));
+    EXPECT_FALSE(PathLenCheckValid(std::string(5000, 'a')));
+    std::experimental::filesystem::remove_all(root);
+}
+
 namespace {
 int MockStatForOwnerPermissionWarning(const char *path, struct stat *fileStat)
 {
