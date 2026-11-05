@@ -85,7 +85,7 @@ The `visualize_data.bin` file is a visualization file for presenting simulation 
 
 ![](../figures/msopprof-simulator-source-code-page.png "Operator code hot spot map")
 
-For the import operation in MindStudio Insight, see [Importing Profile Data](https://atomgit.com/Ascend/msinsight/blob/26.2.0/docs/en/user_guide/basic_operations.md#importing-data) in the *MindStudio Insight User Guide*.
+For the import operation in MindStudio Insight, see [Importing Profile Data](https://gitcode.com/Ascend/msinsight/blob/26.2.0/docs/en/user_guide/basic_operations.md#importing-data) in the *MindStudio Insight User Guide*.
 
 ---
 

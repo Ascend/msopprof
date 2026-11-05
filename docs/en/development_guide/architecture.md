@@ -993,7 +993,7 @@ The tuning component requires multiple instrumentation passes to implement diffe
 1. The operator tuning component launches the MC2 operator program. Before the operator main program executes, it first calls the `MsprofRegisterCallBack` interface in `profapi.so`. The basic component needs to hijack this interface to register the tuning switch callback function, enabling the reporting of MC2 AI Core tasks and communication tasks.
 2. Communication tasks are reported by calling the `MsprofReportAdditionalInfo` interface in `profapi.so`. The tool needs to hijack this and save the communication task pipeline binary file.
 3. Operator kernel function replay is performed, ensuring thread synchronization across all devices at the beginning and end of each replay. During the final replay, the binary file containing HCCL pipeline and AI CPU task pipeline data is recorded.
-4. After the operator kernel function replay, the AI Core task pipeline is reported by calling the `MsprofReportAddtionalInfo` interface in `profapi.so`. The tool needs to hijack this and save the AI Core task pipeline binary file.
+4. After the operator kernel function replay, the AI Core task pipeline is reported by calling the `MsprofReportAdditionalInfo` interface in `profapi.so`. The tool needs to hijack this and save the AI Core task pipeline binary file.
 
 #### 5.1.2 Parsing Module
 

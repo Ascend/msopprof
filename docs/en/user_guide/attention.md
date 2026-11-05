@@ -3,7 +3,7 @@
 ## Environment Constraints
 
 - msOpProf depends on the `msopprof` executable file in the CANN package. The API usage in this file is the same as that in `msprof op`. This file is provided by the CANN package and does not need to be installed separately.
-- To use the MindStudio Insight tool to view files output by msOpProf, you need to install the MindStudio Insight software package separately. For installation steps, see the [MindStudio Insight Installation Guide](https://atomgit.com/Ascend/msinsight/blob/26.2.0/docs/en/install_guide/mindstudio_insight_install_guide.md).
+- To use the MindStudio Insight tool to view files output by msOpProf, you need to install the MindStudio Insight software package separately. For installation steps, see the [MindStudio Insight Installation Guide](https://gitcode.com/Ascend/msinsight/blob/26.2.0/docs/en/install_guide/mindstudio_insight_install_guide.md).
 
 ## Running Constraints
 

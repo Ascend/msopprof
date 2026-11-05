@@ -10,10 +10,10 @@ For more details on kernel launch scenarios, refer to [Direct Kernel Invocation 
 
 **Prerequisites**
 
-- Click [Add Sample](https://atomgit.com/cann/asc-devkit/tree/9.0.0/examples/01_simd_cpp_api/00_introduction/01_add/basic_api_tque_add) to obtain the sample project, using the Add vector addition operator as an example.
+- Click [Add Sample](https://gitcode.com/cann/asc-devkit/tree/9.0.0/examples/01_simd_cpp_api/00_introduction/01_add/basic_api_tque_add) to obtain the sample project, using the Add vector addition operator as an example.
 
     ```shell
-    git clone https://atomgit.com/cann/asc-devkit.git -b 9.0.0
+    git clone https://gitcode.com/cann/asc-devkit.git -b 9.0.0
     ```
 
 - Refer to [Preparations](../user_guide/msopprof_user_guide.md#preparations) in the msOpProf mode user guide and [Preparations](../user_guide/msopprof_simulator_user_guide.md#preparations) in the msOpProf simulator mode user guide to configure the relevant environment variables for collecting operator on-board and simulation tuning data.
@@ -70,7 +70,7 @@ For more details on kernel launch scenarios, refer to [Direct Kernel Invocation 
     [INFO] Profiling running finished. All task success.
     ```
 
-6. To view the on-board and simulation profile data, import the collected `visualize_data.bin` file into MindStudio Insight. For detailed import instructions, refer to [Importing Data](https://atomgit.com/Ascend/msinsight/blob/26.2.0/docs/en/user_guide/basic_operations.md#importing-data) in the *MindStudio Insight User Guide*.<a id="import-data"></a>
+6. To view the on-board and simulation profile data, import the collected `visualize_data.bin` file into MindStudio Insight. For detailed import instructions, refer to [Importing Data](https://gitcode.com/Ascend/msinsight/blob/26.2.0/docs/en/user_guide/basic_operations.md#importing-data) in the *MindStudio Insight User Guide*.<a id="import-data"></a>
 
     > [!NOTE]
     >
@@ -86,13 +86,13 @@ For more details on single operator API call scenarios, refer to the **Engineeri
 
 **Prerequisites**
 
-- Click [Custom Operator Project Sample](https://atomgit.com/cann/asc-devkit/tree/9.0.0/examples/01_simd_cpp_api/02_features/00_compilation/custom_op/) to obtain a custom operator project.
+- Click [Custom Operator Project Sample](https://gitcode.com/cann/asc-devkit/tree/9.0.0/examples/01_simd_cpp_api/02_features/00_compilation/custom_op/) to obtain a custom operator project.
 
 - Refer to [Preparations](../user_guide/msopprof_user_guide.md#preparations) in the msOpProf mode user guide and [Preparations](../user_guide/msopprof_simulator_user_guide.md#preparations) in the msOpProf simulator mode user guide to configure the relevant environment variables for collecting operator on-board and simulation tuning data.
 
 **Procedure**
 
-1. Based on the [sample project instructions](https://atomgit.com/cann/asc-devkit/blob/9.0.0/examples/01_simd_cpp_api/02_features/00_compilation/custom_op/README.md), complete the compilation, packaging, and deployment of the custom operator.
+1. Based on the [sample project instructions](https://gitcode.com/cann/asc-devkit/blob/9.0.0/examples/01_simd_cpp_api/02_features/00_compilation/custom_op/README.md), complete the compilation, packaging, and deployment of the custom operator.
 
     ```shell
     mkdir -p build && cd build
@@ -100,7 +100,7 @@ For more details on single operator API call scenarios, refer to the **Engineeri
     ./custom_opp_*.run
     ```
 
-2. Based on the [ACLNN single operator API call sample](https://atomgit.com/cann/asc-devkit/blob/9.0.0/examples/01_simd_cpp_api/02_features/01_invocation/aclnn_invocation/README.md), build the operator executable file. After compilation, the executable file `execute_add_op` is generated in the project directory. This file can run on both Ascend devices and the simulator.
+2. Based on the [ACLNN single operator API call sample](https://gitcode.com/cann/asc-devkit/blob/9.0.0/examples/01_simd_cpp_api/02_features/01_invocation/aclnn_invocation/README.md), build the operator executable file. After compilation, the executable file `execute_add_op` is generated in the project directory. This file can run on both Ascend devices and the simulator.
 
     ```shell
     mkdir -p build; cd build
@@ -127,7 +127,7 @@ For more details on single operator API call scenarios, refer to the **Engineeri
 
 **Overview**
 
-For scenarios involving single operator invocation through the PyTorch framework, refer to the `OpPlugin` plugin in the [TorchNPU Supporting Software Libraries](https://atomgit.com/Ascend/docs/blob/master/FrameworkPTAdapter/26.1.0/en/supported_suites_and_third_party_libraries/supported_suites_and_third_party_libraries.md).
+For scenarios involving single operator invocation through the PyTorch framework, refer to the `OpPlugin` plugin in the [TorchNPU Supporting Software Libraries](https://gitcode.com/Ascend/docs/blob/master/FrameworkPTAdapter/26.1.0/en/supported_suites_and_third_party_libraries/supported_suites_and_third_party_libraries.md).
 
 In PyTorch framework operator invocation scenarios, the procedure for collecting profile data is essentially the same as that for the [Triton operator collection scenario](#collecting-profile-data-of-triton-operators).
 
@@ -139,7 +139,7 @@ This section demonstrates how to use msOpProf to collect profile data of Triton 
 
 **Prerequisites**
 
-- Click [triton-ascend Quick Start](https://atomgit.com/Ascend/triton-ascend/blob/main/docs/en/quick_start.md) to complete the installation and configuration of Triton and the Triton-Ascend plugin.
+- Click [triton-ascend Quick Start](https://gitcode.com/Ascend/triton-ascend/blob/main/docs/en/quick_start.md) to complete the installation and configuration of Triton and the Triton-Ascend plugin.
 
 - Prepare a Triton operator implementation file. If you have not prepared a Triton operator yet, refer to the example in the procedure below.
 
@@ -200,17 +200,17 @@ This section demonstrates how to use msOpProf to collect profile data of CATLASS
 
 **Prerequisites**
 
-- Click [CATLASS Community](https://atomgit.com/cann/catlass) to obtain the sample project.
+- Click [CATLASS Community](https://gitcode.com/cann/catlass) to obtain the sample project.
 
     ```shell
-    git clone https://atomgit.com/cann/catlass.git -b v1.5.0
+    git clone https://gitcode.com/cann/catlass.git -b v1.5.0
     ```
 
 - Refer to [Preparations](../user_guide/msopprof_user_guide.md#preparations) in the msOpProf mode user guide and [Preparations](../user_guide/msopprof_simulator_user_guide.md#preparations) in the msOpProf simulator mode user guide to configure the relevant environment variables for collecting operator on-board and simulation tuning data.
 
 **Procedure**
 
-1. Follow the [CATLASS Quick Start](https://atomgit.com/cann/catlass/blob/master/docs/en/1_Practice/01_quick_start.md) example to prepare the environment and compile the operator on-board executable file, using the `basic_matmul` sample as an example.
+1. Follow the [CATLASS Quick Start](https://gitcode.com/cann/catlass/blob/master/docs/en/1_Practice/01_quick_start.md) example to prepare the environment and compile the operator on-board executable file, using the `basic_matmul` sample as an example.
 
     ```shell
     bash scripts/build.sh 00_basic_matmul
@@ -251,11 +251,11 @@ This section demonstrates how to use msOpProf to collect profile data of CATLASS
 
 **Overview**
 
-This section demonstrates how to use msOpProf to collect profile data of CATLASS DSL operators. For an introduction to CATLASS DSL, refer to the [CATLASS DSL Community Documentation](https://atomgit.com/cann/catlass/blob/master/python/tla_dsl/README.md).
+This section demonstrates how to use msOpProf to collect profile data of CATLASS DSL operators. For an introduction to CATLASS DSL, refer to the [CATLASS DSL Community Documentation](https://gitcode.com/cann/catlass/blob/master/python/tla_dsl/README.md).
 
 **Prerequisites**
 
-- Click [CATLASS DSL Quick Start](https://atomgit.com/cann/catlass/blob/master/python/tla_dsl/docs/en/quick_start.md) to complete the environment configuration and source code build.
+- Click [CATLASS DSL Quick Start](https://gitcode.com/cann/catlass/blob/master/python/tla_dsl/docs/en/quick_start.md) to complete the environment configuration and source code build.
 
 - Prepare a CATLASS DSL operator implementation file. If you have not prepared a CATLASS DSL operator yet, refer to the example in the procedure below.
 
@@ -381,7 +381,7 @@ This example uses the Ascend CL single operator invocation as an example. For ot
 
 **Procedure**
 
-1. Refer to [Operator Compilation and Deployment](https://atomgit.com/Ascend/msopgen/blob/26.2.0/docs/en/user_guide/msopgen_user_guide.md) to complete the compilation and deployment of the operator.
+1. Refer to [Operator Compilation and Deployment](https://gitcode.com/Ascend/msopgen/blob/26.2.0/docs/en/user_guide/msopgen_user_guide.md) to complete the compilation and deployment of the operator.
      1. In the `CMakeLists.txt` file located in the `op_kernel` directory of the operator compilation files, add the following compilation options to enable the AIC timestamping and code line mapping features for the MC2 operator.
 
         ```shell

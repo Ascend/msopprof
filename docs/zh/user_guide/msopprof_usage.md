@@ -6,7 +6,7 @@
 
 展示如何使用msOpProf工具采集Kernel直调方式Ascend C算子的性能数据，以内核调用符<<<>>>方式调用算子为例。
 
-Kernel直调场景，详细信息可参考《Ascend C算子开发指南》中“[基于样例工程完成核函数（Kernel）直调](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/latest/programug/Ascendcopdevg/docs/zh/guide/programming_guide/appendix/kernel_direct_call_from_sample.md)”章节。
+Kernel直调场景，详细信息可参考《Ascend C算子开发指南》中“[基于样例工程完成核函数（Kernel）直调](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/920/programug/Ascendcopdevg/docs/zh/guide/programming_guide/appendix/kernel_direct_call_from_sample.md)”章节。
 
 **前期准备**
 
@@ -82,7 +82,7 @@ Kernel直调场景，详细信息可参考《Ascend C算子开发指南》中“
 
 展示如何使用msOpProf工具采集API调用单算子的性能数据，以自定义算子工程和aclnn单算子API调用为例。
 
-单算子API调用场景，详细信息可参考《Ascend C算子开发指南》中“工程化算子开发 \>  [单算子API调用](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/latest/programug/Ascendcopdevg/docs/zh/guide/programming_guide/advanced_programming/aclnn_operator_development/invocation/single_operator_api_call.md)”章节。
+单算子API调用场景，详细信息可参考《Ascend C算子开发指南》中“工程化算子开发 \>  [单算子API调用](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/920/programug/Ascendcopdevg/docs/zh/guide/programming_guide/advanced_programming/aclnn_operator_development/invocation/single_operator_api_call.md)”章节。
 
 **前期准备**
 
@@ -372,7 +372,7 @@ PyTorch框架算子调用场景下，进行性能数据采集的操作步骤与[
 
 展示如何使用msOpProf工具来上板调优一个MC2算子，并生成通算流水图。
 
-本示例以Ascend CL单算子调用为例，其他调用场景请参见《[Ascend C算子开发指南](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/latest/programug/Ascendcopdevg/docs/zh/guide/getting_started/ascend_c_overview_and_learning_path.md)》。
+本示例以Ascend CL单算子调用为例，其他调用场景请参见《[Ascend C算子开发指南](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/920/programug/Ascendcopdevg/docs/zh/guide/getting_started/ascend_c_overview_and_learning_path.md)》。
 
 **前期准备**
 

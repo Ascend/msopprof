@@ -28,8 +28,8 @@ To use the latest code features or modify the source code to enhance functions, 
 
 All source code compilation uses the standard MindStudio build environment.
 
-- For daily development or when you use a released image, refer to the [MindStudio Tool Development Environment Installation Guide](https://atomgit.com/Ascend/msot/blob/26.2.0/docs/en/common/dev_env_setup.md).
-- If you need to reproduce the environment from a base operating system, or to perform source code build verification or unit test verification, you must refer to the [MindStudio Unified Build Image Creation Guide](https://atomgit.com/Ascend/msot/blob/26.2.0/docs/en/common/docker_image_build_guide.md) to build the environment image on site from the openEuler base image.
+- For daily development or when you use a released image, refer to the [MindStudio Tool Development Environment Installation Guide](https://gitcode.com/Ascend/msot/blob/26.2.0/docs/en/common/dev_env_setup.md).
+- If you need to reproduce the environment from a base operating system, or to perform source code build verification or unit test verification, you must refer to the [MindStudio Unified Build Image Creation Guide](https://gitcode.com/Ascend/msot/blob/26.2.0/docs/en/common/docker_image_build_guide.md) to build the environment image on site from the openEuler base image.
 
 The source code compilation and unit test commands later in this document all run in the container of the specified image or of the environment image built on site. The CANN software package version, the GCC version, and the Python version are subject to the *Unified Build Image Creation Guide*, and this repository does not maintain them separately.
 
@@ -39,7 +39,7 @@ After you enter the interactive container shell opened by `ctr_in.py`, run the f
 
 ```bash
 cd ~
-git clone https://atomgit.com/Ascend/msopprof.git -b 26.2.0
+git clone https://gitcode.com/Ascend/msopprof.git -b 26.2.0
 ```
 
 #### 2.3.2 Compilation
@@ -141,4 +141,4 @@ You can uninstall the tool using the following steps:
 
 The upgrade process follows the "uninstall before install" approach. Run the installation command directly, and the tool automatically uninstalls the old version and guides you through the overwrite installation.
 
-You can run the `msopprof --version` command to check the version information of the current environment, and then select the version to upgrade to. Pay attention to the version compatibility when upgrading. See the [Release Notes](https://atomgit.com/Ascend/release-management/blob/master/MindStudio/26.2.0/release_notes.md) for details.
+You can run the `msopprof --version` command to check the version information of the current environment, and then select the version to upgrade to. Pay attention to the version compatibility when upgrading. See the [Release Notes](https://gitcode.com/Ascend/release-management/blob/master/MindStudio/26.2.0/release_notes.md) for details.

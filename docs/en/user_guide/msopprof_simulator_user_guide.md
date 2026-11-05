@@ -40,8 +40,8 @@ msOpProf demonstrates single-operator tuning capabilities such as instruction pi
 **Preparing the Environment**
 
 - Configure related environment variables by referring to the [MindStudio Ops Profiler Installation Guide](../install_guide/msopprof_install_guide.md).
-- To use MindStudio Insight for viewing, install the MindStudio Insight software package separately. For download links, see the [MindStudio Insight Installation Guide](https://atomgit.com/Ascend/msinsight/blob/26.2.0/docs/en/install_guide/mindstudio_insight_install_guide.md).
-- For Atlas A2 products, if you want to use the [template library](https://atomgit.com/cann/catlass/blob/master/scripts/build.sh) for simulation, add the `--simulator` option to the compilation script to compile the operator in simulator mode. For details, see this [sample](https://atomgit.com/cann/catlass/blob/master/docs/en/1_Practice/evaluation/performance_tools.md).
+- To use MindStudio Insight for viewing, install the MindStudio Insight software package separately. For download links, see the [MindStudio Insight Installation Guide](https://gitcode.com/Ascend/msinsight/blob/26.2.0/docs/en/install_guide/mindstudio_insight_install_guide.md).
+- For Atlas A2 products, if you want to use the [template library](https://gitcode.com/cann/catlass/blob/master/scripts/build.sh) for simulation, add the `--simulator` option to the compilation script to compile the operator in simulator mode. For details, see this [sample](https://gitcode.com/cann/catlass/blob/master/docs/en/1_Practice/evaluation/performance_tools.md).
 
     ```shell
     bash scripts/build.sh --simulator 00_basic_matmul
@@ -101,7 +101,7 @@ msopprof simulator --soc-version=Ascendxxxyy --output=/home/projects/output /hom
 </td>
 <td class="cellrowborder" valign="top" headers="mcps1.2.4.1.2 "><p id="zh-cn_topic_0000002016036877_p011233417332"><span>Specifies the absolute or relative path of the binary file </span><code id="zh-cn_topic_0000002016036877_b695415337500">*.o</code><span> generated after operator compilation</span>. <span>For details, see </span><a href="./extended_functions.md#json-configuration-file-description">JSON Configuration File Description</a><span>.</span></p>
 <p id="zh-cn_topic_0000002016036877_p1611218349332">Before operator tuning, you can obtain the operator binary <code id="zh-cn_topic_0000002016036877_b1845814318519"><span>*.</span>o</code> file in either of the following ways:</p>
-<ul id="zh-cn_topic_0000002016036877_ul81131345339"><li>Refer to <strong>Modifying and Executing One-Click Compilation and Execution Script</strong> in <strong>Direct Kernel Invocation Based on a Sample Project</strong> &gt; <a href="https://www.hiascend.com/document/detail/en/CANNCommunityEdition/latest/programug/Ascendcopdevg/docs/en/guide/programming_guide/appendix/completing_kernel_launch_based_on_sample_project.md" target="_blank" rel="noopener noreferrer"><strong>Kernel Launch</strong></a> of the <span id="zh-cn_topic_0000002016036877_ph20112143419334"><em>Ascend C Operator Development Guide</em></span> to obtain the NPU executable file, and then manually extract the <span></span>.o file from the executable file.</li><li>Refer to <a href="https://atomgit.com/Ascend/msopgen/blob/26.2.0/docs/en/user_guide/msopgen_user_guide.md#153-%E7%AE%97%E5%AD%90%E7%BC%96%E8%AF%91%E9%83%A8%E7%BD%B2" target="_blank" rel="noopener noreferrer">Operator Compilation and Deployment</a>. The <strong id="zh-cn_topic_0000002016036877_b17819952105016">.o</strong> file is automatically generated during operator compilation.</li></ul>
+<ul id="zh-cn_topic_0000002016036877_ul81131345339"><li>Refer to <strong>Modifying and Executing One-Click Compilation and Execution Script</strong> in <strong>Direct Kernel Invocation Based on a Sample Project</strong> &gt; <a href="https://www.hiascend.com/en-sg/document/detail/en/CANNCommunityEdition/920/programug/Ascendcopdevg/docs/en/guide/programming_guide/appendix/kernel_direct_call_from_sample.md" target="_blank" rel="noopener noreferrer"><strong>Kernel Launch</strong></a> of the <span id="zh-cn_topic_0000002016036877_ph20112143419334"><em>Ascend C Operator Development Guide</em></span> to obtain the NPU executable file, and then manually extract the <span></span>.o file from the executable file.</li><li>Refer to <a href="https://gitcode.com/Ascend/msopgen/blob/26.2.0/docs/en/user_guide/msopgen_user_guide.md#153-%E7%AE%97%E5%AD%90%E7%BC%96%E8%AF%91%E9%83%A8%E7%BD%B2" target="_blank" rel="noopener noreferrer">Operator Compilation and Deployment</a>. The <strong id="zh-cn_topic_0000002016036877_b17819952105016">.o</strong> file is automatically generated during operator compilation.</li></ul>
 <p id="p811246204">Ensure that users in the group and other groups do not have the write permission on the JSON file specified by <code>--config</code> and its parent directory. In addition, ensure that the owner of the parent directory of the JSON file is the current user.</p>
 <div class="p" id="p20157517201"> For A2/A3 products, use the <code>LD_LIBRARY_PATH</code> environment variable to set the simulator type. For A5 products, you can only use the <code>--soc-version</code> parameter to specify the chip type. <pre class="screen" id="screen011316904">export LD_LIBRARY_PATH=${INSTALL_DIR}/tools/simulator/Ascendxxxyy/lib:$LD_LIBRARY_PATH // xxxyy indicates the type of the processor used by the user</pre>
 </div>
@@ -172,7 +172,7 @@ msopprof simulator --soc-version=Ascendxxxyy --output=/home/projects/output /hom
 <p id="zh-cn_topic_0000002016036877_p18115834193315">When <code>--mstx=on</code> is set, the operator tuning tool enables the mstx API used in the user program.</p>
 <p id="zh-cn_topic_0000002016036877_p151157346336">For example:</p>
 <pre class="code_wrap" id="zh-cn_topic_0000002016036877_screen811523463318">msopprof simulator --soc-version=Ascendxxxyy --mstx=on ./add_custom <span>// </span>xxxyy indicates the type of the processor used by the user</pre>
-<p id="zh-cn_topic_0000002016036877_p1776694422415"></p>The <code>mstxRangeStartA</code> and <code>mstxRangeEnd</code> interfaces in the mstx API are supported, allowing for the enabling of operator tuning in specified ranges. For details about parameters, see the <span id="zh-cn_topic_0000002016036877_ph2878123711242"><a href="https://atomgit.com/Ascend/mstx/blob/26.2.0/docs/en/api_reference/Common/mstxRangeStartA.md" target="_blank" rel="noopener noreferrer">mstxRangeStartA</a></span> and <span id="zh-cn_topic_0000002016036877_ph137651944162412"><a href="https://atomgit.com/Ascend/mstx/blob/26.2.0/docs/en/api_reference/Common/mstxRangeEnd.md" target="_blank" rel="noopener noreferrer">mstxRangeEnd</a></span> interfaces in the <span id="zh-cn_topic_0000002016036877_ph1583812516245"><em>MindStudio mstx API Reference</em></span>.
+<p id="zh-cn_topic_0000002016036877_p1776694422415"></p>The <code>mstxRangeStartA</code> and <code>mstxRangeEnd</code> interfaces in the mstx API are supported, allowing for the enabling of operator tuning in specified ranges. For details about parameters, see the <span id="zh-cn_topic_0000002016036877_ph2878123711242"><a href="https://gitcode.com/Ascend/mstx/blob/26.2.0/docs/en/api_reference/Common/mstxRangeStartA.md" target="_blank" rel="noopener noreferrer">mstxRangeStartA</a></span> and <span id="zh-cn_topic_0000002016036877_ph137651944162412"><a href="https://gitcode.com/Ascend/mstx/blob/26.2.0/docs/en/api_reference/Common/mstxRangeEnd.md" target="_blank" rel="noopener noreferrer">mstxRangeEnd</a></span> interfaces in the <span id="zh-cn_topic_0000002016036877_ph1583812516245"><em>MindStudio mstx API Reference</em></span>.
 </td>
 <td class="cellrowborder" valign="top" width="11.741174117411742%" headers="mcps1.2.4.1.3 "><p id="zh-cn_topic_0000002016036877_p131151034163318">No</p>
 </td>
@@ -267,7 +267,7 @@ msOpProf assists in identifying exceptions in the operator memory, code, and ins
     > - If the `-g` compilation option is added, the generated binary file contains debugging information. You are advised to restrict access to user programs with debugging information to authorized personnel only.
     > - If the functions provided by the llvm-symbolizer component are not used, do not include `-g` when compiling the program that is input to msOpProf. In this case, msOpProf does not call the functions of the llvm-symbolizer component.
 
-    - For an operator project created by referring to the msOpGen tool, edit the `CMakeLists.txt` file in the `op_kernel` directory of the operator project. For details, see [Creating an Operator Project](https://atomgit.com/Ascend/msopgen/blob/26.2.0/docs/en/user_guide/msopgen_user_guide.md).
+    - For an operator project created by referring to the msOpGen tool, edit the `CMakeLists.txt` file in the `op_kernel` directory of the operator project. For details, see [Creating an Operator Project](https://gitcode.com/Ascend/msopgen/blob/26.2.0/docs/en/user_guide/msopgen_user_guide.md).
 
         ```shell
         add_ops_compile_options(ALL OPTIONS -g)
@@ -455,7 +455,7 @@ Visualizes the `visualize_data.bin` or `trace.json` files generated by msopprof 
 
 **Precautions**
 
-- For detailed MindStudio Insight operations and field explanations, see [Timeline](https://atomgit.com/Ascend/msinsight/blob/26.2.0/docs/en/user_guide/operator_tuning.md#timeline) in *MindStudio Insight Operator Tuning*.
+- For detailed MindStudio Insight operations and field explanations, see [Timeline](https://gitcode.com/Ascend/msinsight/blob/26.2.0/docs/en/user_guide/operator_tuning.md#timeline) in *MindStudio Insight Operator Tuning*.
 - If the `-g` compilation option is added, the generated binary file contains debugging information. You are advised to restrict access to user programs with debugging information to authorized personnel only.
 - If the functions provided by the llvm-symbolizer component are not used, do not include `-g` when compiling the program that is input to msOpProf. In this case, msOpProf does not call the functions of the llvm-symbolizer component.
 - If you only need to focus on the performance of specific operators, invoke the [TRACE_START](https://www.hiascend.com/document/detail/en/CANNCommunityEdition/latest/API/ascendcopapi/docs/en/api/Utils-API/tuning_interface/TRACE_START.md) and [TRACE_STOP](https://www.hiascend.com/document/detail/en/CANNCommunityEdition/latest/API/ascendcopapi/docs/en/api/Utils-API/tuning_interface/TRACE_STOP.md) APIs, which are described in the "Debugging APIs" section of the *Ascend C Operator Development API*, within a single core on Atlas A3 products, Atlas inference products, Atlas A2 products, and Ascend 950PR and 950DT products. Additionally, add `-DASCENDC_TRACE_ON` to the compilation configuration file. For details, see the [method for adding `-DASCENDC_TRACE_ON`](#adding-dascendc-trace-on). Only after this can pipeline chart information for the specified range be generated.
@@ -525,7 +525,7 @@ Visualizes the `visualize_data.bin` files generated by msopprof simulator. On th
 
 **Precautions**
 
-- For detailed MindStudio Insight operations and field explanations, see [Source](https://atomgit.com/Ascend/msinsight/blob/26.2.0/docs/en/user_guide/operator_tuning.md#source) in *MindStudio Insight Operator Tuning*.
+- For detailed MindStudio Insight operations and field explanations, see [Source](https://gitcode.com/Ascend/msinsight/blob/26.2.0/docs/en/user_guide/operator_tuning.md#source) in *MindStudio Insight Operator Tuning*.
 - If the `-g` compilation option is added, the generated binary file contains debugging information. You are advised to restrict access to user programs with debugging information to authorized personnel only.
 - The operator program must be compiled with the `-g` option. Otherwise, msOpProf will not display the hot spot map and will not call the relevant functions of the llvm-symbolizer component to implement code-to-PC mapping.
 - Operator code hot spot maps cannot be generated for MC2 or LCCL operators.
@@ -571,7 +571,7 @@ Visualizes the `visualize_data.bin` files generated by msopprof simulator. On th
 
 **Precautions**
 
-- For detailed MindStudio Insight operations and field explanations, see [Timeline](https://atomgit.com/Ascend/msinsight/blob/26.2.0/docs/en/user_guide/operator_tuning.md#timeline) in *MindStudio Insight Operator Tuning*.
+- For detailed MindStudio Insight operations and field explanations, see [Timeline](https://gitcode.com/Ascend/msinsight/blob/26.2.0/docs/en/user_guide/operator_tuning.md#timeline) in *MindStudio Insight Operator Tuning*.
 - Memory channel throughput waveform charts can only be displayed for Atlas A2 products and Atlas A3 products.
 - This feature is disabled by default. The `--core-id` setting has no effect on this feature.
 

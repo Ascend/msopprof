@@ -8,7 +8,7 @@ This section demonstrates how to use the instruction pipeline charts of the msOp
 
 **Procedure**
 
-1. Import the `visualize_data.bin` file obtained from the operator simulation profile to MindStudio Insight by referring to the [msOpProf Simulator User Guide](../user_guide/msopprof_simulator_user_guide.md). For details, see [Importing Profile Data](https://atomgit.com/Ascend/msinsight/blob/26.2.0/docs/en/user_guide/basic_operations.md#importing-data) in the *MindStudio Insight User Guide*. <a id="import-data"></a>
+1. Import the `visualize_data.bin` file obtained from the operator simulation profile to MindStudio Insight by referring to the [msOpProf Simulator User Guide](../user_guide/msopprof_simulator_user_guide.md). For details, see [Importing Profile Data](https://gitcode.com/Ascend/msinsight/blob/26.2.0/docs/en/user_guide/basic_operations.md#importing-data) in the *MindStudio Insight User Guide*. <a id="import-data"></a>
 2. Take a Vector operator snippet as an example and view the operator instruction pipeline chart.
 
     It can be found that the MTE2 pipeline does not execute the transfer instruction during VADD computation, making it the performance bottleneck of the operator. To optimize operator performance, the transfer efficiency of the MTE2 pipeline needs to be improved.
@@ -17,7 +17,7 @@ This section demonstrates how to use the instruction pipeline charts of the msOp
 
 3. Enable the double buffer mechanism of Ascend C operators to improve the MTE2 transfer efficiency.
 
-    For example, in the sample operator kernel function, you can enable double buffering by changing the second parameter (`BUFFER_NUM`) of `InitBuffer` in `TPipe` from 1 to 2. For details about `InitBuffer`, see **Base API** > **Memory Management and Synchronization Control** > **TPipe** > [InitBuffer](https://www.hiascend.com/document/detail/en/CANNCommunityEdition/900/API/ascendcopapi/atlasascendc_api_07_0110.html) in the *Ascend C Operator Development API*.
+    For example, in the sample operator kernel function, you can enable double buffering by changing the second parameter (`BUFFER_NUM`) of `InitBuffer` in `TPipe` from 1 to 2. For details about `InitBuffer`, see **Base API** > **Memory Management and Synchronization Control** > **TPipe** > [InitBuffer](https://www.hiascend.com/en-sg/document/detail/en/CANNCommunityEdition/920/API/ascendcopapi/docs/en/api/SIMD-API/basic_api/resource_management/TPipe/InitBuffer.md) in the *Ascend C Operator Development API*.
 
     ```shell
     constexpr int32_t BUFFER_NUM = 2;        # Tensor num for each queue
@@ -40,7 +40,7 @@ This section demonstrates how to use the msOpProf tool and the msTX APIs to impl
 
 **Preparations**
 
-Prepare the operator project and add msTX extended APIs to the operator code to define the range for range-level replay. For details, see [msTX Extended Functions](../user_guide/extended_functions.md#mstx-extended-functions) and the [MindStudio msTX API Reference](https://atomgit.com/Ascend/mstx/blob/26.2.0/docs/en/api_reference/README.md).
+Prepare the operator project and add msTX extended APIs to the operator code to define the range for range-level replay. For details, see [msTX Extended Functions](../user_guide/extended_functions.md#mstx-extended-functions) and the [MindStudio msTX API Reference](https://gitcode.com/Ascend/mstx/blob/26.2.0/docs/en/api_reference/README.md).
 
 > [!NOTE]
 >
