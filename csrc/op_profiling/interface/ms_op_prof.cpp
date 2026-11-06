@@ -20,8 +20,10 @@
 #include <thread>
 #include <csignal>
 #include <atomic>
+#include <algorithm>
 #include <memory>
 #include <iostream>
+#include <vector>
 #include <dlfcn.h>
 #include "common/defs.h"
 #include "common/prof_args.h"
@@ -82,6 +84,8 @@ ArgParser BuildDeviceArgParser(ProfArgs &args)
     argParser.Add(Option<std::string>('\0', "core-id", "STRING", args.argCoreId));
     argParser.Add(Option<std::string>('\0', "custom-input", "ConfigPath", args.argCustomInput));
     argParser.Add(Option<std::string>('\0', "instr-timeline-pipe", "STRING", args.argInstrTimelinePipe));
+    argParser.Add(Option<std::string>('\0', "set", "default|detailed|full", args.argSet));
+    argParser.Add(Switch('\0', "list-sets", args.listSets));
     return argParser;
 }
 
@@ -190,8 +194,16 @@ void PrintDeviceHelp(ChipType chipType)
                   << "      --instr-timeline-pipe <PIPE>          Specify the pipe for InstrTimeline." << std::endl;
     }
     std::cout << "      --kernel-name <NAME>                  Specify the kernel name to profile." << std::endl
-              << "                                              Not effective in config mode." << std::endl
-              << "      --launch-count <N>                    Kernel launches to collect (1-5000) [default: 1]." << std::endl
+              << "                                              Not effective in config mode." << std::endl;
+    if (chipType == Common::ChipType::ASCEND910B || chipType == Common::ChipType::ASCEND950) {
+        std::cout << "      --set <LEVEL>                         Predefined collection level to control profiling depth." << std::endl
+                  << "                                              LEVEL: default|detailed|full" << std::endl
+                  << "                                              default: collect 7 basic PMU metrics." << std::endl
+                  << "                                              detailed: add Occupancy and Roofline analysis." << std::endl
+                  << "                                              full: add MemoryDetail, Source, PCSampling, InstrTimeline." << std::endl
+                  << "      --list-sets                           List supported sets, expanded metrics and limitations." << std::endl;
+    }
+    std::cout << "      --launch-count <N>                    Kernel launches to collect (1-5000) [default: 1]." << std::endl
               << "      --launch-skip-before-match <N>        Kernel launches to skip (0-1000) [default: 0]." << std::endl
               << "      --replay-mode {application,kernel";
     if (chipType == Common::ChipType::ASCEND910B || chipType == Common::ChipType::ASCEND950) {
@@ -270,6 +282,74 @@ void PrintSimulatorHelp(void)
         << std::endl
         << "Troubleshooting:" << std::endl
         << "  Check that exactly one input is provided and option values are valid." << std::endl;
+}
+
+static std::string GetChipTypeName(ChipType chipType)
+{
+    static const std::map<ChipType, std::string> chipNames = {
+        {ChipType::ASCEND310,  "Ascend310"},
+        {ChipType::ASCEND910A, "Ascend910A"},
+        {ChipType::ASCEND610,  "Ascend610"},
+        {ChipType::ASCEND615,  "Ascend615"},
+        {ChipType::ASCEND310P, "Ascend310P"},
+        {ChipType::ASCEND910B, "Ascend910B"},
+        {ChipType::ASCEND310B, "Ascend310B"},
+        {ChipType::ASCEND950,  "Ascend950"},
+    };
+    auto it = chipNames.find(chipType);
+    return it == chipNames.end() ? "unknown" : it->second;
+}
+
+void PrintListSets()
+{
+    std::cout << "Supported profiling sets:" << std::endl;
+    std::cout << std::endl;
+
+    struct ChipSetInfo {
+        ChipType chipType;
+        const char *chipName;
+        const std::map<std::string, ProfMetricsSet> &defs;
+    };
+
+    static const std::vector<ChipSetInfo> chipSets = {
+        {ChipType::ASCEND910B, "Ascend910B (A2/A3)", SET_DEFINITIONS_A2A3},
+        {ChipType::ASCEND950, "Ascend950 (A5)", SET_DEFINITIONS_A5},
+    };
+
+    ChipType chipType = HalHelper::Instance().GetPlatformType();
+
+    auto printChipSet = [](const ChipSetInfo &chipSet) {
+        std::cout << "  Chip: " << chipSet.chipName << std::endl;
+        for (const auto &[setName, setInfo] : chipSet.defs) {
+            std::cout << "    Set: " << setName << std::endl;
+            std::cout << "      Expanded metrics: ";
+            for (size_t i = 0; i < setInfo.metrics.size(); ++i) {
+                if (i > 0) {
+                    std::cout << ", ";
+                }
+                std::cout << setInfo.metrics[i];
+            }
+            std::cout << std::endl;
+            std::cout << "      Description:  " << setInfo.description << std::endl;
+            std::cout << "      Limitations: Incompatible with --replay-mode=range" << std::endl;
+        }
+        std::cout << std::endl;
+    };
+
+    if (chipType == ChipType::END_TYPE) {
+        for (const auto &chipSet : chipSets) {
+            printChipSet(chipSet);
+        }
+        return;
+    }
+
+    auto it = std::find_if(chipSets.begin(), chipSets.end(),
+                           [chipType](const ChipSetInfo &chipSet) { return chipType == chipSet.chipType; });
+    if (it == chipSets.end()) {
+        std::cout << "Current platform " << GetChipTypeName(chipType) << " not support list-sets" << std::endl;
+        return;
+    }
+    printChipSet(*it);
 }
 
 void PrintErrorMsg(std::string const &msg)
@@ -360,7 +440,7 @@ bool ProfArgsInit(Common::ProfArgs &args, int argc, char *argv[], char *env[])
         return false;
     }
 
-    if (args.printHelp || args.printVersion) {
+    if (args.printHelp || args.printVersion || args.listSets) {
         return true;
     }
 

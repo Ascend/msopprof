@@ -18,6 +18,8 @@
 #include "arg_normalize.h"
 #include "utils.h"
 #include "filesystem.h"
+#include "common/hal_helper.h"
+#include "log.h"
 
 namespace {
 
@@ -49,6 +51,7 @@ ArgNormalize::ArgNormalize(void)
     normalizeFunc_.emplace_back(&ArgNormalize::NormalizeExport);
     normalizeFunc_.emplace_back(&ArgNormalize::NormalizeConfig);
     normalizeFunc_.emplace_back(&ArgNormalize::NormalizeCustomInput);
+    normalizeFunc_.emplace_back(&ArgNormalize::NormalizeSet);
 }
 
 bool ArgNormalize::Normalize(Common::ProfArgs &config, std::string &msg) const
@@ -151,4 +154,37 @@ bool ArgNormalize::NormalizeOptionPath(std::string &configOpt, std::string &msg,
     return true;
 }
 
+bool ArgNormalize::NormalizeSet(Common::ProfArgs &config, std::string &msg) const
+{
+    config.isSetSpecified = !config.argSet.empty();
+    if (!config.argSet.empty()) {
+        for (char &c : config.argSet) {
+            c = static_cast<char>(tolower(static_cast<unsigned char>(c)));
+        }
+    }
+
+    if (!config.argSet.empty() && !config.argAicMetrics.metricVec.empty()) {
+        msg = "--set and --aic-metrics cannot be specified together.";
+        return false;
+    }
+
+    if (config.runMode != "simulator" && config.argSet.empty() && config.argAicMetrics.metricVec.empty()){
+        config.argSet = "default";
+        Utility::LogInfo("No --set or --aic-metrics specified, default to --set=default");
+    }
+
+    if (!config.argSet.empty()) {
+        Common::ChipType chipType = Common::HalHelper::Instance().GetPlatformType();
+        if (chipType == Common::ChipType::END_TYPE) {
+            chipType = Common::ChipType::ASCEND910B;
+        }
+        std::string errMsg;
+        if (!Common::ResolveSet(config.argSet, config.argAicMetrics, chipType, errMsg)) {
+            msg = errMsg;
+            return false;
+        }
+        return true;
+    }
+    return true;
+}
 } // namespace Parser

@@ -15,6 +15,8 @@
  * ------------------------------------------------------------------------- */
 
 #include <gtest/gtest.h>
+#include <sstream>
+#include <streambuf>
 #include "mockcpp/mockcpp.hpp"
 
 #include <dlfcn.h>
@@ -191,4 +193,118 @@ TEST(Interface, IsProcessRunning)
     SetExitMode();
     Profiling::DataParse::inExitMode = false;
     ASSERT_FALSE(IsProcessRunning());
+}
+
+TEST(Interface, args_init_with_list_sets_expect_return_true)
+{
+    Common::ProfArgs args;
+    char *argv[2];
+    argv[0] = "msopprof";
+ 	argv[1] = "--list-sets";
+    bool ret = ProfArgsInit(args, 2, argv, nullptr);
+    ASSERT_TRUE(ret);
+    ASSERT_TRUE(args.listSets);
+}
+
+TEST(Interface, args_init_with_list_sets_and_simulator_expect_parse_error)
+{
+    Common::ProfArgs args;
+    char *argv[3];
+    argv[0] = "msopprof";
+    argv[1] = "simulator";
+    argv[2] = "--list-sets";
+    bool ret = ProfArgsInit(args, 3, argv, nullptr);
+    ASSERT_FALSE(ret);
+}
+
+TEST(Interface, args_init_with_set_and_aic_metrics_expect_error)
+{
+    GlobalMockObject::verify();
+    Common::ProfArgs args;
+    char *argv[4];
+    argv[0] = "msopprof";
+    argv[1] = "--set=default";
+    argv[2] = "--aic-metrics=Memory";
+    argv[3] = "--application=/bin/true";
+    bool ret = ProfArgsInit(args, 4, argv, nullptr);
+    ASSERT_FALSE(ret);
+    GlobalMockObject::verify();
+}
+
+TEST(Interface, args_init_with_set_full_and_range_replay_expect_error)
+{
+    GlobalMockObject::verify();
+    MOCKER(&Common::HalHelper::GetPlatformType).stubs().will(returnValue(Common::ChipType::ASCEND910B));
+    Common::ProfArgs args;
+    char *argv[5];
+    argv[0] = "msopprof";
+ 	argv[1] = "--set=full";
+ 	argv[2] = "--replay-mode=range";
+    argv[3] = "--mstx=on";
+    argv[4] = "--application=/bin/true";
+    bool ret = ProfArgsInit(args, 5, argv, nullptr);
+    ASSERT_FALSE(ret);
+    GlobalMockObject::verify();
+}
+
+class CoutRedirect {
+public:
+    CoutRedirect() : buf_(std::cout.rdbuf())
+    {
+        std::cout.rdbuf(oss_.rdbuf());
+    }
+    ~CoutRedirect() { std::cout.rdbuf(buf_); }
+    std::string GetOutput() const { return oss_.str(); }
+private:
+    std::streambuf *buf_;
+    std::ostringstream oss_;
+};
+
+TEST(Interface, print_list_sets_a2a3_expect_content)
+{
+    GlobalMockObject::verify();
+    MOCKER(&Common::HalHelper::GetPlatformType).stubs().will(returnValue(Common::ChipType::ASCEND910B));
+    CoutRedirect redirect;
+    PrintListSets();
+    std::string output = redirect.GetOutput();
+    ASSERT_NE(output.find("Ascend910B (A2/A3)"), std::string::npos);
+    ASSERT_EQ(output.find("Ascend950 (A5)"), std::string::npos);
+    ASSERT_NE(output.find("default"), std::string::npos);
+    ASSERT_NE(output.find("detailed"), std::string::npos);
+    ASSERT_NE(output.find("full"), std::string::npos);
+    ASSERT_NE(output.find("Default"), std::string::npos);
+    ASSERT_NE(output.find("Occupancy"), std::string::npos);
+    ASSERT_NE(output.find("Roofline"), std::string::npos);
+    ASSERT_NE(output.find("MemoryDetail"), std::string::npos);
+    ASSERT_NE(output.find("Source"), std::string::npos);
+    ASSERT_NE(output.find("Incompatible with --replay-mode=range"), std::string::npos);
+    GlobalMockObject::verify();
+}
+
+TEST(Interface, print_list_sets_a5_expect_content)
+{
+    GlobalMockObject::verify();
+    MOCKER(&Common::HalHelper::GetPlatformType).stubs().will(returnValue(Common::ChipType::ASCEND950));
+    CoutRedirect redirect;
+    PrintListSets();
+    std::string output = redirect.GetOutput();
+    ASSERT_NE(output.find("Ascend950 (A5)"), std::string::npos);
+    ASSERT_EQ(output.find("Ascend910B (A2/A3)"), std::string::npos);
+    ASSERT_NE(output.find("PipeTimeline"), std::string::npos);
+    ASSERT_NE(output.find("PCSampling"), std::string::npos);
+    ASSERT_NE(output.find("InstrTimeline"), std::string::npos);
+    ASSERT_NE(output.find("Incompatible with --replay-mode=range"), std::string::npos);
+    GlobalMockObject::verify();
+}
+
+TEST(Interface, print_list_sets_unknown_chip_expect_show_all)
+{
+    GlobalMockObject::verify();
+    MOCKER(&Common::HalHelper::GetPlatformType).stubs().will(returnValue(Common::ChipType::END_TYPE));
+    CoutRedirect redirect;
+    PrintListSets();
+    std::string output = redirect.GetOutput();
+    ASSERT_NE(output.find("Ascend910B (A2/A3)"), std::string::npos);
+    ASSERT_NE(output.find("Ascend950 (A5)"), std::string::npos);
+    GlobalMockObject::verify();
 }

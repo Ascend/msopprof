@@ -25,6 +25,7 @@
 #include <unistd.h>
 
 #include "argparser/options.h"
+#include "argparser/arg_normalize.h"
 #include "common/prof_args.h"
 #include "common/hal_helper.h"
 #include "common/runtime_helper.h"
@@ -362,4 +363,114 @@ TEST(ParseValue, aic_metrics_basicInfo_expect_success)
     ProfMetricsAbilityConfig metrics;
     ASSERT_TRUE(ParseValue("BasicInfo", metrics));
     ASSERT_TRUE(metrics.isBasicInfo);
+}
+
+TEST(ResolveSet, set_default_expect_all_seven_pmu_enabled)
+{
+    ProfMetricsAbilityConfig metrics;
+    std::string errMsg;
+    ASSERT_TRUE(ResolveSet("default", metrics, ChipType::ASCEND910B, errMsg));
+    ASSERT_TRUE(metrics.IsOn(ProfMetrics::PIPE_UTILIZATION));
+    ASSERT_TRUE(metrics.IsOn(ProfMetrics::ARITHMETIC_UTILIZATION));
+    ASSERT_TRUE(metrics.IsOn(ProfMetrics::L2_CACHE));
+    ASSERT_TRUE(metrics.IsOn(ProfMetrics::MEMORY));
+    ASSERT_TRUE(metrics.IsOn(ProfMetrics::RESOURCE_CONFLICT_RATIO));
+    ASSERT_TRUE(metrics.IsOn(ProfMetrics::MEMORY_L0));
+    ASSERT_TRUE(metrics.IsOn(ProfMetrics::MEMORY_UB));
+    ASSERT_FALSE(metrics.occupancyEnable);
+    ASSERT_FALSE(metrics.roofline);
+    ASSERT_FALSE(metrics.isMemoryDetail);
+    ASSERT_FALSE(metrics.isSource);
+}
+
+TEST(ResolveSet, set_detailed_expect_occupancy_roofline_A2A3)
+{
+    ProfMetricsAbilityConfig metrics;
+    std::string errMsg;
+    ASSERT_TRUE(ResolveSet("detailed", metrics, ChipType::ASCEND910B, errMsg));
+    ASSERT_TRUE(metrics.HasEnabledAllPmu());
+    ASSERT_TRUE(metrics.occupancyEnable);
+    ASSERT_TRUE(metrics.roofline);
+    ASSERT_FALSE(metrics.isMemoryDetail);
+    ASSERT_FALSE(metrics.isSource);
+}
+
+TEST(ResolveSet, set_full_expect_memory_detail_source_A2A3)
+{
+    ProfMetricsAbilityConfig metrics;
+    std::string errMsg;
+    ASSERT_TRUE(ResolveSet("full", metrics, ChipType::ASCEND910B, errMsg));
+    ASSERT_TRUE(metrics.HasEnabledAllPmu());
+ 	ASSERT_TRUE(metrics.occupancyEnable);
+    ASSERT_TRUE(metrics.roofline);
+    ASSERT_TRUE(metrics.isMemoryDetail);
+    ASSERT_TRUE(metrics.isSource);
+}
+
+TEST(ResolveSet, set_detailed_A5_expect_pipe_timeline)
+{
+    ProfMetricsAbilityConfig metrics;
+ 	std::string errMsg;
+    ASSERT_TRUE(ResolveSet("detailed", metrics, ChipType::ASCEND950, errMsg));
+    ASSERT_TRUE(metrics.HasEnabledAllPmu());
+    ASSERT_TRUE(metrics.occupancyEnable);
+    ASSERT_TRUE(metrics.roofline);
+    ASSERT_TRUE(metrics.pipeTimelineEnable);
+    ASSERT_FALSE(metrics.isMemoryDetail);
+    ASSERT_FALSE(metrics.isSource);
+}
+
+TEST(ResolveSet, set_full_A5_expect_pcsampling_instrtimeline)
+{
+    ProfMetricsAbilityConfig metrics;
+    std::string errMsg;
+    ASSERT_TRUE(ResolveSet("full", metrics, ChipType::ASCEND950, errMsg));
+    ASSERT_TRUE(metrics.HasEnabledAllPmu());
+    ASSERT_TRUE(metrics.occupancyEnable);
+    ASSERT_TRUE(metrics.roofline);
+    ASSERT_TRUE(metrics.isMemoryDetail);
+    ASSERT_TRUE(metrics.isSource);
+    ASSERT_TRUE(metrics.pcSamplingEnable);
+    ASSERT_TRUE(metrics.instrTimelineEnable);
+}
+
+TEST(ResolveSet, set_invalid_expect_failure)
+{
+    ProfMetricsAbilityConfig metrics;
+    std::string errMsg;
+    ASSERT_FALSE(ResolveSet("extra", metrics, ChipType::ASCEND910B, errMsg));
+    ASSERT_NE(errMsg.find("--set must be one of"), std::string::npos);
+}
+
+TEST(ResolveSet, set_case_insensitive_expect_success)
+{
+    ProfMetricsAbilityConfig metrics;
+    std::string errMsg;
+    ASSERT_TRUE(ResolveSet("DEFAULT", metrics, ChipType::ASCEND910B, errMsg));
+    ASSERT_TRUE(metrics.HasEnabledAllPmu());
+}
+
+TEST(ResolveSet, set_detailed_case_mixed_expect_success)
+{
+    ProfMetricsAbilityConfig metrics;
+    std::string errMsg;
+    ASSERT_TRUE(ResolveSet("Detailed", metrics, ChipType::ASCEND910B, errMsg));
+    ASSERT_TRUE(metrics.occupancyEnable);
+    ASSERT_TRUE(metrics.roofline);
+}
+
+TEST(ResolveSet, set_comma_combination_expect_failure)
+{
+    ProfMetricsAbilityConfig metrics;
+    std::string errMsg;
+    ASSERT_FALSE(ResolveSet("default,detailed", metrics, ChipType::ASCEND910B, errMsg));
+    ASSERT_NE(errMsg.find("--set must be one of"), std::string::npos);
+}
+
+TEST(ResolveSet, set_empty_value_expect_failure)
+{
+    ProfMetricsAbilityConfig metrics;
+    std::string errMsg;
+    ASSERT_FALSE(ResolveSet("", metrics, ChipType::ASCEND910B, errMsg));
+    ASSERT_NE(errMsg.find("--set must be one of"), std::string::npos);
 }

@@ -30,6 +30,8 @@ void PrintVersion();
 
 void PrintSimulatorHelp(void);
 
+void PrintListSets();
+
 bool ProfilingRun(const Common::ProfArgs &args);
 
 bool IsProcessRunning();

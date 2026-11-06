@@ -21,6 +21,55 @@
 
 using namespace Utility;
 namespace Common {
+
+const std::map<std::string, ProfMetricsSet> SET_DEFINITIONS_A2A3{
+    {"default", {{"Default"}, "Suitable for first-round fast analysis."}},
+    {"detailed",
+        {{"Default", "Occupancy", "Roofline"}, "Adds core-level throughput and compute/memory bound analysis."}},
+    {"full",
+        {{"Default", "Occupancy", "Roofline", "MemoryDetail", "Source"},
+            "Enables full data path analysis and source hotspot."}},
+};
+
+const std::map<std::string, ProfMetricsSet> SET_DEFINITIONS_A5{
+    {"default", {{"Default"}, "Suitable for first-round fast analysis."}},
+    {"detailed",
+        {{"Default", "Occupancy", "Roofline", "PipeTimeline"},
+            "Adds core-level throughput and pipeline timeline analysis."}},
+    {"full",
+        {{"Default", "Occupancy", "Roofline", "MemoryDetail", "Source", "PCSampling", "InstrTimeline"},
+            "Enables full data path and instruction timeline analysis."}},
+};
+
+bool ResolveSet(const std::string &setName, ProfMetricsAbilityConfig &config,
+                ChipType chipType, std::string &errMsg)
+{
+    const std::map<std::string, ProfMetricsSet> *setDefs = &SET_DEFINITIONS_A2A3;
+    if (chipType == ChipType::ASCEND950) {
+        setDefs = &SET_DEFINITIONS_A5;
+    }
+
+    std::string lowerName;
+    for (char c : setName) {
+        lowerName += static_cast<char>(tolower(static_cast<unsigned char>(c)));
+    }
+
+    auto it = setDefs->find(lowerName);
+    if (it == setDefs->end()) {
+        errMsg = "--set must be one of: default, detailed, full";
+        return false;
+    }
+
+    std::string metricStr;
+    for (const auto &m : it->second.metrics) {
+        if (!metricStr.empty()) {
+            metricStr += ",";
+        }
+        metricStr += m;
+    }
+    return ParseValue(metricStr, config);
+}
+
 const std::vector<uint16_t> GetEventsByType(const ChipType &chipType, const std::string &blockType)
 {
     if (chipType == ChipType::ASCEND310P) {

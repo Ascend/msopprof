@@ -100,6 +100,17 @@ const std::map<std::string, ProfMetrics> StringToOnBoardMetrics = {
 
 bool ParseValue(std::string const &str, ProfMetricsAbilityConfig &value);
 
+struct ProfMetricsSet {
+    std::vector<std::string> metrics;
+    std::string description;
+};
+
+extern const std::map<std::string, ProfMetricsSet> SET_DEFINITIONS_A2A3;
+extern const std::map<std::string, ProfMetricsSet> SET_DEFINITIONS_A5;
+
+bool ResolveSet(const std::string &setName, ProfMetricsAbilityConfig &config,
+              ChipType chipType, std::string &errMsg);
+
 struct PmuEventsId {
     std::vector<uint16_t> aicPmu;
     std::vector<uint16_t> aivPmu;
@@ -119,6 +130,7 @@ private:
 struct ProfArgs {
     bool printHelp { false };
     bool printVersion { false };
+    bool listSets { false };
     bool deprecatedVersion { false };
     std::string runMode { "device" };
     std::string argOutput {"./" };
@@ -141,6 +153,8 @@ struct ProfArgs {
     std::string argDump {"false"};
     std::string argInstrTimelinePipe{};
     std::string argCustomInput;
+    std::string argSet;
+    bool isSetSpecified{false};
     std::vector<std::string> cmd { };
     OpRunner::KernelConfig kernelConfig;
 };

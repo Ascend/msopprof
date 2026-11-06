@@ -53,6 +53,7 @@ private:
     bool CheckDump(const Common::ProfArgs &config, std::string &msg) const;
     bool CheckInstrTimelinePipe(const Common::ProfArgs &config, std::string &msg) const;
     bool CheckCustomInput(Common::ProfArgs const &config, std::string &msg) const;
+    bool CheckSet(Common::ProfArgs const &config, std::string &msg) const;
     bool CheckDeviceChipSupport(
         const std::string &argName, const std::vector<ChipProductType> &supportTypes, std::string &msg) const;
 

@@ -28,6 +28,7 @@
 #include "filesystem.h"
 #define private public
 #include "argparser/arg_checker.h"
+#include "argparser/arg_normalize.h"
 #undef private
 #include "argparser/arg_normalize.h"
 
@@ -893,13 +894,13 @@ TEST(ArgChecker, test_CheckOutputPathValid_with_warning_and_invalid_cases) {
 TEST(ArgChecker, test_ArgChecker_size_expect_return_true)
 {
     ArgChecker checker1("device");
-    ASSERT_TRUE(checker1.checkers_.size() == 16);
+    ASSERT_TRUE(checker1.checkers_.size() == 17);
 
     ArgChecker checker2("simulator");
     ASSERT_TRUE(checker2.checkers_.size() == 13);
 
     ArgChecker checker3("");
-    ASSERT_TRUE(checker3.checkers_.size() == 16);
+    ASSERT_TRUE(checker3.checkers_.size() == 17);
     GlobalMockObject::verify();
 }
 
@@ -1213,4 +1214,191 @@ TEST(ArgChecker, test_CheckCustomInput_expect_return_false) {
     MOCKER(&Utility::CheckInputFileValid).stubs().will(returnValue(false));
     ASSERT_FALSE(checker.CheckCustomInput(args, msg));
     GlobalMockObject::verify();
+}
+
+TEST(ArgChecker, set_in_simulator_expect_error)
+{
+    ArgChecker checker("simulator");
+    Common::ProfArgs args;
+    args.runMode = "simulator";
+    args.argSet = "default";
+    args.isSetSpecified = true;
+    std::string msg;
+    ASSERT_FALSE(checker.CheckSet(args,msg));
+    ASSERT_NE(msg.find("--set is not supported in simulator mode"), std::string::npos);
+}
+
+TEST(ArgChecker, set_without_set_expect_skip)
+{
+    ArgChecker checker("device");
+    Common::ProfArgs args;
+    std::string msg;
+    ASSERT_TRUE(checker.CheckSet(args,msg));
+}
+
+TEST(ArgChecker, set_full_range_replay_expect_error)
+{
+    ArgChecker checker("device");
+    Common::ProfArgs args;
+    args.argSet = "full";
+    args.isSetSpecified = true;
+    args.argReplayMode = "range";
+    args.argAicMetrics.isMemoryDetail = true;
+    std::string msg;
+    ASSERT_FALSE(checker.CheckSet(args,msg));
+    ASSERT_NE(msg.find("--set and --replay-mode=range cannot be specified together"), std::string::npos);
+}
+
+TEST(ArgChecker, set_detailed_range_replay_expect_error) {
+    ArgChecker checker("device");
+    Common::ProfArgs args;
+    args.argSet = "detailed";
+    args.isSetSpecified = true;
+    args.argReplayMode = "range";
+    std::string msg;
+    ASSERT_FALSE(checker.CheckSet(args, msg));
+    ASSERT_NE(msg.find("--set and --replay-mode=range cannot be specified together"), std::string::npos);
+}
+
+TEST(ArgChecker, set_implicit_default_range_replay_expect_success) {
+    ArgChecker checker("device");
+    Common::ProfArgs args;
+    args.argSet = "default";
+    args.argReplayMode = "range";
+    std::string msg;
+    ASSERT_TRUE(checker.CheckSet(args,msg));
+}
+
+TEST(ArgChecker, set_default_expect_success) {
+    ArgChecker checker("device");
+    Common::ProfArgs args;
+    args.argSet = "default";
+    args.isSetSpecified = true;
+    std::string msg;
+    ASSERT_TRUE(checker.CheckSet(args, msg));
+}
+
+TEST(ArgChecker, set_full_kernel_replay_expect_success)
+{
+    ArgChecker checker("device");
+    Common::ProfArgs args;
+    args.argSet = "full";
+    args.isSetSpecified = true;
+    args.argReplayMode = "kernel";
+    args.argAicMetrics.isMemoryDetail = true;
+    std::string msg;
+    ASSERT_TRUE(checker.CheckSet(args,msg));
+}
+
+TEST(ArgNormalize, normalize_set_both_set_and_aic_metrics_expect_error)
+{
+    Common::ProfArgs args;
+    args.argSet = "default";
+    args.argAicMetrics.metricVec = {"default"};
+    std::string msg;
+    ArgNormalize normalizer;
+    ASSERT_FALSE(normalizer.Normalize(args,msg));
+    ASSERT_NE(msg.find("--set and --aic-metrics cannot be specified together"), std::string::npos);
+}
+
+TEST(ArgNormalize, normalize_set_neither_expect_default_expand)
+{
+ 	MOCKER(&Common::HalHelper::GetPlatformType)
+ 	    .stubs()
+ 	    .will(returnValue(Common::ChipType::ASCEND910B));
+ 	Common::ProfArgs args;
+ 	args.argOutput = "/tmp/msopt_test";
+ 	mkdir("/tmp/msopt_test", 0755);
+ 	std::string msg;
+ 	ArgNormalize normalizer;
+    ASSERT_TRUE(normalizer.Normalize(args, msg));
+ 	ASSERT_EQ(args.argSet, "default");
+ 	ASSERT_TRUE(args.argAicMetrics.HasEnabledAllPmu());
+ 	rmdir("/tmp/msopt_test");
+ 	GlobalMockObject::verify();
+ }
+
+TEST(ArgNormalize, normalize_set_with_set_name_only_expect_expand)
+{
+    MOCKER(&Common::HalHelper::GetPlatformType)
+        .stubs()
+        .will(returnValue(Common::ChipType::ASCEND910B));
+    Common::ProfArgs args;
+    args.argSet = "detailed";
+    args.argOutput = "/tmp/msopt_test";
+    mkdir("/tmp/msopt_test", 0755);
+    std::string msg;
+    ArgNormalize normalizer;
+    ASSERT_TRUE(normalizer.Normalize(args,msg));
+    ASSERT_TRUE(args.argAicMetrics.occupancyEnable);
+    ASSERT_TRUE(args.argAicMetrics.roofline);
+    rmdir("/tmp/msopt_test");
+    GlobalMockObject::verify();
+}
+
+TEST(ArgNormalize, normalize_set_with_invalid_name_expect_error)
+{
+ 	 MOCKER(&Common::HalHelper::GetPlatformType)
+ 	      .stubs()
+ 	      .will(returnValue(Common::ChipType::ASCEND910B));
+ 	 Common::ProfArgs args;
+ 	 args.argSet = "invalid";
+ 	 args.argOutput = "/tmp/msopt_test";
+ 	 mkdir("/tmp/msopt_test", 0755);
+ 	 std::string msg;
+ 	 ArgNormalize normalizer;
+ 	 ASSERT_FALSE(normalizer.Normalize(args, msg));
+ 	 ASSERT_NE(msg.find("--set must be one of"), std::string::npos);
+ 	 rmdir("/tmp/msopt_test");
+ 	 GlobalMockObject::verify();
+}
+
+TEST(ArgNormalize, normalize_set_case_insensitive_expect_success)
+{
+    MOCKER(&Common::HalHelper::GetPlatformType)
+        .stubs()
+        .will(returnValue(Common::ChipType::ASCEND910B));
+    Common::ProfArgs args;
+    args.argSet = "DEFAULT";
+    args.argOutput = "/tmp/msopt_test";
+    mkdir("/tmp/msopt_test", 0755);
+    std::string msg;
+    ArgNormalize normalizer;
+    ASSERT_TRUE(normalizer.Normalize(args, msg));
+    ASSERT_EQ(args.argSet, "default");
+    ASSERT_TRUE(args.argAicMetrics.HasEnabledAllPmu());
+ 	rmdir("/tmp/msopt_test");
+    GlobalMockObject::verify();
+}
+
+TEST(ArgNormalize, normalize_aic_metrics_default_not_mapped_to_set)
+{
+    MOCKER(&Common::HalHelper::GetPlatformType)
+        .stubs()
+        .will(returnValue(Common::ChipType::ASCEND910B));
+    Common::ProfArgs args;
+    args.argAicMetrics.metricVec = {"default"};
+    args.argOutput = "/tmp/msopt_test";
+    mkdir("/tmp/msopt_test", 0755);
+    std::string msg;
+    ArgNormalize normalizer;
+    ASSERT_TRUE(normalizer.Normalize(args, msg));
+    ASSERT_TRUE(args.argSet.empty());
+    ASSERT_EQ(args.argAicMetrics.metricVec.size(), 1u);
+    ASSERT_EQ(args.argAicMetrics.metricVec[0], "default");
+    ASSERT_TRUE(args.argAicMetrics.HasEnabledAllPmu());
+    ASSERT_FALSE(args.argAicMetrics.occupancyEnable);
+    rmdir("/tmp/msopt_test");
+    GlobalMockObject::verify();
+}
+
+TEST(ArgNormalize, normalize_aic_metrics_with_set_expect_error_lowercase)
+{
+    Common::ProfArgs args;
+    args.argSet = "DEFAULT";
+    args.argAicMetrics.metricVec = {"arithmeticutilization"};
+    std::string msg;
+    ArgNormalize normalizer;
+    ASSERT_FALSE(normalizer.Normalize(args, msg));
+    ASSERT_NE(msg.find("--set and --aic-metrics cannot be specified together"), std::string::npos);
 }

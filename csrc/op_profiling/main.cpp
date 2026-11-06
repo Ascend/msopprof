@@ -30,6 +30,14 @@ int main(int argc, char *argv[], char *env[])
         return -1;
     }
     Common::RuntimeHelper::Init(args.runMode == "simulator"); // 初始化RuntimeHelper
+    if (args.listSets) {
+        if (args.runMode != "device") {
+            Utility::LogError("--list-sets is not supported in %s mode", args.runMode.c_str());
+            return -1;
+        }
+        Interface::PrintListSets();
+        return 0;
+    }
     if (args.printVersion) {
         Interface::PrintVersion();
         return 0;

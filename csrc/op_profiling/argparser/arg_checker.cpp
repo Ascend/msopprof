@@ -127,6 +127,7 @@ ArgChecker::ArgChecker(const std::string &runMode)
     } else {
         checkers_.emplace_back(&ArgChecker::CheckLaunchSkipBeforeMatch);
         checkers_.emplace_back(&ArgChecker::CheckKillAdvance);
+        checkers_.emplace_back(&ArgChecker::CheckSet);
         checkers_.emplace_back(&ArgChecker::CheckReplayMode);
         checkers_.emplace_back(&ArgChecker::CheckWarmUp);
         checkers_.emplace_back(&ArgChecker::CheckInstrTimelinePipe);
@@ -630,6 +631,24 @@ bool ArgChecker::CheckInstrTimelinePipe(const Common::ProfArgs &config, std::str
             msg = "--instr-timeline-pipe only support pipes in [cube fixp vector mte1 mte2 mte3] and separated by '|'.";
             return false;
         }
+    }
+    return true;
+}
+
+bool ArgChecker::CheckSet(const Common::ProfArgs &config,std::string &msg) const
+{
+    if (config.argSet.empty()) {
+        return true;
+    }
+
+    if (config.runMode == "simulator") {
+        msg = "--set is not supported in simulator mode";
+        return false;
+    }
+
+    if (config.isSetSpecified && config.argReplayMode == "range") {
+        msg = "--set and --replay-mode=range cannot be specified together.";
+        return false;
     }
     return true;
 }
