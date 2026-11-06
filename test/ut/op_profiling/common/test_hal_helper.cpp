@@ -57,14 +57,61 @@ protected:
     int64_t aiCoreNum;
 
     void SetUp() override {
-        HalHelper::Instance().halGetDeviceInfo_ = nullptr;
+        auto &helper = HalHelper::Instance();
+        helper.halGetDeviceInfo_ = nullptr;
+        helper.drvGetDevNum_ = nullptr;
+        helper.drvGetDevIDs_ = nullptr;
+        helper.chipType_ = ChipType::END_TYPE;
     }
 
     void TearDown() override {
-        HalHelper::Instance().halGetDeviceInfo_ = nullptr;
+        auto &helper = HalHelper::Instance();
+        helper.halGetDeviceInfo_ = nullptr;
+        helper.drvGetDevNum_ = nullptr;
+        helper.drvGetDevIDs_ = nullptr;
+        helper.chipType_ = ChipType::END_TYPE;
         GlobalMockObject::verify();
     }
 };
+
+TEST_F(HalHelperTest, GetPlatformType_UsesEnumeratedDeviceId) {
+    auto &helper = HalHelper::Instance();
+    helper.drvGetDevNum_ = [](uint32_t *deviceCount) {
+        *deviceCount = 2;
+        return DRV_ERROR_NONE;
+    };
+    helper.drvGetDevIDs_ = [](uint32_t *deviceIds, uint32_t) {
+        deviceIds[0] = 0;
+        deviceIds[1] = 3;
+        return DRV_ERROR_NONE;
+    };
+    helper.halGetDeviceInfo_ = [](uint32_t deviceId, int32_t, int32_t, int64_t *value) {
+        if (deviceId == 0) {
+            return static_cast<drvError_t>(1);
+        }
+        EXPECT_EQ(deviceId, 3U);
+        *value = static_cast<int64_t>(ChipType::ASCEND910B) << 8;
+        return DRV_ERROR_NONE;
+    };
+
+    EXPECT_EQ(helper.GetPlatformType(), ChipType::ASCEND910B);
+}
+
+TEST_F(HalHelperTest, GetPlatformType_FallsBackToDeviceZeroWhenEnumerationFails) {
+    auto &helper = HalHelper::Instance();
+    helper.drvGetDevNum_ = [](uint32_t *) { return static_cast<drvError_t>(1); };
+    helper.drvGetDevIDs_ = [](uint32_t *deviceIds, uint32_t) {
+        deviceIds[0] = 3;
+        return DRV_ERROR_NONE;
+    };
+    helper.halGetDeviceInfo_ = [](uint32_t deviceId, int32_t, int32_t, int64_t *value) {
+        EXPECT_EQ(deviceId, 0U);
+        *value = static_cast<int64_t>(ChipType::ASCEND910B) << 8;
+        return DRV_ERROR_NONE;
+    };
+
+    EXPECT_EQ(helper.GetPlatformType(), ChipType::ASCEND910B);
+}
 
 TEST_F(HalHelperTest, GetAicoreFreq_NullFunc_ReturnFalse)
 {

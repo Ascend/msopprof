@@ -22,6 +22,8 @@
 #include "ascend_hal/ascend_hal.h"
 namespace Common {
 using halGetDeviceInfoFunc = drvError_t(*)(uint32_t, int32_t, int32_t, int64_t*);
+using drvGetDevNumFunc = drvError_t (*)(uint32_t *);
+using drvGetDevIDsFunc = drvError_t (*)(uint32_t *, uint32_t);
 class HalHelper {
 public:
     static HalHelper &Instance(void);
@@ -46,9 +48,12 @@ public:
 private:
     GmType gmType_ = GmType::DEFAULT;
     unsigned int deviceId_ = 0;
+    mutable ChipType chipType_ = ChipType::END_TYPE;
     void *handleHal_ = nullptr;
     void *handleDcmi_ = nullptr;
     halGetDeviceInfoFunc halGetDeviceInfo_ = nullptr;
+    drvGetDevNumFunc drvGetDevNum_ = nullptr;
+    drvGetDevIDsFunc drvGetDevIDs_ = nullptr;
     HalHelper();
     ~HalHelper();
     HalHelper(HalHelper const &) = delete;

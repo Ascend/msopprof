@@ -17,6 +17,7 @@
 
 #include "hal_helper.h"
 #include <dlfcn.h>
+#include <vector>
 #include "log.h"
 #include "ascend_helper.h"
 #include "filesystem.h"
@@ -41,6 +42,8 @@ HalHelper::HalHelper()
         return;
     }
     halGetDeviceInfo_ = reinterpret_cast<halGetDeviceInfoFunc>(dlsym(handleHal_, "halGetDeviceInfo"));
+    drvGetDevNum_ = reinterpret_cast<drvGetDevNumFunc>(dlsym(handleHal_, "drvGetDevNum"));
+    drvGetDevIDs_ = reinterpret_cast<drvGetDevIDsFunc>(dlsym(handleHal_, "drvGetDevIDs"));
 }
 
 HalHelper::~HalHelper()
@@ -57,30 +60,55 @@ HalHelper::~HalHelper()
 
 ChipType HalHelper::GetPlatformType(void) const
 {
-    static ChipType chipType = ChipType::END_TYPE;
-    if (chipType != ChipType::END_TYPE) {
-        return chipType;
+    if (chipType_ != ChipType::END_TYPE) {
+        return chipType_;
     }
     if (halGetDeviceInfo_ == nullptr) {
-        LogError("Fail to get soc platform because of null ptr");
-        return ChipType::END_TYPE;
-    }
-    int64_t versionInfo = 0;
-    int ret = halGetDeviceInfo_(0, MODULE_TYPE_SYSTEM, INFO_TYPE_VERSION, &versionInfo);
-    if (ret != DRV_ERROR_NONE) {
-        LogError("Fail to get soc platform because of error code:%d.", ret);
+        LogError("Fail to get soc platform because HAL function is unavailable");
         return ChipType::END_TYPE;
     }
 
-    uint32_t platformType = (static_cast<uint64_t>(versionInfo) >> 8) & 0xff;
-    if ((platformType > static_cast<uint32_t>(ChipType::ASCEND310B) &&
-        platformType < static_cast<uint32_t>(ChipType::ASCEND950)) ||
-        platformType >= static_cast<uint32_t>(ChipType::END_TYPE)) {
-        LogError("Fail to get soc platform because of invalid type:%u.", platformType);
-        return ChipType::END_TYPE;
+    std::vector<uint32_t> deviceIds{0};
+    if (drvGetDevNum_ == nullptr || drvGetDevIDs_ == nullptr) {
+        LogWarn("Device enumeration functions are unavailable, falling back to device 0");
+    } else {
+        uint32_t deviceCount = 0;
+        drvError_t enumRet = drvGetDevNum_(&deviceCount);
+        if (enumRet != DRV_ERROR_NONE) {
+            LogWarn("Fail to enumerate devices because of error code:%d, falling back to device 0", enumRet);
+        } else if (deviceCount == 0) {
+            LogWarn("No devices were enumerated, falling back to device 0");
+        } else {
+            deviceIds.resize(deviceCount);
+            enumRet = drvGetDevIDs_(deviceIds.data(), deviceCount);
+            if (enumRet != DRV_ERROR_NONE) {
+                LogWarn("Fail to enumerate device IDs because of error code:%d, falling back to device 0", enumRet);
+                deviceIds.assign(1, 0);
+            }
+        }
     }
-    chipType = static_cast<ChipType>(platformType);
-    return chipType;
+
+    for (uint32_t deviceId : deviceIds) {
+        int64_t versionInfo = 0;
+        drvError_t ret = halGetDeviceInfo_(deviceId, MODULE_TYPE_SYSTEM, INFO_TYPE_VERSION, &versionInfo);
+        if (ret != DRV_ERROR_NONE) {
+            LogDebug("Fail to get soc platform from device %u because of error code:%d.", deviceId, ret);
+            continue;
+        }
+
+        uint32_t platformType = (static_cast<uint64_t>(versionInfo) >> 8) & 0xff;
+        if ((platformType > static_cast<uint32_t>(ChipType::ASCEND310B) &&
+                platformType < static_cast<uint32_t>(ChipType::ASCEND950)) ||
+            platformType >= static_cast<uint32_t>(ChipType::END_TYPE)) {
+            LogDebug("Fail to get soc platform from device %u because of invalid type:%u.", deviceId, platformType);
+            continue;
+        }
+        chipType_ = static_cast<ChipType>(platformType);
+        return chipType_;
+    }
+
+    LogError("Fail to get soc platform from all %zu devices.", deviceIds.size());
+    return ChipType::END_TYPE;
 }
 
 bool HalHelper::GetAicoreFreq(int64_t &freq) const
