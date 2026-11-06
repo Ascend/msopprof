@@ -76,7 +76,7 @@
 |test_cases|测试数据，支持列表，每个元素包含一个用例。详细说明可参考[**表 2**  test_case参数字段说明](#test_case参数字段说明)。|list|是|
 
 > [!NOTE]
-> 
+>
 > - tiling_key参数仅适用于动态算子。
 > - 在使用magic参数时，Atlas推理系列产品需配置为RT_DEV_BINARY_MAGIC_ELF。
 > - 在使用test_cases参数时，算子上板或仿真调优时仅支持配置单个用例。
@@ -250,7 +250,7 @@
 </table>
 
 > [!NOTE]
-> 
+>
 > - “output”中参数取值的个数都要与“input”一致，否则测试用例生成会失败。
 >    例如：“input”的type支持的类型个数为2，则“output”的type支持的类型个数也需要为2。
 >    同理，所有input和output中的type和shape的取值个数也需要保持一致。
@@ -280,14 +280,13 @@ mstx接口是MindStudio提供的一个性能分析接口，它允许用户在应
 
 - msOpProf工具允许用户通过mstx接口实现特定算子调优的功能，使用mstx接口可以自定义采集代码段范围内或指定关键函数的开始和结束时间点，并识别关键函数或计算API等信息，对性能问题快速定界。
 - 默认情况下mstx接口不使能。若用户在应用程序中调用mstx接口，工具会根据具体使用场景使能mstx打点功能。例如配置--mstx=on使能用户程序中的mstx API，并可以通过--mstx-include使能用户程序中特定的mstx API，具体使用可分别参见msopprof模式用户指南的“[命令参考](./msopprof_user_guide.md#命令参考)”和msopprof simulator模式用户指南的“[命令参考](./msopprof_simulator_user_guide.md#命令参考)”中的--mstx和--mstx-include参数。
-- mstx当前提供了两种API的使用方式：库文件和头文件，以[样例](https://gitee.com/ascend/samples/tree/master/operator/ascendc/0_introduction/1_add_frameworklaunch/AclNNInvocation)为例：
+- mstx当前提供了两种API的使用方式：库文件和头文件，以[样例](https://gitcode.com/cann/cann-learning-hub/tree/8.5.0/tutorials/ascendc_operator_development/03_intermediate_vector_operator_development/src/custom_op_04)为例：
 
     > [!NOTE]
-    > 
-    > - 此样例工程不支持Atlas A3系列产品。
+    >
     > - ${INSTALL_DIR}请替换为CANN软件安装后文件存储路径。以root用户安装为例，安装后文件默认存储路径为：/usr/local/Ascend/cann。
 
-    - 在`${git_clone_path}/samples/operator/ascendc/0_introduction/1_add_frameworklaunch/AclNNInvocation/src/CMakeLists.txt`路径下新增库文件`libms_tools_ext.so`，地址为：`${INSTALL_DIR}/lib64/libms_tools_ext.so`。
+    - 在`${git_clone_path}/cann-learning-hub/tutorials/ascendc_operator_development/03_intermediate_vector_operator_development/src/custom_op_04/test/CMakeLists.txt`路径下新增库文件`libms_tools_ext.so`，地址为：`${INSTALL_DIR}/lib64/libms_tools_ext.so`。
 
         ```shell
         # Header path
@@ -296,14 +295,14 @@ mstx接口是MindStudio提供的一个性能分析接口，它允许用户在应
             ${CUST_PKG_PATH}/include
         )
         ...
-        target_link_libraries( 
+        target_link_libraries(
             ...
             dl
             ${INSTALL_DIR}/lib64/libms_tools_ext.so
         )
         ```
 
-    - 在\$\{git\_clone\_path\}/samples/operator/ascendc/0\_introduction/1\_add\_frameworklaunch/AclNNInvocation/src/main.cpp路径下，将用户程序编译链接dl库，对应的头文件ms\_tools\_ext.h地址：$\{INSTALL\_DIR\}/include/mstx。
+    - 在`${git_clone_path}/cann-learning-hub/tutorials/ascendc_operator_development/03_intermediate_vector_operator_development/src/custom_op_04/test/main.cpp`路径下，将用户程序编译链接dl库，对应的头文件ms_tools_ext.h地址：`${INSTALL_DIR}/include/mstx`。
 
         ```shell
         ...
@@ -319,7 +318,7 @@ mstx接口是MindStudio提供的一个性能分析接口，它允许用户在应
 import mstx
 import torch
 import torch_npu
- 
+
 x = torch.Tensor([1,2,3,4]).npu()
 y = torch.Tensor([1,2,3,4]).npu()
 

@@ -274,21 +274,21 @@ msOpProf工具协助用户定位算子内存、算子代码以及算子指令的
         add_ops_compile_options(ALL OPTIONS -g)
         ```
 
-    - 若参考完整样例，以[样例](https://gitee.com/ascend/samples/tree/master/operator/ascendc/0_introduction/3_add_kernellaunch/AddKernelInvocationNeo)为例，需在样例工程目录下的“cmake/npu\_lib.cmake”文件中新增以下代码。
+    - 若参考完整样例，以[样例](https://gitcode.com/cann/asc-devkit/tree/9.0.0/examples/01_simd_cpp_api/00_introduction/01_add/basic_api_tque_add)为例，需在样例工程目录下的"CMakeLists.txt"文件中，在`target_compile_options`的ASC语言选项中新增`-g -O2`。
 
         > [!NOTE]
         >
-        > - 此样例工程不支持Atlas A3系列产品。
+        > - 根据实际部署的 NPU 硬件架构选择对应的 `npu-arch` 参数，例如Atlas 950PR&950DT系列产品需改为`dav-3510`。本样例参数值`dav-2201`适用于昇腾A2/A3系列产品。
         > - 下载代码样例时，需执行以下命令指定分支版本。
         >
         >    ```shell
-        >    git clone https://gitee.com/ascend/samples.git -b v1.9-8.3.RC1
+        >    git clone https://gitcode.com/cann/asc-devkit.git -b 9.0.0
         >    ```
 
         ```shell
-        ascendc_compile_options(ascendc_kernels_${RUN_MODE} PRIVATE
-        -g
-        -O2
+        target_compile_options(add PRIVATE
+            $<$<COMPILE_LANGUAGE:ASC>:--npu-arch=dav-2201 -g -O2>
+            # $<$<COMPILE_LANGUAGE:ASC>:--npu-arch=dav-3510>
         )
         ```
 
@@ -323,14 +323,13 @@ msOpProf工具协助用户定位算子内存、算子代码以及算子指令的
 > - 用户设置的仿真核数不能超过物理核数。
 > - 若用户仅需关注部分算子性能时，可在Atlas A3系列产品、Atlas推理系列产品和Atlas A2系列产品的单核内调用《Ascend C算子开发接口》中的“调测接口”章节的[TRACE_START](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/latest/API/ascendcopapi/docs/api/Utils-API/%E8%B0%83%E6%B5%8B%E6%8E%A5%E5%8F%A3/TRACE_START.md)和[TRACE_STOP](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/latest/API/ascendcopapi/docs/api/Utils-API/%E8%B0%83%E6%B5%8B%E6%8E%A5%E5%8F%A3/TRACE_STOP.md)接口。并在编译配置文件中添加-DASCENDC\_TRACE\_ON，具体操作请参见[添加-DASCENDC\_TRACE\_ON的方法](#添加-DASCENDC_TRACE_ON)。然后，才能生成该范围内的流水图信息，具体流水图显示内容可参考[指令流水图](#指令流水图)。
 > - 用户需在编译配置文件中添加-DASCENDC\_TRACE\_ON，具体修改方法可参考以下样例工程。<a id="添加-DASCENDC_TRACE_ON"></a>
->    [AddKernelInvocationNeo算子工程](https://gitee.com/ascend/samples/tree/master/operator/ascendc/0_introduction/3_add_kernellaunch/AddKernelInvocationNeo/cmake)，需在$\{git\_clone\_path\}/samples/operator/ascendc/0\_introduction/3\_add\_kernellaunch/AddKernelInvocationNeo/cmake/npu\_lib.cmake文件中新增以下代码。
+>    [basic_api_tque_add算子工程](https://gitcode.com/cann/asc-devkit/tree/9.0.0/examples/01_simd_cpp_api/00_introduction/01_add/basic_api_tque_add)，需在`${git_clone_path}/asc-devkit/examples/01_simd_cpp_api/00_introduction/01_add/basic_api_tque_add/CMakeLists.txt`文件中，在`target_compile_options`的ASC语言选项中新增`-DASCENDC_TRACE_ON`，并根据实际部署的 NPU 硬件架构选择对应的 `npu-arch` 参数，例如Atlas 950PR&950DT系列产品需改为`dav-3510`。本样例参数值`dav-2201`适用于昇腾A2/A3系列产品。
 >
 >    ```shell
->    ascendc_compile_definitions
->    (
->        ...
->        -DASCENDC_TRACE_ON
->    )
+>   target_compile_options(add PRIVATE
+>       $<$<COMPILE_LANGUAGE:ASC>:--npu-arch=dav-2201 -DASCENDC_TRACE_ON>
+>       # $<$<COMPILE_LANGUAGE:ASC>:--npu-arch=dav-3510>
+>   )
 >    ```
 
 1. 登录运行环境，需要使用msopprof simulator开启算子仿真调优，并配合使用仿真可选参数和用户待调优程序（app \[arguments\]）进行调优，仿真可选参数请参考[命令参考](#命令参考)。算子仿真调优可以通过以下两种方式执行：
