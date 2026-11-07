@@ -15,7 +15,12 @@
  * ------------------------------------------------------------------------- */
 
 #include "device_data_parse.h"
+#include <atomic>
+#include <exception>
 #include <functional>
+#include <chrono>
+#include <thread>
+#include "thread_pool.h"
 #include "smart_pointer.h"
 #include "log.h"
 #include "filesystem.h"
@@ -51,9 +56,8 @@ DeviceDataParse::DeviceDataParse(Common::ChipType chipType, PmuEventsId pmuEvent
     }
 }
 
-unique_ptr<DataHandler> &GetHandle(ChipType chipType)
-{
-    static unique_ptr<DataHandler> handlePtr;
+unique_ptr<DataHandler> GetHandle(ChipType chipType) {
+    unique_ptr<DataHandler> handlePtr;
     ChipProductType type = ChipProductType::ASCEND910B_SERIES;
     if (CHIP_ARCHITECTURE_TO_PRODUCT_SERIES.find(chipType) != CHIP_ARCHITECTURE_TO_PRODUCT_SERIES.end()) {
         type = CHIP_ARCHITECTURE_TO_PRODUCT_SERIES.at(chipType);
@@ -75,9 +79,8 @@ unique_ptr<DataHandler> &GetHandle(ChipType chipType)
     return handlePtr;
 }
 
-unique_ptr<::Visualize::PmuCalculator> &GetPmuCalculatorObj(ChipType chipType, shared_ptr<BasicPmu> &basicPmuObj)
-{
-    static unique_ptr<::Visualize::PmuCalculator> pmuCalculatorPtr;
+unique_ptr<::Visualize::PmuCalculator> GetPmuCalculatorObj(ChipType chipType, shared_ptr<BasicPmu> &basicPmuObj) {
+    unique_ptr<::Visualize::PmuCalculator> pmuCalculatorPtr;
     if (chipType == ChipType::ASCEND910B) {
         pmuCalculatorPtr = Utility::MakeUnique<::Visualize::PmuCalculator910B>();
     } else if (chipType == ChipType::ASCEND310P) {
@@ -92,12 +95,10 @@ unique_ptr<::Visualize::PmuCalculator> &GetPmuCalculatorObj(ChipType chipType, s
     return pmuCalculatorPtr;
 }
 
-unique_ptr<::Visualize::StorageAccess> &GetStorageAccessObj(ChipType chipType,
-                                                          shared_ptr<::Visualize::OpBasicInfo> &opBasicInfoObj,
-                                                          shared_ptr<::Visualize::BasicPmu> &basicPmuObj,
-                                                          unique_ptr<::Visualize::PmuCalculator> &pmuCalculatorObj)
-{
-    static unique_ptr<::Visualize::StorageAccess> storageAccessPtr;
+unique_ptr<::Visualize::StorageAccess> GetStorageAccessObj(ChipType chipType,
+    shared_ptr<::Visualize::OpBasicInfo> &opBasicInfoObj, shared_ptr<::Visualize::BasicPmu> &basicPmuObj,
+    unique_ptr<::Visualize::PmuCalculator> &pmuCalculatorObj) {
+    unique_ptr<::Visualize::StorageAccess> storageAccessPtr;
     if (chipType == ChipType::ASCEND910B) {
         storageAccessPtr = Utility::MakeUnique<StorageAccess910B>(opBasicInfoObj, basicPmuObj, pmuCalculatorObj);
     } else if (chipType == ChipType::ASCEND310P) {
@@ -108,11 +109,9 @@ unique_ptr<::Visualize::StorageAccess> &GetStorageAccessObj(ChipType chipType,
     return storageAccessPtr;
 }
 
-unique_ptr<::Visualize::Occupancy> &GetOccupancyObj(ChipType chipType,
-                                                  shared_ptr<::Visualize::OpBasicInfo> &opBasicInfoObj,
-                                                  shared_ptr<::Visualize::BasicPmu> &basicPmuObj)
-{
-    static unique_ptr<::Visualize::Occupancy> occupancyPtr;
+unique_ptr<::Visualize::Occupancy> GetOccupancyObj(ChipType chipType,
+    shared_ptr<::Visualize::OpBasicInfo> &opBasicInfoObj, shared_ptr<::Visualize::BasicPmu> &basicPmuObj) {
+    unique_ptr<::Visualize::Occupancy> occupancyPtr;
     if (chipType == ChipType::ASCEND910B) {
         occupancyPtr = Utility::MakeUnique<Occupancy910B>(opBasicInfoObj, basicPmuObj);
     } else if (chipType == ChipType::ASCEND950) {
@@ -123,10 +122,9 @@ unique_ptr<::Visualize::Occupancy> &GetOccupancyObj(ChipType chipType,
     return occupancyPtr;
 }
 
-unique_ptr<RoofLine> &GetRoofLineObj(unique_ptr<DataHandler> &handler, shared_ptr<OpBasicInfo> &opBasicInfoObj,
-                                     shared_ptr<BasicPmu> &basicPmuObj, unique_ptr<PmuCalculator> &pmuCalculatorObj)
-{
-    static unique_ptr<::Visualize::RoofLine> roofLinePtr;
+unique_ptr<RoofLine> GetRoofLineObj(unique_ptr<DataHandler> &handler, shared_ptr<OpBasicInfo> &opBasicInfoObj,
+    shared_ptr<BasicPmu> &basicPmuObj, unique_ptr<PmuCalculator> &pmuCalculatorObj) {
+    unique_ptr<::Visualize::RoofLine> roofLinePtr;
     if (handler == nullptr) {
         LogWarn("Get roofline failed because of nullptr");
         return roofLinePtr;
@@ -144,9 +142,9 @@ unique_ptr<RoofLine> &GetRoofLineObj(unique_ptr<DataHandler> &handler, shared_pt
     return roofLinePtr;
 }
 
-unique_ptr<::Visualize::TimelineParser> &GetTimelineObj(unique_ptr<DataHandler> &handler,
+unique_ptr<::Visualize::TimelineParser> GetTimelineObj(unique_ptr<DataHandler> &handler,
     shared_ptr<OpBasicInfo> &opBasicInfoObj, shared_ptr<BasicPmu> &basicPmuObj, const std::string &customDotJson) {
-    static unique_ptr<::Visualize::TimelineParser> parserPtr;
+    unique_ptr<::Visualize::TimelineParser> parserPtr;
     if (handler == nullptr || opBasicInfoObj == nullptr || basicPmuObj == nullptr) {
         LogWarn("Get MC2 timeline failed because of nullptr");
         return parserPtr;
@@ -171,9 +169,8 @@ unique_ptr<::Visualize::CachelineHeatMap> GetCachelineHeatMapObj(unique_ptr<Data
     return parserPtr;
 }
 
-unique_ptr<::Visualize::BiuTimeline> &GetBiuTimelineObj(const Common::ProfMetricsAbilityConfig &metrics)
-{
-    static unique_ptr<::Visualize::BiuTimeline> biuTimelinePtr;
+unique_ptr<::Visualize::BiuTimeline> GetBiuTimelineObj(const Common::ProfMetricsAbilityConfig &metrics) {
+    unique_ptr<::Visualize::BiuTimeline> biuTimelinePtr;
     if (metrics.instrTimelineEnable) {
         biuTimelinePtr = MakeUnique<InstrBiuTimeline>();
     } else if (metrics.pipeTimelineEnable) {
@@ -190,7 +187,7 @@ bool DeviceDataParse::ParseExactKernelData(const string &path, const string &ker
     string timeStamp;
     GenerateTimeStamp(timeStamp, TimeAccuracy::MILLISECOND);
     ParserConfig parserConfig = {kernelName, path, aicCalMetricItems_, aivCalMetricItems_, metrics_.isKernelScale };
-    auto &handler = GetHandle(chipType_);
+    auto handler = GetHandle(chipType_);
     if (!handler) {
         LogError("Get handle failed because of nullptr");
         return false;
@@ -203,17 +200,17 @@ bool DeviceDataParse::ParseExactKernelData(const string &path, const string &ker
         LogError("Get op basic info or basic pmu failed because of nullptr");
         return false;
     }
-    auto &pmuCalculatorObj = GetPmuCalculatorObj(chipType_, basicPmuObj);
+    auto pmuCalculatorObj = GetPmuCalculatorObj(chipType_, basicPmuObj);
     if (pmuCalculatorObj == nullptr) {
         LogError("Get pmuCalculatorObj failed because of nullptr");
         return false;
     }
 
-    auto &storageAccessObj = GetStorageAccessObj(chipType_, opBasicInfoObj, basicPmuObj, pmuCalculatorObj);
-    auto &occupancyObj = GetOccupancyObj(chipType_, opBasicInfoObj, basicPmuObj);
-    auto &roofLineObj = GetRoofLineObj(handler, opBasicInfoObj, basicPmuObj, pmuCalculatorObj);
-    auto &timelineObj = GetTimelineObj(handler, opBasicInfoObj, basicPmuObj, customDotJson_);
-    auto &biuTimelineObj = GetBiuTimelineObj(metrics_);
+    auto storageAccessObj = GetStorageAccessObj(chipType_, opBasicInfoObj, basicPmuObj, pmuCalculatorObj);
+    auto occupancyObj = GetOccupancyObj(chipType_, opBasicInfoObj, basicPmuObj);
+    auto roofLineObj = GetRoofLineObj(handler, opBasicInfoObj, basicPmuObj, pmuCalculatorObj);
+    auto timelineObj = GetTimelineObj(handler, opBasicInfoObj, basicPmuObj, customDotJson_);
+    auto biuTimelineObj = GetBiuTimelineObj(metrics_);
     auto cachelineHeatMapObj = GetCachelineHeatMapObj(handler);
     if (!storageAccessObj || !occupancyObj || !roofLineObj || !timelineObj || !biuTimelineObj || !cachelineHeatMapObj) {
         LogError("Get visualize data failed because of nullptr");
@@ -261,13 +258,7 @@ void DeviceDataParse::ParseKernelFile(const string &kernelDir, const string &ker
             continue;
         }
 
-        LogInfo("Start analyze kernel on device: %s, kernel: %s, name is: %s", deviceId.c_str(), kernelName.c_str(),
-                fileName.c_str());
-        if (!ParseExactKernelData(orderDir, kernelName)) {
-            failedKernelNum_++;
-            LogError("Analyzing kernel data failed, device: %s, kernel: %s, name is: %s", deviceId.c_str(),
-                     kernelName.c_str(), fileName.c_str());
-        }
+        kernelParseTasks_.push_back({orderDir, kernelName, deviceId});
 
         if (!theOnlyKernelPath_.empty()) {
             isTheOnlyKernel_ = false;
@@ -277,6 +268,66 @@ void DeviceDataParse::ParseKernelFile(const string &kernelDir, const string &ker
         }
         totalKernelNum_++;
     }
+}
+
+bool DeviceDataParse::RunKernelParseTask(const KernelParseTask &task) {
+    LogInfo("Start analyze kernel on device: %s, kernel: %s, name is: %s", task.deviceId.c_str(),
+        task.kernelName.c_str(), GetLastFile(task.path).c_str());
+    try {
+        if (ParseExactKernelData(task.path, task.kernelName)) {
+            return true;
+        }
+        LogError("Analyzing kernel data failed, device: %s, kernel: %s, name is: %s", task.deviceId.c_str(),
+            task.kernelName.c_str(), GetLastFile(task.path).c_str());
+    } catch (const std::exception &ex) {
+        LogError("Analyzing kernel data raised an exception, device: %s, kernel: %s, path: %s, reason: %s",
+            task.deviceId.c_str(), task.kernelName.c_str(), task.path.c_str(), ex.what());
+    } catch (...) {
+        LogError("Analyzing kernel data raised an unknown exception, device: %s, kernel: %s, path: %s",
+            task.deviceId.c_str(), task.kernelName.c_str(), task.path.c_str());
+    }
+    return false;
+}
+
+void DeviceDataParse::ParseKernelTasks() {
+    if (kernelParseTasks_.empty()) {
+        return;
+    }
+    auto start = std::chrono::steady_clock::now();
+    constexpr uint32_t maxParseThreads = 8;
+    const uint32_t hardwareThreads = std::max(1u, static_cast<uint32_t>(std::thread::hardware_concurrency()));
+    const uint32_t threads =
+        std::min({maxParseThreads, hardwareThreads, static_cast<uint32_t>(kernelParseTasks_.size())});
+    LogDebug("Device kernel parsing started: %zu tasks, %u threads.", kernelParseTasks_.size(), threads);
+    std::atomic<uint32_t> failedCount{0};
+    std::vector<std::string> taskLogs(kernelParseTasks_.size());
+    auto runTask = [this, &failedCount, &taskLogs](size_t i) {
+        Utility::LogCaptureGuard guard(&taskLogs[i]);
+        if (!RunKernelParseTask(kernelParseTasks_[i])) {
+            failedCount.fetch_add(1, std::memory_order_relaxed);
+        }
+    };
+    Utility::ThreadPool pool(threads);
+    if (threads > 1 && pool.Start()) {
+        for (size_t i = 0; i < kernelParseTasks_.size(); ++i) {
+            pool.AddTask([&runTask, i] { runTask(i); });
+        }
+        pool.WaitAllTasks();
+        pool.Stop();
+    } else {
+        // 单算子或多线程启动失败，走原串行解析
+        for (size_t i = 0; i < kernelParseTasks_.size(); ++i) {
+            runTask(i);
+        }
+    }
+    failedKernelNum_ += failedCount.load(std::memory_order_relaxed);
+    double elapsed = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count();
+    for (const auto &taskLog : taskLogs) {
+        Utility::Log::FlushCapture(taskLog);
+    }
+    LogDebug(
+        "Device kernel parsing finished: %zu tasks, %u threads, %.3f ms.", kernelParseTasks_.size(), threads, elapsed);
+    kernelParseTasks_.clear();
 }
 
 void DeviceDataParse::CopyDfxRegionFiles(
@@ -343,6 +394,7 @@ bool DeviceDataParse::Execute(std::string dataPath)
     if (!ParserDeviceIdDir(dataPath)) {
         return false;
     }
+    ParseKernelTasks();
     if (IsExist(tmpPath) && (Utility::Log::GetLog().GetLogLv() > Utility::LogLv::DEBUG)) {
         RemoveAll(tmpPath);
     }

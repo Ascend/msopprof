@@ -18,6 +18,7 @@
 #define __MSOPPROF_CORE_PLATFORM_HAL_HELPER_H__
 
 #include <cstdint>
+#include <mutex>
 #include "defs.h"
 #include "ascend_hal/ascend_hal.h"
 namespace Common {
@@ -47,7 +48,9 @@ public:
     GmType GetGmType();
 private:
     GmType gmType_ = GmType::DEFAULT;
-    unsigned int deviceId_ = 0;
+    static thread_local unsigned int deviceId_;
+    std::mutex gmMutex_;
+    std::map<unsigned int, GmType> gmTypes_;
     mutable ChipType chipType_ = ChipType::END_TYPE;
     void *handleHal_ = nullptr;
     void *handleDcmi_ = nullptr;

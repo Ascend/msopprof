@@ -33,6 +33,7 @@
 #include "profiling/device/data_visualize/biu_timeline.h"
 #include "tlv_parse.h"
 #include "log.h"
+#include "instr_encoding/instr_encoding.h"
 #include "instr_encoding/instr_disassembler.h"
 
 namespace Profiling {
@@ -295,6 +296,7 @@ private:
     std::unordered_map<std::string, uint64_t> kernelStartAddr_; // {kernelName, start_addr}
     std::unordered_map<std::string, std::map<uint64_t, uint64_t>> fileLineCalls_;   // {fileName, {lineNo, calls}}
     std::unordered_map<uint64_t, Encoding> encodings_;
+    Encode::InstrEncoding instrEncoding_;
     std::array<uint64_t, 8> topStallReasonByCore_ {};
     uint64_t startPc_ = 0;
     uint64_t startPcForPcSampling_ = 0;

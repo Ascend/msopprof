@@ -23,9 +23,9 @@
 #include <fstream>
 #include <string>
 #include <sys/stat.h>
-#include "profiling/device/op_device_prof.h"
 #define private public
 #define protected public
+#include "profiling/device/op_device_prof.h"
 #include "profiling/device/run/device_task.h"
 #include "instr_encoding/instr_encoding.h"
 #include "profiling/device/data_parse/device_data_parse.h"
@@ -37,6 +37,7 @@
 #include "profiling/device/data_parse/metric_data_handler.h"
 #include "profiling/device/data_visualize/biu_timeline.h"
 #include "profiling/device/data_visualize/storage_access.h"
+#include "parse/data_calculator/compute_load_calculator.h"
 #include "instr_encoding/instr_encoding.h"
 #include "common/hal_helper.h"
 #include "common/visualize.h"
@@ -527,8 +528,12 @@ TEST(DeviceDataParse, Parse_data_basicinfo_expect_success_910B)
     ASSERT_FALSE(deviceDataParse.ParseExactKernelData(""));
 }
 
-TEST(DeviceDataParse, Parse_data_expect_success_910B)
-{
+/**
+ * | 测试函数 | DeviceDataParse::ParseExactKernelData
+ * | 测试场景 | 910B开启occupancy、roofline和内存详情，基本信息加载与保存均mock为成功。
+ * | 预期结果 | 使用910B测试数据解析成功，ParseExactKernelData返回true。
+ */
+TEST(DeviceDataParse, parse_910b_with_occupancy_roofline_and_memory_detail_expect_success) {
     GlobalMockObject::verify();
     MOCKER(&DataHandler::LoadOpBasicInfoTxtFile)
         .stubs()
@@ -542,6 +547,7 @@ TEST(DeviceDataParse, Parse_data_expect_success_910B)
     config.argOutput = "test/ut/resources/op_profiling/device910B";
     metricsConfig.occupancyEnable = true;
     metricsConfig.roofline = true;
+    metricsConfig.isMemoryDetail = true;
     pmuEventsId.LoadPmuVec(metricsConfig, ChipType::ASCEND910B);
     DeviceDataParse deviceDataParse(ChipType::ASCEND910B, pmuEventsId, metricsConfig);
 
@@ -609,6 +615,79 @@ TEST(DeviceDataParse, Execute_expect_success_with_one_kernel)
     std::experimental::filesystem::remove_all(testDir);
 }
 
+/*
+ * |  用例集  | DeviceDataParse
+ * | 测试函数 | DeviceDataParse::ParseKernelTasks
+ * | 测试场景 | 提交4个目录解析任务，mock每个任务均解析失败。
+ * | 预期结果 | ParseKernelTasks返回后失败数为4，待解析任务队列为空。
+ */
+TEST(DeviceDataParse, parse_four_failed_tasks_expect_four_failures_and_empty_queue) {
+    GlobalMockObject::verify();
+    MOCKER(&DeviceDataParse::ParseExactKernelData).stubs().will(returnValue(false));
+    DeviceDataParse parser(ChipType::ASCEND910B, PmuEventsId{}, ProfMetricsAbilityConfig{});
+    parser.kernelParseTasks_ = {{"add/0", "add", "device0"}, {"abs/0", "abs", "device0"}, {"add/1", "add", "device1"},
+        {"abs/1", "abs", "device1"}};
+    parser.ParseKernelTasks();
+    EXPECT_EQ(parser.failedKernelNum_, 4);
+    EXPECT_TRUE(parser.kernelParseTasks_.empty());
+    GlobalMockObject::verify();
+}
+
+/*
+ * |  用例集  | DeviceDataParse
+ * | 测试函数 | DeviceDataParse::ParseKernelTasks
+ * | 测试场景 | 仅提交1个目录解析任务，mock解析失败。
+ * | 预期结果 | 解析函数恰好调用1次，失败数为1，待解析任务队列为空。
+ */
+TEST(DeviceDataParse, parse_single_failed_task_expect_one_call_one_failure_and_empty_queue) {
+    GlobalMockObject::verify();
+    MOCKER(&DeviceDataParse::ParseExactKernelData).expects(exactly(1)).will(returnValue(false));
+    DeviceDataParse parser(ChipType::ASCEND910B, PmuEventsId{}, ProfMetricsAbilityConfig{});
+    parser.kernelParseTasks_ = {{"add/0", "add", "device0"}};
+    parser.ParseKernelTasks();
+    EXPECT_EQ(parser.failedKernelNum_, 1);
+    EXPECT_TRUE(parser.kernelParseTasks_.empty());
+    GlobalMockObject::verify();
+}
+
+/*
+ * |  用例集  | DeviceDataParse
+ * | 测试函数 | DeviceDataParse::ParseKernelTasks
+ * | 测试场景 | 提交4个真实目录任务，其中2个含完整BasicInfo/PMU数据，另外2个缺少输入。
+ * | 预期结果 | 仅缺少输入的2个任务失败，最终失败数为2，待解析任务队列为空。
+ */
+TEST(DeviceDataParse, parse_two_valid_and_two_missing_inputs_expect_two_failures_and_empty_queue) {
+    GlobalMockObject::verify();
+    // 并发下mockcpp的共享返回序列会被多个任务非原子地消费导致随机失败，这里改用真实解析：
+    // 两份完整BasicInfo/PMU输入成功，两份缺失输入失败，验证恰好统计2个失败并清空队列。
+    const std::string root = "test/ut/resources/parallel_partial_failures";
+    RemoveAll(root);
+    DeviceDataParse parser(ChipType::ASCEND910B, PmuEventsId{}, ProfMetricsAbilityConfig(false));
+    ASSERT_TRUE(parser.ParserInit());
+    for (size_t i = 0; i < 4; ++i) {
+        const auto path = JoinPath({root, std::to_string(i)});
+        const auto dump = JoinPath({path, "dump"});
+        ASSERT_TRUE(MkdirRecusively(dump));
+        if (i % 2 == 0) {
+            std::ofstream metadata(JoinPath({dump, "op_basic_info.txt"}));
+            metadata << "Device Id=0\nOp Name=add\nRun Soc Version=Ascend910B4\n"
+                     << "Block Dim=1\nCurrent Freq=1000\nRated Freq=1000\nPid=1\n";
+            metadata.close();
+            std::ifstream source("test/ut/resources/op_profiling/device910B/dump/DeviceProf1.bin", std::ios::binary);
+            ASSERT_TRUE(source.is_open());
+            std::ofstream destination(JoinPath({dump, "DeviceProf1.bin"}), std::ios::binary);
+            destination << source.rdbuf();
+            ASSERT_TRUE(destination.good());
+        }
+        parser.kernelParseTasks_.push_back({path, i % 2 == 0 ? "add" : "abs", "device0"});
+    }
+    parser.ParseKernelTasks();
+    EXPECT_EQ(parser.failedKernelNum_, 2);
+    EXPECT_TRUE(parser.kernelParseTasks_.empty());
+    RemoveAll(root);
+    GlobalMockObject::verify();
+}
+
 TEST(DeviceDataParse, Execute_expect_success_with_one_device)
 {
     GlobalMockObject::verify();
@@ -628,13 +707,18 @@ TEST(DeviceDataParse, Execute_expect_success_with_one_device)
     std::experimental::filesystem::remove_all(testDir);
 }
 
-TEST(DeviceDataParse, Execute_multi_launch_copy_dfx_region_files) {
+/**
+ * | 测试函数 | DeviceDataParse::Execute
+ * | 测试场景 | 950开启指令时间线，同一算子有2次launch，仅第1次含DFX日志和region map；mock解析成功。
+ * | 预期结果 | Execute返回true，第2次launch的dump目录也包含dfx_tune.log和dfx_region_map.txt。
+ */
+TEST(DeviceDataParse, execute_950_two_launches_expect_dfx_files_copied_to_second_launch) {
     GlobalMockObject::verify();
     MOCKER(&DeviceDataParse::ParseExactKernelData).stubs().will(returnValue(true));
     ProfMetricsAbilityConfig metricsConfig;
     metricsConfig.instrTimelineEnable = true;
     PmuEventsId pmuEventsId;
-    DeviceDataParse deviceDataParse(ChipType::ASCEND910B, pmuEventsId, metricsConfig);
+    DeviceDataParse deviceDataParse(ChipType::ASCEND950, pmuEventsId, metricsConfig);
     std::string testDir = "test/ut/resources/op_profiling/OPPO";
     std::string firstDump = JoinPath({testDir, "device0/add/0/dump"});
     std::string secondDump = JoinPath({testDir, "device0/add/1/dump"});
@@ -1702,16 +1786,21 @@ TEST(EquationsUtils, BandWidthUsage_expect_success)
     ASSERT_STREQ(res3.c_str(), "56.315811");
 }
 
-TEST(EquationsUtils, GetMaxBwBySocCal_expect_success)
-{
-    HalHelper::Instance().gmType_ = GmType::CJ;
+/**
+ * | 测试函数 | GetMaxBwBySoc
+ * | 测试场景 | Ascend910B1分别查询CJ与DEFAULT两种GM类型对应的带宽。
+ * | 预期结果 | GM_TO_L1依次为296、264，MTE_TO_L0A依次为439.32、437.5。
+ */
+TEST(EquationsUtils, get_910b1_bandwidth_for_cj_and_default_gm_expect_matching_limits) {
+    // Mock the queried type instead of the scratch field; GetGmType caches by device.
+    MOCKER(&HalHelper::GetGmType).stubs().will(returnValue(GmType::CJ)).then(returnValue(GmType::DEFAULT));
     auto resCJ = GetMaxBwBySoc("Ascend910B1", ChipProductType::ASCEND910B1);
     EXPECT_FLOAT_EQ(resCJ[TransportType::GM_TO_L1], 296);
     EXPECT_FLOAT_EQ(resCJ[TransportType::MTE_TO_L0A], 439.32);
-    HalHelper::Instance().gmType_ = GmType::DEFAULT;
     auto res = GetMaxBwBySoc("Ascend910B1", ChipProductType::ASCEND910B1);
     EXPECT_FLOAT_EQ(res[TransportType::GM_TO_L1], 264);
     EXPECT_FLOAT_EQ(res[TransportType::MTE_TO_L0A], 437.5);
+    GlobalMockObject::verify();
 }
 
 // A5正式出来后该函数需要修改使用真实数据校验
@@ -2495,4 +2584,145 @@ TEST(VisualizeDataAccuracy, test_AddInternuclearScalarIndex_vector_operate_and_e
     for (auto i = 0; i < 16; i++) {
         ASSERT_EQ(st.memInfoScalarMap_["Scalar"][i].cycle, indexValue[i]);
     }
+}
+
+/**
+ * | 用例集 | DataHandlerOf91095
+ * |测试函数| ParseDurationBin
+ * | 测试场景 | A5输入2条ACSQ记录，mock为AIC任务的START=100、END=200。
+ * | 预期结果 | 输出startTime为100、endTime为200。
+ */
+TEST(DataHandlerOf91095, parse_aic_start_and_end_records_expect_times_100_and_200) {
+    GlobalMockObject::verify();
+    DataHandlerOf91095 handler;
+    std::vector<char> bytes(ACSQ_LENGTH_A5 * 2, 0);
+    MOCKER(&AcsqBean::GetTaskType).stubs().will(returnValue(static_cast<uint16_t>(SqeType::AIC_TYPE)));
+    MOCKER(&AcsqBean::GetTimeType)
+        .stubs()
+        .will(returnValue(Common::TimeType::START))
+        .then(returnValue(Common::TimeType::END));
+    MOCKER(&AcsqBean::GetSystemTime).stubs().will(returnValue(uint64_t{100})).then(returnValue(uint64_t{200}));
+    uint64_t start = 0;
+    uint64_t end = 0;
+    handler.ParseDurationBin("", bytes, bytes.size(), start, end);
+    EXPECT_EQ(start, 100U);
+    EXPECT_EQ(end, 200U);
+    GlobalMockObject::verify();
+}
+
+/**
+ * | 用例集 | DataHandler
+ * |测试函数| ParseMemoryChartBin
+ * | 测试场景 | 分别读取含2条MemRecord的文件、不存在的文件、长度仅1字节的不完整文件。
+ * | 预期结果 | 有效文件返回2条记录，缺失和不完整文件均返回空记录列表。
+ */
+TEST(DataHandler, read_memory_chart_expect_two_records_for_valid_file_and_empty_for_invalid_files) {
+    const std::string dir = "test/ut/resources/op_profiling/memory_chart_test";
+    RemoveAll(dir);
+    ASSERT_TRUE(MkdirRecusively(dir));
+    const std::string valid = JoinPath({dir, "valid.bin"});
+    const std::string invalid = JoinPath({dir, "invalid.bin"});
+    {
+        std::ofstream out(valid, std::ios::out | std::ios::binary);
+        std::vector<MemRecord> records(2);
+        out.write(
+            reinterpret_cast<char *>(records.data()), static_cast<std::streamsize>(records.size() * sizeof(MemRecord)));
+        out.close();
+    }
+    {
+        std::ofstream out(invalid, std::ios::out | std::ios::binary);
+        char byte = 0;
+        out.write(&byte, 1);
+        out.close();
+    }
+    DataHandler handler;
+    auto parsed = handler.ParseMemoryChartBin(valid);
+    EXPECT_EQ(parsed.size(), 2U);
+    auto missing = handler.ParseMemoryChartBin(JoinPath({dir, "missing.bin"}));
+    EXPECT_TRUE(missing.empty());
+    auto bad = handler.ParseMemoryChartBin(invalid);
+    EXPECT_TRUE(bad.empty());
+    RemoveAll(dir);
+}
+
+/**
+ * | 用例集 | ComputeLoadCalculator
+ * |测试函数| Entry
+ * | 测试场景 | A5的F16 SIMD有10条指令、SIMT为0，S8指令均为0；另检查重复注册和缺失BasicPmu。
+ * | 预期结果 | 表格为3行，F16和Vector All Active指令数均为10，不生成S8行；重复Entry返回
+ * |          | NONBLOCKING_ERROR；950/910B/310P缺少BasicPmu时Entry仍返回SUCCESS。
+ */
+TEST(ComputeLoadCalculator, a5_vector_expect_ten_instructions_and_safe_duplicate_or_missing_data_handling) {
+    using namespace Visualize;
+    Parse::DataCenter dataCenter;
+    auto handler = Utility::MakeUnique<DataHandler>();
+    ComputeLoadBlockDetail detail{};
+    detail.blockId = 0;
+    detail.blockType = "vector";
+    detail.opType = "vector";
+    detail.freq = 1000;
+    detail.totalCycles = 100;
+    OperandRecord rec;
+    rec.instructions = 10;
+    detail.operandRecordMap.simdMap[OperandType::DATA_F16] = rec;
+    rec.instructions = 0;
+    detail.operandRecordMap.simdMap[OperandType::DATA_S8] = rec;
+    detail.operandRecordMap.simtMap[OperandType::DATA_F16] = {};
+    detail.operandRecordMap.simtMap[OperandType::DATA_S8] = {};
+    detail.eventMap[1281] = 5;
+    detail.eventMap[12] = 500;
+    handler->computeLoadBlockDetailVec_.push_back(detail);
+    auto basicPmu = Utility::MakeShared<BasicPmu>(handler);
+    ASSERT_TRUE(dataCenter.DataTableRegister(basicPmu));
+    Parse::ComputeLoadCalculator calc(dataCenter, ChipProductType::ASCEND950_SERIES);
+    EXPECT_EQ(calc.Entry(), Parse::PluginErrorCode::SUCCESS);
+    auto result = dataCenter.GetDbPtr<Parse::ComputeLoadInfo>();
+    ASSERT_NE(result, nullptr);
+    const auto &table = result->table["subblock_detail"];
+    ASSERT_EQ(table.size(), 3U);
+    EXPECT_EQ(table[0]["name"], "Vector F16");
+    EXPECT_EQ(table[0]["value"], "10");
+    EXPECT_EQ(table[1]["name"], "Vector All Active");
+    EXPECT_EQ(table[1]["value"], "10");
+    EXPECT_EQ(calc.Entry(), Parse::PluginErrorCode::NONBLOCKING_ERROR);
+
+    Parse::DataCenter emptyCenter;
+    Parse::ComputeLoadCalculator calc950(emptyCenter, ChipProductType::ASCEND950_SERIES);
+    EXPECT_EQ(calc950.Entry(), Parse::PluginErrorCode::SUCCESS);
+    emptyCenter.Clear();
+    Parse::ComputeLoadCalculator calc910B(emptyCenter, ChipProductType::ASCEND910B_SERIES);
+    EXPECT_EQ(calc910B.Entry(), Parse::PluginErrorCode::SUCCESS);
+    emptyCenter.Clear();
+    Parse::ComputeLoadCalculator calc310P(emptyCenter, ChipProductType::ASCEND310P_SERIES);
+    EXPECT_EQ(calc310P.Entry(), Parse::PluginErrorCode::SUCCESS);
+    GlobalMockObject::verify();
+}
+
+/**
+ * | 测试函数 | FIFOPolicy::Inject / HitRefresh
+ * | 测试场景 | 容量为2，依次插入1、2，刷新位置0，再插入3；同时传入越界的刷新位置。
+ * | 预期结果 | 前2次不淘汰，刷新后顺序为[2,1]且保留dirty标记；越界刷新不改变顺序；
+ * |          | 插入3时淘汰2，保留被淘汰项的valid/dirty标记，最终顺序为[1,3]。
+ */
+TEST(CachePolicy, fifo_hit_then_insert_expect_refreshed_order_and_oldest_entry_evicted) {
+    FIFOPolicy policy;
+    std::vector<CLEntry> data;
+    CLEntry replaced{};
+    EXPECT_FALSE(policy.Inject(2, {1, true, true}, data, replaced));
+    EXPECT_FALSE(policy.Inject(2, {2, false, true}, data, replaced));
+    policy.HitRefresh(0, data);
+    ASSERT_EQ(data.size(), 2U);
+    EXPECT_EQ(data[0].id, 2U);
+    EXPECT_EQ(data[1].id, 1U);
+    EXPECT_TRUE(data[1].isDirty);
+    policy.HitRefresh(data.size(), data);
+    EXPECT_EQ(data[0].id, 2U);
+    EXPECT_EQ(data[1].id, 1U);
+    EXPECT_TRUE(policy.Inject(2, {3, false, true}, data, replaced));
+    EXPECT_EQ(replaced.id, 2U);
+    EXPECT_FALSE(replaced.isDirty);
+    EXPECT_TRUE(replaced.isValid);
+    ASSERT_EQ(data.size(), 2U);
+    EXPECT_EQ(data[0].id, 1U);
+    EXPECT_EQ(data[1].id, 3U);
 }

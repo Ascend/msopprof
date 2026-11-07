@@ -73,6 +73,8 @@ std::string RuntimeHelper::GetSocVersion() const
 {
     static std::string socVersion;
     static std::once_flag getSocVersionWarningFlag;
+    static std::mutex socVersionMutex;
+    std::lock_guard<std::mutex> lock(socVersionMutex);
     if (!socVersion.empty()) {
         return socVersion;
     }

@@ -218,33 +218,44 @@ TEST(RoofLine, GenerateRoofLines_test_910b_cal_rooflines_success)
     EXPECT_FLOAT_EQ(l2Cache.at("point")[1], 1.37645864);
 }
 
-TEST(RoofLine, GetTheoryBwByGmType_Return_True)
-{
+/**
+ * | 测试函数 | RoofLineOf910B::GetTheoryBwByGmType
+ * | 测试场景 | 将当前设备GM缓存依次设置为CJ和DEFAULT，分别查询理论GM带宽。
+ * | 预期结果 | Ascend910B1的CJ带宽为1.34、DEFAULT带宽为1.8，误差均小于0.001。
+ */
+TEST(RoofLine, get_910b1_gm_bandwidth_expect_cj_1_34_and_default_1_8) {
     std::map<std::string, float> gmBw;
     std::map<std::string, float> gmBwCJ;
-    HalHelper::Instance().gmType_ = GmType::CJ;
+    HalHelper::Instance().gmTypes_[HalHelper::Instance().GetCurrentDeviceId()] = GmType::CJ;
     roofLineTest.GetTheoryBwByGmType(gmBwCJ);
-    HalHelper::Instance().gmType_ = GmType::DEFAULT;
+    HalHelper::Instance().gmTypes_[HalHelper::Instance().GetCurrentDeviceId()] = GmType::DEFAULT;
     roofLineTest.GetTheoryBwByGmType(gmBw);
     EXPECT_TRUE(abs(gmBw["Ascend910B1"] - 1.8) < 0.001);
     EXPECT_TRUE(abs(gmBwCJ["Ascend910B1"] - 1.34) < 0.001);
 }
 
-TEST(RoofLine, GetTheoryL2CacheByGmType_Return_True)
-{
-
+/**
+ * | 测试函数 | RoofLineOf910B::GetTheoryL2CacheByGmType
+ * | 测试场景 | 将当前设备GM缓存依次设置为CJ和DEFAULT，分别查询理论L2 Cache带宽。
+ * | 预期结果 | Ascend910B1的CJ带宽为7.4、DEFAULT带宽为8，误差均小于0.001。
+ */
+TEST(RoofLine, get_910b1_l2_bandwidth_expect_cj_7_4_and_default_8) {
     std::map<std::string, float> l2CacheBw;
     std::map<std::string, float> l2CacheBwCJ;
-    HalHelper::Instance().gmType_ = GmType::CJ;
+    HalHelper::Instance().gmTypes_[HalHelper::Instance().GetCurrentDeviceId()] = GmType::CJ;
     roofLineTest.GetTheoryL2CacheByGmType(l2CacheBwCJ);
-    HalHelper::Instance().gmType_ = GmType::DEFAULT;
+    HalHelper::Instance().gmTypes_[HalHelper::Instance().GetCurrentDeviceId()] = GmType::DEFAULT;
     roofLineTest.GetTheoryL2CacheByGmType(l2CacheBw);
     EXPECT_TRUE(abs(l2CacheBw["Ascend910B1"] - 8) < 0.001);
     EXPECT_TRUE(abs(l2CacheBwCJ["Ascend910B1"] - 7.4) < 0.001);
 }
 
-TEST(RoofLine, InsertMemPipeMaxBw_return_expect_value)
-{
+/**
+ * | 测试函数 | RoofLineOf910B::InsertMaxBw
+ * | 测试场景 | Ascend910B1使用1个Cube核，当前设备GM缓存依次为CJ和DEFAULT。
+ * | 预期结果 | L1 to GM最大带宽依次为187.72/BIT_CONVERSION、199.43/BIT_CONVERSION。
+ */
+TEST(RoofLine, insert_910b1_max_bandwidth_expect_l1_to_gm_limit_for_cached_gm_type) {
     ChipType chipType = ChipType::ASCEND910B;
     auto &handler = GetHandleTest(chipType);
     auto &opBasicInfoObj = GetOpBasicInfoObjTest(chipType, handler);
@@ -254,10 +265,10 @@ TEST(RoofLine, InsertMemPipeMaxBw_return_expect_value)
     RoofLineOf910B roofLine(freqRoofline, aiCoreNumRoofline, opBasicInfoObj, basicPmuObj, pmuCalculatorObj);
     
     roofLine.cubeNum_ = 1;
-    HalHelper::Instance().gmType_ = GmType::CJ;
+    HalHelper::Instance().gmTypes_[HalHelper::Instance().GetCurrentDeviceId()] = GmType::CJ;
     roofLine.InsertMaxBw();
     EXPECT_FLOAT_EQ(roofLine.maxBwRates_["L1 to GM"], 187.72 / BIT_CONVERSION);
-    HalHelper::Instance().gmType_ = GmType::DEFAULT;
+    HalHelper::Instance().gmTypes_[HalHelper::Instance().GetCurrentDeviceId()] = GmType::DEFAULT;
     roofLine.InsertMaxBw();
     EXPECT_FLOAT_EQ(roofLine.maxBwRates_["L1 to GM"], 199.43 / BIT_CONVERSION);
 }
@@ -289,8 +300,12 @@ TEST(RoofLine, generaterooflines_test_advice_rooflines_success)
     EXPECT_EQ(roofLine.GenerateAdvice(), "memory bound");
 }
 
-TEST(RoofLine, generaterooflines_test_310b_cal_rooflines_success)
-{
+/**
+ * | 测试函数 | RoofLineOf310P::RoofLineToJson
+ * | 测试场景 | Ascend310P3的AiCore算子使用测试PMU数据，运行时长为120。
+ * | 预期结果 | L1、UB和Vector Read UB的带宽、算力及坐标符合断言值，建议为latency bound:pipeline caused。
+ */
+TEST(RoofLine, generate_310p_rooflines_expect_metric_values_and_pipeline_latency_advice) {
     ChipType chipType = ChipType::ASCEND310P;
     auto &handler = GetHandleTest(chipType);
     auto &opBasicInfoObj = GetOpBasicInfoObjTest(chipType, handler);
@@ -342,7 +357,7 @@ TEST(RoofLine, generaterooflines_test_310b_cal_rooflines_success)
     EXPECT_FLOAT_EQ(vectorReadUb.at("point")[0], 501.976166);
     EXPECT_FLOAT_EQ(vectorReadUb.at("point")[1], 1.37072957);
 
-    EXPECT_EQ(roofLine.visualRoofLineJson_["advice"], "memory bound");
+    EXPECT_EQ(roofLine.visualRoofLineJson_["advice"], "latency bound:pipeline caused");
 }
 
 // 纵坐标超过理论算力或带宽为0时，验证RoofLineAnalysis返回NA

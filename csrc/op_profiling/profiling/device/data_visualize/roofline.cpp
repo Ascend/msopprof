@@ -34,8 +34,6 @@ static constexpr char const *PIPE_LINE_VEC = "Pipeline(Vector)";
 static constexpr char const *MEMORY_PIPE_CUBE = "Memory Transfer(Cube)";
 static constexpr char const *MEMORY_PIPE_VEC = "Memory Transfer(Vector)";
 
-AnalysisPoint RoofLine::analysisPoint_ = { 0.0f, "" };
-
 void RoofLine::Init()
 {
     // init calculation
@@ -125,9 +123,7 @@ void RoofLine::CalVecBaseData(int64_t vectorNum)
     }
 }
 
-std::string RoofLine::RoofLineAnalysis(float bandwidth, float theoryTfops, float horizontalPoint,
-                                       float verticalPoint) const
-{
+std::string RoofLine::RoofLineAnalysis(float bandwidth, float theoryTfops, float horizontalPoint, float verticalPoint) {
     //        ^(OPS(OPS/s))
     //        |
     //        |   P1(OPS/BW,theoryTfops)
@@ -472,7 +468,7 @@ void RoofLineOf910B::GmAndL2cache()
     std::vector<uint16_t> l2Byte {REQ_DATA_OF_910B.at(TransportType::CORE_TO_L2),
         REQ_DATA_OF_910B.at(TransportType::L2_TO_CORE)};
     std::vector<uint64_t> l2Req {coreToL2, l2ToCore};
- 
+
     uint64_t gmReadAndWriteData = SafeMulAddAll(gmReq, gmByte, location);
     uint64_t l2ReadAndWriteData = SafeMulAddAll(l2Req, l2Byte, location);
     l2ReadAndWriteData = SafeAdd(l2ReadAndWriteData, gmReadAndWriteData, location);
@@ -824,7 +820,7 @@ void RoofLineOf910B::GetTheoryBwByGmType(std::map<std::string, float> &gmBw) con
         gmBw = GM_PRODUCT_THEORY_BW.at(GmType::DEFAULT);
     }
 }
- 
+
 void RoofLineOf910B::GetTheoryL2CacheByGmType(std::map<std::string, float> &l2CacheBw) const
 {
     GmType type = HalHelper::Instance().GetGmType();

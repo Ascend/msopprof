@@ -1515,3 +1515,47 @@ TEST(DataHandlerOf91095, test_statics_empty_records) {
     ASSERT_TRUE(handler.memMapDetail_[0].apiDataTransVolumeVec1.empty());
     ASSERT_TRUE(dataSize.empty());
 }
+
+/**
+ * |  用例集  | CachelineHeatMap
+ * | 测试函数 | CachelineHeatMap::ToJson
+ * | 测试场景 | CachelineHeatMap未填入任何cacheline数据，调用ToJson。
+ * | 预期结果 | ToJson返回false。
+ */
+TEST(CachelineHeatMap, to_json_without_cacheline_data_expect_false) {
+    const std::string root = "test/ut/resources/cacheline_heat_map_empty";
+    RemoveAll(root);
+    CachelineHeatMap heatMap(nullptr);
+    EXPECT_FALSE(heatMap.ToJson(root));
+    RemoveAll(root);
+}
+
+/**
+ * |  用例集  | CachelineHeatMap
+ * | 测试函数 | CachelineHeatMap::ToJson
+ * | 测试场景 | 起始PC为0x1000，cacheline 0有2次命中、1次未命中。
+ * | 预期结果 | ToJson返回true，生成1条Cacheline Id为0的记录，Hit计数为2、Miss计数为1。
+ */
+TEST(CachelineHeatMap, to_json_with_two_hits_and_one_miss_expect_matching_cacheline_counts) {
+    const std::string root = "test/ut/resources/cacheline_heat_map";
+    RemoveAll(root);
+    const std::string dump = JoinPath({root, "dump"});
+    ASSERT_TRUE(MkdirRecusively(dump));
+    ASSERT_TRUE(WriteFileByStream(JoinPath({dump, "pc_start_addr.txt"}), "0x1000\n"));
+
+    CachelineHeatMap heatMap(nullptr);
+    CacheMetrics metric(0);
+    metric.Hit(0x1000);
+    metric.Hit(0x1010);
+    metric.Miss(0x2000);
+    heatMap.clidBasedCacheData_.push_back(metric);
+
+    ASSERT_TRUE(heatMap.ToJson(root));
+    nlohmann::json json = heatMap.GetCacheLineHeatMapJson();
+    ASSERT_TRUE(json.contains("Cacheline Records"));
+    ASSERT_EQ(json["Cacheline Records"].size(), 1U);
+    EXPECT_EQ(json["Cacheline Records"][0]["Cacheline Id"], 0);
+    EXPECT_EQ(json["Cacheline Records"][0]["Hit"]["Value"][0], 2);
+    EXPECT_EQ(json["Cacheline Records"][0]["Miss"]["Value"][0], 1);
+    RemoveAll(root);
+}

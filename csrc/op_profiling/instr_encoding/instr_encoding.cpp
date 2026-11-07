@@ -16,6 +16,7 @@
 
 
 #include "instr_encoding.h"
+#include <thread>
 #include "filesystem.h"
 #include "cmd_execute.h"
 #include "ascend_helper.h"
@@ -87,7 +88,8 @@ bool InstrEncoding::GetTextEncodingLines(const std::string &kernelPath, const st
     cmd.emplace_back(kernelPath.c_str());
     std::string timeBuf;
     Utility::GenerateTimeStamp(timeBuf);
-    std::string outputName = "text_" + timeBuf + ".o";
+    auto threadId = std::hash<std::thread::id>{}(std::this_thread::get_id());
+    std::string outputName = "text_" + timeBuf + "_" + std::to_string(threadId) + ".o";
     if (!Utility::CmdExecuteWithOutput(cmd, outputName)) {
         Utility::LogDebug("Execute llvm-Objcopy failed, can not get decompile info");
         return false;

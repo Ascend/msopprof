@@ -65,7 +65,7 @@ public:
     void Init();
     void AddJson(const std::string &title, const std::vector<SubCoreProperty> &propertyVec,
                  const std::vector<RoofLineData> &roofLineDatas);
-    std::string RoofLineAnalysis(float bandwidth, float theoryTfops, float horizontalPoint, float verticalPoint) const;
+    std::string RoofLineAnalysis(float bandwidth, float theoryTfops, float horizontalPoint, float verticalPoint);
     void SetPipeLineRatio(const std::string& pipeName, float ratio);
     std::string GenerateAdvice();
     void CalMemoryUnitBw(int64_t coreNum, const std::map<std::string, uint16_t> &memoryUnitBitsPerSecond);
@@ -99,7 +99,7 @@ protected:
     int64_t cubeNum_ = 0;
     int64_t vecNum_ = 0;
 private:
-    static AnalysisPoint analysisPoint_;
+    AnalysisPoint analysisPoint_{0.0f, ""};
     std::map<std::string, float> pipeLineRatio_;
 };
 

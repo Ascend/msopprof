@@ -125,9 +125,9 @@ void DataVisualize::GenerateAllVisualizeData(Profiling::Parse::DataCenter &dataC
         }
         Utility::Visualize::WriteBin<VT::TRACE>(outputPath, traceJson);
     }
-    if (cachelineHeatMapParser_->ToJson(outputPath)) {
-        Utility::Visualize::WriteBin<VT::CACHELINE_HEAT_MAP>(outputPath,
-                                                             cachelineHeatMapParser_->GetCacheLineHeatMapJson());
+    if (metrics.isMemoryDetail && cachelineHeatMapParser_->ToJson(outputPath)) {
+        auto cacheJson = cachelineHeatMapParser_->GetCacheLineHeatMapJson();
+        Utility::Visualize::WriteBin<VT::CACHELINE_HEAT_MAP>(outputPath, cacheJson);
     }
 }
 

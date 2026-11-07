@@ -240,17 +240,8 @@ const std::unordered_set<uint32_t> instrWithPipeIDTable1 = {
  */
 class InstrEncoding {
 public:
-    /**
-     * @brief 获取InstrEncoding类的实例。
-     *
-     * @return 返回一个InstrEncoding类的实例指针。
-     */
-
-    static InstrEncoding& GetInstance()
-    {
-        static auto instance = InstrEncoding();
-        return instance;
-    }
+    InstrEncoding() = default;
+    ~InstrEncoding() = default;
 
     /**
      * @brief 初始化 instrEncoding实例
@@ -275,8 +266,6 @@ public:
     const InstrEncoding& operator=(const InstrEncoding&) = delete;
 
 private:
-    InstrEncoding(){};
-    ~InstrEncoding() = default;
     InstrEncoding(const InstrEncoding &instrEncoding) = default;
     void UpdateEncoding32(uint32_t encoding, std::string &pipe, std::string &name) const;
     void UpdateEncoding64(uint64_t encoding, std::string &pipe, std::string &name) const;

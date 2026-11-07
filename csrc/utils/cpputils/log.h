@@ -49,7 +49,13 @@ public:
     void SetLogLevelByEnvVar();
     LogLv GetLogLv() const { return lv_; }
 
+    static void BeginCapture(std::string *stream);
+    static void EndCapture();
+    static bool IsCapturing() { return captureStream_ != nullptr; }
+    static void FlushCapture(const std::string &content);
+
 private:
+    friend class LogCaptureGuard;
     Log(void) = default;
     ~Log(void) = default;
     Log(Log const &) = delete;
@@ -59,6 +65,18 @@ private:
 private:
     LogLv lv_ { LogLv::INFO };
     FILE *fp_ { stdout };
+    static thread_local std::string *captureStream_;
+};
+
+class LogCaptureGuard {
+public:
+    explicit LogCaptureGuard(std::string *stream) : previousStream_(Log::captureStream_) { Log::BeginCapture(stream); }
+    ~LogCaptureGuard() { Log::BeginCapture(previousStream_); }
+    LogCaptureGuard(LogCaptureGuard const &) = delete;
+    LogCaptureGuard &operator=(LogCaptureGuard const &) = delete;
+
+private:
+    std::string *previousStream_;
 };
 
 template <typename... Args>
@@ -75,15 +93,28 @@ void Log::Printf(const char* file, int line, const std::string &format, LogLv lv
     char msg[MAX_PRINT] = {0};
     auto res = snprintf_s(msg, MAX_PRINT, MAX_PRINT - 1, f.c_str(), std::forward<Args>(args)...);
     if (res >= 0) {
-        fprintf(fp_, "%s", msg);
+        if (captureStream_ != nullptr) {
+            captureStream_->append(msg);
+        } else {
+            fprintf(fp_, "%s", msg);
+        }
         return;
     }
     // 截断时 securec 不清空缓冲，msg 中已包含被截断的前缀+内容，原样打印后再补截断提示
     msg[MAX_PRINT - 1] = '\0';
-    fprintf(fp_, "%s\n", msg);
+    if (captureStream_ != nullptr) {
+        captureStream_->append(msg);
+        captureStream_->append("\n");
+    } else {
+        fprintf(fp_, "%s\n", msg);
+    }
     std::string lengthLimit =
         AddPrefixInfo(file, line, "Log length reach limit, message truncated", LogLv::WARN).append("\n");
-    fprintf(fp_, "%s", lengthLimit.c_str());
+    if (captureStream_ != nullptr) {
+        captureStream_->append(lengthLimit);
+    } else {
+        fprintf(fp_, "%s", lengthLimit.c_str());
+    }
 }
 
 template <typename... Args>

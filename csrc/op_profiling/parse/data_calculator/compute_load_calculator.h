@@ -42,12 +42,13 @@ public:
         RegisterChip({ChipProductType::ALL_PRODUCT_TYPE});
     }
 private:
+    uint8_t vecIndex_ = 0;
     void ComputeLoadInfoFor910B(std::map<uint8_t, std::vector<nlohmann::json>> &jsonMap);
     void ComputeLoadInfoFor310P(std::map<uint8_t, std::vector<nlohmann::json>> &jsonMap);
     void ComputeLoadInfoFor91095(std::map<uint8_t, std::vector<nlohmann::json>> &jsonMap);
     void GenBlockDetail(const Visualize::ComputeLoadBlockDetail &computeLoadBlockDetail, const uint64_t &value,
-        const Visualize::DetailInfo &detailInfo, std::map<uint8_t, std::vector<nlohmann::json>> &jsonMap) const;
-    
+        const Visualize::DetailInfo &detailInfo, std::map<uint8_t, std::vector<nlohmann::json>> &jsonMap);
+
     ComputeLoadInfo computeLoadInfo;
     // 计算负载类的常规数据,被计算负载类的方法调用
     const std::vector<Visualize::DetailInfo> detailInfoAicA5_ = {

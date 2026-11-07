@@ -18,11 +18,59 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
+#include <atomic>
+#include <future>
+#include <stdexcept>
 
 #include "thread_safe_unordered_map.h"
 #include "thread_pool.h"
+#include "log.h"
 
 using namespace Utility;
+
+/**
+ * |  用例集  | ThreadPool
+ * | 测试函数 | ThreadPool::WaitAllTasks、ThreadPool::Stop
+ * | 测试场景 | 单线程已领取唯一任务，但任务被同步信号阻塞；先WaitAllTasks，再从另一线程Stop。
+ * | 预期结果 | WaitAllTasks返回时队列为空但任务未完成；释放任务前Stop不返回，释放后任务完成、线程数为0。
+ */
+TEST(ThreadPool, wait_on_empty_queue_expect_active_task_unfinished_until_stop_joins) {
+    std::promise<void> releaseTask;
+    auto release = releaseTask.get_future().share();
+    std::promise<void> taskStarted;
+    auto started = taskStarted.get_future();
+    std::atomic<bool> taskCompleted{false};
+    std::atomic<bool> releaseTimedOut{false};
+    ThreadPool pool(1);
+    ASSERT_TRUE(pool.Start());
+    pool.AddTask([&] {
+        taskStarted.set_value();
+        // Bounded even when the controller fails; never strand a worker on a failed assertion.
+        releaseTimedOut = release.wait_for(std::chrono::seconds(5)) != std::future_status::ready;
+        taskCompleted = true;
+    });
+    EXPECT_EQ(started.wait_for(std::chrono::seconds(2)), std::future_status::ready);
+    pool.WaitAllTasks();
+    EXPECT_EQ(pool.GetUnassignedTasksNum(), 0);
+    EXPECT_FALSE(taskCompleted.load());
+
+    std::promise<void> stopEntered;
+    auto stopping = stopEntered.get_future();
+    std::promise<bool> stopResult;
+    auto stopped = stopResult.get_future();
+    std::thread controller([&] {
+        stopEntered.set_value();
+        stopResult.set_value(pool.Stop());
+    });
+    EXPECT_EQ(stopping.wait_for(std::chrono::seconds(2)), std::future_status::ready);
+    EXPECT_EQ(stopped.wait_for(std::chrono::milliseconds(50)), std::future_status::timeout);
+    releaseTask.set_value();
+    controller.join();
+    EXPECT_TRUE(stopped.get());
+    EXPECT_TRUE(taskCompleted.load());
+    EXPECT_FALSE(releaseTimedOut.load());
+    EXPECT_EQ(pool.GetThreadsNum(), 0);
+}
 
 TEST(ThreadPool, test_ThreadPool_execute_task_in_parallel_expect_success)
 {
@@ -247,4 +295,78 @@ TEST(ThreadPool, test_thread_pool_with_wait_task_between_two_task_addtion_expect
     for (int i = 0; i < tasksNum; ++i) {
         EXPECT_EQ(i, res[i]);
     }
+}
+
+/**
+ * |  用例集  | ThreadPool
+ * | 测试函数 | ThreadPool::AddTask、ThreadPool::Stop
+ * | 测试场景 | 单线程池先执行抛出runtime_error("boom")的任务，再执行设置完成标记的任务。
+ * | 预期结果 | 后续任务正常完成，Stop成功，父捕获缓冲包含caught exception: boom。
+ */
+TEST(ThreadPool, standard_exception_expect_error_log_and_next_task_completed) {
+    std::string captured;
+    LogCaptureGuard capture(&captured);
+    std::atomic<bool> siblingCompleted{false};
+    ThreadPool pool(1);
+    ASSERT_TRUE(pool.Start());
+    pool.AddTask([] { throw std::runtime_error("boom"); });
+    pool.AddTask([&] { siblingCompleted = true; });
+    pool.WaitAllTasks();
+    EXPECT_TRUE(pool.Stop());
+    EXPECT_TRUE(siblingCompleted.load());
+    EXPECT_NE(captured.find("caught exception: boom"), std::string::npos);
+}
+
+/**
+ * |  用例集  | ThreadPool
+ * | 测试函数 | ThreadPool::AddTask、ThreadPool::Stop
+ * | 测试场景 | 单线程池先执行抛出整数42的任务，再执行设置完成标记的任务。
+ * | 预期结果 | 后续任务正常完成，Stop成功，父捕获缓冲包含caught unknown exception。
+ */
+TEST(ThreadPool, nonstandard_exception_expect_error_log_and_next_task_completed) {
+    std::string captured;
+    LogCaptureGuard capture(&captured);
+    std::atomic<bool> siblingCompleted{false};
+    ThreadPool pool(1);
+    ASSERT_TRUE(pool.Start());
+    pool.AddTask([] { throw 42; });
+    pool.AddTask([&] { siblingCompleted = true; });
+    pool.WaitAllTasks();
+    EXPECT_TRUE(pool.Stop());
+    EXPECT_TRUE(siblingCompleted.load());
+    EXPECT_NE(captured.find("caught unknown exception"), std::string::npos);
+}
+
+/**
+ * |  用例集  | ThreadPool
+ * | 测试函数 | ThreadPool::Stop、Log::FlushCapture
+ * | 测试场景 | 父线程捕获时向双线程池先提交first、再提交second；first等待second写完日志后才写日志。
+ * | 预期结果 | Stop后父缓冲包含两条日志，顺序仍为first、second，与提交顺序一致而非任务写日志顺序。
+ */
+TEST(ThreadPool, tasks_log_in_reverse_order_expect_stop_replays_in_submission_order) {
+    std::string parent;
+    std::promise<void> secondFinished;
+    auto finished = secondFinished.get_future();
+    std::atomic<bool> timedOut{false};
+    ThreadPool pool(2);
+    ASSERT_TRUE(pool.Start());
+    {
+        LogCaptureGuard guard(&parent);
+        pool.AddTask([&] {
+            timedOut = finished.wait_for(std::chrono::seconds(5)) != std::future_status::ready;
+            LogInfo("worker-first");
+        });
+        pool.AddTask([&] {
+            LogInfo("worker-second");
+            secondFinished.set_value();
+        });
+        pool.WaitAllTasks();
+        ASSERT_TRUE(pool.Stop());
+    }
+    const auto first = parent.find("worker-first");
+    const auto second = parent.find("worker-second");
+    EXPECT_NE(first, std::string::npos);
+    EXPECT_NE(second, std::string::npos);
+    EXPECT_LT(first, second);
+    EXPECT_FALSE(timedOut.load());
 }

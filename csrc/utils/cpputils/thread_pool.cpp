@@ -82,13 +82,28 @@ bool ThreadPool::Stop()
         }
     }
     threads_.clear();
+    std::vector<std::shared_ptr<std::string>> taskLogs;
+    {
+        std::lock_guard<std::mutex> lock(poolRunningStatusMutex_);
+        taskLogs.swap(taskLogs_);
+    }
+    for (const auto &taskLog : taskLogs) {
+        Log::FlushCapture(*taskLog);
+    }
     return true;
 }
 
 void ThreadPool::AddTask(const Task &task)
 {
     std::unique_lock<std::mutex> lock(poolRunningStatusMutex_);
-    taskQueue_.emplace_back([task] {
+    // 只继承父线程的日志捕获状态，每个任务使用独立缓冲，避免并发写入父缓冲。
+    // 使用 shared_ptr 保证后续任务提交时，已有任务的缓冲地址和生命周期保持有效。
+    auto taskLog = Log::IsCapturing() ? std::make_shared<std::string>() : nullptr;
+    if (taskLog != nullptr) {
+        taskLogs_.push_back(taskLog);
+    }
+    taskQueue_.emplace_back([task, taskLog] {
+        LogCaptureGuard guard(taskLog.get());
         try {
             task();
         } catch (const std::exception &ex) {

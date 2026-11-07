@@ -23,7 +23,6 @@ using namespace Common;
 
 namespace Profiling {
 namespace Parse {
-static uint8_t VEC_INDEX = 0;
 
 PluginErrorCode ComputeLoadCalculator::Entry()
 {
@@ -167,8 +166,7 @@ void ComputeLoadCalculator::ComputeLoadInfoFor91095(std::map<uint8_t, std::vecto
 }
 
 void ComputeLoadCalculator::GenBlockDetail(const ComputeLoadBlockDetail &computeLoadBlockDetail, const uint64_t &value,
-    const DetailInfo &detailInfo, std::map<uint8_t, std::vector<nlohmann::json>> &jsonMap) const
-{
+    const DetailInfo &detailInfo, std::map<uint8_t, std::vector<nlohmann::json>> &jsonMap) {
     nlohmann::json js;
     uint64_t cyc = computeLoadBlockDetail.totalCycles;
     if (detailInfo.type == UnitType::PER) {
@@ -187,8 +185,8 @@ void ComputeLoadCalculator::GenBlockDetail(const ComputeLoadBlockDetail &compute
     std::string computeLoadName = detailInfo.name;   // 对于mix算子，两个vectorCore上面的Vector计算负载通过在名称之后加0/1
     if (computeLoadBlockDetail.opType == "mix" && detailInfo.name == "Vector All Active" &&
         detailInfo.type == UnitType::PER) {
-        computeLoadName += std::to_string(VEC_INDEX);
-        VEC_INDEX = (VEC_INDEX == 1) ? 0 : VEC_INDEX + 1;
+        computeLoadName += std::to_string(vecIndex_);
+        vecIndex_ = (vecIndex_ == 1) ? 0 : vecIndex_ + 1;
     }
     js["name"] = computeLoadName;
     js["unit"] = detailInfo.type;

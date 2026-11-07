@@ -40,6 +40,14 @@ public:
     bool Execute(std::string dataPath) override;
 
 private:
+    struct KernelParseTask {
+        std::string path;
+        std::string kernelName;
+        std::string deviceId;
+    };
+    void ParseKernelTasks();
+    bool RunKernelParseTask(const KernelParseTask &task);
+    std::vector<KernelParseTask> kernelParseTasks_;
     struct ChipInfo {
         std::map<std::string, std::vector<std::string>> metricHeader;
         Common::MetricEventsMapType aicMetricEventsMap;

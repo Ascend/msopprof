@@ -24,6 +24,7 @@
 using namespace Utility;
 
 namespace Common {
+thread_local unsigned int HalHelper::deviceId_ = 0;
 HalHelper &HalHelper::Instance(void)
 {
     static HalHelper instance;
@@ -60,6 +61,8 @@ HalHelper::~HalHelper()
 
 ChipType HalHelper::GetPlatformType(void) const
 {
+    static std::mutex chipTypeMutex;
+    std::lock_guard<std::mutex> lock(chipTypeMutex);
     if (chipType_ != ChipType::END_TYPE) {
         return chipType_;
     }
@@ -224,20 +227,22 @@ bool HalHelper::SetGmType(int cardId, int deviceId, dcmi_gm_product_info_t &gmIn
 
 void HalHelper::CheckGmType()
 {
-    ChipType chipType = GetPlatformType();
-    if (handleDcmi_ != nullptr || chipType != ChipType::ASCEND910B) {
-        return;
-    }
-    std::string dcmiSo = GetSoFromEnvVar("libdcmi.so");
-    if (dcmiSo.empty() || !CheckInputFileValid(dcmiSo, "so")) {
-        LogWarn("Can't find valid libdcmi.so, will use default gm type value");
-        return;
-    }
-    handleDcmi_ = dlopen(dcmiSo.c_str(), RTLD_LAZY | RTLD_LOCAL);
     gmType_ = GmType::DEFAULT;
-    if (!DcmiInit()) {
-        LogWarn("Failed to get gm info, the default parameters will be used.");
+    ChipType chipType = GetPlatformType();
+    if (chipType != ChipType::ASCEND910B) {
         return;
+    }
+    if (handleDcmi_ == nullptr) {
+        std::string dcmiSo = GetSoFromEnvVar("libdcmi.so");
+        if (dcmiSo.empty() || !CheckInputFileValid(dcmiSo, "so")) {
+            LogWarn("Can't find valid libdcmi.so, will use default gm type value");
+            return;
+        }
+        handleDcmi_ = dlopen(dcmiSo.c_str(), RTLD_LAZY | RTLD_LOCAL);
+        if (!DcmiInit()) {
+            LogWarn("Failed to get gm info, the default parameters will be used.");
+            return;
+        }
     }
     int cardId = 0;
     int chipId = 0;
@@ -265,7 +270,13 @@ int HalHelper::GetCurrentDeviceId() const
 
 GmType HalHelper::GetGmType()
 {
+    std::lock_guard<std::mutex> lock(gmMutex_);
+    auto cached = gmTypes_.find(deviceId_);
+    if (cached != gmTypes_.end()) {
+        return cached->second;
+    }
     CheckGmType();
+    gmTypes_[deviceId_] = gmType_;
     return gmType_;
 }
 }  // namespace Common

@@ -25,6 +25,8 @@
 #include <deque>
 #include <vector>
 #include <atomic>
+#include <memory>
+#include <string>
 
 namespace Utility {
 
@@ -41,7 +43,8 @@ public:
 
     // Start the thread pool and create threadsNum threads to wait for tasks.
     bool Start();
-    // Stop the thread pool. (Stop task assignment, and wait current thread complete, then release all threads.
+    // Stop assignment, join workers, then replay captured task logs in submission
+    // order into the stopping thread's capture buffer (or its normal output).
     bool Stop();
     // Wait for tasks in the task queue to be assigned to threads for execution.
     void WaitAllTasks();
@@ -62,6 +65,7 @@ private:
     std::condition_variable waitTaskDone_;
     std::vector<std::thread> threads_;
     std::deque<Task> taskQueue_;
+    std::vector<std::shared_ptr<std::string>> taskLogs_;
     uint32_t threadsNum_ = 0;
     std::atomic<bool> running_ {false};
 };

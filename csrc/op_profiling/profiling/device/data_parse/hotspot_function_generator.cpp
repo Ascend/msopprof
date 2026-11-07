@@ -422,10 +422,10 @@ bool HotSpotFunctionGenerator::ProcessEncoding(const std::string &kernelPath,
 {
     std::vector<EncodingInfo> instrEncodingVec;
     ChipProductType chipType = GetProductTypeBySocVersion(socVersion_);
-    if (!InstrEncoding::GetInstance().Init(chipType)) {
+    if (!instrEncoding_.Init(chipType)) {
         return false;
     }
-    if (!InstrEncoding::GetInstance().GenerateEncoding(kernelPath, instrEncodingVec)) {
+    if (!instrEncoding_.GenerateEncoding(kernelPath, instrEncodingVec)) {
         Utility::LogDebug("Failed to generate encoding");
         return false;
     }

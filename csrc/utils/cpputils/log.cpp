@@ -44,6 +44,26 @@ Log &Log::GetLog(void)
     return instance;
 }
 
+thread_local std::string *Log::captureStream_ = nullptr;
+
+void Log::BeginCapture(std::string *stream) { captureStream_ = stream; }
+
+void Log::EndCapture() { captureStream_ = nullptr; }
+
+void Log::FlushCapture(const std::string &content) {
+    Log &log = GetLog();
+    if (log.fp_ == nullptr || content.empty()) {
+        return;
+    }
+    if (captureStream_ != nullptr) {
+        if (captureStream_ != &content) {
+            captureStream_->append(content);
+        }
+        return;
+    }
+    fprintf(log.fp_, "%s", content.c_str());
+}
+
 std::string Log::AddPrefixInfo(const char* file, int line, std::string const &format, LogLv lv) const
 {
     std::string prefix = ToString(lv) + " ";
@@ -59,7 +79,7 @@ std::string Log::AddPrefixInfo(const char* file, int line, std::string const &fo
         }
 
         auto threadId = std::hash<std::thread::id>{}(std::this_thread::get_id());
-        
+
         std::string fileName = file ? file : "unknown";
         auto pos = fileName.find_last_of("/\\");
         if (pos != std::string::npos && pos > 0) {

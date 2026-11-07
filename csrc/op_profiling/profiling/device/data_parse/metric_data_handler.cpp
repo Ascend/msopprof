@@ -424,7 +424,7 @@ bool DataHandler::SaveMetrics(const std::string &outputPath, const Common::ProfM
         std::string suffix = "_" + profilingFileTimeStamp_ +".csv";
         string metricFileName = Utility::JoinPath({outputPath, csvName + suffix});
         if (dataSave.CsvSave(metricFileName, headers, csvData)) {
-            LogInfo("Save profiling data with metric [%s] success.", csvName.c_str());
+            LogDebug("Save profiling data with metric [%s] success.", csvName.c_str());
         } else {
             LogWarn("Failed to save profiling data with metric [%s].", csvName.c_str());
             res = false;
@@ -965,6 +965,9 @@ void DataHandlerOf91095::Statics(std::vector<MemRecord> &memoryRecords,
 
 void DataHandlerOf91095::PrepareDbiParams(CalculateParams &params, uint64_t blockId, const std::string &subBlockId)
 {
+    if (blockId >= memMapDetail_.size()) {
+        return;
+    }
     const auto &memDetail = memMapDetail_[blockId];
 
     auto findUbToGmData = [&](const std::map<std::string, uint64_t> &dataMap) {
