@@ -458,11 +458,14 @@ static bool GetStartTime(const std::vector<TimelineInput> &inputs, uint64_t &sta
 static std::string GetTimelineDirectoryName(const std::string &name, const std::string &mstxName = "") {
     // 各组成保留前120字符，避免合并后再截断时 mstx_name 被整体丢弃；序号后缀由调用方追加。
     constexpr size_t maxComponentLength = 120;
-    const auto truncatedName = Utility::TruncateString(name, maxComponentLength);
+    auto kernelName = name;
+    kernelName.erase(std::remove(kernelName.begin(), kernelName.end(), '*'), kernelName.end());
+    const auto truncatedName = Utility::TruncateString(kernelName, maxComponentLength);
     if (mstxName.empty()) {
         return truncatedName;
     }
-    return truncatedName + "_" + Utility::TruncateString(mstxName, maxComponentLength);
+    const auto truncatedMstxName = Utility::TruncateString(mstxName, maxComponentLength);
+    return truncatedMstxName + "_" + truncatedName;
 }
 
 json DeviceDataParse::MergeTimelineGroup(std::vector<TimelineInput> inputs) {
@@ -556,7 +559,7 @@ void DeviceDataParse::ReadTimelineMstxPaths(const std::string &dataPath, std::ve
     const auto path = JoinPath({dataPath, TMP_DUMP, "timeline_mstx.json"});
     std::ifstream stream(path);
     if (!stream.is_open()) {
-        LogWarn("Cannot open timeline mstx records: %s", path.c_str());
+        LogWarn("Cannot open timeline mstx records: %s, maybe matched empty.", path.c_str());
         return;
     }
     std::string line;
@@ -626,10 +629,10 @@ void DeviceDataParse::AddTimelineMstxGroups(const TimelineMergeConfig &config, c
     }
     // 取各卡记录数的最大值，检查配置次数上限内的缺卡位置
     size_t launchCount = 0;
-    std::ostringstream counts;
+    std::vector<std::string> counts;
     for (const auto &device : devicePaths) {
         launchCount = std::max(launchCount, device.second.size());
-        counts << "device" << device.first << "=" << device.second.size() << " ";
+        counts.push_back("device" + std::to_string(device.first) + "=" + std::to_string(device.second.size()));
     }
     // 按各卡列表的相同位置配组，仅保留所有设备流水齐全的组，执行编号统一为列表位置
     size_t preparedCount = 0;
@@ -647,7 +650,7 @@ void DeviceDataParse::AddTimelineMstxGroups(const TimelineMergeConfig &config, c
     }
     if (preparedCount < config.launchCount) {
         LogInfo("%slaunch_count=%u, prepared=%zu, captured records [%s].", prefix.c_str(), config.launchCount,
-            preparedCount, counts.str().c_str());
+            preparedCount, Utility::Join(counts.begin(), counts.end()).c_str());
     }
 }
 

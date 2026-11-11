@@ -2963,7 +2963,7 @@ TEST_F(TimelineSummaryTest, get_explicit_groups_expect_record_matching_and_disti
         EXPECT_EQ(groups[i][1].deviceId, 1U);
         for (const auto &input : groups[i]) {
             EXPECT_EQ(input.executionIndex, 0U);
-            EXPECT_EQ(input.mergeDirectory, "kernel*_range1_" + std::to_string(i));
+            EXPECT_EQ(input.mergeDirectory, "range1_kernel_" + std::to_string(i));
         }
     }
 }
@@ -3003,7 +3003,7 @@ TEST_F(TimelineSummaryTest, explicit_rank_limit_expect_merge_all_actual_devices_
             ASSERT_TRUE(DeviceDataParse::MergeTimelines(groups, directory));
             for (size_t index = 0; index < expectedCount; ++index) {
                 ASSERT_EQ(groups[index].size(), 4U);
-                const auto output = directory + "/kernel*_range1/" + std::to_string(index);
+                const auto output = directory + "/range1_kernel/" + std::to_string(index);
                 std::ifstream traceFile(output + "/trace.json");
                 ASSERT_TRUE(traceFile.is_open());
                 const auto trace = json::parse(traceFile);
@@ -3017,7 +3017,7 @@ TEST_F(TimelineSummaryTest, explicit_rank_limit_expect_merge_all_actual_devices_
                     EXPECT_DOUBLE_EQ(events[device]["ts"].get<double>(), 1.0 + device * 100.0);
                 }
             }
-            EXPECT_FALSE(IsExist(directory + "/kernel*_range1/" + std::to_string(expectedCount)));
+            EXPECT_FALSE(IsExist(directory + "/range1_kernel/" + std::to_string(expectedCount)));
         }
     }
 }
