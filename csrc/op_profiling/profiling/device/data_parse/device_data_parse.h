@@ -20,7 +20,9 @@
 
 #include <map>
 #include <memory>
+#include <mutex>
 #include <vector>
+#include "csv_parser.h"
 
 #include "common/defs.h"
 #include "common/prof_args.h"
@@ -28,6 +30,7 @@
 #include "metric_data_handler.h"
 #include "profiling/op_prof_data_parse.h"
 #include "profiling/device/data_visualize/data_visualize.h"
+#include "profiling/device/data_visualize/data_visualize_const.h"
 #include "profiling/op_prof_task.h"
 
 namespace Profiling {
@@ -35,11 +38,31 @@ namespace Profiling {
 class DeviceDataParse : public DataParse {
 public:
     DeviceDataParse(Common::ChipType chipType, Common::PmuEventsId pmuEventsId,
-        Common::ProfMetricsAbilityConfig metrics, const std::string &kernelNameFilter = "",
-        const std::string &customDotJson = "");
+        Common::ProfMetricsAbilityConfig metrics, const std::string &kernelNameFilter = "");
     bool Execute(std::string dataPath) override;
 
 private:
+    struct SummaryRow {
+        uint32_t deviceId;
+        uint64_t startTime;
+        Utility::CsvRow values;
+        std::string path;
+    };
+    void RecordSummary(
+        const DataHandler &handler, const std::string &path, const Visualize::MergeTimelineData &timeline);
+    bool SaveSummary(const std::string &dataPath);
+    static nlohmann::json MergeTimelineGroup(std::vector<Visualize::TimelineInput> inputs);
+    static bool MergeTimelines(Visualize::TimelineGroups groups, const std::string &summaryPath);
+    static void ReadTimelineMstxPaths(const std::string &dataPath, std::vector<Visualize::TimelineMstxPaths> &recorded);
+    static void AddTimelineMstxGroups(const Common::TimelineMergeConfig &config,
+        const Visualize::TimelineMstxPaths &devicePaths, const Visualize::TimelineInputsByPath &inputs,
+        const std::string &prefix, const std::string &directoryName, Visualize::TimelineGroups &groups);
+    Visualize::TimelineGroups GetTimelineGroups(const std::string &dataPath);
+    Visualize::TimelineInputsByPath timelineInputsByPath_;
+    std::mutex summaryMutex_;
+    std::vector<std::string> summaryHeader_;
+    std::vector<SummaryRow> summaryRows_;
+    std::vector<Visualize::TimelineInput> timelineInputs_;
     struct KernelParseTask {
         std::string path;
         std::string kernelName;
@@ -86,7 +109,6 @@ private:
     Common::ChipType chipType_;
     ChipProductType chipProductType_;
     Common::PmuEventsId pmuEventsId_;
-    std::string customDotJson_;
     // range replay duration map: map<pair<streamId, taskId>, vector<char>>
     std::map<std::pair<uint16_t, uint16_t>, std::vector<char>> rangeReplayDurBinMap_;
 };

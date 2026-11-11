@@ -107,12 +107,25 @@ void DataVisualize::GenerateAllVisualizeData(Profiling::Parse::DataCenter &dataC
         Utility::Visualize::WriteBin<VT::ROOF_LINE>(outputPath, roofLine_->visualRoofLineJson_);
     }
 
-    nlohmann::json traceJson;
-    if ((metrics.pipeTimelineEnable || metrics.instrTimelineEnable) && biuTimeline_->TimelineToJson(outputPath)) {
-        traceJson = biuTimeline_->GetTimelineJson();
-    } else if (timelineParser_->TimelineToJson(outputPath)) {
-        traceJson = timelineParser_->GetTimelineJson();
+    GenerateTimeline(outputPath, metrics);
+    if (metrics.isMemoryDetail && cachelineHeatMapParser_->ToJson(outputPath)) {
+        auto cacheJson = cachelineHeatMapParser_->GetCacheLineHeatMapJson();
+        Utility::Visualize::WriteBin<VT::CACHELINE_HEAT_MAP>(outputPath, cacheJson);
     }
+}
+
+void DataVisualize::GenerateTimeline(const std::string &outputPath, const Common::ProfMetricsAbilityConfig &metrics) {
+    // 仅通算、pipe或instr流水图做多算子合并
+    mergeTimelineData_ = {};
+    if ((metrics.pipeTimelineEnable || metrics.instrTimelineEnable) && biuTimeline_->TimelineToJson(outputPath)) {
+        mergeTimelineData_.timelineJson = biuTimeline_->GetTimelineJson();
+        mergeTimelineData_.minCycle = biuTimeline_->GetMinCycle();
+    } else if (timelineParser_->TimelineToJson(outputPath)) {
+        mergeTimelineData_.timelineJson = timelineParser_->GetTimelineJson();
+        mergeTimelineData_.minCycle = timelineParser_->GetMinCycle();
+        mergeTimelineData_.isCommunication = true;
+    }
+    nlohmann::json traceJson = mergeTimelineData_.timelineJson;
     // warp timeline 要放在最后插入，会取 traceJson 中的最小时间戳作为对齐时间戳
     WarpTimelineVisualize warpTimelineVisualize;
     if (warpTimelineVisualize.TimelineToJson(outputPath, GetTraceMinTs(traceJson))) {
@@ -123,11 +136,7 @@ void DataVisualize::GenerateAllVisualizeData(Profiling::Parse::DataCenter &dataC
         if (!Utility::WriteFileByStream(tracePath, traceJson)) {
             Utility::LogWarn("Generate %s failed", tracePath.c_str());
         }
-        Utility::Visualize::WriteBin<VT::TRACE>(outputPath, traceJson);
-    }
-    if (metrics.isMemoryDetail && cachelineHeatMapParser_->ToJson(outputPath)) {
-        auto cacheJson = cachelineHeatMapParser_->GetCacheLineHeatMapJson();
-        Utility::Visualize::WriteBin<VT::CACHELINE_HEAT_MAP>(outputPath, cacheJson);
+        Utility::Visualize::WriteBin<Utility::VisualizeType::TRACE>(outputPath, traceJson);
     }
 }
 

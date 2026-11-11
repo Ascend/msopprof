@@ -309,6 +309,7 @@ void DataHandler::HandleDuration(const std::string &outputPath)
     if (startTime == 0 || endTime == 0 || taskSchedulerFreq_ == 0 || endTime < startTime) {
         LogWarn("Get op basic info [Task Duration] failed.");
     } else {
+        startTime_ = startTime;
         duration_ = static_cast<float>((endTime - startTime) * TIME_CONVERSION) /
             static_cast<float>(taskSchedulerFreq_);
         SetDuration(duration_);

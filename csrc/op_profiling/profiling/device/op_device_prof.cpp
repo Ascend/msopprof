@@ -53,6 +53,6 @@ Profiling::TaskPtr OpDeviceProf::GetTask()
 
 std::unique_ptr<DataParse> OpDeviceProf::GetDataParser()
 {
-    return MakeUnique<DeviceDataParse>(chipType_, pmuEventsId_, aicMetrics_, kernelName_, customDotJson_);
+    return MakeUnique<DeviceDataParse>(chipType_, pmuEventsId_, aicMetrics_, kernelName_);
 }
 }

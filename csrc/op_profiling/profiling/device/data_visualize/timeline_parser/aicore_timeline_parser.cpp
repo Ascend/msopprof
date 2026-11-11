@@ -15,20 +15,11 @@
  * ------------------------------------------------------------------------- */
 
 #include "aicore_timeline_parser.h"
-#include <regex>
+#include "common/prof_args.h"
 #include "common/visualize.h"
-#include "common/hal_helper.h"
 
 namespace Visualize {
 using namespace Utility;
-constexpr size_t MAX_DESC_ID_DISPLAY_COUNT = 1024;
-constexpr size_t MAX_DESC_ID_DISPLAY_LEN = 64;
-constexpr char const *MC2_TRACE_CONFIG = "mc2_trace_config";
-constexpr char const *ENABLE_BLOCK_TIME = "enable_block_time";
-constexpr char const *DESC_ID_DISPLAY = "descid_display";
-std::map<uint64_t, std::string> AicoreTimelineParser::descIdDisplay_;
-bool AicoreTimelineParser::enableBlockTime_ = true;
-bool AicoreTimelineParser::descIdDisplayCached_ = false;
 
 void AicoreTimelineParser::GenPc2Code(std::vector<MsprofAicTimeStampInfoUpdate> &aicoreTimeStamps)
 {
@@ -105,8 +96,7 @@ bool AicoreTimelineParser::TimelineToJson(const std::string &outputPath)
     if (!GetAicoreTimeStamps(aicoreTimeStamps)) {
         return false;
     }
-    ParseCustomDotJson();
-    ProcessAicoreBlockDur(enableBlockTime_);
+    ProcessAicoreBlockDur(Common::CustomInputConfig::Instance().GetMc2TraceConfig().enableBlockTime);
     AddAicoreDuration(minSysCyc_);
     ProcessAicoreData(aicoreTimeStamps);
     json result;
@@ -132,6 +122,7 @@ bool AicoreTimelineParser::GetAicoreTimeStamps(std::vector<MsprofAicTimeStampInf
 
 void AicoreTimelineParser::ProcessAicoreData(const std::vector<MsprofAicTimeStampInfoUpdate> &aicoreTimeStamps)
 {
+    const auto &descIdDisplay = Common::CustomInputConfig::Instance().GetMc2TraceConfig().descIdDisplay;
     std::unordered_map<std::string, OperationInfo> operationMap;
     std::set<uint32_t> descIdSet;
     for (uint32_t i = 0; i < aicoreTimeStamps.size(); i++) {
@@ -173,11 +164,11 @@ void AicoreTimelineParser::ProcessAicoreData(const std::vector<MsprofAicTimeStam
             resultItem["ph"] = "X";
             resultItem["cname"] = TOTAL_CNAME_MAP[index % TOTAL_CNAME_MAP.size()];
             std::string displayName = std::to_string(descId);
-            if (descIdDisplay_.find(descId) != descIdDisplay_.end()) {
-                displayName = descIdDisplay_[descId];
+            if (descIdDisplay.find(descId) != descIdDisplay.end()) {
+                displayName = descIdDisplay.at(descId);
             }
             resultItem["name"] = displayName;
-            auto [core, _] = GetGroupName(pid, static_cast<uint16_t>(blockId));
+            const auto core = GetGroupName(pid, static_cast<uint16_t>(blockId)).first;
             resultItem["pid"] = BLOCK;
             resultItem["tid"] = core;
             resultItem["args"]["name"] = displayName;
@@ -198,72 +189,5 @@ void AicoreTimelineParser::ProcessAicoreData(const std::vector<MsprofAicTimeStam
             timelineJson_.push_back(resultItem);
         }
     }
-}
-
-void AicoreTimelineParser::ParseCustomDotJson() {
-    // 多卡多算子场景下共用输入文件，仅解析一次
-    if (customDotJson_.empty() || descIdDisplayCached_) {
-        return;
-    }
-    descIdDisplayCached_ = true;
-    nlohmann::json jsonData;
-    if (!GetJsonData(customDotJson_, jsonData)) {
-        LogWarn("Failed to parse json file %s.", customDotJson_.c_str());
-        return;
-    }
-    if (!jsonData.contains(MC2_TRACE_CONFIG)) {
-        return;
-    }
-    const auto &configJson = jsonData[MC2_TRACE_CONFIG];
-    if (configJson.contains(ENABLE_BLOCK_TIME)) {
-        if (!configJson[ENABLE_BLOCK_TIME].is_boolean()) {
-            LogWarn("'enable_block_time' must be an boolean.");
-        } else {
-            configJson[ENABLE_BLOCK_TIME].get_to(enableBlockTime_);
-        }
-    }
-    if (configJson.contains(DESC_ID_DISPLAY)) {
-        ParseDescIdDisplay(configJson[DESC_ID_DISPLAY]);
-    }
-}
-
-void AicoreTimelineParser::ParseDescIdDisplay(const nlohmann::json &descIdDisplayJson){
-    if (!descIdDisplayJson.is_object()) {
-        LogWarn("'descid_display' must be an object.");
-        return;
-    }
-    if (descIdDisplayJson.size() > MAX_DESC_ID_DISPLAY_COUNT) {
-        LogWarn("'descid_display' supports at most %zu entries.", MAX_DESC_ID_DISPLAY_COUNT);
-        return;
-    }
-    const static std::regex valuePattern("^[a-zA-Z0-9-_ ]+$");
-    for (const auto &item : descIdDisplayJson.items()) {
-        std::string descIdStr = item.key();
-        auto radix = RADIX_10;
-        uint64_t descIdNum = 0;
-        if (StartsWith(descIdStr, "0x") || StartsWith(descIdStr, "0X")) {
-            radix = RADIX_16;
-            descIdStr = descIdStr.substr(2);
-        }
-        if (!StoullConverter(descIdStr, descIdNum, radix)) {
-            LogWarn("'descid_display' key is not a valid number.");
-            continue;
-        }
-        if (!item.value().is_string()) {
-            LogWarn("'descid_display' value must be a string.");
-            continue;
-        }
-        std::string valueStr = item.value().get<std::string>();
-        if (valueStr.length() > MAX_DESC_ID_DISPLAY_LEN) {
-            LogWarn("'descid_display' value exceeds max length %zu.", MAX_DESC_ID_DISPLAY_LEN);
-            continue;
-        }
-        if (!std::regex_match(valueStr, valuePattern)) {
-            LogWarn("'descid_display' value contains invalid characters, 'a-zA-Z0-9-_' and space are allowed.");
-            continue;
-        }
-        descIdDisplay_[descIdNum] = valueStr;
-    }
-    LogDebug("get %zu descid_display", descIdDisplay_.size());
 }
 }

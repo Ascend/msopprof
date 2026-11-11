@@ -173,4 +173,7 @@ bool StringMatch(const std::string &str, const std::string &subStr)
     return fnmatch(subStr.c_str(), str.c_str(), 0) == 0;
 }
 
+std::string TruncateString(const std::string &str, size_t maxLength) {
+    return str.size() <= maxLength ? str : str.substr(0, maxLength);
+}
 }

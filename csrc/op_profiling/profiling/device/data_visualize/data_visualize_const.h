@@ -21,6 +21,9 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <cstdint>
+#include <utility>
+#include "json.hpp"
 #include "common/defs.h"
 #include "common/dbi_defs.h"
 
@@ -369,6 +372,35 @@ using AcsqTaskPairType = std::pair<std::pair<uint16_t, uint16_t>, AcsqTaskInfo>;
 using AcsqTimeMapType = std::map<std::pair<uint16_t, uint16_t>, AcsqTaskInfo>;
 // BlockSystemTimeType: {{blockId, {{startTime_cube0, endTime_cube0}, {startTime_vec0, endTime_vec0}}}}
 using BlockSystemTimeType = std::map<uint16_t, std::vector<std::pair<uint64_t, uint64_t>>>;
+
+// 待合并的主流水及其原始时间基准
+struct MergeTimelineData {
+    nlohmann::json timelineJson;
+    uint64_t minCycle = UINT64_MAX;
+    bool isCommunication = false; // 通算流水使用AICPU时钟，Pipe/Instr使用AICore时钟
+};
+
+// 一次算子执行的单卡流水输入
+struct TimelineInput {
+    TimelineInput() = default;
+    TimelineInput(std::string name, uint32_t device, uint64_t index, MergeTimelineData data, int64_t freq)
+        : opName(std::move(name)), deviceId(device), executionIndex(index), timeline(std::move(data)), cycleFreq(freq) {
+    }
+    std::string opName;
+    uint32_t deviceId;
+    uint64_t executionIndex; // 自动配组使用目录数值编号，显式配组使用各卡列表位置
+    MergeTimelineData timeline;
+    int64_t cycleFreq = 0; // handler提供的时钟频率：通算为kHz，Pipe/Instr为MHz
+    std::string mergeDirectory; // 显式配组的一级输出目录，自动配组为空，使用算子名称
+};
+
+// 一条合并配置的采集目录，键为设备号，值为按记录出现顺序保存的算子目录列表
+using TimelineMstxPaths = std::map<uint32_t, std::vector<std::string>>;
+// 键为算子目录，值为该目录已经解析生成的单卡流水
+using TimelineInputsByPath = std::map<std::string, TimelineInput>;
+// 每个内部vector是一组已配齐、属于同一次执行的多卡流水输入
+using TimelineGroups = std::vector<std::vector<TimelineInput>>;
+
 constexpr uint16_t CUBE_BLOCK_START_INDEX = 50; // the blockId of AICore cube block dot data begin from 50
 }
 #endif // DATA_VISUALIZE_CONST_H

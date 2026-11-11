@@ -15,14 +15,13 @@
  * ------------------------------------------------------------------------- */
 
 #include "lccl_timeline_parser.h"
+#include "aicore_timeline_parser.h"
 
 #include "filesystem.h"
 #include "log.h"
 #include "number_operation.h"
 #include "ustring.h"
-#include "common/hal_helper.h"
 #include "common/visualize.h"
-#include "mc2_timeline_parser.h"
 
 using namespace Utility;
 using namespace std;
@@ -56,7 +55,7 @@ nlohmann::json LcclTimelineParser::AddAicoreApiDot(const LcclInfo& info) const
     event.cName = API_CNAME_MAP.at(event.name);
     event.ph = "X";
     std::string pid = GetAicoreTimeLinePid(info.blockId);
-    auto [core, _] = GetGroupName(pid, static_cast<uint16_t>(info.blockId));
+    const auto core = GetGroupName(pid, static_cast<uint16_t>(info.blockId)).first;
     event.pid = BLOCK;
     event.tid = core;
     event.ts = static_cast<float>(SafeSub(info.startSyscyc, minSysCyc_, location, false)) / aicpuFreq_
@@ -132,7 +131,7 @@ bool LcclTimelineParser::TimelineToJson(const string &outputPath)
         return false;
     }
     if (aicpuFreq_ == 0) {
-        LogDebug("Failed to calculate data becuase freq is 0");
+        LogDebug("Failed to calculate data because freq is 0");
         return false;
     }
     ProcessAicoreData(aicoreTimeStamps);

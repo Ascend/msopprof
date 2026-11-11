@@ -43,26 +43,32 @@ using namespace std;
 TEST(AicoreTimelineBoundary, descriptor_names_validate_numbers_types_length_and_characters)
 {
     GlobalMockObject::verify();
-    std::unique_ptr<DataHandler> handler = MakeUnique<DataHandler>();
-    auto info = MakeShared<OpBasicInfo>(handler);
-    auto pmu = MakeShared<BasicPmu>(handler);
-    AicoreTimelineParser parser(0, info, pmu);
-    const auto savedNames = parser.descIdDisplay_;
-    parser.descIdDisplay_.clear();
-    parser.ParseDescIdDisplay(nlohmann::json::array());
-    nlohmann::json names = {{"65535", "first"}, {"0x10000", "second-name"},
-        {"bad", "ignored"}, {"65537", 123}, {"65538", std::string(65, 'a')}, {"65539", "bad!"}};
-    parser.ParseDescIdDisplay(names);
-    EXPECT_EQ(parser.descIdDisplay_.size(), 2U);
-    EXPECT_EQ(parser.descIdDisplay_[65535], "first");
-    EXPECT_EQ(parser.descIdDisplay_[65536], "second-name");
+    auto &config = CustomInputConfig::Instance();
+    const std::string path = "test/ut/resources/descriptor_boundaries.json";
+    const auto load = [&](const nlohmann::json &names) {
+        config.Reset();
+        const nlohmann::json input = {{"mc2_trace_config", {{"descid_display", names}}}};
+        EXPECT_TRUE(WriteFileByStream(path, input.dump()));
+        std::string msg;
+        return config.Load(path, msg);
+    };
+    ASSERT_TRUE(load({{"65535", "first"}, {"0x10000", "second-name"}}));
+    EXPECT_EQ(config.GetMc2TraceConfig().descIdDisplay.size(), 2U);
+    EXPECT_EQ(config.GetMc2TraceConfig().descIdDisplay.at(65535), "first");
+    EXPECT_EQ(config.GetMc2TraceConfig().descIdDisplay.at(65536), "second-name");
+    for (const auto &invalid :
+        {nlohmann::json::array(), nlohmann::json{{"bad", "ignored"}}, nlohmann::json{{"65537", 123}},
+            nlohmann::json{{"65538", std::string(65, 'a')}}, nlohmann::json{{"65539", "bad!"}}}) {
+        EXPECT_FALSE(load(invalid));
+    }
     nlohmann::json excessive = nlohmann::json::object();
     for (size_t i = 0; i < 1025; ++i) {
         excessive[std::to_string(i)] = "entry";
     }
-    parser.ParseDescIdDisplay(excessive);
-    EXPECT_EQ(parser.descIdDisplay_.size(), 2U);
-    parser.descIdDisplay_ = savedNames;
+    EXPECT_FALSE(load(excessive));
+    EXPECT_TRUE(config.GetMc2TraceConfig().descIdDisplay.empty());
+    config.Reset();
+    RemoveAll(path);
 }
 
 TEST(AicoreTimelineBoundary, paired_timestamps_emit_only_events_inside_block_duration)
@@ -136,17 +142,23 @@ TEST(AicoreTimelineBoundary, custom_config_is_cached_and_timestamp_files_validat
     RemoveAll(root);
     ASSERT_TRUE(MkdirRecusively(root + "/dump"));
     const std::string config = root + "/config.json";
-    AicoreTimelineParser parser(100, info, pmu, config);
-    const auto savedNames = parser.descIdDisplay_;
-    const bool savedCache = parser.descIdDisplayCached_;
-    const bool savedEnabled = parser.enableBlockTime_;
-    parser.descIdDisplayCached_ = false;
+    AicoreTimelineParser parser(100, info, pmu);
+    auto &input = CustomInputConfig::Instance();
+    input.Reset();
     ASSERT_TRUE(WriteFileByStream(config,
         R"({"mc2_trace_config":{"enable_block_time":false,"descid_display":{"65535":"custom"}}})"));
-    parser.ParseCustomDotJson();
-    EXPECT_FALSE(parser.enableBlockTime_);
-    EXPECT_EQ(parser.descIdDisplay_[65535], "custom");
-    parser.ParseCustomDotJson();
+    std::string msg;
+    ASSERT_TRUE(input.Load(config, msg));
+    EXPECT_FALSE(input.GetMc2TraceConfig().enableBlockTime);
+    EXPECT_EQ(input.GetMc2TraceConfig().descIdDisplay.at(65535), "custom");
+    RemoveAll(config);
+    EXPECT_FALSE(input.Load(config, msg));
+    EXPECT_FALSE(msg.empty());
+    EXPECT_TRUE(input.GetMc2TraceConfig().descIdDisplay.empty());
+    ASSERT_TRUE(WriteFileByStream(config, R"({"mc2_trace_config":{"descid_display":{"65535":"updated"}}})"));
+    ASSERT_TRUE(input.Load(config, msg));
+    EXPECT_TRUE(msg.empty());
+    EXPECT_EQ(input.GetMc2TraceConfig().descIdDisplay.at(65535), "updated");
     parser.outputPath_ = root;
     std::vector<MsprofAicTimeStampInfo> records;
     EXPECT_FALSE(parser.GetTimeStamp(records));
@@ -159,9 +171,7 @@ TEST(AicoreTimelineBoundary, custom_config_is_cached_and_timestamp_files_validat
     if (!records.empty()) {
         EXPECT_EQ(records[0].syscyc, 200U);
     }
-    parser.descIdDisplay_ = savedNames;
-    parser.descIdDisplayCached_ = savedCache;
-    parser.enableBlockTime_ = savedEnabled;
+    input.Reset();
     RemoveAll(root);
 }
 

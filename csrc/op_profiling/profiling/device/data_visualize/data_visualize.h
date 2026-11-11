@@ -25,6 +25,7 @@
 #include "filesystem.h"
 #include "basic_op_and_pmu.h"
 #include "biu_timeline.h"
+#include "data_visualize_const.h"
 #include "storage_access.h"
 #include "roofline.h"
 #include "occupancy.h"
@@ -61,8 +62,10 @@ public:
     void GenerateAllVisualizeData(Profiling::Parse::DataCenter &dataCenter, const std::string &outputPath,
                                const Common::ProfMetricsAbilityConfig &metrics);
     void CleanupAndLog(Profiling::Parse::DataCenter &dataCenter, const std::string &outputPath);
+    const MergeTimelineData &GetMergeTimelineData() const { return mergeTimelineData_; }
 
 private:
+    void GenerateTimeline(const std::string &outputPath, const Common::ProfMetricsAbilityConfig &metrics);
     static void MergeTraceJson(nlohmann::json &dst, nlohmann::json src);
 
     std::shared_ptr<OpBasicInfo> &opBasicInfo_;
@@ -72,6 +75,7 @@ private:
     std::unique_ptr<TimelineParser> &timelineParser_;
     std::unique_ptr<BiuTimeline> &biuTimeline_;
     std::unique_ptr<CachelineHeatMap> &cachelineHeatMapParser_;
+    MergeTimelineData mergeTimelineData_;
 };
 } // namespace Visualize
 

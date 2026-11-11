@@ -32,7 +32,7 @@
 
 TEST(TlvParser, test_parse_tlv_return_eq)
 {
-    TlvParser parser("../test/ut/resources/dump/91095/lrm.data");
+    TlvParser parser("test/ut/resources/dump/91095/lrm.data");
     parser.ParseStream();
     const auto &result = parser.GetParsedData();
     parser.CountPCNum();
@@ -47,7 +47,7 @@ TEST(TlvParser, test_parse_tlv_return_eq)
 
 TEST(TlvParser, test_parse_tlv2_return_eq)
 {
-    TlvParser parser("../test/ut/resources/dump/91095/lrm2.data");
+    TlvParser parser("test/ut/resources/dump/91095/lrm2.data");
     parser.ParseStream();
     const auto &result = parser.GetParsedData();
     parser.CountPCNum();
@@ -69,7 +69,7 @@ TEST(TlvParser, test_parse_tlv2_return_eq)
 
 TEST(TlvParser, test_parse_tlv3_return_eq)
 {
-    TlvParser parser("../test/ut/resources/dump/91095/lrm3.data");
+    TlvParser parser("test/ut/resources/dump/91095/lrm3.data");
     parser.ParseStream();
     const auto &result = parser.GetParsedData();
     parser.CountPCNum();

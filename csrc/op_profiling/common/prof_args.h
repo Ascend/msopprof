@@ -31,6 +31,34 @@
 #include "include/opprof/BasicDefs.h"
 
 namespace Common {
+struct TimelineMergeConfig {
+    std::string kernelName;
+    std::string mstxName;
+    uint32_t rankCount = 0;
+    uint32_t launchCount = 0;
+};
+
+struct Mc2TraceConfig {
+    bool enableBlockTime = true;
+    std::map<uint64_t, std::string> descIdDisplay;
+};
+
+class CustomInputConfig {
+public:
+    static CustomInputConfig &Instance();
+    bool Load(const std::string &path, std::string &msg);
+    void Reset();
+    const Mc2TraceConfig &GetMc2TraceConfig() const { return mc2TraceConfig_; }
+    const std::vector<TimelineMergeConfig> &GetTimelineMergeConfigs() const { return timelineMergeConfigs_; }
+
+private:
+    CustomInputConfig() = default;
+    CustomInputConfig(const CustomInputConfig &) = delete;
+    CustomInputConfig &operator=(const CustomInputConfig &) = delete;
+    Mc2TraceConfig mc2TraceConfig_;
+    std::vector<TimelineMergeConfig> timelineMergeConfigs_;
+};
+
 const std::map<std::string, ReplayMode> ReplayModeMap {
     {"kernel",       ReplayMode::KERNEL},
     {"application",  ReplayMode::APPLICATION},

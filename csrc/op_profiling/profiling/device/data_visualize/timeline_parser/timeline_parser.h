@@ -17,7 +17,7 @@
 #ifndef TIME_PARSER_H
 #define TIME_PARSER_H
 
-#include <fstream>
+#include <algorithm>
 #include <utility>
 #include <vector>
 #include <cstdint>
@@ -27,7 +27,6 @@
 #include "profiling/device/data_visualize/data_visualize_const.h"
 #include "profapi/profapi.h"
 #include "profiling/simulator/data_parse/sim_defs.h"
-#include "common/hal_helper.h"
 #include "common/visualize.h"
 namespace Visualize {
 using json = nlohmann::json;
@@ -80,16 +79,15 @@ public:
             }
             std::string socversion = opBasicInfoObj_->GetSoc();
             chipType_ = GetProductSeriesType(socversion);
-            if (!Common::HalHelper::Instance().GetTaskSchedulerFreq(aicpuFreq_)) {
-                Utility::LogWarn("Get task scheduler frequency failed. Use default value instead");
-                aicpuFreq_ = FREQ;
-            }
+            aicpuFreq_ = GetTaskSchedulerFreq();
             opType_ = opBasicInfoObj_->GetOpType();
         }
     virtual bool TimelineToJson(const std::string &outputPath) = 0;
+    int64_t GetTaskSchedulerFreq();
     void AddAicoreDuration(uint64_t startTime);
     void ProcessAicoreBlockDur(bool enableTimeDetail = true);
     nlohmann::json GetTimelineJson() { return timelineJson_; }
+    uint64_t GetMinCycle() const { return minSysCyc_; }
     ChipProductType GetChipTypeSeries() { return chipType_; }
     float GetRunTime(uint64_t freq, int64_t cycles);
 

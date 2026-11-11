@@ -1189,14 +1189,19 @@ TEST(ArgChecker, test_CheckInstrTimelinePipe_expect_return_false)
 * | 用例描述 | 测试custom-input参数返回true
 */
 TEST(ArgChecker, test_CheckCustomInput_expect_return_true) {
+    Common::CustomInputConfig::Instance().Reset();
     ArgChecker checker("device");
     Common::ProfArgs args;
     std::string msg;
     args.argCustomInput = "";
     ASSERT_TRUE(checker.CheckCustomInput(args, msg));
     args.argCustomInput = "test/ut/resources/config_json/test_custom_input.json";
-    MOCKER(&Utility::CheckInputFileValid).stubs().will(returnValue(true));
+    ASSERT_TRUE(
+        Utility::WriteFileByStream(args.argCustomInput, "{\"mc2_trace_config\":{\"enable_block_time\":false}}"));
     ASSERT_TRUE(checker.CheckCustomInput(args, msg));
+    EXPECT_FALSE(Common::CustomInputConfig::Instance().GetMc2TraceConfig().enableBlockTime);
+    Utility::RemoveAll(args.argCustomInput);
+    Common::CustomInputConfig::Instance().Reset();
     GlobalMockObject::verify();
 }
 

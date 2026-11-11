@@ -656,11 +656,11 @@ bool ArgChecker::CheckSet(const Common::ProfArgs &config,std::string &msg) const
 bool ArgChecker::CheckCustomInput(const Common::ProfArgs &config, std::string &msg) const
 {
     if (config.argCustomInput.empty()) {
-        return true;
+        return Common::CustomInputConfig::Instance().Load("", msg);
     }
     if (!CheckInputFileValid(config.argCustomInput, "json", MAX_JSON_FILE_SIZE, "custom-input")) {
         return false;
     }
-    return true;
+    return Common::CustomInputConfig::Instance().Load(config.argCustomInput, msg);
 }
 } // namespace Parser

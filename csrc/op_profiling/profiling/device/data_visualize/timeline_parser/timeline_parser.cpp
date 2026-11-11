@@ -15,6 +15,7 @@
  * ------------------------------------------------------------------------- */
 
 #include "timeline_parser.h"
+#include "common/hal_helper.h"
 #include "common/visualize.h"
 
 using namespace Utility;
@@ -35,6 +36,15 @@ uint16_t GetAicoreBlockIndexByType(const std::string &opType, const std::string 
     }
     int vecNum = subBlockNum - 1; // cube subblock number is 1
     return blockIndex * vecNum + subBlockIndex - 1;
+}
+
+int64_t TimelineParser::GetTaskSchedulerFreq() {
+    int64_t freq = 0;
+    if (!Common::HalHelper::Instance().GetTaskSchedulerFreq(freq)) {
+        LogWarn("Get task scheduler frequency failed. Use default value instead");
+        return FREQ;
+    }
+    return freq;
 }
 
 float TimelineParser::GetRunTime(uint64_t freq, int64_t cycles)
@@ -108,11 +118,11 @@ void TimelineParser::ProcessAicoreBlockDur(bool enableTimeDetail)
             blockDuration_[{recordType, dots}] = timeVec[i];
             resultItem["cname"] = cName;
             resultItem["ph"] = "X";
-            auto [core, name] = GetGroupName(recordType, dots);
+            const auto groupName = GetGroupName(recordType, dots);
             resultItem["pid"] = BLOCK;
-            resultItem["tid"] = core;
+            resultItem["tid"] = groupName.first;
             if (enableTimeDetail) {
-                resultItem["name"] = name;
+                resultItem["name"] = groupName.second;
                 resultItem["ts"] = GetRunTime(aicpuFreq_, SafeSub(timeVec[i].first, minSysCyc_, location, false));
                 resultItem["dur"] = GetRunTime(aicpuFreq_, SafeSub(timeVec[i].second, timeVec[i].first, location, false));
                 timelineJson_.push_back(resultItem);

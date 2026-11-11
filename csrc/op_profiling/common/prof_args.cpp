@@ -17,6 +17,10 @@
 
 #include "prof_args.h"
 #include <cmath>
+#include <cctype>
+#include <regex>
+#include "include/opprof/Protocol.h"
+#include "json_parser.h"
 #include "log.h"
 
 using namespace Utility;
@@ -68,6 +72,181 @@ bool ResolveSet(const std::string &setName, ProfMetricsAbilityConfig &config,
         metricStr += m;
     }
     return ParseValue(metricStr, config);
+}
+
+constexpr size_t MAX_DESC_ID_DISPLAY_COUNT = 1024;
+constexpr size_t MAX_DESC_ID_DISPLAY_LEN = 64;
+constexpr uint32_t MIN_TIMELINE_MERGE_RANK_COUNT = 2;
+constexpr uint32_t MAX_TIMELINE_MERGE_RANK_COUNT = 64;
+constexpr uint32_t MAX_TIMELINE_MERGE_LAUNCH_COUNT = 50;
+constexpr char const *TIMELINE_MERGE_CONFIG = "timeline_merge_config";
+constexpr char const *MC2_TRACE_CONFIG = "mc2_trace_config";
+constexpr char const *ENABLE_BLOCK_TIME = "enable_block_time";
+constexpr char const *DESC_ID_DISPLAY = "descid_display";
+constexpr char const *MSTX_NAME = "mstx_name";
+constexpr char const *RANK_COUNT = "rank_count";
+constexpr char const *LAUNCH_COUNT = "launch_count";
+
+static bool CheckTimelineMergeNames(const nlohmann::json &configJson, const std::string &prefix, std::string &msg) {
+    static const std::regex kernelNamePattern("^[A-Za-z0-9_*]+$");
+    static const std::regex mstxNamePattern("^[A-Za-z0-9_]+$");
+    for (const std::string fieldName : {KERNEL_NAME, MSTX_NAME}) {
+        const bool isKernelName = fieldName == KERNEL_NAME;
+        const auto maxLength = isKernelName ? MAX_KERNEL_NAME_LENGTH : MAX_MSTX_INCLUDE_NAME_LENGTH;
+        if (!configJson.contains(fieldName) || !configJson[fieldName].is_string()) {
+            msg = prefix + "." + fieldName + " must be a string.";
+            return false;
+        }
+        const auto &configName = configJson[fieldName].get_ref<const std::string &>();
+        if (configName.empty() || configName.size() >= maxLength) {
+            msg = prefix + "." + fieldName + " must be a string with length in [1, " + std::to_string(maxLength - 1) +
+                "].";
+            return false;
+        }
+        if (!std::regex_match(configName, isKernelName ? kernelNamePattern : mstxNamePattern)) {
+            msg = prefix + "." + fieldName + " contains unsupported characters. Support characters are: " +
+                (isKernelName ? "A-Za-z0-9_*" : "A-Za-z0-9_");
+            return false;
+        }
+    }
+    return true;
+}
+
+static bool ParseTimelineMergeConfigs(
+    const nlohmann::json &customInputJson, std::vector<TimelineMergeConfig> &configs, std::string &msg) {
+    if (!customInputJson.contains(TIMELINE_MERGE_CONFIG)) {
+        return true;
+    }
+    const auto &input = customInputJson[TIMELINE_MERGE_CONFIG];
+    if (!input.is_array()) {
+        msg = "timeline_merge_config must be an array of objects.";
+        return false;
+    }
+    if (input.size() > MAX_TIMELINE_MERGE_CONFIG_COUNT) {
+        msg = "timeline_merge_config supports at most " + std::to_string(MAX_TIMELINE_MERGE_CONFIG_COUNT) +
+            " selections.";
+        return false;
+    }
+    for (size_t index = 0; index < input.size(); ++index) {
+        const auto &value = input[index];
+        const auto prefix = std::string(TIMELINE_MERGE_CONFIG) + "[" + std::to_string(index) + "]";
+        if (!value.is_object()) {
+            msg = prefix + " must be an object.";
+            return false;
+        }
+        if (!CheckTimelineMergeNames(value, prefix, msg)) {
+            return false;
+        }
+        for (const std::string fieldName : {RANK_COUNT, LAUNCH_COUNT}) {
+            const auto minCount = fieldName == RANK_COUNT ? MIN_TIMELINE_MERGE_RANK_COUNT : 1U;
+            const auto maxCount =
+                fieldName == RANK_COUNT ? MAX_TIMELINE_MERGE_RANK_COUNT : MAX_TIMELINE_MERGE_LAUNCH_COUNT;
+            if (!value.contains(fieldName) || !value[fieldName].is_number_integer() || value[fieldName] < minCount ||
+                value[fieldName] > maxCount) {
+                msg = prefix + "." + fieldName + " must be an integer within [" + std::to_string(minCount) + ", " +
+                    std::to_string(maxCount) + "].";
+                return false;
+            }
+        }
+        TimelineMergeConfig config;
+        config.kernelName = value[KERNEL_NAME].get<std::string>();
+        config.mstxName = value[MSTX_NAME].get<std::string>();
+        config.rankCount = value[RANK_COUNT].get<uint32_t>();
+        config.launchCount = value[LAUNCH_COUNT].get<uint32_t>();
+        configs.push_back(std::move(config));
+    }
+    return true;
+}
+
+static bool ParseDescIdDisplay(const nlohmann::json &descIdDisplayJson, Mc2TraceConfig &config, std::string &msg) {
+    if (!descIdDisplayJson.is_object() || descIdDisplayJson.size() > MAX_DESC_ID_DISPLAY_COUNT) {
+        msg = "mc2_trace_config.descid_display must be an object with at most " +
+            std::to_string(MAX_DESC_ID_DISPLAY_COUNT) + " entries.";
+        return false;
+    }
+    const static std::regex valuePattern("^[a-zA-Z0-9-_ ]+$");
+    for (const auto &item : descIdDisplayJson.items()) {
+        std::string descIdStr = item.key();
+        auto radix = RADIX_10;
+        uint64_t descIdNum = 0;
+        if (StartsWith(descIdStr, "0x") || StartsWith(descIdStr, "0X")) {
+            radix = RADIX_16;
+            descIdStr = descIdStr.substr(2);
+        }
+        if (!StoullConverter(descIdStr, descIdNum, radix)) {
+            msg = "mc2_trace_config.descid_display key is not a valid number.";
+            return false;
+        }
+        if (!item.value().is_string()) {
+            msg = "mc2_trace_config.descid_display value must be a string.";
+            return false;
+        }
+        std::string valueStr = item.value().get<std::string>();
+        if (valueStr.length() > MAX_DESC_ID_DISPLAY_LEN) {
+            msg = "mc2_trace_config.descid_display value exceeds max length " +
+                std::to_string(MAX_DESC_ID_DISPLAY_LEN) + ".";
+            return false;
+        }
+        if (!std::regex_match(valueStr, valuePattern)) {
+            msg = "mc2_trace_config.descid_display value contains invalid characters, 'a-zA-Z0-9-_' and space are "
+                  "allowed.";
+            return false;
+        }
+        config.descIdDisplay[descIdNum] = valueStr;
+    }
+    return true;
+}
+
+static bool ParseMc2TraceConfig(const nlohmann::json &customInputJson, Mc2TraceConfig &config, std::string &msg) {
+    if (!customInputJson.contains(MC2_TRACE_CONFIG)) {
+        return true;
+    }
+    const auto &configJson = customInputJson[MC2_TRACE_CONFIG];
+    if (!configJson.is_object()) {
+        msg = "mc2_trace_config must be an object.";
+        return false;
+    }
+    if (configJson.contains(ENABLE_BLOCK_TIME)) {
+        if (!configJson[ENABLE_BLOCK_TIME].is_boolean()) {
+            msg = "mc2_trace_config.enable_block_time must be a boolean.";
+            return false;
+        }
+        config.enableBlockTime = configJson[ENABLE_BLOCK_TIME].get<bool>();
+    }
+    if (!configJson.contains(DESC_ID_DISPLAY)) {
+        return true;
+    }
+    return ParseDescIdDisplay(configJson[DESC_ID_DISPLAY], config, msg);
+}
+
+CustomInputConfig &CustomInputConfig::Instance() {
+    static CustomInputConfig config;
+    return config;
+}
+
+void CustomInputConfig::Reset() {
+    mc2TraceConfig_ = Mc2TraceConfig{};
+    timelineMergeConfigs_.clear();
+}
+
+bool CustomInputConfig::Load(const std::string &path, std::string &msg) {
+    Reset();
+    msg.clear();
+    if (!path.empty()) {
+        nlohmann::json customInputJson;
+        Mc2TraceConfig trace;
+        std::vector<TimelineMergeConfig> merge;
+        if (!GetJsonData(path, customInputJson)) {
+            msg = "Cannot read --custom-input json file.";
+        } else if (!customInputJson.is_object()) {
+            msg = "--custom-input json file must be an object.";
+        } else if (ParseMc2TraceConfig(customInputJson, trace, msg) &&
+            ParseTimelineMergeConfigs(customInputJson, merge, msg)) {
+            mc2TraceConfig_ = std::move(trace);
+            timelineMergeConfigs_ = std::move(merge);
+        }
+    }
+    return msg.empty();
 }
 
 const std::vector<uint16_t> GetEventsByType(const ChipType &chipType, const std::string &blockType)

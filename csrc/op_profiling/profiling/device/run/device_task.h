@@ -94,6 +94,7 @@ public:
 
 private:
     bool PreProcess();
+    bool InitTimelineMergeConfig();
     uint32_t GetReplayTimes();
     std::vector<ProfDBIType> BuildEnabledDbiTypes() const;
 

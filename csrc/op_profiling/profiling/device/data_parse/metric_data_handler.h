@@ -141,6 +141,8 @@ public:
     inline bool GetMC2Flag() const { return isMC2_; }
     inline bool GetLcclFlag() const { return isLccl_; }
     inline float GetDuration() const { return duration_; }
+    const std::map<std::string, std::string> &GetOpInfo() const { return opInfoMap_; }
+    uint64_t GetStartTime() const { return startTime_; }
     inline void SetOpName(const std::string& name) { opName_ = name; }
     inline void SetSoc(const std::string& soc) { soc_ = soc; }
     inline void ClearOpType() { opType_ = ' '; }
@@ -181,6 +183,7 @@ protected:
     std::shared_ptr<L2Cache> l2Cache_;
 
 private:
+    uint64_t startTime_ = 0;
     bool SaveOpBasicInfo(const std::string &outputPath);
     void HandleDuration(const std::string &outputPath);
     bool ParseBasicInfoFile(const std::string &filePath);

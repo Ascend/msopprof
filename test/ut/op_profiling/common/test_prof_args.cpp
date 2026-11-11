@@ -29,8 +29,11 @@
 #include "common/prof_args.h"
 #include "common/hal_helper.h"
 #include "common/runtime_helper.h"
+#include "filesystem.h"
+#include "json_defs.h"
 
 using namespace Common;
+using namespace Utility;
 
 TEST(ProfArgs, on_board_metrics_config_default_construct_expect_all_false)
 {
@@ -473,4 +476,217 @@ TEST(ResolveSet, set_empty_value_expect_failure)
     std::string errMsg;
     ASSERT_FALSE(ResolveSet("", metrics, ChipType::ASCEND910B, errMsg));
     ASSERT_NE(errMsg.find("--set must be one of"), std::string::npos);
+}
+
+/**
+ * | 用例集 | CustomInputConfigTest
+ * |测试函数| CustomInputConfig::Load
+ * | 用例名 | empty_path_expect_defaults
+ * |用例描述| 测试空路径时使用默认显示配置，且不开启流水合并。
+ */
+TEST(CustomInputConfigTest, empty_path_expect_defaults) {
+    auto &config = CustomInputConfig::Instance();
+    config.Reset();
+    std::string msg;
+    ASSERT_TRUE(config.Load("", msg));
+    EXPECT_TRUE(config.GetMc2TraceConfig().enableBlockTime);
+    EXPECT_TRUE(config.GetMc2TraceConfig().descIdDisplay.empty());
+    EXPECT_TRUE(config.GetTimelineMergeConfigs().empty());
+    config.Reset();
+}
+
+/**
+ * | 用例集 | CustomInputConfigTest
+ * |测试函数| CustomInputConfig::Load
+ * | 用例名 | decimal_and_hex_ids_expect_parsed
+ * |用例描述| 测试descid_display解析十进制和十六进制key正确。
+ */
+TEST(CustomInputConfigTest, decimal_and_hex_ids_expect_parsed) {
+    auto &config = CustomInputConfig::Instance();
+    config.Reset();
+    nlohmann::json descIdJson;
+    descIdJson["65536"] = "NOP";
+    descIdJson["0x10"] = "LOAD";
+    descIdJson["0x10001"] = "STORE";
+    descIdJson["0X10002"] = "COMPUTE";
+    const std::string path = "test/ut/resources/custom_input_ids.json";
+    const nlohmann::json input = {{"mc2_trace_config", {{"descid_display", descIdJson}}}};
+    ASSERT_TRUE(WriteFileByStream(path, input.dump()));
+    std::string msg;
+    ASSERT_TRUE(config.Load(path, msg));
+    const auto &names = config.GetMc2TraceConfig().descIdDisplay;
+    EXPECT_EQ(names.size(), 4U);
+    EXPECT_EQ(names.at(65536), "NOP");
+    EXPECT_EQ(names.at(16), "LOAD");
+    EXPECT_EQ(names.at(65537), "STORE");
+    EXPECT_EQ(names.at(65538), "COMPUTE");
+    RemoveAll(path);
+    config.Reset();
+}
+
+/**
+ * | 用例集 | CustomInputConfigTest
+ * |测试函数| CustomInputConfig::Load
+ * | 用例名 | invalid_key_expect_reject_whole_config
+ * |用例描述| 测试无效key导致整份配置失败，不发布部分有效的显示名称。
+ */
+TEST(CustomInputConfigTest, invalid_key_expect_reject_whole_config) {
+    auto &config = CustomInputConfig::Instance();
+    config.Reset();
+    nlohmann::json descIdJson;
+    descIdJson["abc"] = "INVALID_KEY";
+    descIdJson["0x"] = "EMPTY_HEX";
+    descIdJson["1"] = "VALID_NUM";
+    const std::string path = "test/ut/resources/custom_input_bad_key.json";
+    const nlohmann::json input = {{"mc2_trace_config", {{"descid_display", descIdJson}}}};
+    ASSERT_TRUE(WriteFileByStream(path, input.dump()));
+    std::string msg;
+    EXPECT_FALSE(config.Load(path, msg));
+    EXPECT_NE(msg.find("key"), std::string::npos);
+    EXPECT_TRUE(config.GetMc2TraceConfig().descIdDisplay.empty());
+    RemoveAll(path);
+    config.Reset();
+}
+
+/**
+ * | 用例集 | CustomInputConfigTest
+ * |测试函数| CustomInputConfig::Load
+ * | 用例名 | invalid_value_expect_reject_whole_config
+ * |用例描述| 测试非字符串、非法字符和超长名称均导致配置失败。
+ */
+TEST(CustomInputConfigTest, invalid_value_expect_reject_whole_config) {
+    auto &config = CustomInputConfig::Instance();
+    const std::string path = "test/ut/resources/custom_input_bad_value.json";
+    for (const auto &value :
+        {nlohmann::json(123), nlohmann::json("invalid@chars!"), nlohmann::json(std::string(65, 'a'))}) {
+        config.Reset();
+        const nlohmann::json input = {{"mc2_trace_config", {{"descid_display", {{"0", "VALID_VALUE"}, {"1", value}}}}}};
+        ASSERT_TRUE(WriteFileByStream(path, input.dump()));
+        std::string msg;
+        EXPECT_FALSE(config.Load(path, msg));
+        EXPECT_FALSE(msg.empty());
+        EXPECT_TRUE(config.GetMc2TraceConfig().descIdDisplay.empty());
+    }
+    RemoveAll(path);
+    config.Reset();
+}
+
+/**
+ * | 用例集 | CustomInputConfigTest
+ * |测试函数| CustomInputConfig::Load
+ * | 用例名 | timeline_merge_config_expect_parsed
+ * |用例描述| 测试合法timeline_merge_config按顺序解析，名称及计数边界值被正确保留。
+ */
+TEST(CustomInputConfigTest, timeline_merge_config_expect_parsed) {
+    auto &config = CustomInputConfig::Instance();
+    config.Reset();
+    const nlohmann::json selections = nlohmann::json::array(
+        {{{"kernel_name", "kernel*"}, {"mstx_name", "range1"}, {"rank_count", 2}, {"launch_count", 1}},
+            {{"kernel_name", "matmul_0"}, {"mstx_name", "range2"}, {"rank_count", 64}, {"launch_count", 50}}});
+    const std::string path = "test/ut/resources/custom_input_timeline_merge.json";
+    const nlohmann::json input = {{"timeline_merge_config", selections}};
+    ASSERT_TRUE(WriteFileByStream(path, input.dump()));
+    std::string msg;
+    ASSERT_TRUE(config.Load(path, msg));
+    const auto &configs = config.GetTimelineMergeConfigs();
+    ASSERT_EQ(configs.size(), 2U);
+    EXPECT_EQ(configs[0].kernelName, "kernel*");
+    EXPECT_EQ(configs[0].mstxName, "range1");
+    EXPECT_EQ(configs[0].rankCount, 2U);
+    EXPECT_EQ(configs[0].launchCount, 1U);
+    EXPECT_EQ(configs[1].kernelName, "matmul_0");
+    EXPECT_EQ(configs[1].mstxName, "range2");
+    EXPECT_EQ(configs[1].rankCount, 64U);
+    EXPECT_EQ(configs[1].launchCount, 50U);
+    RemoveAll(path);
+    config.Reset();
+}
+
+/**
+ * | 用例集 | CustomInputConfigTest
+ * |测试函数| CustomInputConfig::Load
+ * | 用例名 | timeline_merge_config_invalid_structure_expect_reject
+ * |用例描述| 测试timeline_merge_config非数组、元素非对象及超过64条时整份配置失败。
+ */
+TEST(CustomInputConfigTest, timeline_merge_config_invalid_structure_expect_reject) {
+    auto &config = CustomInputConfig::Instance();
+    const std::string path = "test/ut/resources/custom_input_merge_structure.json";
+    const nlohmann::json valid = {
+        {"kernel_name", "kernel*"}, {"mstx_name", "range1"}, {"rank_count", 2}, {"launch_count", 1}};
+    const std::vector<nlohmann::json> badInputs = {
+        {{"timeline_merge_config", false}},
+        {{"timeline_merge_config", nlohmann::json::object()}},
+        {{"timeline_merge_config", nlohmann::json::array({1})}},
+        {{"timeline_merge_config", nlohmann::json(std::vector<nlohmann::json>(65, valid))}},
+    };
+    for (const auto &input : badInputs) {
+        config.Reset();
+        ASSERT_TRUE(WriteFileByStream(path, input.dump()));
+        std::string msg;
+        EXPECT_FALSE(config.Load(path, msg));
+        EXPECT_FALSE(msg.empty());
+        EXPECT_TRUE(config.GetTimelineMergeConfigs().empty());
+    }
+    RemoveAll(path);
+    config.Reset();
+}
+
+/**
+ * | 用例集 | CustomInputConfigTest
+ * |测试函数| CustomInputConfig::Load
+ * | 用例名 | timeline_merge_config_invalid_field_expect_reject
+ * |用例描述| 测试名称空串、超长、非法字符、缺失以及计数越界、非整数时整份配置失败。
+ */
+TEST(CustomInputConfigTest, timeline_merge_config_invalid_field_expect_reject) {
+    auto &config = CustomInputConfig::Instance();
+    const std::string path = "test/ut/resources/custom_input_merge_field.json";
+    const auto selection = []() {
+        return nlohmann::json{
+            {"kernel_name", "kernel*"}, {"mstx_name", "range1"}, {"rank_count", 2}, {"launch_count", 1}};
+    };
+    std::vector<nlohmann::json> badItems;
+    for (const std::string field : {"kernel_name", "mstx_name"}) {
+        for (const auto &bad : {nlohmann::json(1), nlohmann::json(""), nlohmann::json("bad|name"),
+                 nlohmann::json(std::string(1023, 'x'))}) {
+            auto item = selection();
+            item[field] = bad;
+            badItems.push_back(item);
+        }
+        auto item = selection();
+        item.erase(field);
+        badItems.push_back(item);
+    }
+    auto starMstx = selection();
+    starMstx["mstx_name"] = "range*";
+    badItems.push_back(starMstx);
+    for (const std::string field : {"rank_count", "launch_count"}) {
+        for (const auto &bad :
+            {nlohmann::json(0), nlohmann::json(-1), nlohmann::json(1.5), nlohmann::json("2"), nlohmann::json(true)}) {
+            auto item = selection();
+            item[field] = bad;
+            badItems.push_back(item);
+        }
+        auto item = selection();
+        item.erase(field);
+        badItems.push_back(item);
+    }
+    auto rankTooLarge = selection();
+    rankTooLarge["rank_count"] = 65;
+    badItems.push_back(rankTooLarge);
+    auto rankTooSmall = selection();
+    rankTooSmall["rank_count"] = 1;
+    badItems.push_back(rankTooSmall);
+    auto launchTooLarge = selection();
+    launchTooLarge["launch_count"] = 51;
+    badItems.push_back(launchTooLarge);
+    for (const auto &item : badItems) {
+        config.Reset();
+        const nlohmann::json input = {{"timeline_merge_config", nlohmann::json::array({item})}};
+        ASSERT_TRUE(WriteFileByStream(path, input.dump()));
+        std::string msg;
+        EXPECT_FALSE(config.Load(path, msg)) << item.dump();
+        EXPECT_TRUE(config.GetTimelineMergeConfigs().empty());
+    }
+    RemoveAll(path);
+    config.Reset();
 }

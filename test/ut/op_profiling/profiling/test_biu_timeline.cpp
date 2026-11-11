@@ -15,9 +15,14 @@
  * ------------------------------------------------------------------------- */
 
 #include <gtest/gtest.h>
+#include <cstdlib>
+#include <cstring>
+#include <fstream>
+#include <iterator>
 #include "mockcpp/mockcpp.hpp"
 
 #include "filesystem.h"
+#include "common/hal_helper.h"
 #define private public
 #define protected public
 #include "profiling/device/data_visualize/biu_timeline.h"
@@ -71,15 +76,134 @@ protected:
         MOCKER(&IsReadable)
             .stubs()
             .will(returnValue(true));
-        MOCKER(&GetFileSize)
-            .stubs()
-            .will(returnValue(size_t(2097160)));
+        MOCKER(&GetFileSize).stubs().will(returnValue(totalBin.size()));
         MOCKER(&ReadBinFileByMultiStruct)
             .stubs()
             .with(any(), any(), any(), outBound(totalBin))
             .will(returnValue(true));
     }
+    vector<BiuPerfInfo> StartRecords(uint64_t cycle) {
+        vector<BiuPerfInfo> records;
+        for (uint16_t part = 0; part < 4; ++part) {
+            records.push_back({static_cast<uint16_t>(cycle >> (part * 16)), 0xe5a5});
+        }
+        return records;
+    }
+    vector<char> Block(uint16_t core, uint16_t type, const vector<BiuPerfInfo> &records) {
+        InstrProfHeadInfo header;
+        header.coreId = core;
+        header.coreType = type;
+        header.validLen = records.size() * sizeof(BiuPerfInfo);
+        vector<char> block(sizeof(header) + DATA_BUFFER_SIZE, 0);
+        std::memcpy(block.data(), &header, sizeof(header));
+        std::memcpy(block.data() + sizeof(header), records.data(), header.validLen);
+        return block;
+    }
 };
+
+/**
+ * | 用例集 | BiuTimelineTest
+ * |测试函数| BiuTimeline::ParseStartCycle() + TimelineToJson()
+ * | 用例名 | test_ParseStartCycle_receive_order_interleaved_blocks
+ * |用例描述| 测试64位起始cycle按接收顺序拼接，跨块和跨通道交错时各通道对齐到最小cycle，ts换算正确
+ */
+TEST_F(BiuTimelineTest, test_ParseStartCycle_receive_order_interleaved_blocks) {
+    const uint64_t base = 0x123456789abcdef0ULL;
+    auto later = StartRecords(base + FREQ_DEFAULT);
+    later[0].biuInfo = 0xefff;
+    auto bin = Block(3, 1, vector<BiuPerfInfo>(later.begin(), later.begin() + 2));
+    auto earlier = StartRecords(base);
+    earlier.push_back({10, 0xf001});
+    earlier.push_back({20, 0xf000});
+    const auto first = Block(0, 1, earlier);
+    bin.insert(bin.end(), first.begin(), first.end());
+    vector<BiuPerfInfo> remaining(later.begin() + 2, later.end());
+    remaining.push_back({10, 0xf001});
+    remaining.push_back({20, 0xf000});
+    const auto second = Block(3, 1, remaining);
+    bin.insert(bin.end(), second.begin(), second.end());
+    MockFileOperations(bin);
+    PipeBiuTimeline parser;
+    ASSERT_TRUE(parser.ParseSingleBiuTimeStamps("timeline.bin.0"));
+    EXPECT_EQ(parser.GetMinCycle(), base);
+    EXPECT_EQ(parser.channelStartCycleMap_[10].cycle, base + FREQ_DEFAULT);
+    EXPECT_EQ(parser.channelCycleMap_[10], 30U);
+    MOCKER(&BiuTimeline::ParseBiuTimeStamps).stubs().will(returnValue(true));
+    int64_t freq = FREQ_DEFAULT;
+    MOCKER(&Common::HalHelper::GetAicoreFreq).stubs().with(outBound(freq)).will(returnValue(true));
+    ASSERT_TRUE(parser.TimelineToJson("unused"));
+    const auto trace = parser.GetTimelineJson();
+    const auto &events = trace["traceEvents"];
+    ASSERT_EQ(events.size(), 2U);
+    EXPECT_FLOAT_EQ(events[0]["ts"].get<float>(), 10.0f / FREQ_DEFAULT);
+    EXPECT_FLOAT_EQ(events[1]["ts"].get<float>(), 1.0f + 10.0f / FREQ_DEFAULT);
+    EXPECT_EQ(events[0]["dur"], events[1]["dur"]);
+}
+
+/**
+ * | 用例集 | BiuTimelineTest
+ * |测试函数| BiuTimeline::ParseSingleBiuTimeStamps()
+ * | 用例名 | test_ParseSingleBiuTimeStamps_cube_vector_share_channel_mapping
+ * |用例描述| 测试cube、mix、vector三种通道共用coreId*3+coreType的通道映射，解析起始cycle正常
+ */
+TEST_F(BiuTimelineTest, test_ParseSingleBiuTimeStamps_cube_vector_share_channel_mapping) {
+    const uint64_t base = (1ULL << 60) + 1000;
+    vector<char> bin;
+    for (uint16_t type = 0; type < 3; ++type) {
+        auto records = StartRecords(base + type * 10);
+        records.push_back({10, 0xf001});
+        records.push_back({20, 0xf000});
+        const auto block = Block(2, type, records);
+        bin.insert(bin.end(), block.begin(), block.end());
+    }
+    MockFileOperations(bin);
+    PipeBiuTimeline parser;
+    ASSERT_TRUE(parser.ParseSingleBiuTimeStamps("timeline.bin.0"));
+    for (uint32_t type = 0; type < 3; ++type) {
+        EXPECT_EQ(parser.channelStartCycleMap_[6 + type].cycle, base + type * 10);
+        ASSERT_EQ(parser.timelineVec_[6 + type].size(), 1U);
+    }
+    EXPECT_EQ(parser.GetMinCycle(), base);
+}
+
+/**
+ * | 用例集 | BiuTimelineTest
+ * |测试函数| BiuTimeline::ParseBiuTimeStamps
+ * | 用例名 | numeric_file_suffix_expect_file_two_before_file_ten
+ * |用例描述| .2和.10分别保存低两片和高两片，目录先返回.10再返回.2时仍按数字顺序读取。
+ */
+TEST_F(BiuTimelineTest, numeric_file_suffix_expect_file_two_before_file_ten) {
+    const uint64_t base = 0x1111222233334444ULL;
+    const auto records = StartRecords(base);
+    const auto low = Block(0, 1, vector<BiuPerfInfo>(records.begin(), records.begin() + 2));
+    const auto high = Block(0, 1, vector<BiuPerfInfo>(records.begin() + 2, records.end()));
+    char directory[] = "/tmp/msopprof_biu_order_XXXXXX";
+    ASSERT_NE(mkdtemp(directory), nullptr);
+    struct TemporaryDirectory {
+        string path;
+        ~TemporaryDirectory() { RemoveAll(path); }
+    } temporary{directory};
+    ASSERT_TRUE(MkdirRecusively(temporary.path + "/dump"));
+    for (uint32_t index : {2U, 10U}) {
+        const auto &data = index == 2 ? low : high;
+        std::ofstream file(temporary.path + "/dump/timeline.bin." + std::to_string(index), std::ios::binary);
+        ASSERT_TRUE(file.is_open());
+        file.write(data.data(), data.size());
+        file.close();
+        ASSERT_FALSE(file.fail());
+    }
+    using FileIterator = std::back_insert_iterator<vector<string>>;
+    MOCKER(&Utility::ListDir<FileIterator>).stubs().will(invoke(+[](const string &, FileIterator out) {
+        *out++ = "timeline.bin.10";
+        *out++ = "timeline.bin.2";
+        return true;
+    }));
+    PipeBiuTimeline parser;
+    parser.outputPath_ = temporary.path;
+    ASSERT_TRUE(parser.ParseBiuTimeStamps());
+    EXPECT_EQ(parser.GetMinCycle(), base);
+    EXPECT_EQ(parser.channelStartCycleMap_.at(1).partCount, 4U);
+}
 
 /**
 /* | 用例集 | BiuTimelineTest

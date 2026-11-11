@@ -65,7 +65,6 @@ OpProf::OpProf(const Common::ProfArgs &args)
     cmd_ = args.cmd;
     output_ = args.argOutput;
     config_ = args.argConfig;
-    customDotJson_ = args.argCustomInput;
     kernelConfig_ = args.kernelConfig;
     ChipProductType chipType = GetChipType(args);
     if (args.runMode == "simulator" && chipType == ChipProductType::ASCEND950_SERIES) {

@@ -22,7 +22,6 @@
 #include "log.h"
 #include "number_operation.h"
 #include "ustring.h"
-#include "common/hal_helper.h"
 #include "profiling/op_prof_data_parse.h"
 #include "parse/data_parser/parser_utils/parse_pc_code.h"
 
@@ -358,7 +357,7 @@ json MC2TimelineParser::BuildAicoreDot(const OperationInfo& info, const string& 
         * TIME_CONVERSION;
     resultItem["name"] = operationType;
     resultItem["ph"] = "X";
-    auto [core, _] = GetGroupName(info.type, static_cast<uint16_t>(info.blockId));
+    const auto core = GetGroupName(info.type, static_cast<uint16_t>(info.blockId)).first;
     resultItem["pid"] = BLOCK;
     resultItem["tid"] = core;
     resultItem["ts"] = static_cast<float>(SafeSub(info.startSyscyc, minSysCyc_, location, false)) / aicpuFreq_
@@ -599,10 +598,6 @@ bool MC2TimelineParser::TimelineToJson(const string &outputPath)
     ChipProductType chipType = GetChipTypeSeries();
     if (chipType != ChipProductType::ASCEND910B_SERIES && chipType != ChipProductType::ASCEND910_93_SERIES) {
         return false;
-    }
-    if (!Common::HalHelper::Instance().GetTaskSchedulerFreq(aicpuFreq_)) {
-        LogWarn("Get task scheduler frequency failed. Use default value instead");
-        aicpuFreq_ = FREQ;
     }
     outputPath_ = outputPath;
     BlockSystemTimeType blockSystemTimes;

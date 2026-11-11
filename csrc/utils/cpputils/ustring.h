@@ -221,6 +221,7 @@ std::string ReplaceSubStr(const std::string& resourceString, const std::string& 
                           const std::string& newString, uint32_t count = UINT32_MAX);
 bool MatchWithPatterns(const std::string &str, const std::vector<std::regex> &patterns);
 bool StringMatch(const std::string &str, const std::string &subStr);
+std::string TruncateString(const std::string &str, size_t maxLength);
 } // namespace Utility
 
 #endif  // __CPPUTILS_STRING_H__

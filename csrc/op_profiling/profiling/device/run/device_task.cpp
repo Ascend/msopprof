@@ -44,7 +44,7 @@ bool DeviceTask::Run() {
     if (!PreProcess()) {
         return false;
     }
-    bool taskRes;
+    bool taskRes = false;
 
     DBIParser dbiParser(outputPath);
     ProfStub::InjectionEvent::Instance().RegisterPacketHandler(
@@ -135,6 +135,19 @@ uint32_t DeviceTask::GetReplayTimes() {
     return replayTimes;
 }
 
+bool DeviceTask::InitTimelineMergeConfig() {
+    const auto &configs = CustomInputConfig::Instance().GetTimelineMergeConfigs();
+    for (size_t index = 0; index < configs.size(); ++index) {
+        auto &selection = profMessage_.timelineMergeConfigs[index];
+        if (strcpy_s(selection.mstxName, sizeof(selection.mstxName), configs[index].mstxName.c_str()) != 0 ||
+            strcpy_s(selection.kernelName, sizeof(selection.kernelName), configs[index].kernelName.c_str()) != 0) {
+            LogError("Copy timeline merge config to the prof message failed.");
+            return false;
+        }
+    }
+    return true;
+}
+
 bool DeviceTask::PreProcess() {
     if (!CreateTaskDir(outputPath)) {
         return false;
@@ -177,6 +190,9 @@ bool DeviceTask::PreProcess() {
         std::copy(L2_CACHE_EVENTS_FOR_A2_A3.begin(), L2_CACHE_EVENTS_FOR_A2_A3.end(), profMessage_.l2CachePmu);
     }
     profMessage_.replayMode = static_cast<uint8_t>(replayMode_);
+    if (!InitTimelineMergeConfig()) {
+        return false;
+    }
     replayCount_ = GetReplayTimes();
 
     if (opRunMode == OpRunnerMode::RUN_KERNEL) {

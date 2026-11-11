@@ -16,14 +16,19 @@
 
 #include "device_data_parse.h"
 #include <atomic>
+#include <algorithm>
+#include <tuple>
 #include <exception>
 #include <functional>
 #include <chrono>
 #include <thread>
+#include <sstream>
 #include "thread_pool.h"
+#include "data_save.h"
 #include "smart_pointer.h"
 #include "log.h"
 #include "filesystem.h"
+#include "common/visualize.h"
 #include "parse/plugin/plugin_manager.h"
 #include "parse/data_calculator/compute_load_calculator.h"
 #include "include/opprof/DbiDefs.h"
@@ -35,9 +40,8 @@ using namespace std;
 
 namespace Profiling {
 DeviceDataParse::DeviceDataParse(Common::ChipType chipType, PmuEventsId pmuEventsId, ProfMetricsAbilityConfig metrics,
-    const std::string &kernelNameFilter, const std::string &customDotJson)
-    : DataParse(std::move(metrics), kernelNameFilter), chipType_(chipType), pmuEventsId_(pmuEventsId),
-      customDotJson_(customDotJson) {
+    const std::string &kernelNameFilter)
+    : DataParse(std::move(metrics), kernelNameFilter), chipType_(chipType), pmuEventsId_(pmuEventsId) {
     // register different profiling data handler
     chipInfoMap_ = {{ChipType::ASCEND950, {MetricHeaderForA5, Common::AIC_EVENTS_FOR_A5,
                         Common::AIV_EVENTS_FOR_A5}},
@@ -142,8 +146,8 @@ unique_ptr<RoofLine> GetRoofLineObj(unique_ptr<DataHandler> &handler, shared_ptr
     return roofLinePtr;
 }
 
-unique_ptr<::Visualize::TimelineParser> GetTimelineObj(unique_ptr<DataHandler> &handler,
-    shared_ptr<OpBasicInfo> &opBasicInfoObj, shared_ptr<BasicPmu> &basicPmuObj, const std::string &customDotJson) {
+unique_ptr<::Visualize::TimelineParser> GetTimelineObj(
+    unique_ptr<DataHandler> &handler, shared_ptr<OpBasicInfo> &opBasicInfoObj, shared_ptr<BasicPmu> &basicPmuObj) {
     unique_ptr<::Visualize::TimelineParser> parserPtr;
     if (handler == nullptr || opBasicInfoObj == nullptr || basicPmuObj == nullptr) {
         LogWarn("Get MC2 timeline failed because of nullptr");
@@ -157,7 +161,7 @@ unique_ptr<::Visualize::TimelineParser> GetTimelineObj(unique_ptr<DataHandler> &
         handler->GetMinLcclTimeCyc(), opBasicInfoObj, basicPmuObj);
     } else {
         parserPtr = Utility::MakeUnique<::Visualize::AicoreTimelineParser>(
-            handler->GetMinTimeCyc(), opBasicInfoObj, basicPmuObj, customDotJson);
+            handler->GetMinTimeCyc(), opBasicInfoObj, basicPmuObj);
     }
     return parserPtr;
 }
@@ -209,7 +213,7 @@ bool DeviceDataParse::ParseExactKernelData(const string &path, const string &ker
     auto storageAccessObj = GetStorageAccessObj(chipType_, opBasicInfoObj, basicPmuObj, pmuCalculatorObj);
     auto occupancyObj = GetOccupancyObj(chipType_, opBasicInfoObj, basicPmuObj);
     auto roofLineObj = GetRoofLineObj(handler, opBasicInfoObj, basicPmuObj, pmuCalculatorObj);
-    auto timelineObj = GetTimelineObj(handler, opBasicInfoObj, basicPmuObj, customDotJson_);
+    auto timelineObj = GetTimelineObj(handler, opBasicInfoObj, basicPmuObj);
     auto biuTimelineObj = GetBiuTimelineObj(metrics_);
     auto cachelineHeatMapObj = GetCachelineHeatMapObj(handler);
     if (!storageAccessObj || !occupancyObj || !roofLineObj || !timelineObj || !biuTimelineObj || !cachelineHeatMapObj) {
@@ -229,6 +233,7 @@ bool DeviceDataParse::ParseExactKernelData(const string &path, const string &ker
         return false;
     }
     dataVisualize->GenerateVisualizeData(dataCenter, parserConfig.outputPath, metrics_);
+    RecordSummary(*handler, path, dataVisualize->GetMergeTimelineData());
     storageAccessObj->ShowAdviceInfo();    // 展示调优建议
     opBasicInfoObj->ShowOpBasicInfo();    // 展示算子基础信息
     return res;
@@ -395,10 +400,309 @@ bool DeviceDataParse::Execute(std::string dataPath)
         return false;
     }
     ParseKernelTasks();
+    bool summarySaved = SaveSummary(dataPath);
     if (IsExist(tmpPath) && (Utility::Log::GetLog().GetLogLv() > Utility::LogLv::DEBUG)) {
         RemoveAll(tmpPath);
     }
-    return ExecuteSummary(dataPath);
+    return ExecuteSummary(dataPath) && summarySaved;
+}
+
+void DeviceDataParse::RecordSummary(
+    const DataHandler &handler, const std::string &path, const MergeTimelineData &timeline) {
+    const auto &info = handler.GetOpInfo();
+    const auto device = info.find("Device Id");
+    uint32_t deviceId = 0;
+    if (device == info.end() || !StringToNum(device->second, deviceId)) {
+        LogWarn("Skipping summary row without valid device id: %s", path.c_str());
+        return;
+    }
+    std::lock_guard<std::mutex> lock(summaryMutex_);
+    if (summaryHeader_.empty()) {
+        summaryHeader_ = handler.opBasicHeader;
+        // "Device Id"放首列
+        const auto column = std::find(summaryHeader_.begin(), summaryHeader_.end(), "Device Id");
+        if (column != summaryHeader_.end()) {
+            std::rotate(summaryHeader_.begin(), column, column + 1);
+        }
+    }
+    summaryRows_.push_back({deviceId, handler.GetStartTime(), CsvParser::AddRow(summaryHeader_, info), path});
+    uint64_t executionIndex = 0;
+    const auto name = info.find("Op Name");
+    if (name == info.end() || timeline.timelineJson.empty()) {
+        return;
+    }
+    // 有custom_input合并配置时优先按记录目录配组，否则只自动合并AICPU通信的MC2和LCCL算子
+    const int64_t cycleFreq = timeline.isCommunication ? handler.taskSchedulerFreq_ : handler.aicoreFreq_;
+    if (!CustomInputConfig::Instance().GetTimelineMergeConfigs().empty()) {
+        timelineInputsByPath_[path] = {name->second, deviceId, 0, timeline, cycleFreq};
+    } else if (timeline.isCommunication && (handler.GetMC2Flag() || handler.GetLcclFlag()) &&
+        StringToNum(GetLastFile(path), executionIndex)) {
+        timelineInputs_.push_back({name->second, deviceId, executionIndex, timeline, cycleFreq});
+    }
+}
+
+static bool GetStartTime(const std::vector<TimelineInput> &inputs, uint64_t &startTime) {
+    startTime = UINT64_MAX;
+    for (const auto &input : inputs) {
+        const auto &trace = input.timeline.timelineJson;
+        if (input.timeline.minCycle == UINT64_MAX || input.cycleFreq <= 0 ||
+            input.timeline.isCommunication != inputs.front().timeline.isCommunication || !trace.is_object() ||
+            !trace.contains("traceEvents") || !trace["traceEvents"].is_array() || trace["traceEvents"].empty()) {
+            return false;
+        }
+        startTime = std::min(startTime, input.timeline.minCycle);
+    }
+    return startTime != UINT64_MAX;
+}
+
+static std::string GetTimelineDirectoryName(const std::string &name, const std::string &mstxName = "") {
+    // 各组成保留前120字符，避免合并后再截断时 mstx_name 被整体丢弃；序号后缀由调用方追加。
+    constexpr size_t maxComponentLength = 120;
+    const auto truncatedName = Utility::TruncateString(name, maxComponentLength);
+    if (mstxName.empty()) {
+        return truncatedName;
+    }
+    return truncatedName + "_" + Utility::TruncateString(mstxName, maxComponentLength);
+}
+
+json DeviceDataParse::MergeTimelineGroup(std::vector<TimelineInput> inputs) {
+    uint64_t startTime = 0;
+    if (inputs.size() < 2 || !GetStartTime(inputs, startTime)) {
+        return json();
+    }
+    std::sort(inputs.begin(), inputs.end(),
+        [](const TimelineInput &a, const TimelineInput &b) { return a.deviceId < b.deviceId; });
+    json events = json::array();
+    for (auto &input : inputs) {
+        const std::string prefix = "Device " + std::to_string(input.deviceId);
+        // 先求整数基准差，通算频率为kHz，pipe/instr频率为MHz，统一换算为微秒
+        const uint64_t cycleDelta = input.timeline.minCycle - startTime;
+        const double conversion = input.timeline.isCommunication ? TIME_CONVERSION : 1.0;
+        const double timeOffset = static_cast<double>(cycleDelta) / input.cycleFreq * conversion;
+        for (auto &event : input.timeline.timelineJson["traceEvents"]) {
+            if (!event.is_object()) {
+                continue;
+            }
+            const bool metadata = event.value("ph", json()) == "M";
+            if (!metadata && event.contains("ts")) {
+                if (!event["ts"].is_number()) {
+                    continue;
+                }
+                const double ts = event["ts"].get<double>() + timeOffset;
+                event["ts"] = ts;
+            }
+            event["pid"] = prefix + " | " + event["pid"].get<std::string>();
+            events.push_back(std::move(event));
+        }
+    }
+    // 复用首卡根字段
+    json result = std::move(inputs.front().timeline.timelineJson);
+    result["traceEvents"] = std::move(events);
+    return result;
+}
+
+static TimelineGroups GroupTimelines(std::vector<TimelineInput> inputs) {
+    // 按算子名称和执行编号对各卡流水自动配组
+    std::map<std::pair<std::string, uint64_t>, std::vector<TimelineInput>> groups;
+    for (auto &input : inputs) {
+        groups[{input.opName, input.executionIndex}].push_back(std::move(input));
+    }
+    TimelineGroups result;
+    for (auto &group : groups) {
+        result.push_back(std::move(group.second));
+    }
+    return result;
+}
+
+bool DeviceDataParse::MergeTimelines(TimelineGroups groups, const std::string &summaryPath) {
+    // 根据分组合并流水图，兼容通算、pipe、instr流水
+    bool res = true;
+    size_t mergedCount = 0;
+    for (auto &members : groups) {
+        if (members.size() < 2) {
+            continue;
+        }
+        const auto name = members.front().opName;
+        const auto executionIndex = members.front().executionIndex;
+        const auto directoryName =
+            members.front().mergeDirectory.empty() ? GetTimelineDirectoryName(name) : members.front().mergeDirectory;
+        const auto mergedTimelineJson = MergeTimelineGroup(std::move(members));
+        if (mergedTimelineJson.is_null()) {
+            LogWarn("Failed to merge timeline for operator [%s], execution [%llu].", name.c_str(),
+                static_cast<unsigned long long>(executionIndex));
+            res = false;
+            continue;
+        }
+        const auto directory = JoinPath({summaryPath, directoryName, std::to_string(executionIndex)});
+        if (!MkdirRecusively(directory)) {
+            res = false;
+            continue;
+        }
+        const auto tracePath = JoinPath({directory, "trace.json"});
+        if (!WriteFileByStream(tracePath, mergedTimelineJson.dump())) {
+            res = false;
+            continue;
+        }
+        Utility::Visualize::WriteBin<Utility::VisualizeType::TRACE>(directory, mergedTimelineJson);
+        ++mergedCount;
+    }
+    if (mergedCount != 0) {
+        LogInfo("Saved %zu merged timelines in %s.", mergedCount, summaryPath.c_str());
+    }
+    return res;
+}
+
+void DeviceDataParse::ReadTimelineMstxPaths(const std::string &dataPath, std::vector<TimelineMstxPaths> &recorded) {
+    const auto path = JoinPath({dataPath, TMP_DUMP, "timeline_mstx.json"});
+    std::ifstream stream(path);
+    if (!stream.is_open()) {
+        LogWarn("Cannot open timeline mstx records: %s", path.c_str());
+        return;
+    }
+    std::string line;
+    while (std::getline(stream, line)) {
+        // 文件每行一条JSON记录，字段无效时告警并跳过，继续读取后续记录
+        const auto record = json::parse(line, nullptr, false);
+        if (!record.is_object() || !record.contains("config_index") || !record.contains("device_id") ||
+            !record.contains("output_path")) {
+            LogWarn("Invalid timeline mstx record in %s: missing required fields.", path.c_str());
+            continue;
+        }
+        const auto &configIndex = record["config_index"];
+        const auto &deviceId = record["device_id"];
+        if (!configIndex.is_number_integer() || configIndex < 0 || configIndex >= recorded.size()) {
+            LogWarn("Invalid timeline mstx record in %s: invalid config_index.", path.c_str());
+            continue;
+        }
+        if (!deviceId.is_number_integer() || deviceId < 0 || deviceId > UINT32_MAX) {
+            LogWarn("Invalid timeline mstx record in %s: invalid device_id.", path.c_str());
+            continue;
+        }
+        if (!record["output_path"].is_string()) {
+            LogWarn("Invalid timeline mstx record in %s: output_path must be a string.", path.c_str());
+            continue;
+        }
+        auto output = record["output_path"].get<std::string>();
+        if (output.empty()) {
+            continue;
+        }
+        if (GetLastFile(output) == "dump") {
+            RollbackPath(output, 1);
+        }
+        // 按配置、设备保存算子目录，保留每卡记录顺序，供后续按相同位置配组
+        recorded[configIndex.get<size_t>()][deviceId.get<uint32_t>()].push_back(std::move(output));
+    }
+}
+
+static std::vector<TimelineInput> MatchRecordedTimelines(
+    const TimelineMstxPaths &devicePaths, size_t index, const TimelineInputsByPath &inputs, const std::string &prefix) {
+    std::vector<TimelineInput> matched;
+    // 取各卡目录列表的第index项，按目录查找流水并核对设备号
+    for (const auto &device : devicePaths) {
+        const auto output = index < device.second.size() ? device.second[index] : "";
+        const auto input = inputs.find(output);
+        if (output.empty() || input == inputs.end() || input->second.deviceId != device.first) {
+            LogWarn("%slaunch %zu: missing valid single-card timeline for device%u [%s].", prefix.c_str(), index,
+                device.first, output.c_str());
+        } else {
+            matched.push_back(input->second);
+        }
+    }
+    return matched;
+}
+
+void DeviceDataParse::AddTimelineMstxGroups(const TimelineMergeConfig &config, const TimelineMstxPaths &devicePaths,
+    const TimelineInputsByPath &inputs, const std::string &prefix, const std::string &directoryName,
+    TimelineGroups &groups) {
+    if (devicePaths.empty()) {
+        LogWarn("%sno timeline mstx records matched mstx_name=%s, kernel_name=%s.", prefix.c_str(),
+            config.mstxName.c_str(), config.kernelName.c_str());
+        return;
+    }
+    if (devicePaths.size() > config.rankCount) {
+        LogWarn("%srank_count=%u, actual devices=%zu exceed the limit, skip this configuration.", prefix.c_str(),
+            config.rankCount, devicePaths.size());
+        return;
+    }
+    // 取各卡记录数的最大值，检查配置次数上限内的缺卡位置
+    size_t launchCount = 0;
+    std::ostringstream counts;
+    for (const auto &device : devicePaths) {
+        launchCount = std::max(launchCount, device.second.size());
+        counts << "device" << device.first << "=" << device.second.size() << " ";
+    }
+    // 按各卡列表的相同位置配组，仅保留所有设备流水齐全的组，执行编号统一为列表位置
+    size_t preparedCount = 0;
+    for (size_t index = 0; index < std::min(launchCount, static_cast<size_t>(config.launchCount)); ++index) {
+        auto matched = MatchRecordedTimelines(devicePaths, index, inputs, prefix);
+        if (matched.size() != devicePaths.size()) {
+            continue;
+        }
+        for (auto &input : matched) {
+            input.executionIndex = index;
+            input.mergeDirectory = directoryName;
+        }
+        groups.push_back(std::move(matched));
+        ++preparedCount;
+    }
+    if (preparedCount < config.launchCount) {
+        LogInfo("%slaunch_count=%u, prepared=%zu, captured records [%s].", prefix.c_str(), config.launchCount,
+            preparedCount, counts.str().c_str());
+    }
+}
+
+TimelineGroups DeviceDataParse::GetTimelineGroups(const std::string &dataPath) {
+    const auto &configs = CustomInputConfig::Instance().GetTimelineMergeConfigs();
+    if (configs.empty()) {
+        // AICPU通信的MC2或LCCL算子
+        return GroupTimelines(std::move(timelineInputs_));
+    }
+    std::vector<TimelineMstxPaths> recorded(configs.size());
+    ReadTimelineMstxPaths(dataPath, recorded);
+    TimelineGroups groups;
+    std::map<std::string, size_t> directoryCounts;
+    for (const auto &config : configs) {
+        ++directoryCounts[GetTimelineDirectoryName(config.kernelName, config.mstxName)];
+    }
+    std::map<std::string, size_t> directoryIndices;
+    for (size_t configIndex = 0; configIndex < configs.size(); ++configIndex) {
+        const auto prefix = "timeline_merge_config[" + std::to_string(configIndex) + "] ";
+        const auto &config = configs[configIndex];
+        const auto baseName = GetTimelineDirectoryName(config.kernelName, config.mstxName);
+        std::string suffix;
+        // 同名配置按其出现顺序加_0、_1等后缀，各配置的所有launch共用同一个一级目录。
+        if (directoryCounts[baseName] > 1) {
+            suffix = "_" + std::to_string(directoryIndices[baseName]++);
+        }
+        const auto directoryName = baseName + suffix;
+        AddTimelineMstxGroups(config, recorded[configIndex], timelineInputsByPath_, prefix, directoryName, groups);
+    }
+    return groups;
+}
+
+bool DeviceDataParse::SaveSummary(const std::string &dataPath) {
+    // 单条算子记录无需汇总或多卡合并，直接使用原有单算子产物
+    if (summaryRows_.size() <= 1) {
+        return true;
+    }
+    const auto directory = JoinPath({dataPath, "summary"});
+    if (!MkdirRecusively(directory)) {
+        return false;
+    }
+    if (!MergeTimelines(GetTimelineGroups(dataPath), directory)) {
+        LogWarn("Failed to save some merged timelines in %s.", directory.c_str());
+    }
+    auto rows = summaryRows_;
+    // 按"Device Id"和算子执行时间排序
+    std::stable_sort(rows.begin(), rows.end(), [](const SummaryRow &a, const SummaryRow &b) {
+        return std::make_tuple(a.deviceId, a.startTime == 0, a.startTime) <
+            std::make_tuple(b.deviceId, b.startTime == 0, b.startTime);
+    });
+    CsvData values;
+    for (const auto &row : rows) {
+        values.push_back(row.values);
+    }
+    return DataSave().CsvSave(JoinPath({directory, "summary.csv"}), summaryHeader_, values);
 }
 
 // classify all metric items to aic or aiv

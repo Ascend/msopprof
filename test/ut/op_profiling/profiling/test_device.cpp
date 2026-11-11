@@ -20,6 +20,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cstdlib>
 #include <fstream>
 #include <string>
 #include <sys/stat.h>
@@ -56,6 +57,7 @@ using namespace Common;
 using namespace std;
 using namespace Encode;
 using namespace Visualize;
+using nlohmann::json;
 
 namespace {
 constexpr size_t TEST_PC_SAMPLING_DATA_LEN = 16;
@@ -578,6 +580,7 @@ TEST(DeviceDataParse, Parse_data_expect_success_310P)
 TEST(DeviceDataParse, Parse_data_expect_success_A5)
 {
     GlobalMockObject::verify();
+    MOCKER(&RuntimeHelper::GetSocVersion).stubs().will(returnValue(std::string("Ascend950PR_9599")));
     MOCKER(&DataHandler::LoadOpBasicInfoTxtFile)
             .stubs()
             .will(returnValue(true));
@@ -2725,4 +2728,530 @@ TEST(CachePolicy, fifo_hit_then_insert_expect_refreshed_order_and_oldest_entry_e
     ASSERT_EQ(data.size(), 2U);
     EXPECT_EQ(data[0].id, 1U);
     EXPECT_EQ(data[1].id, 3U);
+}
+
+class TimelineSummaryTest : public testing::Test {
+protected:
+    void SetUp() override {
+        GlobalMockObject::verify();
+        CustomInputConfig::Instance().Reset();
+        char directory[] = "/tmp/msopprof_summary_XXXXXX";
+        const auto created = mkdtemp(directory);
+        ASSERT_NE(created, nullptr);
+        root_ = created;
+    }
+
+    void TearDown() override {
+        CustomInputConfig::Instance().Reset();
+        if (!root_.empty()) {
+            RemoveAll(root_);
+        }
+        GlobalMockObject::verify();
+    }
+
+    TimelineInput Input(uint32_t device, uint64_t index = 0) {
+        MergeTimelineData timeline;
+        timeline.minCycle = (1ULL << 60) + device * 5000;
+        timeline.isCommunication = true;
+        timeline.timelineJson = {{"profilingType", "op"}, {"schemaVersion", 1},
+            {"traceEvents",
+                json::array(
+                    {{{"ph", "X"}, {"pid", "BLOCK"}, {"tid", "core0"}, {"name", "work"}, {"ts", 1}, {"dur", 2}}})}};
+        return {"kernel", device, index, timeline, 50000};
+    }
+
+    std::unique_ptr<DeviceDataParse> Parser() {
+        return MakeUnique<DeviceDataParse>(ChipType::ASCEND910B, PmuEventsId{}, ProfMetricsAbilityConfig{});
+    }
+
+    TimelineMergeConfig Config(uint32_t launches) {
+        TimelineMergeConfig config;
+        config.kernelName = "kernel*";
+        config.mstxName = "range1";
+        config.rankCount = 2;
+        config.launchCount = launches;
+        return config;
+    }
+
+    void Collect(DeviceDataParse &parser, uint32_t device, uint64_t index, const std::string &name = "kernel",
+        uint64_t start = 0) {
+        DataHandler handler;
+        handler.opBasicHeader = {"Op Name", "Device Id", "Task Duration(us)"};
+        handler.opInfoMap_ = {{"Op Name", name}, {"Device Id", std::to_string(device)}, {"Task Duration(us)", "2"}};
+        handler.startTime_ = start;
+        handler.isMC2_ = true;
+        handler.taskSchedulerFreq_ = 50000;
+        parser.RecordSummary(handler,
+            root_ + "/device" + std::to_string(device) + "/" + name + "/" + std::to_string(index),
+            Input(device, index).timeline);
+    }
+
+    std::string Record(uint32_t config, uint32_t device, const std::string &path) {
+        return json({{"config_index", config}, {"device_id", device}, {"output_path", path}}).dump() + "\n";
+    }
+
+    void WriteRecords(const std::string &content) {
+        ASSERT_TRUE(MkdirRecusively(root_ + "/tmp_dump"));
+        ASSERT_TRUE(WriteFileByStream(root_ + "/tmp_dump/timeline_mstx.json", content));
+    }
+
+    std::string root_;
+};
+
+/**
+ * | 用例集 | TimelineSummaryTest
+ * |测试函数| DeviceDataParse::MergeTimelines
+ * | 用例名 | merge_timelines_expect_aligned_trace_and_matching_bin
+ * |用例描述| 两卡流水合并后按设备区分并对齐时间，同目录生成内容一致的trace.json与visualize_data.bin。
+ */
+TEST_F(TimelineSummaryTest, merge_timelines_expect_aligned_trace_and_matching_bin) {
+    ASSERT_TRUE(DeviceDataParse::MergeTimelines({{Input(1, 3), Input(0, 3)}}, root_ + "/summary"));
+    const auto directory = root_ + "/summary/kernel/3";
+    std::ifstream traceFile(directory + "/trace.json");
+    ASSERT_TRUE(traceFile.is_open());
+    const auto trace = json::parse(traceFile);
+    const auto &events = trace.at("traceEvents");
+    ASSERT_EQ(events.size(), 2U);
+    EXPECT_EQ(events[0]["pid"], "Device 0 | BLOCK");
+    EXPECT_EQ(events[1]["pid"], "Device 1 | BLOCK");
+    EXPECT_FLOAT_EQ(events[0]["ts"].get<float>(), 1.0f);
+    EXPECT_FLOAT_EQ(events[1]["ts"].get<float>(), 101.0f);
+    EXPECT_EQ(events[0]["dur"], 2);
+    EXPECT_EQ(events[1]["dur"], 2);
+
+    // TRACE块头为8字节长度及4字节type/padding/version/reserved。
+    std::ifstream binFile(directory + "/visualize_data.bin", std::ios::binary);
+    uint64_t contentSize = 0;
+    uint8_t header[4] = {};
+    ASSERT_TRUE(static_cast<bool>(binFile.read(reinterpret_cast<char *>(&contentSize), sizeof(contentSize))));
+    ASSERT_TRUE(static_cast<bool>(binFile.read(reinterpret_cast<char *>(header), sizeof(header))));
+    EXPECT_EQ(header[0], static_cast<uint8_t>(Utility::VisualizeType::TRACE));
+    ASSERT_GT(contentSize, header[1]);
+    std::string content(contentSize, '\0');
+    ASSERT_TRUE(static_cast<bool>(binFile.read(&content[0], content.size())));
+    EXPECT_EQ(json::parse(content.substr(0, contentSize - header[1])), trace);
+    EXPECT_EQ(binFile.peek(), std::ifstream::traits_type::eof());
+}
+
+/**
+ * | 用例集 | TimelineSummaryTest
+ * |测试函数| DeviceDataParse::ReadTimelineMstxPaths
+ * | 用例名 | read_mstx_paths_expect_config_device_buckets_and_record_order
+ * |用例描述| 合法记录按配置和设备保存，去除末尾dump层，并保留同卡记录顺序。
+ */
+TEST_F(TimelineSummaryTest, read_mstx_paths_expect_config_device_buckets_and_record_order) {
+    WriteRecords(Record(0, 1, "/device1/kernel/4/dump") + Record(1, 0, "/device0/kernel/8") +
+        Record(0, 1, "/device1/kernel/9/dump"));
+    std::vector<TimelineMstxPaths> recorded(2);
+    DeviceDataParse::ReadTimelineMstxPaths(root_, recorded);
+    ASSERT_EQ(recorded[0].size(), 1U);
+    ASSERT_EQ(recorded[1].size(), 1U);
+    EXPECT_EQ(recorded[0].at(1), (std::vector<std::string>{"/device1/kernel/4", "/device1/kernel/9"}));
+    EXPECT_EQ(recorded[1].at(0), (std::vector<std::string>{"/device0/kernel/8"}));
+}
+
+/**
+ * | 用例集 | TimelineSummaryTest
+ * |测试函数| DeviceDataParse::ReadTimelineMstxPaths
+ * | 用例名 | read_invalid_mstx_records_expect_skip_and_keep_following_valid_record
+ * |用例描述| 非法JSON、配置/设备字段及空或非字符串路径被跳过，后续合法记录仍可正常读取。
+ */
+TEST_F(TimelineSummaryTest, read_invalid_mstx_records_expect_skip_and_keep_following_valid_record) {
+    std::string records = "invalid json\n{}\n" + Record(1, 0, "/invalid/dump");
+    for (const json device : {json(-1), json(uint64_t{UINT32_MAX} + 1), json(1.5), json("0")}) {
+        records += json({{"config_index", 0}, {"device_id", device}, {"output_path", "/invalid/dump"}}).dump() + "\n";
+    }
+    records += json({{"config_index", 0}, {"device_id", 0}, {"output_path", 123}}).dump() + "\n";
+    records += Record(0, 0, "") + Record(0, 1, "/valid/dump");
+    WriteRecords(records);
+    std::vector<TimelineMstxPaths> recorded(1);
+    DeviceDataParse::ReadTimelineMstxPaths(root_, recorded);
+    ASSERT_EQ(recorded[0].size(), 1U);
+    EXPECT_EQ(recorded[0].at(1), (std::vector<std::string>{"/valid"}));
+}
+
+/**
+ * | 用例集 | TimelineSummaryTest
+ * |测试函数| DeviceDataParse::AddTimelineMstxGroups
+ * | 用例名 | add_mstx_groups_expect_pair_by_position_and_respect_launch_limit
+ * |用例描述| 各卡按列表位置配组，应用launch_count上限，统一执行编号及输出目录。
+ */
+TEST_F(TimelineSummaryTest, add_mstx_groups_expect_pair_by_position_and_respect_launch_limit) {
+    const TimelineMstxPaths paths{{0, {"a", "b"}}, {1, {"c", "d"}}};
+    const TimelineInputsByPath inputs{{"a", Input(0, 4)}, {"b", Input(0, 5)}, {"c", Input(1, 8)}, {"d", Input(1, 9)}};
+    TimelineGroups groups;
+    DeviceDataParse::AddTimelineMstxGroups(Config(1), paths, inputs, "test ", "kernel_range1", groups);
+    ASSERT_EQ(groups.size(), 1U);
+    ASSERT_EQ(groups[0].size(), 2U);
+    EXPECT_EQ(groups[0][0].deviceId, 0U);
+    EXPECT_EQ(groups[0][1].deviceId, 1U);
+    for (const auto &input : groups[0]) {
+        EXPECT_EQ(input.executionIndex, 0U);
+        EXPECT_EQ(input.mergeDirectory, "kernel_range1");
+    }
+}
+
+/**
+ * | 用例集 | TimelineSummaryTest
+ * |测试函数| DeviceDataParse::AddTimelineMstxGroups
+ * | 用例名 | add_mstx_groups_with_missing_timeline_expect_skip_position_without_shifting
+ * |用例描述| 首次执行缺少一张卡的流水时跳过该位置，后续完整组保留原位置编号。
+ */
+TEST_F(TimelineSummaryTest, add_mstx_groups_with_missing_timeline_expect_skip_position_without_shifting) {
+    const TimelineMstxPaths paths{{0, {"a", "b"}}, {1, {"missing", "d"}}};
+    const TimelineInputsByPath inputs{{"a", Input(0)}, {"b", Input(0)}, {"d", Input(1)}};
+    TimelineGroups groups;
+    DeviceDataParse::AddTimelineMstxGroups(Config(2), paths, inputs, "test ", "kernel_range1", groups);
+    ASSERT_EQ(groups.size(), 1U);
+    ASSERT_EQ(groups[0].size(), 2U);
+    EXPECT_EQ(groups[0][0].executionIndex, 1U);
+    EXPECT_EQ(groups[0][1].executionIndex, 1U);
+}
+
+/**
+ * | 用例集 | TimelineSummaryTest
+ * |测试函数| DeviceDataParse::GetTimelineGroups
+ * | 用例名 | get_mc2_groups_expect_group_by_name_and_numeric_execution_index
+ * |用例描述| 无显式配置时，MC2通算流水按算子名称和执行编号自动配组。
+ */
+TEST_F(TimelineSummaryTest, get_mc2_groups_expect_group_by_name_and_numeric_execution_index) {
+    auto parser = Parser();
+    for (uint32_t device : {0U, 1U}) {
+        Collect(*parser, device, 10);
+        Collect(*parser, device, 2);
+    }
+    const auto groups = parser->GetTimelineGroups(root_);
+    ASSERT_EQ(groups.size(), 2U);
+    for (size_t i = 0; i < groups.size(); ++i) {
+        ASSERT_EQ(groups[i].size(), 2U);
+        for (const auto &input : groups[i]) {
+            EXPECT_EQ(input.opName, "kernel");
+            EXPECT_EQ(input.executionIndex, i == 0 ? 2U : 10U);
+            EXPECT_TRUE(input.mergeDirectory.empty());
+        }
+        EXPECT_EQ(groups[i][0].deviceId, 0U);
+        EXPECT_EQ(groups[i][1].deviceId, 1U);
+    }
+}
+
+/**
+ * | 用例集 | TimelineSummaryTest
+ * |测试函数| DeviceDataParse::GetTimelineGroups
+ * | 用例名 | get_explicit_groups_expect_record_matching_and_distinct_config_directories
+ * |用例描述| 显式配置按采集目录关联两卡流水，重复配置分别生成带序号的分组目录。
+ */
+TEST_F(TimelineSummaryTest, get_explicit_groups_expect_record_matching_and_distinct_config_directories) {
+    const json selection{{"kernel_name", "kernel*"}, {"mstx_name", "range1"}, {"rank_count", 2}, {"launch_count", 1}};
+    ASSERT_TRUE(WriteFileByStream(
+        root_ + "/config.json", json({{"timeline_merge_config", json::array({selection, selection})}}).dump()));
+    std::string error;
+    ASSERT_TRUE(CustomInputConfig::Instance().Load(root_ + "/config.json", error)) << error;
+    auto parser = Parser();
+    Collect(*parser, 0, 4);
+    Collect(*parser, 1, 8);
+    std::string records;
+    for (uint32_t config : {0U, 1U}) {
+        records += Record(config, 0, root_ + "/device0/kernel/4/dump");
+        records += Record(config, 1, root_ + "/device1/kernel/8/dump");
+    }
+    WriteRecords(records);
+    const auto groups = parser->GetTimelineGroups(root_);
+    ASSERT_EQ(groups.size(), 2U);
+    for (size_t i = 0; i < groups.size(); ++i) {
+        ASSERT_EQ(groups[i].size(), 2U);
+        EXPECT_EQ(groups[i][0].deviceId, 0U);
+        EXPECT_EQ(groups[i][1].deviceId, 1U);
+        for (const auto &input : groups[i]) {
+            EXPECT_EQ(input.executionIndex, 0U);
+            EXPECT_EQ(input.mergeDirectory, "kernel*_range1_" + std::to_string(i));
+        }
+    }
+}
+
+/**
+ * | 用例集 | TimelineSummaryTest
+ * |测试函数| DeviceDataParse::GetTimelineGroups / MergeTimelines
+ * | 用例名 | explicit_rank_limit_expect_merge_all_actual_devices_within_limit
+ * |用例描述| 实际四卡各执行五次，rank_count为2时跳过，为4或10时合并全部四卡，并应用launch_count上限。
+ */
+TEST_F(TimelineSummaryTest, explicit_rank_limit_expect_merge_all_actual_devices_within_limit) {
+    for (uint32_t rankCount : {2U, 4U, 10U}) {
+        for (uint32_t launchCount : {2U, 10U}) {
+            SCOPED_TRACE("rank_count=" + std::to_string(rankCount) + ", launch_count=" + std::to_string(launchCount));
+            const json selection{{"kernel_name", "kernel*"}, {"mstx_name", "range1"}, {"rank_count", rankCount},
+                {"launch_count", launchCount}};
+            ASSERT_TRUE(WriteFileByStream(
+                root_ + "/config.json", json({{"timeline_merge_config", json::array({selection})}}).dump()));
+            std::string error;
+            CustomInputConfig::Instance().Reset();
+            ASSERT_TRUE(CustomInputConfig::Instance().Load(root_ + "/config.json", error)) << error;
+            auto parser = Parser();
+            std::string records;
+            for (uint32_t device = 0; device < 4; ++device) {
+                for (uint64_t index = 0; index < 5; ++index) {
+                    Collect(*parser, device, index);
+                    records += Record(0, device,
+                        root_ + "/device" + std::to_string(device) + "/kernel/" + std::to_string(index) + "/dump");
+                }
+            }
+            WriteRecords(records);
+            const auto groups = parser->GetTimelineGroups(root_);
+            const size_t expectedCount = rankCount < 4 ? 0 : std::min(launchCount, 5U);
+            ASSERT_EQ(groups.size(), expectedCount);
+            const auto directory =
+                root_ + "/rank" + std::to_string(rankCount) + "_launch" + std::to_string(launchCount);
+            ASSERT_TRUE(DeviceDataParse::MergeTimelines(groups, directory));
+            for (size_t index = 0; index < expectedCount; ++index) {
+                ASSERT_EQ(groups[index].size(), 4U);
+                const auto output = directory + "/kernel*_range1/" + std::to_string(index);
+                std::ifstream traceFile(output + "/trace.json");
+                ASSERT_TRUE(traceFile.is_open());
+                const auto trace = json::parse(traceFile);
+                const auto &events = trace.at("traceEvents");
+                ASSERT_EQ(events.size(), 4U);
+                EXPECT_TRUE(IsExist(output + "/visualize_data.bin"));
+                for (uint32_t device = 0; device < 4; ++device) {
+                    EXPECT_EQ(groups[index][device].deviceId, device);
+                    EXPECT_EQ(groups[index][device].executionIndex, index);
+                    EXPECT_EQ(events[device]["pid"], "Device " + std::to_string(device) + " | BLOCK");
+                    EXPECT_DOUBLE_EQ(events[device]["ts"].get<double>(), 1.0 + device * 100.0);
+                }
+            }
+            EXPECT_FALSE(IsExist(directory + "/kernel*_range1/" + std::to_string(expectedCount)));
+        }
+    }
+}
+
+/**
+ * | 用例集 | TimelineSummaryTest
+ * |测试函数| DeviceDataParse::SaveSummary
+ * | 用例名 | save_summary_csv_expect_device_first_and_rows_sorted_by_device_and_time
+ * |用例描述| 汇总CSV将设备列置首，记录按设备和开始时间排序，同设备未知时间置后。
+ */
+TEST_F(TimelineSummaryTest, save_summary_csv_expect_device_first_and_rows_sorted_by_device_and_time) {
+    auto parser = Parser();
+    Collect(*parser, 1, 0, "other", 5);
+    Collect(*parser, 0, 1, "missing", 0);
+    Collect(*parser, 0, 2, "later", 20);
+    Collect(*parser, 0, 3, "earlier", 10);
+    ASSERT_TRUE(parser->SaveSummary(root_));
+    std::ifstream csv(root_ + "/summary/summary.csv");
+    ASSERT_TRUE(csv.is_open());
+    std::string line;
+    for (const std::string expected :
+        {"Device Id,Op Name,Task Duration(us),", "0,earlier,2,", "0,later,2,", "0,missing,2,", "1,other,2,"}) {
+        ASSERT_TRUE(static_cast<bool>(std::getline(csv, line)));
+        EXPECT_EQ(line, expected);
+    }
+    EXPECT_FALSE(static_cast<bool>(std::getline(csv, line)));
+}
+
+/**
+ * | 用例集 | TimelineSummaryTest
+ * |测试函数| DeviceDataParse::MergeTimelineGroup
+ * | 用例名 | merge_invalid_alignment_inputs_expect_no_result
+ * |用例描述| 输入不足两条，或基准、频率、流水类型及JSON结构无效时返回空结果，不生成跨卡对齐流水。
+ */
+TEST_F(TimelineSummaryTest, merge_invalid_alignment_inputs_expect_no_result) {
+    EXPECT_TRUE(DeviceDataParse::MergeTimelineGroup({}).is_null());
+    EXPECT_TRUE(DeviceDataParse::MergeTimelineGroup({Input(0)}).is_null());
+    std::vector<TimelineInput> invalid;
+    auto input = Input(1);
+    input.timeline.minCycle = UINT64_MAX;
+    invalid.push_back(input);
+    input = Input(1);
+    input.cycleFreq = 0;
+    invalid.push_back(input);
+    input.cycleFreq = -1;
+    invalid.push_back(input);
+    input = Input(1);
+    input.timeline.isCommunication = false;
+    invalid.push_back(input);
+    for (const json trace : {json(), json::array(), json::object(), json{{"traceEvents", "invalid"}},
+             json{{"traceEvents", json::array()}}}) {
+        input = Input(1);
+        input.timeline.timelineJson = trace;
+        invalid.push_back(input);
+    }
+    for (size_t index = 0; index < invalid.size(); ++index) {
+        SCOPED_TRACE(index);
+        EXPECT_TRUE(DeviceDataParse::MergeTimelineGroup({Input(0), invalid[index]}).is_null());
+    }
+}
+
+/**
+ * | 用例集 | TimelineSummaryTest
+ * |测试函数| DeviceDataParse::MergeTimelineGroup
+ * | 用例名 | merge_biu_events_expect_mhz_alignment_and_metadata_preserved
+ * |用例描述| BIU流水按MHz频率和64位cycle差对齐，过滤无效事件，保留时长、args及元数据并添加设备前缀。
+ */
+TEST_F(TimelineSummaryTest, merge_biu_events_expect_mhz_alignment_and_metadata_preserved) {
+    auto first = Input(0);
+    auto second = Input(1);
+    first.timeline.isCommunication = second.timeline.isCommunication = false;
+    first.cycleFreq = second.cycleFreq = 1000;
+    auto &events = second.timeline.timelineJson["traceEvents"];
+    events[0]["args"] = {{"code", "work()"}};
+    events.push_back(nullptr);
+    events.push_back({{"ph", "X"}, {"pid", "BLOCK"}, {"ts", "invalid"}});
+    const json metadata{
+        {"ph", "M"}, {"pid", "BLOCK"}, {"name", "thread_name"}, {"ts", "unchanged"}, {"args", {{"name", "worker"}}}};
+    events.push_back(metadata);
+    const auto merged = DeviceDataParse::MergeTimelineGroup({second, first});
+    ASSERT_FALSE(merged.is_null());
+    const auto &result = merged.at("traceEvents");
+    ASSERT_EQ(result.size(), 3U);
+    EXPECT_EQ(result[0]["pid"], "Device 0 | BLOCK");
+    EXPECT_DOUBLE_EQ(result[1]["ts"].get<double>(), 6.0);
+    EXPECT_EQ(result[1]["dur"], 2);
+    EXPECT_EQ(result[1]["args"]["code"], "work()");
+    auto expectedMetadata = metadata;
+    expectedMetadata["pid"] = "Device 1 | BLOCK";
+    EXPECT_EQ(result[2], expectedMetadata);
+}
+
+/**
+ * | 用例集 | TimelineSummaryTest
+ * |测试函数| DeviceDataParse::MergeTimelines
+ * | 用例名 | merge_invalid_group_expect_failure_and_later_group_saved
+ * |用例描述| 单卡组被跳过、无效基准组使整体返回失败，后续合法组仍生成trace.json及visualize_data.bin。
+ */
+TEST_F(TimelineSummaryTest, merge_invalid_group_expect_failure_and_later_group_saved) {
+    auto invalid = Input(0);
+    invalid.timeline.minCycle = UINT64_MAX;
+    EXPECT_FALSE(DeviceDataParse::MergeTimelines(
+        {{Input(0)}, {invalid, Input(1)}, {Input(0, 1), Input(1, 1)}}, root_ + "/summary"));
+    EXPECT_FALSE(IsExist(root_ + "/summary/kernel/0/trace.json"));
+    EXPECT_TRUE(IsExist(root_ + "/summary/kernel/1/trace.json"));
+    EXPECT_TRUE(IsExist(root_ + "/summary/kernel/1/visualize_data.bin"));
+}
+
+/**
+ * | 用例集 | TimelineSummaryTest
+ * |测试函数| DeviceDataParse::MergeTimelines
+ * | 用例名 | merge_directory_failure_expect_later_group_still_saved
+ * |用例描述| 已有文件占用首组输出目录时返回失败，继续处理并保存后续合法组的流水JSON。
+ */
+TEST_F(TimelineSummaryTest, merge_directory_failure_expect_later_group_still_saved) {
+    ASSERT_TRUE(MkdirRecusively(root_ + "/summary/kernel"));
+    ASSERT_TRUE(WriteFileByStream(root_ + "/summary/kernel/0", "blocked"));
+    EXPECT_FALSE(
+        DeviceDataParse::MergeTimelines({{Input(0), Input(1)}, {Input(0, 1), Input(1, 1)}}, root_ + "/summary"));
+    EXPECT_TRUE(IsExist(root_ + "/summary/kernel/1/trace.json"));
+}
+
+/**
+ * | 用例集 | TimelineSummaryTest
+ * |测试函数| DeviceDataParse::MergeTimelines
+ * | 用例名 | merge_trace_write_failure_expect_later_group_still_saved
+ * |用例描述| 目录占用首组trace.json路径使写入失败时，不写该组bin，返回失败并继续保存后续组。
+ */
+TEST_F(TimelineSummaryTest, merge_trace_write_failure_expect_later_group_still_saved) {
+    ASSERT_TRUE(MkdirRecusively(root_ + "/summary/kernel/0/trace.json"));
+    EXPECT_FALSE(
+        DeviceDataParse::MergeTimelines({{Input(0), Input(1)}, {Input(0, 1), Input(1, 1)}}, root_ + "/summary"));
+    EXPECT_FALSE(IsExist(root_ + "/summary/kernel/0/visualize_data.bin"));
+    EXPECT_TRUE(IsExist(root_ + "/summary/kernel/1/trace.json"));
+}
+
+/**
+ * | 用例集 | TimelineSummaryTest
+ * |测试函数| DeviceDataParse::ReadTimelineMstxPaths / AddTimelineMstxGroups
+ * | 用例名 | missing_mstx_file_expect_no_groups
+ * |用例描述| MSTX记录文件不存在时保留空记录集合，基于空记录配组不会生成合并组。
+ */
+TEST_F(TimelineSummaryTest, missing_mstx_file_expect_no_groups) {
+    std::vector<TimelineMstxPaths> recorded(1);
+    DeviceDataParse::ReadTimelineMstxPaths(root_, recorded);
+    EXPECT_TRUE(recorded[0].empty());
+    TimelineGroups groups;
+    DeviceDataParse::AddTimelineMstxGroups(Config(1), recorded[0], {}, "test ", "kernel_range1", groups);
+    EXPECT_TRUE(groups.empty());
+}
+
+/**
+ * | 用例集 | TimelineSummaryTest
+ * |测试函数| DeviceDataParse::AddTimelineMstxGroups
+ * | 用例名 | mismatched_record_device_expect_skip_position_without_shifting
+ * |用例描述| 记录设备号与单卡流水设备号不匹配时跳过该次执行，后续完整组保留原执行编号及设备归属。
+ */
+TEST_F(TimelineSummaryTest, mismatched_record_device_expect_skip_position_without_shifting) {
+    const TimelineMstxPaths paths{{0, {"a", "b"}}, {1, {"wrong", "d"}}};
+    const TimelineInputsByPath inputs{{"a", Input(0)}, {"b", Input(0)}, {"wrong", Input(0)}, {"d", Input(1)}};
+    TimelineGroups groups;
+    DeviceDataParse::AddTimelineMstxGroups(Config(2), paths, inputs, "test ", "kernel_range1", groups);
+    ASSERT_EQ(groups.size(), 1U);
+    ASSERT_EQ(groups[0].size(), 2U);
+    EXPECT_EQ(groups[0][0].executionIndex, 1U);
+    EXPECT_EQ(groups[0][1].deviceId, 1U);
+}
+
+/**
+ * | 用例集 | TimelineSummaryTest
+ * |测试函数| DeviceDataParse::SaveSummary
+ * | 用例名 | summary_directory_failure_expect_failure_without_overwriting_existing_file
+ * |用例描述| 已有文件占用summary目录路径时保存失败，原文件内容保持不变。
+ */
+TEST_F(TimelineSummaryTest, summary_directory_failure_expect_failure_without_overwriting_existing_file) {
+    auto parser = Parser();
+    Collect(*parser, 0, 0);
+    Collect(*parser, 1, 0);
+    ASSERT_TRUE(WriteFileByStream(root_ + "/summary", "blocked"));
+    EXPECT_FALSE(parser->SaveSummary(root_));
+    std::ifstream file(root_ + "/summary");
+    std::string content;
+    ASSERT_TRUE(static_cast<bool>(std::getline(file, content)));
+    EXPECT_EQ(content, "blocked");
+}
+
+/**
+ * | 用例集 | TimelineSummaryTest
+ * |测试函数| DeviceDataParse::SaveSummary
+ * | 用例名 | failed_timeline_merge_expect_summary_csv_still_saved
+ * |用例描述| 无效起始cycle导致流水合并失败时不生成trace.json，但仍成功保存包含两卡完整记录的汇总CSV。
+ */
+TEST_F(TimelineSummaryTest, failed_timeline_merge_expect_summary_csv_still_saved) {
+    auto parser = Parser();
+    Collect(*parser, 0, 0);
+    Collect(*parser, 1, 0);
+    parser->timelineInputs_[0].timeline.minCycle = UINT64_MAX;
+    ASSERT_TRUE(parser->SaveSummary(root_));
+    EXPECT_FALSE(IsExist(root_ + "/summary/kernel/0/trace.json"));
+    std::ifstream csv(root_ + "/summary/summary.csv");
+    ASSERT_TRUE(csv.is_open());
+    std::string line;
+    ASSERT_TRUE(static_cast<bool>(std::getline(csv, line)));
+    EXPECT_EQ(line, "Device Id,Op Name,Task Duration(us),");
+    ASSERT_TRUE(static_cast<bool>(std::getline(csv, line)));
+    EXPECT_EQ(line, "0,kernel,2,");
+    ASSERT_TRUE(static_cast<bool>(std::getline(csv, line)));
+    EXPECT_EQ(line, "1,kernel,2,");
+    EXPECT_FALSE(static_cast<bool>(std::getline(csv, line)));
+}
+
+/**
+ * | 用例集 | TimelineSummaryTest
+ * |测试函数| DeviceDataParse::RecordSummary
+ * | 用例名 | explicit_biu_input_expect_aicore_frequency_without_communication_flag
+ * |用例描述| 启用显式合并配置时，非通信BIU流水按采集路径保存并使用AICore频率，不进入默认自动配组集合。
+ */
+TEST_F(TimelineSummaryTest, explicit_biu_input_expect_aicore_frequency_without_communication_flag) {
+    const json selection{{"kernel_name", "kernel*"}, {"mstx_name", "range1"}, {"rank_count", 2}, {"launch_count", 1}};
+    ASSERT_TRUE(
+        WriteFileByStream(root_ + "/config.json", json({{"timeline_merge_config", json::array({selection})}}).dump()));
+    std::string error;
+    ASSERT_TRUE(CustomInputConfig::Instance().Load(root_ + "/config.json", error)) << error;
+    auto parser = Parser();
+    DataHandler handler;
+    handler.opBasicHeader = {"Op Name", "Device Id"};
+    handler.opInfoMap_ = {{"Op Name", "kernel"}, {"Device Id", "0"}};
+    handler.aicoreFreq_ = 1650;
+    handler.taskSchedulerFreq_ = 50000;
+    auto timeline = Input(0).timeline;
+    timeline.isCommunication = false;
+    parser->RecordSummary(handler, "device0/kernel/0", timeline);
+    ASSERT_EQ(parser->timelineInputsByPath_.size(), 1U);
+    EXPECT_EQ(parser->timelineInputsByPath_.at("device0/kernel/0").cycleFreq, 1650);
+    EXPECT_FALSE(parser->timelineInputsByPath_.at("device0/kernel/0").timeline.isCommunication);
+    EXPECT_TRUE(parser->timelineInputs_.empty());
 }
