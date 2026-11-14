@@ -3082,14 +3082,16 @@ TEST_F(TimelineSummaryTest, merge_invalid_alignment_inputs_expect_no_result) {
 /**
  * | 用例集 | TimelineSummaryTest
  * |测试函数| DeviceDataParse::MergeTimelineGroup
- * | 用例名 | merge_biu_events_expect_mhz_alignment_and_metadata_preserved
- * |用例描述| BIU流水按MHz频率和64位cycle差对齐，过滤无效事件，保留时长、args及元数据并添加设备前缀。
+ * | 用例名 | merge_biu_events_expect_cumulative_timestamps_and_metadata_preserved
+ * |用例描述| BIU流水保留各卡累计时间，过滤无效事件并保留元数据。
  */
-TEST_F(TimelineSummaryTest, merge_biu_events_expect_mhz_alignment_and_metadata_preserved) {
+TEST_F(TimelineSummaryTest, merge_biu_events_expect_cumulative_timestamps_and_metadata_preserved) {
     auto first = Input(0);
     auto second = Input(1);
     first.timeline.isCommunication = second.timeline.isCommunication = false;
     first.cycleFreq = second.cycleFreq = 1000;
+    first.timeline.timelineJson["traceEvents"][0]["ts"] = 10.0 / 1000;
+    second.timeline.timelineJson["traceEvents"][0]["ts"] = 20.0 / 1000;
     auto &events = second.timeline.timelineJson["traceEvents"];
     events[0]["args"] = {{"code", "work()"}};
     events.push_back(nullptr);
@@ -3102,7 +3104,9 @@ TEST_F(TimelineSummaryTest, merge_biu_events_expect_mhz_alignment_and_metadata_p
     const auto &result = merged.at("traceEvents");
     ASSERT_EQ(result.size(), 3U);
     EXPECT_EQ(result[0]["pid"], "Device 0 | BLOCK");
-    EXPECT_DOUBLE_EQ(result[1]["ts"].get<double>(), 6.0);
+    EXPECT_DOUBLE_EQ(result[0]["ts"].get<double>(), 10.0 / 1000);
+    EXPECT_DOUBLE_EQ(result[1]["ts"].get<double>(), 20.0 / 1000);
+    EXPECT_DOUBLE_EQ(result[1]["ts"].get<double>() - result[0]["ts"].get<double>(), 10.0 / 1000);
     EXPECT_EQ(result[1]["dur"], 2);
     EXPECT_EQ(result[1]["args"]["code"], "work()");
     auto expectedMetadata = metadata;

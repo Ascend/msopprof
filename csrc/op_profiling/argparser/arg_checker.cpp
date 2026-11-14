@@ -307,7 +307,7 @@ bool ArgChecker::CheckKernelNameValid(const Common::ProfArgs &config, std::strin
         return false;
     }
 
-    if (config.argKernelName.size() >= MAX_KERNEL_NAME_LENGTH) {
+    if (config.argKernelName.size() > MAX_KERNEL_NAME_LENGTH) {
         msg = "--kernel-name input length exceeds limitation.";
         return false;
     }
@@ -467,7 +467,7 @@ bool ArgChecker::CheckMstxInclude(const Common::ProfArgs &config, std::string &m
         return false;
     }
 
-    if (config.argMstxInclude.size() >= MAX_KERNEL_NAME_LENGTH) {
+    if (config.argMstxInclude.size() > MAX_MSTX_INCLUDE_NAME_LENGTH) {
         msg = "--mstx-include input length exceeds limitation";
         return false;
     }
@@ -661,6 +661,14 @@ bool ArgChecker::CheckCustomInput(const Common::ProfArgs &config, std::string &m
     if (!CheckInputFileValid(config.argCustomInput, "json", MAX_JSON_FILE_SIZE, "custom-input")) {
         return false;
     }
-    return Common::CustomInputConfig::Instance().Load(config.argCustomInput, msg);
+    auto &customInput = Common::CustomInputConfig::Instance();
+    if (!customInput.Load(config.argCustomInput, msg)) {
+        return false;
+    }
+    if (!customInput.GetTimelineMergeConfigs().empty() && config.argMstx != "true") {
+        msg = "timeline_merge_config in --custom-input requires --mstx=true.";
+        return false;
+    }
+    return true;
 }
 } // namespace Parser

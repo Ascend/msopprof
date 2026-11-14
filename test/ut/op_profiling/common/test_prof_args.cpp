@@ -647,7 +647,7 @@ TEST(CustomInputConfigTest, timeline_merge_config_invalid_field_expect_reject) {
     std::vector<nlohmann::json> badItems;
     for (const std::string field : {"kernel_name", "mstx_name"}) {
         for (const auto &bad : {nlohmann::json(1), nlohmann::json(""), nlohmann::json("bad|name"),
-                 nlohmann::json(std::string(1023, 'x'))}) {
+                 nlohmann::json(std::string(1025, 'x'))}) {
             auto item = selection();
             item[field] = bad;
             badItems.push_back(item);

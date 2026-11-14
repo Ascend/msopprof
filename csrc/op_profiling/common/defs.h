@@ -324,8 +324,8 @@ const std::vector<std::string> MAGICS = {"RT_DEV_BINARY_MAGIC_ELF_AIVEC", "RT_DE
                                          "RT_DEV_BINARY_MAGIC_ELF"};
 const std::vector<uint16_t> L2_CACHE_EVENTS_FOR_310P = {106, 120, 121};
 const std::vector<uint16_t> L2_CACHE_EVENTS_FOR_A2_A3 = {0xFB, 0xFc, 0xF6, 0xFD, 0x9C, 0x9D, 0x4F, 0x07};
-constexpr uint32_t MAX_KERNEL_NAME_LENGTH = 1023;
-constexpr uint32_t MAX_MSTX_INCLUDE_NAME_LENGTH = 1023;
+constexpr uint32_t MAX_KERNEL_NAME_LENGTH = 1024;
+constexpr uint32_t MAX_MSTX_INCLUDE_NAME_LENGTH = 1024;
 constexpr uint32_t MAX_INPUT_STR_LENGTH = 200;
 
 // DumpMessageType order can not be change!!!

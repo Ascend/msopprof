@@ -79,7 +79,6 @@ public:
     virtual ~BiuTimeline() = default;
     bool TimelineToJson(const std::string &outputPath);
     nlohmann::json GetTimelineJson() { return timelineJson_; }
-    uint64_t GetMinCycle() const { return minCycle_; }
 
 protected:
     virtual void ParsePipeState(uint16_t pipeMask, uint32_t channelId, const std::string &coreName) {};
@@ -91,13 +90,6 @@ protected:
     std::string ChannelIdToCoreName(uint32_t channelId) const;
     // 各个通道当前cycle{channelId, totalCycle}
     std::unordered_map<uint32_t, uint64_t> channelCycleMap_;
-    struct BiuStartCycle {
-        uint64_t cycle = 0;
-        uint16_t partCount = 0;
-    };
-    // 各通道的64位起始cycle及已接收分片；四片齐全后才参与跨核对齐。
-    std::unordered_map<uint32_t, BiuStartCycle> channelStartCycleMap_;
-    uint64_t minCycle_ = UINT64_MAX;
     // 各个通道workaround连续打点结束标志{channelId, EndMarkState}
     std::unordered_map<uint32_t, EndMarkState> channelEndMarkMap_;
     std::vector<std::vector<BiuTimelineInfo>> timelineVec_{INSTR_PROF_CHANNEL_NUM};
@@ -107,7 +99,6 @@ private:
     bool ParseBiuTimeStamps();
     bool ParseSingleBiuTimeStamps(const std::string &filePath);
     void ParseBiuData(const char *data, size_t validLen, uint32_t channelId, const std::string &coreName);
-    void ParseStartCycle(const BiuPerfInfo &biuData, uint32_t channelId);
     std::unordered_map<std::string, std::string> cnames_{
         {SU_PIPE, "startup"}, {VEC_PIPE, "rail_idle"}, {CUBE_PIPE, "rail_response"},
         {MTE1_PIPE, "thread_state_iowait"}, {MTE2_PIPE, "yellow"},

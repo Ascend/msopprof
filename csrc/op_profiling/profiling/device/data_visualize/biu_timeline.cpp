@@ -17,7 +17,6 @@
 #include "biu_timeline.h"
 #include <algorithm>
 #include "log.h"
-#include "number_operation.h"
 #include "filesystem.h"
 #include "common/defs.h"
 #include "common/hal_helper.h"
@@ -42,18 +41,12 @@ bool BiuTimeline::TimelineToJson(const std::string &outputPath) {
     // 处理未配对的trace打点（在PrintMissData中统一批量打印）
     std::vector<nlohmann::json> traceEvents;
     for (uint32_t channelId = 0; channelId < timelineVec_.size(); ++channelId) {
-        const auto startCycle = channelStartCycleMap_.find(channelId);
-        // 将所有通道对齐到同一时间轴，利用DFX起始的cycles作为流水图起点
-        const uint64_t offset = startCycle != channelStartCycleMap_.end() && startCycle->second.partCount == 4
-            ? startCycle->second.cycle - minCycle_
-            : 0;
         for (const auto &timeline : timelineVec_[channelId]) {
             nlohmann::json singleJson;
             singleJson["name"] = timeline.lineName;
             singleJson["cname"] = timeline.cName.empty() ? cnames_[timeline.pipeName] : timeline.cName;
             singleJson["ph"] = "X";
-            const uint64_t alignedCycle = SafeAdd<uint64_t>(timeline.start, offset, __FUNCTION__);
-            singleJson["ts"] = static_cast<float>(alignedCycle) / aicoreFreq;
+            singleJson["ts"] = static_cast<float>(timeline.start) / aicoreFreq;
             singleJson["dur"] = static_cast<float>(timeline.duration) / aicoreFreq;
             singleJson["pid"] = timeline.coreName;
             singleJson["tid"] = timeline.pipeName;
@@ -141,19 +134,6 @@ bool BiuTimeline::ParseSingleBiuTimeStamps(const std::string &filePath) {
     return true;
 }
 
-void BiuTimeline::ParseStartCycle(const BiuPerfInfo &biuData, uint32_t channelId) {
-    auto &startCycle = channelStartCycleMap_[channelId];
-    if (startCycle.partCount == 4) {
-        return;
-    }
-    // 按本通道四条1110记录的接收顺序，将cycles依次拼入低到高16位。
-    startCycle.cycle |= static_cast<uint64_t>(biuData.cycles) << (startCycle.partCount * 16);
-    ++startCycle.partCount;
-    if (startCycle.partCount == 4) {
-        minCycle_ = std::min(minCycle_, startCycle.cycle);
-    }
-}
-
 void BiuTimeline::ParseBiuData(const char *data, size_t validLen, uint32_t channelId, const std::string &coreName) {
     for (size_t j = 0; j + sizeof(BiuPerfInfo) <= validLen; j += sizeof(BiuPerfInfo)) {
         BiuPerfInfo biuData;
@@ -162,10 +142,8 @@ void BiuTimeline::ParseBiuData(const char *data, size_t validLen, uint32_t chann
         }
         const uint16_t ctrl = (biuData.biuInfo >> STATE_BIT_OFFSET) & 0xf;
         const uint16_t state = biuData.biuInfo & 0xfff;
-        // 高4位ctrl标识数据类型，0b1111:起始cycle，0b1111:pipe状态变化，0b0000至0b0101、0b1010:dfx-region打点;低12位表示dfx-region id或pipe状态（空闲/繁忙）
-        if (ctrl == 0b1110) {
-            ParseStartCycle(biuData, channelId);
-        } else if (ctrl == 0b1111) {
+        // 高4位ctrl标识数据类型，0b1111:pipe状态变化，0b0000至0b0101、0b1010:dfx-region打点;低12位表示dfx-region id或pipe状态（空闲/繁忙）
+        if (ctrl == 0b1111) {
             channelCycleMap_[channelId] += biuData.cycles;
             ParsePipeState(state, channelId, coreName);
         } else if ((ctrl >= 0b0000 && ctrl <= 0b0101) || ctrl == 0b1010) {

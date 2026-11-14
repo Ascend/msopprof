@@ -98,9 +98,8 @@ static bool CheckTimelineMergeNames(const nlohmann::json &configJson, const std:
             return false;
         }
         const auto &configName = configJson[fieldName].get_ref<const std::string &>();
-        if (configName.empty() || configName.size() >= maxLength) {
-            msg = prefix + "." + fieldName + " must be a string with length in [1, " + std::to_string(maxLength - 1) +
-                "].";
+        if (configName.empty() || configName.size() > maxLength) {
+            msg = prefix + "." + fieldName + " must be a string with length in [1, " + std::to_string(maxLength) + "].";
             return false;
         }
         if (!std::regex_match(configName, isKernelName ? kernelNamePattern : mstxNamePattern)) {

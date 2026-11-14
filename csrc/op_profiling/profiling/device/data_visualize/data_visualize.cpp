@@ -119,7 +119,7 @@ void DataVisualize::GenerateTimeline(const std::string &outputPath, const Common
     mergeTimelineData_ = {};
     if ((metrics.pipeTimelineEnable || metrics.instrTimelineEnable) && biuTimeline_->TimelineToJson(outputPath)) {
         mergeTimelineData_.timelineJson = biuTimeline_->GetTimelineJson();
-        mergeTimelineData_.minCycle = biuTimeline_->GetMinCycle();
+        mergeTimelineData_.minCycle = 0;
     } else if (timelineParser_->TimelineToJson(outputPath)) {
         mergeTimelineData_.timelineJson = timelineParser_->GetTimelineJson();
         mergeTimelineData_.minCycle = timelineParser_->GetMinCycle();

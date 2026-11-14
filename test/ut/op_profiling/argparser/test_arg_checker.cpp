@@ -256,7 +256,7 @@ TEST(ArgChecker, application_with_too_long_kernel_name_expect_check_failed)
 {
     ProfArgs args;
     args.argApplication = { "unknown" };
-    args.argKernelName = std::string(1024, '|');
+    args.argKernelName = std::string(1025, 'a');
     std::string msg;
     ArgChecker checker("unknown");
     ASSERT_FALSE(checker.CheckKernelNameValid(args, msg));
@@ -298,7 +298,7 @@ TEST(ArgChecker, test_CheckMstxInclude_with_too_long_kernel_name_expect_check_fa
 {
     ProfArgs args;
     args.argMstx = "true";
-    args.argMstxInclude = std::string(1024, '|');
+    args.argMstxInclude = std::string(1025, 'a');
     std::string msg;
     ArgChecker checker("");
     ASSERT_FALSE(checker.CheckMstxInclude(args, msg));
@@ -1218,6 +1218,34 @@ TEST(ArgChecker, test_CheckCustomInput_expect_return_false) {
     args.argCustomInput = "test/ut/resources/config_json/not_exist.json";
     MOCKER(&Utility::CheckInputFileValid).stubs().will(returnValue(false));
     ASSERT_FALSE(checker.CheckCustomInput(args, msg));
+    GlobalMockObject::verify();
+}
+
+/**
+* |  用例集 | ArgChecker
+* | 测试函数 | CheckCustomInput
+* |  用例名  | custom_input_timeline_merge_requires_mstx
+* | 用例描述 | 非空timeline_merge_config在MSTX未指定或关闭时校验失败并提示开启，开启时校验成功；空数组不要求开启MSTX
+*/
+TEST(ArgChecker, custom_input_timeline_merge_requires_mstx) {
+    Common::CustomInputConfig::Instance().Reset();
+    ArgChecker checker("device");
+    Common::ProfArgs args;
+    std::string msg;
+    args.argCustomInput = "test/ut/resources/config_json/test_custom_input_mstx.json";
+    ASSERT_TRUE(Utility::WriteFileByStream(args.argCustomInput,
+        R"({"timeline_merge_config":[{"kernel_name":"*","mstx_name":"mstx","rank_count":2,"launch_count":1}]})"));
+    EXPECT_FALSE(checker.CheckCustomInput(args, msg));
+    EXPECT_EQ(msg, "timeline_merge_config in --custom-input requires --mstx=true.");
+    args.argMstx = "false";
+    EXPECT_FALSE(checker.CheckCustomInput(args, msg));
+    args.argMstx = "true";
+    EXPECT_TRUE(checker.CheckCustomInput(args, msg));
+    args.argMstx = "false";
+    ASSERT_TRUE(Utility::WriteFileByStream(args.argCustomInput, R"({"timeline_merge_config":[]})"));
+    EXPECT_TRUE(checker.CheckCustomInput(args, msg));
+    Utility::RemoveAll(args.argCustomInput);
+    Common::CustomInputConfig::Instance().Reset();
     GlobalMockObject::verify();
 }
 

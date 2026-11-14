@@ -445,12 +445,12 @@ static bool GetStartTime(const std::vector<TimelineInput> &inputs, uint64_t &sta
     startTime = UINT64_MAX;
     for (const auto &input : inputs) {
         const auto &trace = input.timeline.timelineJson;
-        if (input.timeline.minCycle == UINT64_MAX || input.cycleFreq <= 0 ||
+        if ((input.timeline.isCommunication && input.timeline.minCycle == UINT64_MAX) || input.cycleFreq <= 0 ||
             input.timeline.isCommunication != inputs.front().timeline.isCommunication || !trace.is_object() ||
             !trace.contains("traceEvents") || !trace["traceEvents"].is_array() || trace["traceEvents"].empty()) {
             return false;
         }
-        startTime = std::min(startTime, input.timeline.minCycle);
+        startTime = input.timeline.isCommunication ? std::min(startTime, input.timeline.minCycle) : 0;
     }
     return startTime != UINT64_MAX;
 }
@@ -478,10 +478,10 @@ json DeviceDataParse::MergeTimelineGroup(std::vector<TimelineInput> inputs) {
     json events = json::array();
     for (auto &input : inputs) {
         const std::string prefix = "Device " + std::to_string(input.deviceId);
-        // 先求整数基准差，通算频率为kHz，pipe/instr频率为MHz，统一换算为微秒
-        const uint64_t cycleDelta = input.timeline.minCycle - startTime;
-        const double conversion = input.timeline.isCommunication ? TIME_CONVERSION : 1.0;
-        const double timeOffset = static_cast<double>(cycleDelta) / input.cycleFreq * conversion;
+        // 通算流水按系统cycle对齐；BIU流水已按通道累计cycle，不再叠加卡间基准。
+        const double timeOffset = input.timeline.isCommunication
+            ? static_cast<double>(input.timeline.minCycle - startTime) / input.cycleFreq * TIME_CONVERSION
+            : 0.0;
         for (auto &event : input.timeline.timelineJson["traceEvents"]) {
             if (!event.is_object()) {
                 continue;
