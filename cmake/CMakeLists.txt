@@ -97,8 +97,8 @@ add_custom_command(
     COMMENT "Extract makeself component from ${MAKESELF_TAR_FILE}"
     # 跳过最外层目录，直接将内容解压到当前目录
     COMMAND tar xf ${MAKESELF_TAR_FILE} --strip-components=1
-    COMMAND git apply ${MAKESELF_PATCH_FILE}
-    # git 应用 patch 后不一定会更新akeself.sh 文件的时间戳，此处需要手动更新一下，
+    COMMAND patch -p1 -N -i ${MAKESELF_PATCH_FILE}
+    # 应用补丁后 makeself.sh 的时间戳可能未更新，此处需要手动更新一下，
     # 保证 makeself 解压流程完成后重新触发打包
     COMMAND touch ${makeselfTool} ${makeselfHeader}
     DEPENDS ${MAKESELF_TAR_FILE} ${MAKESELF_PATCH_FILE}
