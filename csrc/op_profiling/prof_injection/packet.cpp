@@ -83,8 +83,26 @@ PacketParseRet Packet::ProcessDBIData()
     Deserialize(askMsg_, dbiDataHeader);
     constexpr uint64_t maxLength = MAX_BLOCK_DATA_SIZE - sizeof(BlockHeader) > PATH_MAX ?
             MAX_BLOCK_DATA_SIZE - sizeof(BlockHeader) : PATH_MAX;
-    if (dbiDataHeader.length == 0 || dbiDataHeader.length > maxLength) {
+    // 结束包只用于上报输出路径，不能同时携带记录或溢出计数，两者互斥
+    if (dbiDataHeader.endFlag != 0 && (dbiDataHeader.count != 0 || dbiDataHeader.overflow != 0)) {
+        LogDebug("Drop invalid end DBI data, count: %lu, overflow: %lu.",
+            dbiDataHeader.count, dbiDataHeader.overflow);
+        return PacketParseRet::FAILED;
+    }
+    // 与发送端约定保持一致：零长度 DBI 包只有两种合法语义——
+    // 1) 纯溢出包：count = 0、length = 0、overflow > 0，用于上报整块记录被丢弃的数量；
+    // 2) 结束包：endFlag = 1 且没有记录（输出路径为空时 length 也是 0）。
+    const bool noRecordPacket = dbiDataHeader.count == 0 && dbiDataHeader.length == 0 &&
+        (dbiDataHeader.overflow > 0 || dbiDataHeader.endFlag != 0);
+    if ((!noRecordPacket && dbiDataHeader.length == 0) || dbiDataHeader.length > maxLength) {
         LogDebug("Drop invalid DBI data, data length: %lu.", dbiDataHeader.length);
+        return PacketParseRet::FAILED;
+    }
+    // 每条记录至少包含 8 字节 RecordHeader，count 超过 length/8 时包内记录数不可能成立。
+    // 记录实际长度为 52~112 字节（含 Load2D 的 52B，不是 8 的整数倍），这里只做宽松下界，不能校验整除
+    if (!noRecordPacket && dbiDataHeader.count > dbiDataHeader.length / sizeof(RecordHeader)) {
+        LogDebug("Drop invalid DBI data, count: %lu, data length: %lu.", dbiDataHeader.count,
+            dbiDataHeader.length);
         return PacketParseRet::FAILED;
     }
     uint64_t targetLength = sizeof(DBIDataHeader) + dbiDataHeader.length;

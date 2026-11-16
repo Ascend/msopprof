@@ -60,12 +60,12 @@ private:
         std::vector<uint32_t> typeProcessed = std::vector<uint32_t>(static_cast<uint32_t>(Common::RecordType::END), 0);
         std::vector<uint32_t> typeFailed = std::vector<uint32_t>(static_cast<uint32_t>(Common::RecordType::END), 0);
         uint32_t processedRecord{0};
-        uint32_t droppedRecord{0};
+        uint64_t droppedRecord{0};
         uint32_t memoryCopyFailed{0};
         uint32_t invalidParam{0};
-        uint16_t receivedPacket{0};
-        uint16_t processedPacket{0};
-        uint16_t overflow{0};
+        uint32_t receivedPacket{0};
+        uint32_t processedPacket{0};
+        uint64_t overflow{0};
         uint8_t invalidDataCount{0};
         uint8_t memoryCorruption{0};
         uint8_t invalidRecordType{0};

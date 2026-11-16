@@ -50,6 +50,7 @@
 #include "filesystem.h"
 #include "json_parser.h"
 #include "cmd_execute.h"
+#include "log.h"
 
 using namespace Utility;
 using namespace Profiling;
@@ -1448,10 +1449,27 @@ TEST(DeviceDataParse, ParseMemoryChart_memcpy_failed) {
     MOCKER(memcpy_s).stubs().will(returnValue(EOVERFLOW));
     DBIDataHeader dbiDataHeader{};
     dbiDataHeader.count = 1;
-    string msg = Communication::Serialize(dbiDataHeader) + "123";
+    string msg = Communication::Serialize(dbiDataHeader) + "12345678";
     dbiParser.ParseMemoryChart(0, msg, dbiDataHeader);
     ASSERT_TRUE(dbiParser.memoryChartMetrics_[0].memoryCopyFailed != 0);
     GlobalMockObject::verify();
+}
+
+/**
+ * |  用例集 | DeviceDataParse
+ * | 测试函数 | DBIParser::ParseMemoryChart
+ * |  用例名  | ParseMemoryChart_truncated_record_header_is_invalid
+ * | 用例描述 | 剩余数据不足以容纳 RecordHeader 时按无效数据处理，不能越界 memcpy
+ */
+TEST(DeviceDataParse, ParseMemoryChart_truncated_record_header_is_invalid)
+{
+    DBIParser dbiParser("");
+    DBIDataHeader dbiDataHeader{};
+    dbiDataHeader.count = 1;
+    string msg = Communication::Serialize(dbiDataHeader) + "1234567";
+    dbiParser.ParseMemoryChart(0, msg, dbiDataHeader);
+    ASSERT_EQ(dbiParser.memoryChartMetrics_[0].invalidDataCount, 1U);
+    ASSERT_EQ(dbiParser.memoryChartMetrics_[0].memoryCopyFailed, 0U);
 }
 
 TEST(DeviceDataParse, ParseMemoryChart_invalid_record_type) {
@@ -1486,6 +1504,143 @@ TEST(DeviceDataParse, ParseMemoryChart_one_record)
     string msg = Communication::Serialize(dbiDataHeader, rh, record);
     dbiParser.ParseMemoryChart(0, msg, dbiDataHeader);
     ASSERT_TRUE(dbiParser.memoryChartMetrics_[0].typeProcessed[static_cast<uint32_t>(RecordType::MOV_FP)] != 0);
+}
+
+/**
+ * |  用例集 | DeviceDataParse
+ * | 测试函数 | DBIParser::PacketHandler
+ * |  用例名  | packet_handler_keeps_overflow_as_64bit
+ * | 用例描述 | 分区方案下 overflow 可能远超 16 位，上报值不能被截断
+ */
+TEST(DeviceDataParse, packet_handler_keeps_overflow_as_64bit)
+{
+    constexpr uint64_t overflow = 0x1F2345678ULL; // 大于 32 位，可以覆盖 16/32 位截断
+    DBIParser dbiParser("");
+    MovFpRecord record{};
+    record.pc = 11188;
+    DBIDataHeader dbiDataHeader{};
+    dbiDataHeader.count = 1;
+    dbiDataHeader.overflow = overflow;
+    RecordHeader rh;
+    rh.recordType = RecordType::MOV_FP;
+    dbiParser.PacketHandler(0, Communication::Serialize(dbiDataHeader, rh, record));
+    ASSERT_EQ(dbiParser.memoryChartMetrics_[0].overflow, overflow);
+    ASSERT_EQ(dbiParser.memoryChartMetrics_[0].processedRecord, 1U);
+    ASSERT_EQ(dbiParser.memoryChartMetrics_[0].droppedRecord, 0U);
+}
+
+/**
+ * |  用例集 | DeviceDataParse
+ * | 测试函数 | DBIParser::PacketHandler
+ * |  用例名  | packet_handler_accepts_pure_overflow_packet
+ * | 用例描述 | count=0、length=0、overflow>0 的纯溢出包也要累计 overflow，不能被丢弃
+ */
+TEST(DeviceDataParse, packet_handler_accepts_pure_overflow_packet)
+{
+    constexpr uint64_t overflow = 5U;
+    DBIParser dbiParser("");
+    DBIDataHeader dbiDataHeader{};
+    dbiDataHeader.count = 0;
+    dbiDataHeader.length = 0;
+    dbiDataHeader.overflow = overflow;
+    dbiDataHeader.endFlag = 0;
+    dbiParser.PacketHandler(0, Communication::Serialize(dbiDataHeader));
+    ASSERT_EQ(dbiParser.memoryChartMetrics_[0].overflow, overflow);
+    ASSERT_EQ(dbiParser.memoryChartMetrics_[0].receivedPacket, 1U);
+    ASSERT_EQ(dbiParser.memoryChartMetrics_[0].processedPacket, 1U);
+    ASSERT_EQ(dbiParser.memoryChartMetrics_[0].processedRecord, 0U);
+}
+
+/**
+ * |  用例集 | DeviceDataParse
+ * | 测试函数 | DBIParser::PacketHandler
+ * |  用例名  | packet_handler_counts_dropped_records
+ * | 用例描述 | 包内声明条数多于实际数据时，未解析的条数计入 droppedRecord
+ */
+TEST(DeviceDataParse, packet_handler_counts_dropped_records)
+{
+    DBIParser dbiParser("");
+    MovFpRecord record{};
+    record.pc = 11188;
+    DBIDataHeader dbiDataHeader{};
+    dbiDataHeader.count = 3;
+    RecordHeader rh;
+    rh.recordType = RecordType::MOV_FP;
+    dbiParser.PacketHandler(0, Communication::Serialize(dbiDataHeader, rh, record));
+    ASSERT_EQ(dbiParser.memoryChartMetrics_[0].processedRecord, 1U);
+    ASSERT_EQ(dbiParser.memoryChartMetrics_[0].droppedRecord, 2U);
+    ASSERT_EQ(dbiParser.memoryChartMetrics_[0].overflow, 0U);
+}
+
+/**
+ * |  用例集 | DeviceDataParse
+ * | 测试函数 | DBIParser::MemoryChartMetrics::PrintMetrics
+ * |  用例名  | print_metrics_warns_on_overflow
+ * | 用例描述 | 只有 overflow 非 0 时也要提示解析失败
+ */
+TEST(DeviceDataParse, print_metrics_warns_on_overflow)
+{
+    DBIParser::MemoryChartMetrics metrics;
+    metrics.overflow = 1;
+    std::string log;
+    {
+        LogCaptureGuard guard(&log);
+        metrics.PrintMetrics();
+    }
+    EXPECT_NE(log.find("Some data of [MemoryChart] parse failed."), std::string::npos);
+}
+
+/**
+ * |  用例集 | DeviceDataParse
+ * | 测试函数 | DBIParser::MemoryChartMetrics::PrintMetrics
+ * |  用例名  | print_metrics_no_warning_without_error
+ * | 用例描述 | 没有任何异常计数时不提示解析失败
+ */
+TEST(DeviceDataParse, print_metrics_no_warning_without_error)
+{
+    DBIParser::MemoryChartMetrics metrics;
+    std::string log;
+    {
+        LogCaptureGuard guard(&log);
+        metrics.PrintMetrics();
+    }
+    EXPECT_EQ(log.find("parse failed"), std::string::npos);
+}
+
+/**
+ * |  用例集 | DeviceDataParse
+ * | 测试函数 | DBIParser::MemoryChartMetrics::PrintMetrics
+ * |  用例名  | print_metrics_keeps_overflow_as_64bit_in_log
+ * | 用例描述 | 调试日志中 overflow 按 64 位输出，不因格式化串不匹配被截断
+ */
+TEST(DeviceDataParse, print_metrics_keeps_overflow_as_64bit_in_log)
+{
+    constexpr uint64_t overflow = 1ULL << 40; // 1099511627776
+    const auto savedLevel = Log::GetLog().GetLogLv();
+    const char *previous = std::getenv("MSOPT_LOG_LEVEL");
+    const bool envExisted = previous != nullptr;
+    const std::string savedEnv = envExisted ? previous : "";
+    setenv("MSOPT_LOG_LEVEL", "0", 1);
+    Log::GetLog().SetLogLevelByEnvVar();
+
+    DBIParser::MemoryChartMetrics metrics;
+    metrics.overflow = overflow;
+    std::string log;
+    {
+        LogCaptureGuard guard(&log);
+        metrics.PrintMetrics();
+    }
+
+    // 恢复用例执行前的日志级别和环境变量，避免影响后续用例
+    setenv("MSOPT_LOG_LEVEL", std::to_string(static_cast<int>(savedLevel)).c_str(), 1);
+    Log::GetLog().SetLogLevelByEnvVar();
+    if (envExisted) {
+        setenv("MSOPT_LOG_LEVEL", savedEnv.c_str(), 1);
+    } else {
+        unsetenv("MSOPT_LOG_LEVEL");
+    }
+    EXPECT_EQ(Log::GetLog().GetLogLv(), savedLevel);
+    EXPECT_NE(log.find(std::to_string(overflow)), std::string::npos);
 }
 
 TEST(DeviceDataParse, L2CacheLoadAndStore)

@@ -23,6 +23,17 @@ message(STATUS "msopprof dynamic binary instruction probes built for: ${CCE_AICO
 
 file(GLOB_RECURSE DYNAMIC_PROBES_FILES *.cpp)
 
+# 桩源码实际包含的头文件。多数目录下所有头文件都会被包含，按目录收集即可；
+# 公共目录和公共仓只列实际用到的单个文件，避免把无关头文件变成依赖。
+file(GLOB MSOPPROF_STUB_HEADERS CONFIGURE_DEPENDS
+    ${MSOPT_SRC_DIR}/op_profiling/plugin/*.h
+    ${MSOPT_SRC_DIR}/op_profiling/plugin/memory_chart/*.h
+    ${MSOPT_SRC_DIR}/op_profiling/plugin/operand_record/*.h)
+list(APPEND MSOPPROF_STUB_HEADERS
+    ${MSOPT_SRC_DIR}/op_profiling/common/dbi_defs.h
+    ${MSOPSCOMMON_DIR}/kernel_injection/include/MSBit.h
+    ${MSOPSCOMMON_DIR}/include/opprof/DbiDefs.h)
+
 # @description compile msopprof stub files to virtual object.....................
 function(compile_cce_object CCE_AICORE_ARCH MSOPPROF_STUB_OBJECT MSOPPROF_STUB_FILES)
     set(MSOPPROF_COMPILE_FLAGS
@@ -41,11 +52,15 @@ endfunction()
 
 # @description link multiple cce stub object to relocatable object
 function(link_cce_object_to_relocatable MERGED_OBJECT MSOPPROF_STUB_OBJECT)
+    # 桩源码/桩头文件/共享布局定义变化后都要重新合并，否则插件会一直链接旧的 merged.o。
+    # 不能只写 DEPENDS target 名：Makefile 生成器不会因对象文件更新而重跑该命令；
+    # 也不能把 $<TARGET_OBJECTS:...> 当文件依赖：全新构建树里这些对象没有独立生成规则，
+    # 且 OBJECT 库不允许挂 POST_BUILD 命令。因此显式列出输入文件。
     add_custom_command(
         OUTPUT ${MERGED_OBJECT}
         VERBATIM
         COMMENT "Build merged stub object ${MERGED_OBJECT} from msopprof stub source files"
-        DEPENDS ${MSOPPROF_STUB_OBJECT}
+        DEPENDS ${MSOPPROF_STUB_OBJECT} ${DYNAMIC_PROBES_FILES} ${MSOPPROF_STUB_HEADERS}
         COMMAND_EXPAND_LISTS
         COMMAND ld.lld -r $<TARGET_OBJECTS:${MSOPPROF_STUB_OBJECT}> -o ${MERGED_OBJECT}
     )
@@ -59,10 +74,11 @@ function(insert_section_to_object
         OUTPUT ${NEXT_OBJECT}
         VERBATIM
         COMMENT "Insert section ${SECTION_NAME} to ${LAST_OBJECT}"
+        # 直接从输入对象生成新对象，避免原地追加：重复执行时不会在已含该段的对象上再追加一次，
+        # 否则会出现重复的架构段。
         DEPENDS ${LAST_OBJECT} ${SECTION_OBJECT}
         COMMAND llvm-objcopy --add-section ${SECTION_NAME}=${SECTION_OBJECT}
-        --set-section-flags ${SECTION_NAME}=alloc,contents,readonly ${LAST_OBJECT}
-        COMMAND cp ${LAST_OBJECT} ${NEXT_OBJECT}
+        --set-section-flags ${SECTION_NAME}=alloc,contents,readonly ${LAST_OBJECT} ${NEXT_OBJECT}
     )
 endfunction()
 

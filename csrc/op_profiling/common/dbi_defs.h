@@ -28,7 +28,6 @@ namespace Common {
 constexpr uint64_t BITS_EACH_BYTE = 8UL;
 
 constexpr uint32_t DBI_RECORD_MAGIC_WORDS = 0x5a5a5a5a;
-constexpr uint64_t DBI_RECORD_OVERFLOW_BIT = 1ULL << 63;
 
 // 用于标识 set_atomic 系列接口的执行类型
 enum class AtomicMode : uint8_t {
@@ -207,6 +206,9 @@ struct RecordHeader {
     RecordType recordType;
     uint32_t magicWords = DBI_RECORD_MAGIC_WORDS;
 };
+
+// 每条记录以 8 字节 RecordHeader 开头，接收侧按 length / sizeof(RecordHeader) 估算记录数上限
+static_assert(sizeof(RecordHeader) == 8U, "RecordHeader must stay 8 bytes");
 
 struct BaseRecord {
     uint64_t dst;

@@ -16,6 +16,7 @@
 
 
 #include "dbi_parser.h"
+#include <cstdlib>
 #include <utility>
 #include <vector>
 #include <type_traits>
@@ -72,6 +73,12 @@ void DBIParser::ParseMemoryChart(std::size_t key, const std::string &msg, const 
     std::vector<uint32_t> failed(static_cast<uint32_t>(Common::RecordType::END), 0);
     uint64_t processedCount = 0;
     for (;processedCount < dbiDataHeader.count && index < msg.size(); ++processedCount) {
+        // 剩余数据不足以容纳完整的记录头时不能再 memcpy，否则会越界读取
+        if (msg.size() - index < sizeof(RecordHeader)) {
+            std::lock_guard<std::mutex> lock(parseMutex_);
+            ++memoryChartMetrics_[key].invalidDataCount;
+            break;
+        }
         RecordHeader rh;
         rh.recordType = RecordType::INVALID;
         if (memcpy_s(&rh, sizeof(rh), &msg[index], sizeof(rh)) != EOK) {
@@ -1078,9 +1085,10 @@ void DBIParser::VerifyAndDump(const DBIParser::MemoryChartMetrics &metrics)
 
 void DBIParser::MemoryChartMetrics::PrintMetrics() const
 {
-    std::vector<uint32_t> errSum = {droppedRecord, memoryCopyFailed, invalidParam, overflow, invalidDataCount,
+    // droppedRecord 可能超过 32 位（count 为 uint64_t），这里用 64 位累加后再判断
+    std::vector<uint64_t> errSum = {droppedRecord, memoryCopyFailed, invalidParam, invalidDataCount,
         memoryCorruption, invalidRecordType, outOfBoundsRead};
-    if (std::any_of(errSum.begin(), errSum.end(), [](int x) { return x != 0; }) ||
+    if (overflow != 0 || std::any_of(errSum.begin(), errSum.end(), [](uint64_t x) { return x != 0; }) ||
         std::any_of(typeFailed.begin(), typeFailed.end(), [](int x) { return x != 0; })) {
         LogWarn("Some data of [MemoryChart] parse failed.");
     }
@@ -1094,12 +1102,13 @@ void DBIParser::MemoryChartMetrics::PrintMetrics() const
         processed << ", " << typeProcessed[i];
         processFailed << ", " << typeFailed[i];
     }
-    LogDebug("processedRecord: %u, droppedRecord: %u, memoryCopyFailed %u, invalidParam %u, receivedPacket %hu, "
-             "processedPacket %hu, overflow %hu, invalidDataCount %hhu, memoryCorruption %hhu, "
+    LogDebug("processedRecord: %u, droppedRecord: %llu, memoryCopyFailed %u, invalidParam %u, receivedPacket %u, "
+             "processedPacket %u, overflow %llu, invalidDataCount %hhu, memoryCorruption %hhu, "
              "invalidRecordType %hhu, outOfBoundsRead %hhu, output num %lu, each record type process count %s, "
              "each record type process fail count %s",
-             processedRecord, droppedRecord, memoryCopyFailed, invalidParam, receivedPacket,
-             processedPacket, overflow, invalidDataCount, memoryCorruption,
+             processedRecord, static_cast<unsigned long long>(droppedRecord), memoryCopyFailed, invalidParam,
+             receivedPacket,
+             processedPacket, static_cast<unsigned long long>(overflow), invalidDataCount, memoryCorruption,
              invalidRecordType, outOfBoundsRead, memoryRecords.size(), processed.str().c_str(),
              processFailed.str().c_str());
     LogDebug("Output path: %s.", outputPath.c_str());

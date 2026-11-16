@@ -52,42 +52,56 @@ AICORE_FUNC_HEAD bool RecordPreCheck(__gm__ uint8_t *memInfo, uint64_t &blockIdx
         return false;
     }
 
-    static_assert(MAX_BLOCK_DATA_SIZE > sizeof(BlockHeader) + sizeof(RecordHeader) + sizeof(Record),
-            "size of record type must slower than preset capacity");
-    constexpr uint64_t maxLength = MAX_BLOCK_DATA_SIZE - sizeof(BlockHeader) - sizeof(RecordHeader) - sizeof(Record);
-    uint64_t offset = blockIdx * BLOCK_MEM_SIZE;
-    auto header = reinterpret_cast<__gm__ BlockHeader*>(memInfo + offset);
-    uint64_t length = header->length;
-    if ((length & DBI_RECORD_OVERFLOW_BIT) != 0) {
-        length++;
-    } else if (length > maxLength) {
-        length = header->count + 1;
-        length |= DBI_RECORD_OVERFLOW_BIT;
-    } else {
-        return true;
-    }
-
-    header->length = length;
-    Flush(memInfo);
-    return false;
+    static_assert(sizeof(RecordHeader) + sizeof(Record) <=
+            (MC_SEGMENT_AREA / (MAX_THREAD_NUM + 1) & ~0x7ULL) - MC_SEGMENT_HEADER_SIZE,
+            "size of record type must be smaller than the smallest thread segment capacity");
+    return true;
 }
 
+// 分区槽位与 OperandRecord 一致：0 号槽固定给 SIMD（非 SIMT）记录，SIMT 线程 threadId 用第 threadId + 1 个槽。
+// 布局标识由 host 在 launch 前写入 BlockHeader.threadNum（0 或 MAX_THREAD_NUM），整个采集期间只读，
+// 因此同一 block 内不会出现布局漂移；同一分区只有一个写者，count/length 直接用普通读改写，无需原子操作。
+// 纯 SIMD 布局（layoutId == 0）时只有 0 号槽，独占整个 block。
 template<typename Record, RecordType recordType>
 AICORE_FUNC_HEAD void DumpRecord(__gm__ uint8_t *memInfo, const Record &record)
 {
-    uint64_t offset = BLOCK_MEM_SIZE * static_cast<uint64_t>(record.coreID);
-    auto header = reinterpret_cast<__gm__ BlockHeader*>(memInfo + offset);
+    constexpr uint64_t recordBytes = sizeof(RecordHeader) + sizeof(Record);
+    __gm__ uint8_t *blockBase = memInfo + static_cast<uint64_t>(record.coreID) * BLOCK_MEM_SIZE;
+    const uint64_t layoutId = reinterpret_cast<__gm__ BlockHeader *>(blockBase)->threadNum;
+    if (!MemoryChartLayoutIsValid(layoutId)) {
+        return; // 布局非法（host 未预写或写入异常），丢弃本条记录
+    }
 
-    offset += sizeof(BlockHeader) + header->length;
+    uint64_t segIdx = 0;
+#ifdef SIMT_MODE
+    // 纯 SIMD 布局没有 SIMT 槽位；按 slot 数判断可避免 0 号槽被 SIMT 记录误用
+    uint64_t threadId = 0;
+    if (MemoryChartSegmentNum(layoutId) <= 1U || !TryGetThreadId(threadId) || threadId >= MAX_THREAD_NUM) {
+        return; // 线程号非法时丢弃本条记录，避免写到其他线程的分区
+    }
+    segIdx = threadId + 1;
+#endif
+
+    const uint64_t capacity = MemoryChartSegmentCapacity(MC_SEGMENT_AREA, layoutId);
+    const uint64_t segOffset = MemoryChartSegmentOffsetInBlock(MC_SEGMENT_AREA, segIdx, layoutId);
+    auto header = reinterpret_cast<__gm__ MemoryChartSegmentHeader *>(blockBase + segOffset);
+
+    if (header->length > capacity || recordBytes > capacity - header->length) {
+        header->dropped++;
+        Flush(memInfo);
+        return;
+    }
+
+    uint64_t offset = MC_SEGMENT_HEADER_SIZE + header->length;
     RecordHeader rh;
     rh.recordType = recordType;
-    WriteData<RecordHeader>(memInfo + offset, rh);
+    WriteData<RecordHeader>(blockBase + segOffset + offset, rh);
 
     offset += sizeof(RecordHeader);
-    WriteData<Record>(memInfo + offset, record);
+    WriteData<Record>(blockBase + segOffset + offset, record);
 
     header->count++;
-    header->length += sizeof(RecordHeader) + sizeof(Record);
+    header->length += recordBytes;
     Flush(memInfo);
 }
 
