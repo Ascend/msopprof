@@ -135,6 +135,12 @@ bool DataParse::ParserDeviceIdDir(const std::string &dataPath)
             if (!IsDir(deviceIdDir)) {
                 continue;
             }
+            // 仅真实的设备目录（device0、device1 等）下才有kernel dump数据。
+            // 需跳过tmp_dump等内部目录，否则其子目录会被误当作kernel目录并产生误导性告警。
+            static const std::regex deviceIdPattern("^device[0-9]+$");
+            if (!std::regex_match(deviceId, deviceIdPattern)) {
+                continue;
+            }
             std::vector<std::string> kernelNames;
             DisposeTmp(deviceIdDir);
             if (!GetFileNames(deviceIdDir, kernelNames)) {

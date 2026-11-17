@@ -629,14 +629,27 @@ TEST(OpProfDataParse, test_parser_device_id_dir_with_non_dir_entries_then_skip)
 {
     std::string dir = "/tmp/msopprof_ut_parse_device";
     Utility::RemoveAll(dir);
-    ASSERT_TRUE(Utility::MkdirRecusively(dir + "/dev1/kernelA"));
+    ASSERT_TRUE(Utility::MkdirRecusively(dir + "/device1/kernelA"));
     WriteTextFile(dir + "/dev0_file", "x");
-    WriteTextFile(dir + "/dev1/k_file", "x");
+    WriteTextFile(dir + "/device1/k_file", "x");
     TestOpProfDataParse dataParse;
     dataParse.theOnlyDevicePath_ = "/tmp/xxx";
     EXPECT_TRUE(dataParse.ParserDeviceIdDir(dir));
     EXPECT_EQ(dataParse.parseKernelCount_, 1);
     EXPECT_FALSE(dataParse.isTheOnlyDevice_);
+    Utility::RemoveAll(dir);
+}
+
+// tmp_dump为中间目录，不应被当作device目录解析其子目录
+TEST(OpProfDataParse, test_parser_device_id_dir_skips_tmp_dump)
+{
+    std::string dir = "/tmp/msopprof_ut_parse_tmp_dump";
+    Utility::RemoveAll(dir);
+    ASSERT_TRUE(Utility::MkdirRecusively(dir + "/device0/kernelA"));
+    ASSERT_TRUE(Utility::MkdirRecusively(dir + "/tmp_dump/device0"));
+    TestOpProfDataParse dataParse;
+    EXPECT_TRUE(dataParse.ParserDeviceIdDir(dir));
+    EXPECT_EQ(dataParse.parseKernelCount_, 1);
     Utility::RemoveAll(dir);
 }
 
