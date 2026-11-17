@@ -32,6 +32,12 @@ This section demonstrates how to use the instruction pipeline charts of the msOp
 
     ![](../figures/operator-instruction-pipeline-diagram-2-after-optimization.png)
 
+## C API SIMD VF Pipeline Diagnostics Case
+
+[sample_simd_vf_double_buffer](../../../example/sample_simd_vf_double_buffer/README.md) provides a SIMD VF pipeline diagnostics case on `dav-3510` that is numerically correct but has performance flaws, including `[16,8192]` half, single-core operator, input/golden generation, accuracy verification, and data contract tests. The project provides only the implementation to be diagnosed and can serve as input for the msagent bubble analysis Skill, forming optimization suggestions from the current simulation instructions, synchronization, and source code and verifying them through minimal experiments.
+
+This project uses `__simd_vf__` and is independent of the TPipe/TQue VectorAdd case in `example/sample_double_buffer`. It does not represent SIMT or full-product verification. For build, data, and analysis steps, see the case README.
+
 ## Performing Range-Level Replay with msTX APIs
 
 **Overview**
@@ -46,7 +52,7 @@ Prepare the operator project and add msTX extended APIs to the operator code to 
 >
 > - The `mstxRangeStartA` and `mstxRangeEnd` APIs must be called in pairs and cannot be nested across each other. The operators contained in each pair of msTX APIs form a replay range. The streams of the operators in the replay range cannot be changed.
 > - The number of operators that can be collected in each replay range is limited by the number of operator block dims in [OpBasicInfo (Basic Operator Information)](../user_guide/msopprof_performance_data.md#opbasicinfo-basic-operator-information). It is recommended that the number be less than or equal to 50.
-> - This function cannot be enabled together with `--aic-metrics=MemoryDetail`, `--aic-metrics=TimelineDetail`, or `--aic-metrics=Source`. You are advised not to enable this function together with `--kill=on` because it may result in missing operator data.
+> - This function cannot be enabled together with `--aic-metrics=MemoryDetail`, `--aic-metrics=TimelineDetail`, or `--aic-metrics=Source`. You are advised not to enable this function together with `--kill=true` because it may result in missing operator data.
 > - During range-level replay, the `SynchronizeStream` operator may fail to be executed. You are advised to execute the operator after the `mstxRangeEnd` API call ends.
 > - This function applies only to Atlas A3 training products, Atlas A3 inference products, Atlas A2 training products, Atlas A2 inference products, and Atlas 350 accelerator card.
 
@@ -89,7 +95,7 @@ mstx.range_end(range2_id)
     1. Run the following command to enable a single msTX API range. The following command performs range-level replay for `range1`.
 
         ```shell
-        msprof op --replay-mode=range --mstx=on --mstx-include="range1" --launch-count=10 python3 test.py
+        msprof op --replay-mode=range --mstx=true --mstx-include="range1" --launch-count=10 python3 test.py
         ```
 
     2. The tool generates the tuning data of the `Sub` and `Mul` operators, and the L2 cache information between the two operators is retained. For details about the profile files, see [Table 2 msopprof files](../user_guide/msopprof_user_guide.md#usage-description).
@@ -112,7 +118,7 @@ mstx.range_end(range2_id)
     1. Run the following command to enable all msTX APIs:
 
         ```shell
-        msprof op --replay-mode=range --mstx=on --launch-count=10 python3 test.py
+        msprof op --replay-mode=range --mstx=true --launch-count=10 python3 test.py
         ```
 
     2. The tool executes range-level replay for `range1` and `range2` sequentially, generating tuning data for `Sub`, `Mul`, `Div`, `Abs`, and `Add` operators. The L2 cache information during each replay is retained, but the L2 cache information during two replays is independent of each other. However, because `range2` and `range3` overlap, only the first range takes effect, and `range3` is invalid. For details about the profile files, see [Table 2 msopprof files](../user_guide/msopprof_user_guide.md#usage-description).

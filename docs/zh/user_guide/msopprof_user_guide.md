@@ -88,15 +88,15 @@ msopprof --output=$HOME/projects/output $HOME/projects/MyApp/out/main blockdim 1
 |--instr-timeline-pipe|需配合`--aic-metrics=InstrTimeline`参数进行使用，详情请参见上方`--aic-metrics=InstrTimeline`参数。|否|
 |--set|预定义采集档位，用于快速控制性能数据采集的深度，取值为default、detailed、full（不区分大小写）。仅昇腾A3系列产品和昇腾A2系列产品以及昇腾950PR&950DT系列产品支持该功能。<ul><li>default：采集Default（ArithmeticUtilization、L2Cache、Memory、MemoryL0、MemoryUB、PipeUtilization、ResourceConflictRatio）。</li><li>detailed：昇腾A3系列产品和昇腾A2系列产品在default基础上增加Occupancy和Roofline分析；昇腾950PR&950DT系列产品在default基础上增加Occupancy、Roofline和PipeTimeline。</li><li>full：昇腾A3系列产品和昇腾A2系列产品在detailed基础上增加MemoryDetail和Source；昇腾950PR&950DT系列产品在detailed基础上增加MemoryDetail、Source、PCSampling和InstrTimeline。</li></ul>注意事项：<ul><li>与`--aic-metrics`互斥，不可同时指定。</li><li>`--set`与`--replay-mode=range`互斥，不可同时指定。</li><li>上板场景下若未指定`--set`和`--aic-metrics`，默认按`--set=default`采集。</li></ul>|否|
 |--list-sets|列出当前芯片支持的采集档位（set）、各档位展开后的性能指标以及限制说明，便于用户选择档位时参考。|否|
-|--kill|选项包括开启（on）和关闭（off），默认情况下设置为关闭（off），关闭该功能。<br>若用户配置--kill=on使能该功能，用户程序将会在采集完--launch-count设置的算子数量后，自动停止程序。<br>注意事项：<br><ul><li>配置--kill=on后，可能会出现因用户程序提前结束而引发的错误日志，用户需自行评估是否使用该功能。</li><li>若用户程序为多进程，--kill参数的配置只对子进程生效。</li><li>使用该参数会造成最后一个被执行的通算融合算子无法正常获取接口调用流水，具体请参见[通算流水图](#通算流水图)。</li><li>不建议与`--replay-mode=range`同时使能，否则可能导致采集的算子数据缺失。</li></ul>|否|
-|--mstx|该参数决定算子调优工具是否使能用户代码程序中使用的mstx API。<br>默认为off，表示关闭对mstx API的使能。<br>若用户配置--mstx=on，算子调优工具将会使能用户代码程序中使用的mstx API。具体举例如下：`msopprof --mstx=on ./add_custom`<br>注意事项：<ul><li>当前已支持mstx API中的mstxRangeStartA和mstxRangeEnd接口，功能为使能算子调优的指定区间，具体参数介绍请参见《MindStudio mstx API参考》中的[mstxRangeStartA](https://gitcode.com/Ascend/mstx/blob/master/docs/zh/api_reference/Common/mstxRangeStartA.md)和[mstxRangeEnd](https://gitcode.com/Ascend/mstx/blob/master/docs/zh/api_reference/Common/mstxRangeEnd.md)接口。</li><li>配合`--replay-mode=range`使用时，mstxRangeStartA和mstxRangeEnd接口需成对调用，不支持交叉调用。每一对mstx API中包含的算子为一个重放范围，该重放范围内算子的Stream不能改变。同时，能采集的算子数量受[OpBasicInfo（算子基础信息）](./msopprof_performance_data.md#opbasicinfo算子基础信息)中算子Block Dim数量限制（建议不超过50个）。</li></ul>|否|
-|--mstx-include|该参数支持在算子调优工具使能mstx API的情况下，仅使能用户指定mstx API。<br>若不配置，则默认使能所有用户代码中使用的mstx API。<br>若配置，--mstx-include只使能用户指定的mstx API。--mstx-include的输入为用户调用mstx函数时传入的message字符串，使用"\|"拼接多个字符串。具体举例如下：`--mstx=on --mstx-include="hello\|hi" //仅使能用户传入mstx函数中message参数为hello和hi的mstx API`<br>注意事项：<ul><li>不可单独配置，需要与--mstx配合使用。</li><li>仅支持message为A-Z a-z 0-9 _这些字符，使用"\|"进行拼接。</li></ul>|否|
-|--replay-mode|算子数据采集的重放模式，可配置为kernel/application/range，默认为kernel。<ul><li>若配置为application，代表是应用级重放，整个应用会进行多次重放。application模式下，单独使能部分aic-metrics可能会导致visualize_data.bin文件中部分数据丢失，若需要查看完整的visualize_data.bin数据，建议添加Default到--aic-metrics以采集完整的可视化数据。</li><li>若配置为kernel，代表是核函数级重放，指定采集范围的单个算子的核函数进行多次重放。</li><li>若配置为range，代表是范围级重放，指定范围内的多算子整体进行多次重放。可以指定多个范围，范围之间相互独立。</li>注意事项：<li>kernel模式和range模式会清除L2cache数据，而application模式不会清理L2cache数据。</li><li>多卡多算子的场景不支持配置为application。</li><li>范围级重放需配合`--mstx=on`一起使用，且仅适用于Atlas A3系列产品和Atlas A2系列产品以及Ascend 950PR&950DT系列产品。</li><li>范围级重放不支持采集基于AICPU通信的MC2算子和LCCL算子，且Atlas A3系列产品和Atlas A2系列产品不支持与--kill=on、--aic-metrics=MemoryDetail、TimelineDetail、Source同时使能。Ascend 950PR&950DT系列产品不支持与--kill=on、--aic-metrics=PcSampling、Source、Roofline、PipeTimeline、InstrTimeline同时使能。</li></ul>|否|
+|--kill|选项包括开启（true）和关闭（false），默认情况下设置为关闭（false），关闭该功能。<br>若用户配置--kill=true使能该功能，用户程序将会在采集完--launch-count设置的算子数量后，自动停止程序。<br>注意事项：<br><ul><li>配置--kill=true后，可能会出现因用户程序提前结束而引发的错误日志，用户需自行评估是否使用该功能。</li><li>若用户程序为多进程，--kill参数的配置只对子进程生效。</li><li>使用该参数会造成最后一个被执行的通算融合算子无法正常获取接口调用流水，具体请参见[通算流水图](#通算流水图)。</li><li>不建议与`--replay-mode=range`同时使能，否则可能导致采集的算子数据缺失。</li></ul>|否|
+|--mstx|该参数决定算子调优工具是否使能用户代码程序中使用的mstx API。<br>默认为false，表示关闭对mstx API的使能。<br>若用户配置--mstx=true，算子调优工具将会使能用户代码程序中使用的mstx API。具体举例如下：`msopprof --mstx=true ./add_custom`<br>注意事项：<ul><li>当前已支持mstx API中的mstxRangeStartA和mstxRangeEnd接口，功能为使能算子调优的指定区间，具体参数介绍请参见《MindStudio mstx API参考》中的[mstxRangeStartA](https://gitcode.com/Ascend/mstx/blob/master/docs/zh/api_reference/Common/mstxRangeStartA.md)和[mstxRangeEnd](https://gitcode.com/Ascend/mstx/blob/master/docs/zh/api_reference/Common/mstxRangeEnd.md)接口。</li><li>配合`--replay-mode=range`使用时，mstxRangeStartA和mstxRangeEnd接口需成对调用，不支持交叉调用。每一对mstx API中包含的算子为一个重放范围，该重放范围内算子的Stream不能改变。同时，能采集的算子数量受[OpBasicInfo（算子基础信息）](./msopprof_performance_data.md#opbasicinfo算子基础信息)中算子Block Dim数量限制（建议不超过50个）。</li></ul>|否|
+|--mstx-include|该参数支持在算子调优工具使能mstx API的情况下，仅使能用户指定mstx API。<br>若不配置，则默认使能所有用户代码中使用的mstx API。<br>若配置，--mstx-include只使能用户指定的mstx API。--mstx-include的输入为用户调用mstx函数时传入的message字符串，使用"\|"拼接多个字符串。具体举例如下：`--mstx=true --mstx-include="hello\|hi" //仅使能用户传入mstx函数中message参数为hello和hi的mstx API`<br>注意事项：<ul><li>不可单独配置，需要与--mstx配合使用。</li><li>仅支持message为A-Z a-z 0-9 _这些字符，使用"\|"进行拼接。</li></ul>|否|
+|--replay-mode|算子数据采集的重放模式，可配置为kernel/application/range，默认为kernel。<ul><li>若配置为application，代表是应用级重放，整个应用会进行多次重放。application模式下，单独使能部分aic-metrics可能会导致visualize_data.bin文件中部分数据丢失，若需要查看完整的visualize_data.bin数据，建议添加Default到--aic-metrics以采集完整的可视化数据。</li><li>若配置为kernel，代表是核函数级重放，指定采集范围的单个算子的核函数进行多次重放。</li><li>若配置为range，代表是范围级重放，指定范围内的多算子整体进行多次重放。可以指定多个范围，范围之间相互独立。</li>注意事项：<li>kernel模式和range模式会清除L2cache数据，而application模式不会清理L2cache数据。</li><li>多卡多算子的场景不支持配置为application。</li><li>范围级重放需配合`--mstx=true`一起使用，且仅适用于Atlas A3系列产品和Atlas A2系列产品以及Ascend 950PR&950DT系列产品。</li><li>范围级重放不支持采集基于AICPU通信的MC2算子和LCCL算子，且Atlas A3系列产品和Atlas A2系列产品不支持与--kill=true、--aic-metrics=MemoryDetail、TimelineDetail、Source同时使能。Ascend 950PR&950DT系列产品不支持与--kill=true、--aic-metrics=PcSampling、Source、Roofline、PipeTimeline、InstrTimeline同时使能。</li></ul>|否|
 |--warm-up|当部分算子使用msOpProf采集时，会达不到芯片提频的最小任务耗时产生降频，从而会对交付件的结果产生一定影响。在该情况下，可用`--warm-up`指定预热次数，提前提升**AI处理器**的运行频率，使上板数据更准确。<br>注意事项：<ul><li>默认值为5，取值范围为[0,500]。</li><li>此参数对基于AICPU通信的MC2算子不生效。</li><li>当开启范围级别重放时，--warm-up次数至少为1，不得设置--warm-up=0。</li></ul>|否|
 |--output|收集到的性能数据的存放路径，默认在当前目录下保存性能数据。<br>需确保群组和其他组的用户不具备--output指定输出路径的上一级目录的写入权限。同时，需要确保--output指定目录的上一级目录属主为当前用户。|否|
 |--dump|控制仿真器dump文件是否生成。<br>选项包括开启（on）和关闭（off），默认情况下设置为关闭（off），即不生成仿真器dump文件。<br>注意事项：<ul><li>此参数仅在使用--aic-metrics=TimelineDetail选项时有效，且仅针对Atlas A2系列产品及Atlas A3系列产品生效，不支持Atlas推理系列产品和Ascend 950PR&950DT系列产品。</li><li>此参数仅适用于单进程场景，不支持两个算子同时运行的场景。</li></ul>|否|
 |--core-id|该参数适用于算子分布均匀的情况时，可使用--core-id参数指定部分逻辑核的id，解析部分核的仿真数据。<br>核id的取值范围为[0,49]。<br>注意事项：<ul><li>若要解析多个核的仿真数据时，需要使用符号"\|"进行拼接。例如，--core-id="0\|31"表示解析核id为0和31的仿真数据。</li><li>此参数仅在使用`--aic-metrics=TimelineDetail`选项时有效，仅作用于[指令流水图](./msopprof_simulator_user_guide.md#指令流水图)和[算子代码热点图](#算子代码热点图)，仅适用于Atlas A2系列产品、Atlas A3系列产品及Ascend 950PR&950DT系列产品。</li></ul>|否|
-|--custom-input|用于读取自定义输入文件，具体输入示例请参见[json示例文件](#json示例文件)，目前只支持[通算流水图](#通算流水图)使用。仅适用于Atlas A2系列产品、Atlas A3系列产品以及Ascend 950PR&950DT系列产品。|否|
+|--custom-input|用于读取自定义输入JSON文件，支持[通算流水图](#json示例文件)的打点展示配置和[多卡流水图合并](#多卡流水图合并)配置，两类配置可同时存在。|否|
 |-h，--help|输出帮助信息。|否|
 |-V，--version|查询相关版本信息。|否|
 
@@ -130,7 +130,7 @@ msOpProf工具协助用户定位算子内存、算子代码以及算子指令的
     - 若未配置--aic-metrics，默认采集Default部分的算子性能指标，KernelScale、TimelineDetail、Roofline、Occupancy部分的算子性能指标将无法采集。
 
 5. 通过[1](#1)至[4](#4)逐层过滤，可获得实际的调优算子数量以及性能指标的采集范围。
-6. 使能--kill=on功能的情况下，将实际调优的算子数量与--launch-count值进行对比，从而决定是否需要自动停止程序。<br>若实际已调优算子数量小于等于--launch-count值，则继续执行。否则，实际已调优算子数量达到--launch-count设置的算子数值时，会自动停止程序。
+6. 使能--kill=true功能的情况下，将实际调优的算子数量与--launch-count值进行对比，从而决定是否需要自动停止程序。<br>若实际已调优算子数量小于等于--launch-count值，则继续执行。否则，实际已调优算子数量达到--launch-count设置的算子数值时，会自动停止程序。
 
 **msOpProf配置** <a id="msOpProf配置"></a>
 
@@ -195,7 +195,13 @@ msOpProf工具协助用户定位算子内存、算子代码以及算子指令的
 
         ```text
         └──OPPROF_{timestamp}_XXX
-        ├── device0                  // 运行时使用AI处理器的ID
+        ├── summary
+        │ ├── summary.csv
+        │ └── <合并流水目录>           // 仅在存在多卡合并流水图时生成，命名规则参见“多卡流水图合并”章节
+        │   └── 0                     // 合并流水的执行编号
+        │     ├── trace.json
+        │     └── visualize_data.bin
+        ├── device0                   // 运行时使用AI处理器的ID
         └── device1
           ├── OpName0                // OpName0为采集算子名称
           │ ├── 0                    // 表示算子调度顺序
@@ -219,6 +225,8 @@ msOpProf工具协助用户定位算子内存、算子代码以及算子指令的
 
         ```text
         └──OPPROF_{timestamp}_XXX
+        ├── summary
+          ├── summary.csv
         ├── OpName0                  // OpName0为采集算子名称
         │ ├── 0                      // 表示算子调度顺序
         │ │ ├── dump                 // 与单算子含义一致，存放过程件的文件夹
@@ -264,12 +272,13 @@ msOpProf工具协助用户定位算子内存、算子代码以及算子指令的
     |PipeUtilization.csv|采集计算单元和搬运单元耗时和占比，可参考[PipeUtilization（计算单元和搬运单元耗时占比）](./msopprof_performance_data.md#pipeutilization计算单元和搬运单元耗时占比)。|
     |ResourceConflictRatio.csv|UB上的bank group、bank conflict和资源冲突在所有指令中的占比，可参考[ResourceConflictRatio（资源冲突占比）](./msopprof_performance_data.md#resourceconflictratio资源冲突占比)。|
     |OpBasicInfo.csv|算子基础信息，包含算子名称、block dim和耗时等信息，可参考[OpBasicInfo（算子基础信息）](./msopprof_performance_data.md#opbasicinfo算子基础信息)。|
+    |summary/summary.csv|算子基础信息汇总文件。上板调优任务包含两条及以上算子记录时生成，每行对应一条算子执行记录，按Device ID顺序展示。关键字段说明与OpBasicInfo保持一致，可参考[Summary（算子基础信息汇总）](./msopprof_performance_data.md#summary算子基础信息汇总)。|
     |visualize_data.bin|算子基础信息、计算单元负载、热点函数和Roofline瓶颈分析等信息的可视化呈现文件。|
     |trace.json|通算流水可视化呈现文件。|
 
     > [!NOTE]
     >
-    > - visualize\_data.bin可通过MindStudio Insight工具进行可视化展示，具体使用方法请参考[MindStudio Insight算子调优](https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/user_guide/operator_tuning.md)。
+    > - visualize\_data.bin可通过MindStudio Insight工具进行可视化展示，具体使用方法请参考[MindStudio Insight算子调优](https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/user_guide/operator_tuning/operator_tuning_overview.md)。
     > - msOpProf的热点函数功能仅支持Atlas A2系列产品。
     > - 单位GB/s表示每秒传输1GB的数据量。
 
@@ -282,7 +291,7 @@ msOpProf工具协助用户定位算子内存、算子代码以及算子指令的
 
 通过msOpProf运行模式生成的visualize\_data.bin文件可通过MindStudio Insight进行可视化呈现，界面将会以资源维度展示算子基础信息、计算负载分析和内存负载分析的数据，协助开发者以全局视角识别资源瓶颈。
 
-MindStudio Insight具体操作请参考《MindStudio Insight算子调优》的“[详情（Details）](https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/user_guide/operator_tuning.md#%E8%AF%A6%E6%83%85%EF%BC%88details%EF%BC%89)”章节。
+MindStudio Insight具体操作请参考《MindStudio Insight算子调优》的“[详情（Details）](https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/user_guide/operator_tuning/details.md)”章节。
 
 ### 使用说明
 
@@ -321,7 +330,7 @@ visualize\_data.bin文件通过MindStudio Insight工具展示的界面如下。
 
 通过msOpProf运行模式生成的visualize\_data.bin文件可通过MindStudio Insight进行可视化呈现，Roofline瓶颈分析图可构建出处理器的性能模型，然后利用该性能模型快速评估出算子的理论性能极限，协助开发者快速识别瓶颈类型。
 
-MindStudio Insight具体操作请参考《MindStudio Insight算子调优》的“[详情（Details）](https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/user_guide/operator_tuning.md#%E8%AF%A6%E6%83%85%EF%BC%88details%EF%BC%89)”章节。
+MindStudio Insight具体操作请参考《MindStudio Insight算子调优》的“[详情（Details）](https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/user_guide/operator_tuning/details.md)”章节。
 
 ### 使用说明
 
@@ -542,7 +551,7 @@ Roofline分析视图分析算子的性能百分比，并提供以下客观分析
 
 **注意事项**
 
-- MindStudio Insight具体操作和详细字段解释请参考《MindStudio Insight算子调优》的“[缓存（Cache）](https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/user_guide/operator_tuning.md#%E7%BC%93%E5%AD%98%EF%BC%88cache%EF%BC%89)”章节。
+- MindStudio Insight具体操作和详细字段解释请参考《MindStudio Insight算子调优》的“[缓存（Cache）](https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/user_guide/operator_tuning/cache.md)”章节。
 - 添加`-g`编译选项会在生成的二进制文件中附带调试信息，建议限制带有调试信息的用户程序的访问权限，确保只有授权人员可以访问该二进制文件。
 - 若不使用`llvm-symbolizer`组件提供的相关功能，输入msOpProf的程序编译时不包含-g即可，msOpProf工具则不会调用`llvm-symbolizer`组件的相关功能。
 <!-- npu="310p" id7 -->
@@ -584,7 +593,7 @@ Cache热力图界面显示如下。
 
 对算子进行调优后，生成的trace.json和visualize\_data.bin文件可通过MindStudio Insight进行可视化呈现，能够直观看到算子各个Pipe的运行情况，协助开发者识别算子瓶颈。
 
-MindStudio Insight具体操作和详细字段解释请参考《MindStudio Insight算子调优》的“[时间线（Timeline）](https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/user_guide/operator_tuning.md#%E6%97%B6%E9%97%B4%E7%BA%BF%EF%BC%88timeline%EF%BC%89)”章节。
+MindStudio Insight具体操作和详细字段解释请参考《MindStudio Insight算子调优》的“[时间线（Timeline）](https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/user_guide/operator_tuning/timeline.md)”章节。
 
 #### 使用说明
 
@@ -630,7 +639,7 @@ MindStudio Insight具体操作和详细字段解释请参考《MindStudio Insigh
 
 对算子进行调优后，生成的trace.json和visualize_data.bin文件可通过MindStudio Insight进行可视化呈现，借助算子上板指令级流水图，可精准采集每条指令的实际运行耗时，掌握全局指令调度时序与运行状态，协助开发者开展指令调度优化、指令序列重排等深度调优工作。
 
-MindStudio Insight具体操作和详细字段解释请参考《MindStudio Insight算子调优》的“[时间线（Timeline）](https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/user_guide/operator_tuning.md#%E6%97%B6%E9%97%B4%E7%BA%BF%EF%BC%88timeline%EF%BC%89)”章节。
+MindStudio Insight具体操作和详细字段解释请参考《MindStudio Insight算子调优》的“[时间线（Timeline）](https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/user_guide/operator_tuning/timeline.md)”章节。
 
 #### 使用说明
 
@@ -653,7 +662,7 @@ MindStudio Insight具体操作和详细字段解释请参考《MindStudio Insigh
 
 **注意事项**
 
-- trace.json文件可分别通过Chrome浏览器和MindStudio Insight展示，visualize_data.bin文件仅可通过MindStudio Insight展示。MindStudio Insight具体操作和详细字段解释请参考《MindStudio Insight算子调优》的“[时间线（Timeline）](https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/user_guide/operator_tuning.md#%E6%97%B6%E9%97%B4%E7%BA%BF%EF%BC%88timeline%EF%BC%89)”章节。
+- trace.json文件可分别通过Chrome浏览器和MindStudio Insight展示，visualize_data.bin文件仅可通过MindStudio Insight展示。MindStudio Insight具体操作和详细字段解释请参考《MindStudio Insight算子调优》的“[时间线（Timeline）](https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/user_guide/operator_tuning/timeline.md)”章节。
 - 添加`-g`编译选项会在生成的二进制文件中附带调试信息，建议限制带有调试信息的用户程序的访问权限，确保只有授权人员可以访问该二进制文件。
 - 通算流水图功能在KFC场景中使用时，需要注意遵循相关接口使用规则，部分场景下Cube侧的数据无法呈现，需要结合KFC相关接口原理查看算子打点数据。
 - "基于AICPU通信的MC2算子"特指AICPU kernel与AICore kernel成对下发，且AICPU kernel名以"Mc2AicpuKernel"结尾的MC2算子。
@@ -736,7 +745,7 @@ MindStudio Insight具体操作和详细字段解释请参考《MindStudio Insigh
 
 对算子进行调优后，生成的trace.json和visualize_data.bin文件可通过MindStudio Insight进行可视化呈现，能够直观展示各warp耗时等相应信息，协助开发者识别算子瓶颈。
 
-MindStudio Insight具体操作和详细字段解释请参考《MindStudio Insight算子调优》的“[时间线（Timeline）](https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/user_guide/operator_tuning.md#%E6%97%B6%E9%97%B4%E7%BA%BF%EF%BC%88timeline%EF%BC%89)”章节。
+MindStudio Insight具体操作和详细字段解释请参考《MindStudio Insight算子调优》的“[时间线（Timeline）](https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/user_guide/operator_tuning/timeline.md)”章节。
 
 #### 使用说明
 
@@ -752,6 +761,101 @@ MindStudio Insight具体操作和详细字段解释请参考《MindStudio Insigh
 > - 在simt entry开始和结尾插入了一部分代码，对算子耗时会产生一定影响。
 > - warp耗时数据的采集在独立的重放过程中完成，不影响其他类型数据，也不建议与其他各类数据做对比。
 
+### 多卡流水图合并
+
+#### 功能说明
+
+该功能支持直观展示多卡并行的通算融合算子在各卡上的通算、Pipe或指令流水图，便于对比各卡的计算与通信耗时，分析多卡并行执行情况。生成的trace.json和visualize_data.bin文件可通过MindStudio Insight进行可视化呈现。
+
+- **显式合并**：结合`--custom-input`的`timeline_merge_config`参数和[mstx扩展功能](./extended_functions.md#mstx扩展功能)，可自定义需要合并流水图的算子范围、合并执行次数上限及参与设备数上限等内容。开启mstx扩展功能需开启--mstx、--mstx-include相关参数，流水类型由对应的采集功能决定，产品支持范围沿用各类流水功能。
+- **自动合并**：该方式仅适用于基于AICPU通信的MC2算子和LCCL算子，在未配置`timeline_merge_config`或配置为空数组时生效，按相同算子名称和算子执行顺序自动配组。
+
+#### 使用说明
+
+##### 显式合并
+
+1. 确保应用已按对应功能要求生成有效的单卡流水。如：通算流水需按[通算流水图](#通算流水图)说明进行打点；Pipe或指令流水需启用对应的`--aic-metrics=PipeTimeline`或`--aic-metrics=InstrTimeline`。
+示例图如下：
+![](../figures/显式合并示例.png "显式合并示例")
+2. 通过[mstx扩展功能](./extended_functions.md#mstx扩展功能)标记需要合并流水的算子范围，例如范围名称为`mstx_name`，为方便查看流水图，强烈建议一个mstx范围只圈定同一个通算融合算子。
+
+    以下为PyTorch调用示意，`all_gather(xxx)`为应用实际算子调用的占位示例。范围名称`mstx_name`应与下文JSON中的`mstx_name`一致，`kernel_name`应按实际采集到的算子名称配置。
+
+    ```python
+    import mstx
+
+    # 每张卡使用相同的MSTX范围名称，在范围内循环执行5次。
+    range_id = mstx.range_start("mstx_name", None)
+    for iteration in range(5):
+        all_gather(xxx)
+    mstx.range_end(range_id)
+    ```
+
+3. 创建自定义输入文件，例如`custom_input.json`：
+
+    ```json
+    {
+        "timeline_merge_config": [
+            {
+                "kernel_name": "all_gather*",
+                "mstx_name": "mstx_name",
+                "rank_count": 4,
+                "launch_count": 5
+            }
+        ]
+    }
+    ```
+
+    `timeline_merge_config`为数组，最多支持64项配置；每项必须包含以下四个字段。
+
+    |字段|类型|说明|
+    |---|---|---|
+    |kernel_name|string|算子名称，支持通配符，长度范围为`[1, 1023)`字符，支持`A-Z a-z 0-9 _ *`。|
+    |mstx_name|string|MSTX范围的message名称，长度范围为`[1, 1023)`字符，支持`A-Z a-z 0-9 _`，按名称匹配。|
+    |rank_count|int|参与合并的设备数，即算子使用卡数，取值范围为[2, 64]。实际记录设备数超过该值时跳过本项配置；少于该值时不补齐设备，至少需要两个设备的有效流水才能生成合并图。|
+    |launch_count|int|合并执行次数，取值范围为[1, 50]。实际记录次数超过该值时仅处理前`launch_count`次；少于该值时不补齐次数，各次执行均需所有参与设备的有效流水齐全才能生成合并图。|
+
+4. 启用MSTX并指定配置文件运行应用。
+
+    ```shell
+    msopprof --mstx=true --mstx-include=mstx_name --launch-count=5 --custom-input=./custom_input.json --output=./output_data ./test_npu
+    ```
+
+5. 查看合并产物，以上配置的目录示例如下：
+
+    ```text
+    summary/
+    ├── summary.csv
+    └── mstx_name_all_gather/
+        ├── 0/
+        │   ├── trace.json
+        │   └── visualize_data.bin
+        └── 1/
+            ├── trace.json
+            └── visualize_data.bin
+    ```
+
+    - 目录按`<mstx_name>_<kernel_name>`命名，kernel_name中的通配符`*`会进行删除，mstx_name和kernel_name各保留前120字符。多项配置生成相同基础目录名时，按这些配置的出现顺序追加`_0`、`_1`等后缀。
+    - 执行编号表示当前配置下的算子执行编号索引，从0开始。
+    - 合并时按执行编号关联各设备的流水记录，仅对所有参与设备均具有有效流水的执行编号生成合并图。数据不完整的分组将被跳过，后续分组保留原执行编号，因此输出编号可能不连续。各设备的算子调用顺序应保持一致，以保证记录关联正确。
+
+##### 自动合并
+
+对基于AICPU通信的MC2算子和LCCL算子，可自动生成合并的通算流水图。合并产物按照`<算子名称>/<执行编号>/`的顺序展开，`OpName`为算子名称，目录名最多保留前120字符。目录示例如下：
+
+```text
+summary/
+├── summary.csv
+└── OpName/
+    └── 0/
+        ├── trace.json
+        └── visualize_data.bin
+```
+
+示例图如下：
+
+![](../figures/自动合并示例.png "自动合并示例")
+
 ## 算子代码热点图
 
 ### 功能说明
@@ -760,7 +864,7 @@ MindStudio Insight具体操作和详细字段解释请参考《MindStudio Insigh
 
 **注意事项**
 
-- MindStudio Insight具体操作和详细字段解释请参考《MindStudio Insight算子调优》的“[源码（Source）](https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/user_guide/operator_tuning.md#%E6%BA%90%E7%A0%81%EF%BC%88source%EF%BC%89)”章节。
+- MindStudio Insight具体操作和详细字段解释请参考《MindStudio Insight算子调优》的“[源码（Source）](https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/user_guide/operator_tuning/source.md)”章节。
 - 添加`-g`编译选项会在生成的二进制文件中附带调试信息，建议限制带有调试信息的用户程序的访问权限，确保只有授权人员可以访问该二进制文件。
 - 算子程序编译时需要包含-g，否则msOpProf不会展示热点图，也不调用llvm-symbolizer组件的相关功能实现代码与PC映射。
 <!-- npu="310p" id8 -->
@@ -828,7 +932,7 @@ MindStudio Insight具体操作和详细字段解释请参考《MindStudio Insigh
 
 通过msOpProf运行模式生成的visualize_data.bin文件可通过MindStudio Insight进行可视化呈现，主要展示指令在执行过程中，由于资源冲突、数据依赖等原因而产生的等待次数，包含active。
 
-MindStudio Insight具体操作请参考《MindStudio Insight算子调优》的“[详情（Details）](https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/user_guide/operator_tuning.md#%E8%AF%A6%E6%83%85%EF%BC%88details%EF%BC%89)”章节。
+MindStudio Insight具体操作请参考《MindStudio Insight算子调优》的“[详情（Details）](https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/user_guide/operator_tuning/details.md)”章节。
 
 ### 使用说明
 

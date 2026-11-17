@@ -170,9 +170,9 @@ msopprof simulator --soc-version=Ascendxxxyy --output=/home/projects/output /hom
 </td>
 <td class="cellrowborder" valign="top" width="63.02630263026302%" headers="mcps1.2.4.1.2 "><p id="zh-cn_topic_0000002016036877_p197151054181117">该参数决定算子调优工具是否使能用户代码程序中使用的mstx API。</p>
 <p id="zh-cn_topic_0000002016036877_p161151134173317">默认为off，表示关闭对mstx API的使能。</p>
-<p id="zh-cn_topic_0000002016036877_p18115834193315">当配置--mstx=on，算子调优工具将会使能用户代码程序中使用的mstx API。</p>
+<p id="zh-cn_topic_0000002016036877_p18115834193315">当配置--mstx=true，算子调优工具将会使能用户代码程序中使用的mstx API。</p>
 <p id="zh-cn_topic_0000002016036877_p151157346336">具体举例如下：</p>
-<pre class="code_wrap" id="zh-cn_topic_0000002016036877_screen811523463318">msopprof simulator --soc-version=Ascendxxxyy --mstx=on ./add_custom <span>// </span>xxxyy为用户实际使用的具体芯片类型</pre>
+<pre class="code_wrap" id="zh-cn_topic_0000002016036877_screen811523463318">msopprof simulator --soc-version=Ascendxxxyy --mstx=true ./add_custom <span>// </span>xxxyy为用户实际使用的具体芯片类型</pre>
 <p id="zh-cn_topic_0000002016036877_p1776694422415">当前已支持mstx API中的mstxRangeStartA和mstxRangeEnd接口，功能为使能算子调优的指定区间，具体参数介绍请参见<span id="zh-cn_topic_0000002016036877_ph1583812516245">《MindStudio mstx API参考》</span>中的<span id="zh-cn_topic_0000002016036877_ph2878123711242"><a href="https://gitcode.com/Ascend/mstx/blob/master/docs/zh/api_reference/Common/mstxRangeStartA.md" target="_blank" rel="noopener noreferrer">mstxRangeStartA</a></span>和<span id="zh-cn_topic_0000002016036877_ph137651944162412"><a href="https://gitcode.com/Ascend/mstx/blob/master/docs/zh/api_reference/Common/mstxRangeEnd.md" target="_blank" rel="noopener noreferrer">mstxRangeEnd</a></span>接口。</p>
 </td>
 <td class="cellrowborder" valign="top" width="11.741174117411742%" headers="mcps1.2.4.1.3 "><p id="zh-cn_topic_0000002016036877_p131151034163318">否</p>
@@ -184,7 +184,7 @@ msopprof simulator --soc-version=Ascendxxxyy --output=/home/projects/output /hom
 <p id="zh-cn_topic_0000002016036877_p17496184815597">若不配置，则默认使能所有用户代码中使用的mstx API。</p>
 <p id="zh-cn_topic_0000002016036877_p21163341332">若配置，--mstx-include仅使能用户指定的mstx API。--mstx-include的输入为用户调用mstx函数时传入的message字符串，多个字符串需使用"|"拼接。</p>
 <p id="zh-cn_topic_0000002016036877_p15116334153320">具体举例如下：</p>
-<pre class="code_wrap" id="zh-cn_topic_0000002016036877_screen171163344333">--mstx=on --mstx-include="hello|hi" //仅使能用户传入mstx函数中message参数为hello和hi的mstx API</pre>
+<pre class="code_wrap" id="zh-cn_topic_0000002016036877_screen171163344333">--mstx=true --mstx-include="hello|hi" //仅使能用户传入mstx函数中message参数为hello和hi的mstx API</pre>
 <p id="p101653252417">不可单独配置，需要与--mstx配合使用。</p>
 <p id="p1943922619417">仅支持message为A-Z a-z 0-9 _这些字符，使用"|"进行拼接。</p>
 </td>
@@ -212,9 +212,9 @@ msopprof simulator --soc-version=Ascendxxxyy --output=/home/projects/output /hom
 <tr id="zh-cn_topic_0000002016036877_row104315393543"><td class="cellrowborder" valign="top" width="25.232523252325233%" headers="mcps1.2.4.1.1 "><p id="zh-cn_topic_0000002016036877_p102401740175414">--dump</p>
 </td>
 <td class="cellrowborder" valign="top" width="63.02630263026302%" headers="mcps1.2.4.1.2 "><p id="zh-cn_topic_0000002016036877_p18606195017712">控制仿真器dump文件夹是否生成。</p>
-<p id="zh-cn_topic_0000002016036877_p3562736122116">选项包括开启（on）和关闭（off），默认情况下设置为关闭（off），即不生成仿真器dump文件夹。</p>
+<p id="zh-cn_topic_0000002016036877_p3562736122116">选项包括开启（true）和关闭（false），默认情况下设置为关闭（false），即不生成仿真器dump文件夹。</p>
 <p id="p195771271259">注意事项：</p>
-<ul id="ul537191457"><li>此参数仅支持<span id="zh-cn_topic_0000002016036877_ph8606165015710">Atlas A2系列产品</span>、<span id="zh-cn_topic_0000002016036877_ph96063504712">Atlas A3系列产品</span>及Ascend 950PR&950DT系列产品。Ascend 950PR&950DT系列产品默认启用camodel在线解析，不生成仿真器dump文件，指定--dump=on时保留指令回调dump文件。</li><li>此参数仅适用于单进程场景，不支持两个算子同时运行的场景。</li></ul>
+<ul id="ul537191457"><li>此参数仅支持<span id="zh-cn_topic_0000002016036877_ph8606165015710">Atlas A2系列产品</span>、<span id="zh-cn_topic_0000002016036877_ph96063504712">Atlas A3系列产品</span>及Ascend 950PR&950DT系列产品。Ascend 950PR&950DT系列产品默认启用camodel在线解析，不生成仿真器dump文件，指定--dump=true时保留指令回调dump文件。</li><li>此参数仅适用于单进程场景，不支持两个算子同时运行的场景。</li></ul>
 </td>
 <td class="cellrowborder" valign="top" width="11.741174117411742%" headers="mcps1.2.4.1.3 "><p id="zh-cn_topic_0000002016036877_p182411240125415">否</p>
 </td>
@@ -455,7 +455,7 @@ msOpProf工具协助用户定位算子内存、算子代码以及算子指令的
 
 **注意事项**
 
-- MindStudio Insight具体操作和详细字段解释请参考《MindStudio Insight算子调优》的“[时间线（Timeline）](https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/user_guide/operator_tuning.md#%E6%97%B6%E9%97%B4%E7%BA%BF%EF%BC%88timeline%EF%BC%89)”章节。
+- MindStudio Insight具体操作和详细字段解释请参考《MindStudio Insight算子调优》的“[时间线（Timeline）](https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/user_guide/system_tuning/timeline.md)”章节。
 - 添加-g编译选项会在生成的二进制文件中附带调试信息，建议限制带有调试信息的用户程序的访问权限，确保只有授权人员可以访问该二进制文件。
 - 若不使用llvm-symbolizer组件提供的相关功能，输入msOpProf的程序编译时不包含-g即可，msOpProf工具则不会调用llvm-symbolizer组件的相关功能。
 - 若用户仅需关注部分算子性能时，可在Atlas A3系列产品、Atlas推理系列产品、Atlas A2系列产品和Ascend 950PR&950DT系列产品的单核内调用《Ascend C算子开发接口》中的“调测接口”章节的[TRACE_START](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/latest/API/ascendcopapi/docs/api/Utils-API/%E8%B0%83%E6%B5%8B%E6%8E%A5%E5%8F%A3/TRACE_START.md)和[TRACE_STOP](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/latest/API/ascendcopapi/docs/api/Utils-API/%E8%B0%83%E6%B5%8B%E6%8E%A5%E5%8F%A3/TRACE_STOP.md)接口。并在编译配置文件中添加-DASCENDC\_TRACE\_ON，具体操作请参见[添加-DASCENDC\_TRACE\_ON的方法](#添加-DASCENDC_TRACE_ON)。然后，才能生成该范围内的流水图信息。
@@ -525,7 +525,7 @@ trace.json文件可分别通过Chrome浏览器和MindStudio Insight展示，visu
 
 **注意事项**
 
-- MindStudio Insight具体操作和详细字段解释请参考《MindStudio Insight算子调优》的“[源码（Source）](https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/user_guide/operator_tuning.md#%E6%BA%90%E7%A0%81%EF%BC%88source%EF%BC%89)”章节。
+- MindStudio Insight具体操作和详细字段解释请参考《MindStudio Insight算子调优》的“[源码（Source）](https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/user_guide/operator_tuning/source.md)”章节。
 - 添加-g编译选项会在生成的二进制文件中附带调试信息，建议限制带有调试信息的用户程序的访问权限，确保只有授权人员可以访问该二进制文件。
 - 算子程序编译时需要包含-g，否则msOpProf不会展示热点图，也不调用llvm-symbolizer组件的相关功能实现代码-PC映射。
 - MC2算子和LCCL算子均不支持生成算子代码热点图。
@@ -571,7 +571,7 @@ trace.json文件可分别通过Chrome浏览器和MindStudio Insight展示，visu
 
 **注意事项**
 
-- MindStudio Insight具体操作和详细字段解释请参考《MindStudio Insight算子调优》的“[时间线（Timeline）](https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/user_guide/operator_tuning.md#%E6%97%B6%E9%97%B4%E7%BA%BF%EF%BC%88timeline%EF%BC%89)”章节。
+- MindStudio Insight具体操作和详细字段解释请参考《MindStudio Insight算子调优》的“[时间线（Timeline）](https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/user_guide/system_tuning/timeline.md)”章节。
 - 内存通路吞吐率波形图功能仅适用于Atlas A2系列产品和Atlas A3系列产品。
 - 此功能默认不开启，--core-id设置对该功能不生效。
 

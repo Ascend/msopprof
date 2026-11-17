@@ -468,7 +468,17 @@ mte/vector/scalar采集ub读写带宽速率数据MemoryUB.csv。详情介绍请�
 |Current Freq|AI处理器当前运行的频率。|
 |Rated Freq|AI处理器的理论频率。|
 
-## PipeUtilization（计算单元和搬运单元耗时占比）
+## Summary（算子基础信息汇总）
+
+当上板调优任务包含两条以上算子记录时，会生成算子基础信息汇总文件summary.csv。每行对应一条算子执行记录，按Device ID顺序展示。
+
+**图 1**  summary.csv
+
+![](../figures/summary-csv文件.png "summary-csv文件")
+
+关键字段说明与[OpBasicInfo（算子基础信息）](#opbasicinfo算子基础信息)保持一致。
+
+# PipeUtilization（计算单元和搬运单元耗时占比）
 
 采集计算单元和搬运单元耗时和占比数据PipeUtilization.csv。建议优化数据搬运逻辑，提高带宽利用率。详情介绍请参见下表中的字段说明。
 

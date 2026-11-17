@@ -279,15 +279,14 @@ MindStudio provides the msTX profiling API, which enables users to embed custom 
 **msTX API Usage**
 
 - msOpProf allows users to use the msTX API to tune specific operators, customize the start time and end time of the code segment or specified key functions, identify key functions or computing APIs, and quickly demarcate performance issues.
-- The msTX API is disabled by default. If the msTX API is called in the application, the msTX instrumentation function is enabled based on the actual application scenario. For example, the `--mstx=on` flag enables msTX APIs within the user program, while `--mstx-include` can be used to target specific msTX APIs. For detailed usage, refer to the `--mstx` and `--mstx-include` parameters in the "Command Reference" sections of the [msopprof User Guide](./msopprof_user_guide.md#command-reference) and the [msopprof Simulator Mode User Guide](./msopprof_simulator_user_guide.md#command-reference).
-- The msTX API can be used via library files or header files. An implementation example can be found at this [sample](https://gitee.com/ascend/samples/tree/master/operator/ascendc/0_introduction/1_add_frameworklaunch/AclNNInvocation):
+- The msTX API is disabled by default. If the msTX API is called in the application, the msTX instrumentation function is enabled based on the actual application scenario. For example, the `--mstx=true` flag enables msTX APIs within the user program, while `--mstx-include` can be used to target specific msTX APIs. For detailed usage, refer to the `--mstx` and `--mstx-include` parameters in the "Command Reference" sections of the [msopprof User Guide](./msopprof_user_guide.md#command-reference) and the [msopprof Simulator Mode User Guide](./msopprof_simulator_user_guide.md#command-reference).
+- The msTX API can be used via library files or header files. An implementation example can be found at this [sample](https://gitcode.com/cann/cann-learning-hub/tree/8.5.0/tutorials/ascendc_operator_development/03_intermediate_vector_operator_development/src/custom_op_04):
 
     > [!NOTE]
     >
-    > - This sample project does not support Atlas A3 products.
     > - Replace `${INSTALL_DIR}` with the file storage path after CANN is installed. For example, if the installation is performed by the `root` user, the default file storage path is `/usr/local/Ascend/cann`.
 
-    - Add the `libms_tools_ext.so` library file located at `${INSTALL_DIR}/lib64/libms_tools_ext.so` to the `CMakeLists.txt` file at `${git_clone_path}/samples/operator/ascendc/0_introduction/1_add_frameworklaunch/AclNNInvocation/src/CMakeLists.txt`.
+    - Add the `libms_tools_ext.so` library file located at `${INSTALL_DIR}/lib64/libms_tools_ext.so` to the `CMakeLists.txt` file at `${git_clone_path}/cann-learning-hub/tutorials/ascendc_operator_development/03_intermediate_vector_operator_development/src/custom_op_04/test/CMakeLists.txt`.
 
         ```shell
         # Header path
@@ -303,7 +302,7 @@ MindStudio provides the msTX profiling API, which enables users to embed custom 
         )
         ```
 
-    - In the `main.cpp` file at `${git_clone_path}/samples/operator/ascendc/0_introduction/1_add_frameworklaunch/AclNNInvocation/src/main.cpp`, compile and link the user program with the `dl` library. The corresponding header file `ms_tools_ext.h` is located at `${INSTALL_DIR}/include/mstx`.
+    - In the `main.cpp` file at `${git_clone_path}/cann-learning-hub/tutorials/ascendc_operator_development/03_intermediate_vector_operator_development/src/custom_op_04/test/main.cpp`, compile and link the user program with the `dl` library. The corresponding header file `ms_tools_ext.h` is located at `${INSTALL_DIR}/include/mstx`.
 
         ```shell
         ...
@@ -313,7 +312,7 @@ MindStudio provides the msTX profiling API, which enables users to embed custom 
 
 **Example**
 
-After msOpProf is started, run the `msopprof --mstx=on --mstx-include=range1 --launch-count=2 python cal.py` command. This command will profile the operators defined within the `range1` scope, specifically the `sub` and `mul` operators.
+After msOpProf is started, run the `msopprof --mstx=true --mstx-include=range1 --launch-count=2 python cal.py` command. This command will profile the operators defined within the `range1` scope, specifically the `sub` and `mul` operators.
 
 ```python
 import mstx

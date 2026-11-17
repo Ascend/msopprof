@@ -85,6 +85,6 @@ You are welcome to contribute to the community. If you have any questions or sug
 
 ## 🙏 Acknowledgements
 
-This tool is jointly contributed by Huawei Technologies Co., Ltd. and developers.
+This tool is jointly developed by Huawei Technologies Co., Ltd. and developers.
 
-Thanks for every PR from the community, and contributions are welcome.
+Thank you to everyone in the community for your PRs. We warmly welcome your contributions.

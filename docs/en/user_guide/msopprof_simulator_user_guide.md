@@ -4,7 +4,7 @@
 
 MindStudio Ops Profiler (msOpProf, an operator tuning tool) is used to collect and analyze the key performance metrics of operators running on AI Processors. Based on the output profile data, you can quickly locate the hardware and software performance bottlenecks of operators, improving the efficiency of operator performance analysis.
 
-Currently, profile data for different file formats (executable files or operator binary .o files) can be collected and automatically parsed in [on-board (msopprof)](./msopprof_user_guide.md) and simulator (msopprof simulator) modes.
+Currently, profile data for different file formats (executable files or operator binary `.o` files) can be collected and automatically parsed in [on-board (msopprof)](./msopprof_user_guide.md) and simulator (msopprof simulator) modes.
 
 - On-board mode: Runs on real Ascend hardware devices to collect accurate profile data. It is suitable for tuning and fault locating in production environments.
 - Simulator mode: Simulates NPU behavior on the CPU and enables initial verification without hardware. It is suitable for development, debugging, and process testing.
@@ -40,8 +40,9 @@ msOpProf demonstrates single-operator tuning capabilities such as instruction pi
 **Preparing the Environment**
 
 - Configure related environment variables by referring to the [MindStudio Ops Profiler Installation Guide](../install_guide/msopprof_install_guide.md).
-- To use MindStudio Insight for viewing, install the MindStudio Insight software package separately. For download links, see the [MindStudio Insight Installation Guide](https://atomgit.com/Ascend/msinsight/blob/26.2.0/docs/en/install_guide/mindstudio_insight_install_guide.md).
-- For Atlas A2 products, if you want to use the [template library](https://atomgit.com/cann/catlass/blob/master/scripts/build.sh) for simulation, add the `--simulator` option to the compilation script to compile the operator in simulator mode. For details, see this [sample](https://atomgit.com/cann/catlass/blob/master/docs/en/1_Practice/evaluation/performance_tools.md).
+- The default simulator library loading directory varies by platform. Ascend 950PR&950DT products load the simulator library in the `${INSTALL_DIR}/tools/simulator/<soc-version>/camodel` directory by default. Atlas A2 products and Atlas A3 products load the simulator library in the `${INSTALL_DIR}/tools/simulator/<soc-version>/lib` directory by default. If you do not specify the `--soc-version` parameter, you can use the `LD_LIBRARY_PATH` environment variable to specify a custom simulator library directory and change the simulator source.
+- To use MindStudio Insight for viewing, install the MindStudio Insight software package separately. For download links, see the [MindStudio Insight Installation Guide](https://gitcode.com/Ascend/msinsight/blob/master/docs/en/install_guide/mindstudio_insight_install_guide.md).
+- For Atlas A2 products, if you want to use the [template library](https://gitcode.com/cann/catlass/blob/master/scripts/build.sh) for simulation, add the `--simulator` option to the compilation script to compile the operator in simulator mode. For details, see this [sample](https://gitcode.com/cann/catlass/blob/master/docs/en/1_Practice/evaluation/performance_tools.md).
 
     ```shell
     bash scripts/build.sh --simulator 00_basic_matmul
@@ -63,8 +64,8 @@ msOpProf demonstrates single-operator tuning capabilities such as instruction pi
 - You need to ensure the execution security of executable files or applications.
     - You are advised to restrict the operation permission on executable files or applications to avoid privilege escalation risks.
     - Avoid high-risk operations (such as deleting files, deleting directories, changing passwords, and running privilege escalation commands) to prevent security risks.
-- The default simulator library loading directory varies by platform. For Ascend 950PR and 950DT products, you must specify the chip type using `--soc-version`, and selecting a simulator using `LD_LIBRARY_PATH` is not supported. In this case, if the application binary links the simulator library in the `${INSTALL_DIR}/tools/simulator/<soc-version>/lib` directory through `DT_RPATH`, the `lib` directory is used. In other cases, the `camodel` directory of the simulator specified by `--soc-version` is used. Atlas A2 products and Atlas A3 products load the `${INSTALL_DIR}/tools/simulator/<soc-version>/lib` directory by default. When `--soc-version` is not specified, you can still specify the simulator library through `LD_LIBRARY_PATH`.
-- Ascend 950PR and 950DT products support running simulation for Ascend C operators compiled in npu mode or sim mode. If an operator is compiled in npu mode, the simulator in the `${INSTALL_DIR}/tools/simulator/<soc-version>/camodel` directory is used for simulation. If the operator is compiled in sim mode, the simulator is dynamically selected based on the simulator library linked during compilation.
+- The default simulator library loading directory varies by platform. For Ascend 950PR&950DT products, you must specify the chip type using `--soc-version`, and selecting a simulator using `LD_LIBRARY_PATH` is not supported. In this case, if the application binary links the simulator library in the `${INSTALL_DIR}/tools/simulator/<soc-version>/lib` directory through `DT_RPATH`, the `lib` directory is used. In other cases, the `camodel` directory of the simulator specified by `--soc-version` is used. Atlas A2 products and Atlas A3 products load the `${INSTALL_DIR}/tools/simulator/<soc-version>/lib` directory by default. When `--soc-version` is not specified, you can still specify the simulator library through `LD_LIBRARY_PATH`.
+- Ascend 950PR&950DT products support running simulation for Ascend C operators compiled in npu mode or sim mode. If an operator is compiled in npu mode, the simulator in the `${INSTALL_DIR}/tools/simulator/<soc-version>/camodel` directory is used for simulation. If the operator is compiled in sim mode, the simulator is dynamically selected based on the simulator library linked during compilation.
 - When starting simulation on Ascend 950DT products, if a log directory exists in the operator directory or the program is interrupted during simulation, some simulator running logs may be written. You do not need to be aware of these logs, and you can delete them directly.
 
 ## Command Reference
@@ -90,7 +91,7 @@ msopprof simulator --soc-version=Ascendxxxyy --output=/home/projects/output /hom
 </thead>
 <tbody><tr id="zh-cn_topic_0000002016036877_row01114348338"><td class="cellrowborder" valign="top" width="25.232523252325233%" headers="mcps1.2.4.1.1 "><p id="zh-cn_topic_0000002016036877_p41111934143316">--application</p>
 </td>
-<td class="cellrowborder" valign="top" width="63.02630263026302%" headers="mcps1.2.4.1.2 "><p id="zh-cn_topic_0000002016036877_p1411115342333">Specifies the executable file to profile. You are advised to use <code>msopprof simulator <span>--soc-version=Ascendxxxyy</span> [<em id="zh-cn_topic_0000002016036877_i188155416131">msopprof  simulator parameters</em>] ./app</code>, where <code>xxxyy</code> indicates the processor type and <code>./app</code> is a user-specified executable file path. If no path is provided, the current directory is used.</p>
+<td class="cellrowborder" valign="top" width="63.02630263026302%" headers="mcps1.2.4.1.2 "><p id="zh-cn_topic_0000002016036877_p1411115342333">Specifies the executable file to profile. You are advised to use <code>msopprof simulator <span>--soc-version=Ascendxxxyy</span> [msopprof  simulator parameters] ./app</code>, where <code>xxxyy</code> indicates the processor type and <code>./app</code> is a user-specified executable file path. If no path is provided, the current directory is used.</p>
 <p id="p3606523135915"> When using <code>./app</code>, add msopprof simulator parameters before <code>./app</code> to ensure that the related functions take effect.</p>
 <p id="p12488132815597">Currently, this command is compatible with <code>./app [arguments]</code>. In the future, it will be uniformly optimized to <code>./app [arguments]</code>.</p>
 </td>
@@ -101,7 +102,7 @@ msopprof simulator --soc-version=Ascendxxxyy --output=/home/projects/output /hom
 </td>
 <td class="cellrowborder" valign="top" headers="mcps1.2.4.1.2 "><p id="zh-cn_topic_0000002016036877_p011233417332"><span>Specifies the absolute or relative path of the binary file </span><code id="zh-cn_topic_0000002016036877_b695415337500">*.o</code><span> generated after operator compilation</span>. <span>For details, see </span><a href="./extended_functions.md#json-configuration-file-description">JSON Configuration File Description</a><span>.</span></p>
 <p id="zh-cn_topic_0000002016036877_p1611218349332">Before operator tuning, you can obtain the operator binary <code id="zh-cn_topic_0000002016036877_b1845814318519"><span>*.</span>o</code> file in either of the following ways:</p>
-<ul id="zh-cn_topic_0000002016036877_ul81131345339"><li>Refer to <strong>Modifying and Executing One-Click Compilation and Execution Script</strong> in <strong>Direct Kernel Invocation Based on a Sample Project</strong> &gt; <a href="https://www.hiascend.com/document/detail/en/CANNCommunityEdition/latest/programug/Ascendcopdevg/docs/en/guide/programming_guide/appendix/completing_kernel_launch_based_on_sample_project.md" target="_blank" rel="noopener noreferrer"><strong>Kernel Launch</strong></a> of the <span id="zh-cn_topic_0000002016036877_ph20112143419334"><em>Ascend C Operator Development Guide</em></span> to obtain the NPU executable file, and then manually extract the <span></span>.o file from the executable file.</li><li>Refer to <a href="https://atomgit.com/Ascend/msopgen/blob/26.2.0/docs/en/user_guide/msopgen_user_guide.md#153-%E7%AE%97%E5%AD%90%E7%BC%96%E8%AF%91%E9%83%A8%E7%BD%B2" target="_blank" rel="noopener noreferrer">Operator Compilation and Deployment</a>. The <strong id="zh-cn_topic_0000002016036877_b17819952105016">.o</strong> file is automatically generated during operator compilation.</li></ul>
+<ul id="zh-cn_topic_0000002016036877_ul81131345339"><li>Refer to <strong>Modifying and Executing One-Click Compilation and Execution Script</strong> in <strong>Direct Kernel Invocation Based on a Sample Project</strong> &gt; <a href="https://www.hiascend.com/document/detail/en/CANNCommunityEdition/latest/programug/Ascendcopdevg/docs/en/guide/programming_guide/appendix/completing_kernel_launch_based_on_sample_project.md" target="_blank" rel="noopener noreferrer"><strong>Kernel Launch</strong></a> of the <span id="zh-cn_topic_0000002016036877_ph20112143419334">Ascend C Operator Development Guide</span> to obtain the NPU executable file, and then manually extract the <span></span><code>.o</code> file from the executable file.</li><li>Refer to <a href="https://gitcode.com/Ascend/msopgen/blob/master/docs/en/user_guide/msopgen_user_guide.md#153-%E7%AE%97%E5%AD%90%E7%BC%96%E8%AF%91%E9%83%A8%E7%BD%B2" target="_blank" rel="noopener noreferrer">Operator Compilation and Deployment</a>. The <code id="zh-cn_topic_0000002016036877_b17819952105016">.o</code> file is automatically generated during operator compilation.</li></ul>
 <p id="p811246204">Ensure that users in the group and other groups do not have the write permission on the JSON file specified by <code>--config</code> and its parent directory. In addition, ensure that the owner of the parent directory of the JSON file is the current user.</p>
 <div class="p" id="p20157517201"> For A2/A3 products, use the <code>LD_LIBRARY_PATH</code> environment variable to set the simulator type. For A5 products, you can only use the <code>--soc-version</code> parameter to specify the chip type. <pre class="screen" id="screen011316904">export LD_LIBRARY_PATH=${INSTALL_DIR}/tools/simulator/Ascendxxxyy/lib:$LD_LIBRARY_PATH // xxxyy indicates the type of the processor used by the user</pre>
 </div>
@@ -136,9 +137,9 @@ msopprof simulator --soc-version=Ascendxxxyy --output=/home/projects/output /hom
 </li><li><code>ResourceConflictRatio</code> (collected by default): displays details about synchronization event instructions. <ul id="ul12706651330"><li><span id="zh-cn_topic_0000002016036877_zh-cn_topic_0000001740005657_ph38331631115919">For Atlas A3 products</span> and <span id="zh-cn_topic_0000002016036877_ph9610350151414">Atlas A2 products</span>, <code>SET_FLAG</code> and <code>WAIT_FLAG</code> instructions are displayed. </li><li><span id="zh-cn_topic_0000002016036877_ph12187735121517">For Atlas inference products</span>, <code>set_event</code> and <code>wait_event</code> instruction are displayed.</li></ul>
 </li></ul>
 </div>
-<ul id="zh-cn_topic_0000002016036877_ul21140347333"><li><code>PMSampling</code>: enables and visualizes the memory channel throughput waveform, for example, <code>--aic-metrics=PMSampling</code>. For details, see <a href="#memory-channel-throughput-waveform-chart">Memory Channel Throughput Waveform Chart</a> <ul id="zh-cn_topic_0000002016036877_ul536462164812"><li><code>--core-id</code> does not take effect for the <code>PMSampling</code> parameter. <code>PMSampling</code> parses all cores. </li><li>This feature is disabled by default.</li><li>This parameter currently supports only Atlas A3 products and Atlas A2 products. Ascend 950PR and 950DT products are not supported.</li></ul>
+<ul id="zh-cn_topic_0000002016036877_ul21140347333"><li><code>PMSampling</code>: enables and visualizes the memory channel throughput waveform, for example, <code>--aic-metrics=PMSampling</code>. For details, see <a href="#memory-channel-throughput-waveform-chart">Memory Channel Throughput Waveform Chart</a> <ul id="zh-cn_topic_0000002016036877_ul536462164812"><li><code>--core-id</code> does not take effect for the <code>PMSampling</code> parameter. <code>PMSampling</code> parses all cores. </li><li>This feature is disabled by default.</li><li>This parameter currently supports only Atlas A3 products and Atlas A2 products. Ascend 950PR&950DT products are not supported.</li></ul>
 </li></ul>
-<ul id="zh-cn_topic_0000002016036877_ul17160143219117"><li><code>Overhead</code>: controls whether the scalar header overhead is enabled.<p id="p1253172210220">When <code>--aic-metrics=Overhead</code> is configured, the pipeline chart displays the corresponding scalar overhead time, which is divided into <code>cache_time</code> and <code>ccu_time</code>. For details about the displayed content, see <a href="#scalar-time-consumption">Scalar Time Consumption</a>.<ul id="zh-cn_topic_0000002016036877_ul536462164813"><li>This parameter currently supports only Atlas A3 products and Atlas A2 products. Ascend 950PR and 950DT products are not supported.</li><li>To display scalar header overhead data normally in MindStudio Insight, the MindStudio Insight version must be MindStudio-Insight_26.1.0 or later.</li></ul></p>
+<ul id="zh-cn_topic_0000002016036877_ul17160143219117"><li><code>Overhead</code>: controls whether the scalar header overhead is enabled.<p id="p1253172210220">When <code>--aic-metrics=Overhead</code> is configured, the pipeline chart displays the corresponding scalar overhead time, which is divided into <code>cache_time</code> and <code>ccu_time</code>. For details about the displayed content, see <a href="#scalar-time-consumption">Scalar Time Consumption</a>.<ul id="zh-cn_topic_0000002016036877_ul536462164813"><li>This parameter currently supports only Atlas A3 products and Atlas A2 products. Ascend 950PR&950DT products are not supported.</li><li>To display scalar header overhead data normally in MindStudio Insight, the MindStudio Insight version must be MindStudio-Insight_26.1.0 or later.</li></ul></p>
 </li></ul>
 </td>
 <td class="cellrowborder" valign="top" width="11.741174117411742%" headers="mcps1.2.4.1.3 "><p id="zh-cn_topic_0000002016036877_p4115163416335">No</p>
@@ -169,10 +170,10 @@ msopprof simulator --soc-version=Ascendxxxyy --output=/home/projects/output /hom
 </td>
 <td class="cellrowborder" valign="top" width="63.02630263026302%" headers="mcps1.2.4.1.2 "><p id="zh-cn_topic_0000002016036877_p197151054181117">Determines whether the operator tuning tool enables the mstx APIs used in the user code program.</p>
 <p id="zh-cn_topic_0000002016036877_p161151134173317">The default value is <code>off</code>, indicating that the mstx APIs are disabled.</p>
-<p id="zh-cn_topic_0000002016036877_p18115834193315">When <code>--mstx=on</code> is set, the operator tuning tool enables the mstx API used in the user program.</p>
+<p id="zh-cn_topic_0000002016036877_p18115834193315">When <code>--mstx=true</code> is set, the operator tuning tool enables the mstx API used in the user program.</p>
 <p id="zh-cn_topic_0000002016036877_p151157346336">For example:</p>
-<pre class="code_wrap" id="zh-cn_topic_0000002016036877_screen811523463318">msopprof simulator --soc-version=Ascendxxxyy --mstx=on ./add_custom <span>// </span>xxxyy indicates the type of the processor used by the user</pre>
-<p id="zh-cn_topic_0000002016036877_p1776694422415"></p>The <code>mstxRangeStartA</code> and <code>mstxRangeEnd</code> interfaces in the mstx API are supported, allowing for the enabling of operator tuning in specified ranges. For details about parameters, see the <span id="zh-cn_topic_0000002016036877_ph2878123711242"><a href="https://atomgit.com/Ascend/mstx/blob/26.2.0/docs/en/api_reference/Common/mstxRangeStartA.md" target="_blank" rel="noopener noreferrer">mstxRangeStartA</a></span> and <span id="zh-cn_topic_0000002016036877_ph137651944162412"><a href="https://atomgit.com/Ascend/mstx/blob/26.2.0/docs/en/api_reference/Common/mstxRangeEnd.md" target="_blank" rel="noopener noreferrer">mstxRangeEnd</a></span> interfaces in the <span id="zh-cn_topic_0000002016036877_ph1583812516245"><em>MindStudio mstx API Reference</em></span>.
+<pre class="code_wrap" id="zh-cn_topic_0000002016036877_screen811523463318">msopprof simulator --soc-version=Ascendxxxyy --mstx=true ./add_custom <span>// </span>xxxyy indicates the type of the processor used by the user</pre>
+<p id="zh-cn_topic_0000002016036877_p1776694422415"></p>The <code>mstxRangeStartA</code> and <code>mstxRangeEnd</code> interfaces in the mstx API are supported, allowing for the enabling of operator tuning in specified ranges. For details about parameters, see the <span id="zh-cn_topic_0000002016036877_ph2878123711242"><a href="https://gitcode.com/Ascend/mstx/blob/master/docs/en/api_reference/Common/mstxRangeStartA.md" target="_blank" rel="noopener noreferrer">mstxRangeStartA</a></span> and <span id="zh-cn_topic_0000002016036877_ph137651944162412"><a href="https://gitcode.com/Ascend/mstx/blob/master/docs/en/api_reference/Common/mstxRangeEnd.md" target="_blank" rel="noopener noreferrer">mstxRangeEnd</a></span> interfaces in the <span id="zh-cn_topic_0000002016036877_ph1583812516245">MindStudio mstx API Reference</span>.
 </td>
 <td class="cellrowborder" valign="top" width="11.741174117411742%" headers="mcps1.2.4.1.3 "><p id="zh-cn_topic_0000002016036877_p131151034163318">No</p>
 </td>
@@ -183,7 +184,7 @@ msopprof simulator --soc-version=Ascendxxxyy --output=/home/projects/output /hom
 <p id="zh-cn_topic_0000002016036877_p17496184815597"> If this parameter is not set, all mstx APIs used in user code are enabled by default.</p>
 <p id="zh-cn_topic_0000002016036877_p21163341332"> If this parameter is set, only the specified mstx APIs are enabled. The input of <code>--mstx-include</code> is the message character string transferred when the user calls the <code>mstx</code> function. Multiple character strings must be separated by vertical bars (|).</p>
 <p id="zh-cn_topic_0000002016036877_p15116334153320">For example:</p>
-<pre class="code_wrap" id="zh-cn_topic_0000002016036877_screen171163344333">--mstx=on --mstx-include="hello|hi" // This enables only mstx APIs where the message parameter is "hello" or "hi"</pre>
+<pre class="code_wrap" id="zh-cn_topic_0000002016036877_screen171163344333">--mstx=true --mstx-include="hello|hi" // This enables only mstx APIs where the message parameter is "hello" or "hi"</pre>
 <p id="p101653252417">This parameter must be used with <code>--mstx</code>.</p>
 <p id="p1943922619417">The message can only contain letters, digits, and underscores (_). Use vertical bars (|) to combine multiple messages.</p>
 </td>
@@ -193,7 +194,7 @@ msopprof simulator --soc-version=Ascendxxxyy --output=/home/projects/output /hom
 <tr id="zh-cn_topic_0000002016036877_row14335144923717"><td class="cellrowborder" valign="top" width="25.232523252325233%" headers="mcps1.2.4.1.1 "><p id="zh-cn_topic_0000002016036877_p13335144910371">--soc-version</p>
 </td>
 <td class="cellrowborder" valign="top" width="63.02630263026302%" headers="mcps1.2.4.1.2 "><p id="zh-cn_topic_0000002016036877_p3169521144911">Use this parameter or the <code>LD_LIBRARY_PATH</code> environment variable to specify the simulator type. The two are mutually exclusive and you must specify one of them. The details are as follows: </p>
-<ul id="zh-cn_topic_0000002016036877_ul137711927194111"><li><code>--soc-version</code>: specifies the simulator type in <code>--application</code> and <code>--export</code> modes. For details about the value range, see the simulator type in the <code><span id="ph15854163318419">${INSTALL_DIR}</span>/tools/simulator</code> directory. Ascend 950PR and 950DT products must have this parameter configured, and the chip type is not derived from <code>LD_LIBRARY_PATH</code>. </li><li><code>LD_LIBRARY_PATH</code> environment variable: specifies the emulator type in <code>--config</code> mode or when <code>--soc-version</code> is not used.<pre class="code_wrap" id="zh-cn_topic_0000002016036877_zh-cn_topic_0000001752643572_screen1774042011344">export LD_LIBRARY_PATH=<span id="ph585510335411">${INSTALL_DIR}</span>/tools/simulator/Ascend<em id="i6855163310419">xxxyy</em>/lib:$LD_LIBRARY_PATH </pre>
+<ul id="zh-cn_topic_0000002016036877_ul137711927194111"><li><code>--soc-version</code>: specifies the simulator type in <code>--application</code> and <code>--export</code> modes. For details about the value range, see the simulator type in the <code><span id="ph15854163318419">${INSTALL_DIR}</span>/tools/simulator</code> directory. Ascend 950PR&950DT products must have this parameter configured, and the chip type is not derived from <code>LD_LIBRARY_PATH</code>. </li><li><code>LD_LIBRARY_PATH</code> environment variable: specifies the emulator type in <code>--config</code> mode or when <code>--soc-version</code> is not used.<pre class="code_wrap" id="zh-cn_topic_0000002016036877_zh-cn_topic_0000001752643572_screen1774042011344">export LD_LIBRARY_PATH=<span id="ph585510335411">${INSTALL_DIR}</span>/tools/simulator/Ascendxxxyy/lib:$LD_LIBRARY_PATH </pre>
 <p id="p18405124210413">Replace <code>${INSTALL_DIR}</code> with the file storage path after the CANN software is installed. For example, if the installation is performed by the <code>root</code> user, the default file storage path is <code>/usr/local/Ascend/cann</code>.</p>
 </li></ul>
 </td>
@@ -211,9 +212,9 @@ msopprof simulator --soc-version=Ascendxxxyy --output=/home/projects/output /hom
 <tr id="zh-cn_topic_0000002016036877_row104315393543"><td class="cellrowborder" valign="top" width="25.232523252325233%" headers="mcps1.2.4.1.1 "><p id="zh-cn_topic_0000002016036877_p102401740175414">--dump</p>
 </td>
 <td class="cellrowborder" valign="top" width="63.02630263026302%" headers="mcps1.2.4.1.2 "><p id="zh-cn_topic_0000002016036877_p18606195017712">Specifies whether to generate the simulator dump folder.</p>
-<p id="zh-cn_topic_0000002016036877_p3562736122116">The value can be <code>on</code> or <code>off</code>. The default value is <code>off</code>, indicating that the simulator dump folder is not generated.</p>
+<p id="zh-cn_topic_0000002016036877_p3562736122116">The value can be <code>true</code> or <code>false</code>. The default value is <code>false</code>, indicating that the simulator dump folder is not generated.</p>
 <p id="p195771271259">Note:</p>
-<ul id="ul537191457"><li>This parameter is valid only for <span id="zh-cn_topic_0000002016036877_ph8606165015710">Atlas A2 products</span>, <span id="zh-cn_topic_0000002016036877_ph96063504712">Atlas A3 products</span>, and Ascend 950PR and 950DT products. Ascend 950PR and 950DT products enable camodel online parsing by default and do not generate simulator dump files. When <code>--dump=on</code> is specified, instruction callback dump files are retained. </li><li>This parameter applies only to the single-process scenario and does not support the scenario where two operators run at the same time.</li></ul>
+<ul id="ul537191457"><li>This parameter is valid only for <span id="zh-cn_topic_0000002016036877_ph8606165015710">Atlas A2 products</span>, <span id="zh-cn_topic_0000002016036877_ph96063504712">Atlas A3 products</span>, and Ascend 950PR&950DT products. Ascend 950PR&950DT products enable camodel online parsing by default and do not generate simulator dump files. When <code>--dump=true</code> is specified, instruction callback dump files are retained. </li><li>This parameter applies only to the single-process scenario and does not support the scenario where two operators run at the same time.</li></ul>
 </td>
 <td class="cellrowborder" valign="top" width="11.741174117411742%" headers="mcps1.2.4.1.3 "><p id="zh-cn_topic_0000002016036877_p182411240125415">No</p>
 </td>
@@ -245,7 +246,7 @@ msOpProf assists in identifying exceptions in the operator memory, code, and ins
 |---|---|---|
 |It is applicable to the development and debugging phases for detailed simulation tuning, allowing you to analyze operator instructions and code hot spots.|Configure environment variables (such as `LD_LIBRARY_PATH`) and compilation options (such as `-g` to generate debugging information) as detailed in [msopprof simulator configuration](#simulator-configuration). This enables detailed analysis of operator behavior in a simulated environment.|[Instruction Pipeline Chart](#instruction-pipeline-chart)<br> [Operator Code Hot Spot Map](#operator-code-hot-spot-map)<br> [Memory Channel Throughput Waveform Chart](#memory-channel-throughput-waveform-chart)|
 
-**msopprof simulator configuration**<a id="simulator-configuration"></a>
+**msopprof Simulator Configuration**<a id="simulator-configuration"></a>
 
 > [!NOTE]
 >
@@ -267,27 +268,27 @@ msOpProf assists in identifying exceptions in the operator memory, code, and ins
     > - If the `-g` compilation option is added, the generated binary file contains debugging information. You are advised to restrict access to user programs with debugging information to authorized personnel only.
     > - If the functions provided by the llvm-symbolizer component are not used, do not include `-g` when compiling the program that is input to msOpProf. In this case, msOpProf does not call the functions of the llvm-symbolizer component.
 
-    - For an operator project created by referring to the msOpGen tool, edit the `CMakeLists.txt` file in the `op_kernel` directory of the operator project. For details, see [Creating an Operator Project](https://atomgit.com/Ascend/msopgen/blob/26.2.0/docs/en/user_guide/msopgen_user_guide.md).
+    - For an operator project created by referring to the msOpGen tool, edit the `CMakeLists.txt` file in the `op_kernel` directory of the operator project. For details, see [Creating an Operator Project](https://gitcode.com/Ascend/msopgen/blob/master/docs/en/user_guide/msopgen_user_guide.md).
 
         ```shell
         add_ops_compile_options(ALL OPTIONS -g)
         ```
 
-    - For a project created by referring to the complete example, for example, the [sample](https://gitee.com/ascend/samples/tree/master/operator/ascendc/0_introduction/3_add_kernellaunch/AddKernelInvocationNeo), add the following code to the `cmake/npu_lib.cmake` file in the sample project directory.
+    - For a project created by referring to the complete example, for example, the [sample](https://gitcode.com/cann/asc-devkit/tree/9.0.0/examples/01_simd_cpp_api/00_introduction/01_add/basic_api_tque_add), add `-g -O2` to the ASC language options of `target_compile_options` in the `CMakeLists.txt` file in the sample project directory.
 
         > [!NOTE]
         >
-        > - This sample project does not support Atlas A3 products.
+        > - Select the `npu-arch` parameter corresponding to the deployed NPU hardware architecture. For example, for Ascend 950PR&950DT products, change it to `dav-3510`. The parameter value `dav-2201` in this sample applies to Ascend A2/A3 products.
         > - When downloading the code sample, run the following command to specify the branch version:
         >
         >    ```shell
-        >    git clone https://gitee.com/ascend/samples.git -b v1.9-8.3.RC1
+        >    git clone https://gitcode.com/cann/asc-devkit.git -b 9.0.0
         >    ```
 
         ```shell
-        ascendc_compile_options(ascendc_kernels_${RUN_MODE} PRIVATE
-        -g
-        -O2
+        target_compile_options(add PRIVATE
+            $<$<COMPILE_LANGUAGE:ASC>:--npu-arch=dav-2201 -g -O2>
+            # $<$<COMPILE_LANGUAGE:ASC>:--npu-arch=dav-3510>
         )
         ```
 
@@ -309,7 +310,7 @@ msOpProf assists in identifying exceptions in the operator memory, code, and ins
         core_ostd_num           = 2             # 2 early end  1 normal mode
     ```
 
-- When using the msOpProf tool for operator simulation and tuning on Ascend 950PR and 950DT products, you need to change the `flush_level` parameter in the `config.json` file to the `info` level. That is, change `"flush_level": 3` to `"flush_level": 2` in the file. The path of the `config.json` file is `${INSTALL_DIR}/tools/simulator/Ascendxxxyy/lib/config.json`.
+- When using the msOpProf tool for operator simulation and tuning on Ascend 950PR&950DT products, you need to change the `flush_level` parameter in the `config.json` file to the `info` level. That is, change `"flush_level": 3` to `"flush_level": 2` in the file. The path of the `config.json` file is `${INSTALL_DIR}/tools/simulator/Ascendxxxyy/lib/config.json`.
 
 **Startup**
 
@@ -320,16 +321,15 @@ Configure msopprof simulator, and then perform the following steps to enable the
 > - Currently, msOpProf does not support the `-O0` compilation option.
 > - The collection of MC2 and HCCL operators is not supported in the simulation environment.
 > - The number of simulation cores set by the user cannot exceed the number of physical cores.
-> - If you only need to focus on the performance of specific operators, invoke the [TRACE_START](https://www.hiascend.com/document/detail/en/CANNCommunityEdition/latest/API/ascendcopapi/docs/en/api/Utils-API/tuning_interface/TRACE_START.md) and [TRACE_STOP](https://www.hiascend.com/document/detail/en/CANNCommunityEdition/latest/API/ascendcopapi/docs/en/api/Utils-API/tuning_interface/TRACE_STOP.md) APIs within a single core on Atlas A3 products, Atlas inference products, and Atlas A2 products. These interfaces are described in the "Debugging APIs" section of the *Ascend C Operator Development API*. Additionally, add `-DASCENDC_TRACE_ON` to the compilation configuration file. For details, see the [method for adding `-DASCENDC_TRACE_ON`](#adding-dascendc-trace-on). Only after this can pipeline chart information for the specified range be generated. For details on the pipeline chart content, see [Instruction Pipeline Chart](#instruction-pipeline-chart).
+> - If you only need to focus on the performance of specific operators, invoke the [TRACE_START](https://www.hiascend.com/document/detail/en/CANNCommunityEdition/latest/API/ascendcopapi/docs/en/api/Utils-API/tuning_interface/TRACE_START.md) and [TRACE_STOP](https://www.hiascend.com/document/detail/en/CANNCommunityEdition/latest/API/ascendcopapi/docs/en/api/Utils-API/tuning_interface/TRACE_STOP.md) APIs within a single core on Atlas A3 products, Atlas inference products, and Atlas A2 products. These interfaces are described in the "Debugging APIs" section of the Ascend C Operator Development API. Additionally, add `-DASCENDC_TRACE_ON` to the compilation configuration file. For details, see the [method for adding `-DASCENDC_TRACE_ON`](#adding-dascendc-trace-on). Only after this can pipeline chart information for the specified range be generated. For details on the pipeline chart content, see [Instruction Pipeline Chart](#instruction-pipeline-chart).
 > - Add `-DASCENDC_TRACE_ON` to the compilation configuration file. For details, see the following sample project. <a id="adding-dascendc-trace-on"></a>
->    For the [AddKernelInvocationNeo Operator Project](https://gitee.com/ascend/samples/tree/master/operator/ascendc/0_introduction/3_add_kernellaunch/AddKernelInvocationNeo/cmake), add the following code to the `${git_clone_path}/samples/operator/ascendc/0_introduction/3_add_kernellaunch/AddKernelInvocationNeo/cmake/npu_lib.cmake` file.
+>    For the [basic_api_tque_add Operator Project](https://gitcode.com/cann/asc-devkit/tree/9.0.0/examples/01_simd_cpp_api/00_introduction/01_add/basic_api_tque_add), add `-DASCENDC_TRACE_ON` to the ASC language options of `target_compile_options` in the `${git_clone_path}/asc-devkit/examples/01_simd_cpp_api/00_introduction/01_add/basic_api_tque_add/CMakeLists.txt` file, and select the `npu-arch` parameter corresponding to the deployed NPU hardware architecture. For example, for Ascend 950PR&950DT products, change it to `dav-3510`. The parameter value `dav-2201` in this sample applies to Ascend A2/A3 products.
 >
 >    ```shell
->    ascendc_compile_definitions
->    (
->        ...
->        -DASCENDC_TRACE_ON
->    )
+>   target_compile_options(add PRIVATE
+>       $<$<COMPILE_LANGUAGE:ASC>:--npu-arch=dav-2201 -DASCENDC_TRACE_ON>
+>       # $<$<COMPILE_LANGUAGE:ASC>:--npu-arch=dav-3510>
+>   )
 >    ```
 
 1. Log in to the operating environment. Use msopprof simulator to start operator simulation and tuning, combined with the optional simulation parameters and the program to be tuned (`app [arguments]`). For details about the optional simulation parameters, see [Command Reference](#command-reference). You can use either of the following methods for operator simulation-based tuning:
@@ -455,10 +455,10 @@ Visualizes the `visualize_data.bin` or `trace.json` files generated by msopprof 
 
 **Precautions**
 
-- For detailed MindStudio Insight operations and field explanations, see [Timeline](https://atomgit.com/Ascend/msinsight/blob/26.2.0/docs/en/user_guide/operator_tuning.md#timeline) in *MindStudio Insight Operator Tuning*.
+- For detailed MindStudio Insight operations and field explanations, see [Timeline](https://gitcode.com/Ascend/msinsight/blob/master/docs/en/user_guide/system_tuning/timeline.md) in MindStudio Insight Operator Tuning.
 - If the `-g` compilation option is added, the generated binary file contains debugging information. You are advised to restrict access to user programs with debugging information to authorized personnel only.
 - If the functions provided by the llvm-symbolizer component are not used, do not include `-g` when compiling the program that is input to msOpProf. In this case, msOpProf does not call the functions of the llvm-symbolizer component.
-- If you only need to focus on the performance of specific operators, invoke the [TRACE_START](https://www.hiascend.com/document/detail/en/CANNCommunityEdition/latest/API/ascendcopapi/docs/en/api/Utils-API/tuning_interface/TRACE_START.md) and [TRACE_STOP](https://www.hiascend.com/document/detail/en/CANNCommunityEdition/latest/API/ascendcopapi/docs/en/api/Utils-API/tuning_interface/TRACE_STOP.md) APIs, which are described in the "Debugging APIs" section of the *Ascend C Operator Development API*, within a single core on Atlas A3 products, Atlas inference products, Atlas A2 products, and Ascend 950PR and 950DT products. Additionally, add `-DASCENDC_TRACE_ON` to the compilation configuration file. For details, see the [method for adding `-DASCENDC_TRACE_ON`](#adding-dascendc-trace-on). Only after this can pipeline chart information for the specified range be generated.
+- If you only need to focus on the performance of specific operators, invoke the [TRACE_START](https://www.hiascend.com/document/detail/en/CANNCommunityEdition/latest/API/ascendcopapi/docs/en/api/Utils-API/tuning_interface/TRACE_START.md) and [TRACE_STOP](https://www.hiascend.com/document/detail/en/CANNCommunityEdition/latest/API/ascendcopapi/docs/en/api/Utils-API/tuning_interface/TRACE_STOP.md) APIs, which are described in the "Debugging APIs" section of the Ascend C Operator Development API, within a single core on Atlas A3 products, Atlas inference products, Atlas A2 products, and Ascend 950PR&950DT products. Additionally, add `-DASCENDC_TRACE_ON` to the compilation configuration file. For details, see the [method for adding `-DASCENDC_TRACE_ON`](#adding-dascendc-trace-on). Only after this can pipeline chart information for the specified range be generated.
 
 ### Usage Instructions
 
@@ -515,7 +515,7 @@ The `trace.json` file can be visualized using either the Chrome browser or MindS
     In MindStudio Insight, you can select the target PIPE in the simulated pipeline chart to view the waiting information of synchronization instructions. The information displayed for each product is as follows:
     - Atlas A3 products and Atlas A2 products display SET_FLAG/WAIT_FLAG instructions.
     - Atlas inference products display set_event/wait_event instructions.
-    - Ascend 950PR and 950DT products display SET_FLAG/WAIT_FLAG, SET_INTRA_BLOCK/WAIT_INTRA_BLOCK, and SET_INTRA_BLOCKI/WAIT_INTRA_BLOCKI instructions.
+    - Ascend 950PR&950DT products display SET_FLAG/WAIT_FLAG, SET_INTRA_BLOCK/WAIT_INTRA_BLOCK, and SET_INTRA_BLOCKI/WAIT_INTRA_BLOCKI instructions.
 
 ## Operator Code Hot Spot Map
 
@@ -525,7 +525,7 @@ Visualizes the `visualize_data.bin` files generated by msopprof simulator. On th
 
 **Precautions**
 
-- For detailed MindStudio Insight operations and field explanations, see [Source](https://atomgit.com/Ascend/msinsight/blob/26.2.0/docs/en/user_guide/operator_tuning.md#source) in *MindStudio Insight Operator Tuning*.
+- For detailed MindStudio Insight operations and field explanations, see [Source](https://gitcode.com/Ascend/msinsight/blob/master/docs/en/user_guide/overview.md) in MindStudio Insight Operator Tuning.
 - If the `-g` compilation option is added, the generated binary file contains debugging information. You are advised to restrict access to user programs with debugging information to authorized personnel only.
 - The operator program must be compiled with the `-g` option. Otherwise, msOpProf will not display the hot spot map and will not call the relevant functions of the llvm-symbolizer component to implement code-to-PC mapping.
 - Operator code hot spot maps cannot be generated for MC2 or LCCL operators.
@@ -551,7 +551,7 @@ The following figure shows the operator code hot spot map.
 
     **Table 1** msopprof simulator hot spot map features<a id="simulator-hot-spot-map-features"></a>
 
-    |Column|Atlas A2 products|Atlas A3 products|Atlas inference products|Ascend 950PR and 950DT products|Description|
+    |Column|Atlas A2 Products|Atlas A3 Products|Atlas Inference Products|Ascend 950PR&950DT Products|Description|
     |---|---|---|---|---|---|
     |Source Code|Supported|Supported|Supported|Supported|-|
     |Instruction PC Address|Supported|Supported|Supported|Supported|-|
@@ -571,7 +571,7 @@ Visualizes the `visualize_data.bin` files generated by msopprof simulator. On th
 
 **Precautions**
 
-- For detailed MindStudio Insight operations and field explanations, see [Timeline](https://atomgit.com/Ascend/msinsight/blob/26.2.0/docs/en/user_guide/operator_tuning.md#timeline) in *MindStudio Insight Operator Tuning*.
+- For detailed MindStudio Insight operations and field explanations, see [Timeline](https://gitcode.com/Ascend/msinsight/blob/master/docs/en/user_guide/system_tuning/timeline.md) in MindStudio Insight Operator Tuning.
 - Memory channel throughput waveform charts can only be displayed for Atlas A2 products and Atlas A3 products.
 - This feature is disabled by default. The `--core-id` setting has no effect on this feature.
 
@@ -590,4 +590,3 @@ The following figure shows the memory channel throughput waveform chart.
     >
     > - The data used for throughput calculation corresponds to the completion of multiple requests for a specific instruction.
     > - The throughput waveform may appear within the time range between the start and end of an instruction (inclusive). For example, for an instruction with a duration of 1 to 3 µs, the throughput data might be distributed across three bar charts covering the 1 to 2 µs, 2 to 3 µs, and 3 to 4 µs intervals.
-    

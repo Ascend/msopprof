@@ -279,7 +279,7 @@ mstx接口是MindStudio提供的一个性能分析接口，它允许用户在应
 **mstx接口的使用**
 
 - msOpProf工具允许用户通过mstx接口实现特定算子调优的功能，使用mstx接口可以自定义采集代码段范围内或指定关键函数的开始和结束时间点，并识别关键函数或计算API等信息，对性能问题快速定界。
-- 默认情况下mstx接口不使能。若用户在应用程序中调用mstx接口，工具会根据具体使用场景使能mstx打点功能。例如配置--mstx=on使能用户程序中的mstx API，并可以通过--mstx-include使能用户程序中特定的mstx API，具体使用可分别参见msopprof模式用户指南的“[命令参考](./msopprof_user_guide.md#命令参考)”和msopprof simulator模式用户指南的“[命令参考](./msopprof_simulator_user_guide.md#命令参考)”中的--mstx和--mstx-include参数。
+- 默认情况下mstx接口不使能。若用户在应用程序中调用mstx接口，工具会根据具体使用场景使能mstx打点功能。例如配置--mstx=true使能用户程序中的mstx API，并可以通过--mstx-include使能用户程序中特定的mstx API，具体使用可分别参见msopprof模式用户指南的“[命令参考](./msopprof_user_guide.md#命令参考)”和msopprof simulator模式用户指南的“[命令参考](./msopprof_simulator_user_guide.md#命令参考)”中的--mstx和--mstx-include参数。
 - mstx当前提供了两种API的使用方式：库文件和头文件，以[样例](https://gitcode.com/cann/cann-learning-hub/tree/8.5.0/tutorials/ascendc_operator_development/03_intermediate_vector_operator_development/src/custom_op_04)为例：
 
     > [!NOTE]
@@ -312,7 +312,7 @@ mstx接口是MindStudio提供的一个性能分析接口，它允许用户在应
 
 **调用示例**
 
-启动msOpProf工具后，执行```msopprof --mstx=on --mstx-include=range1 --launch-count=2 python cal.py```命令，将会采集range1范围内的算子，即sub和mul算子。
+启动msOpProf工具后，执行```msopprof --mstx=true --mstx-include=range1 --launch-count=2 python cal.py```命令，将会采集range1范围内的算子，即sub和mul算子。
 
 ```python
 import mstx

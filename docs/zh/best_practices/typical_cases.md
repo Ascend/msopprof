@@ -52,7 +52,7 @@
 >
 > - mstxRangeStartA和mstxRangeEnd接口需成对调用，不支持交叉调用。每一对mstx API中包含的算子为一个重放范围，该重放范围内算子的Stream不能改变。
 > - 每一个重放范围能采集的算子数量受[OpBasicInfo（算子基础信息）](../user_guide/./msopprof_performance_data.md#opbasicinfo算子基础信息)中算子Block Dim数量限制，建议不超过50个。
-> - 使用该功能时，不支持与--aic-metrics=MemoryDetail、--aic-metrics=TimelineDetail及--aic-metrics=Source同时使能；不建议与--kill=on同时使能，否则可能导致采集的算子数据缺失。
+> - 使用该功能时，不支持与--aic-metrics=MemoryDetail、--aic-metrics=TimelineDetail及--aic-metrics=Source同时使能；不建议与--kill=true同时使能，否则可能导致采集的算子数据缺失。
 > - 在进行范围级重放时，执行算子SynchronizeStream可能会失败，建议在mstxRangeEnd接口调用结束后再执行。
 > - 该功能仅适用于Atlas A3系列产品、Atlas A2系列产品以及Ascend 950PR&950DT系列产品。
 
@@ -95,7 +95,7 @@ mstx.range_end(range2_id)
     1. 执行以下命令，使能单一mstx API范围，以下命令将执行“range1”范围级重放。
 
         ```shell
-        msopprof --replay-mode=range --mstx=on --mstx-include="range1" --launch-count=10 python3 test.py
+        msopprof --replay-mode=range --mstx=true --mstx-include="range1" --launch-count=10 python3 test.py
         ```
 
     2. 工具生成Sub、Mul算子的调优数据，且两个算子之间的L2Cache信息会保留。具体性能文件介绍请参考[表4 msOpProf模式文件介绍](../user_guide/msopprof_user_guide.md#工具使用)。
@@ -118,7 +118,7 @@ mstx.range_end(range2_id)
     1. 执行以下命令，使能所有mstx API范围。
 
         ```shell
-        msopprof --replay-mode=range --mstx=on --launch-count=10 python3 test.py
+        msopprof --replay-mode=range --mstx=true --launch-count=10 python3 test.py
         ```
 
     2. 工具将会先后执行“range1”和“range2”范围级重放，生成Sub、Mul、Div、Abs、Add算子的调优数据，每次重放算子之间的L2Cache信息会保留，但两次重放的L2Cache信息互相独立。但因为“range2”和“range3”存在范围交叉，则仅第一个范围生效，“range3”将无效。具体性能文件介绍请参考[表4 msOpProf模式文件介绍](../user_guide/msopprof_user_guide.md#工具使用)。
