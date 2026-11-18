@@ -573,7 +573,6 @@ mte/vector/scalar采集ub读写带宽速率数据MemoryUB.csv。详情介绍请�
 
 |字段名|字段解释|
 |--|--|
-
 |block_id|Task运行切分数量，对应Task运行时配置的核数。|
 |sub_block_id|Task运行使用的每个block名称和序号。|
 |aic_time(us)|该Task被分配到每个AI Cube Core计算单元上后，每个AI Cube Core计算单元上的执行时间，单位us。|
