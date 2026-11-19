@@ -14,28 +14,27 @@
  * See the Mulan PSL v2 for more details.
  * ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include <fstream>
 #include <iostream>
 #include "log.h"
 #include "tlv_parse.h"
+#include "tlv_reader.h"
 
 using namespace Utility;
-// 通用函数：数据读取
-template <typename T>
-bool TlvParser::ReadData(const std::vector<uint8_t>& data, size_t& offset, size_t containerEnd, T& outData) const
+
+namespace {
+template <typename Handler>
+bool VisitTlvChildren(const std::vector<uint8_t> &data, size_t &offset, size_t end, const char *container,
+                      Handler handler)
 {
-    if (offset + sizeof(T) > containerEnd) {
-        Utility::LogDebug("ReadData: Data out of bounds, offset=%zu, bytes to read=%zu, remaining bytes=%zu", offset, sizeof(T), containerEnd - offset);
-        return false;
-    }
-    if (memcpy_s(&outData, sizeof(T), data.data() + offset, sizeof(T)) != EOK) {
-        Utility::LogWarn("ReadData: memcpy_s failed");
-        return false;
-    }
-    offset += sizeof(T);
-    return true;
+    return TlvReader::ForEach<TlvTag, TlvLengthType>(data, offset, end, handler,
+        [container](size_t headerOffset, size_t containerEnd) {
+            const char *reason = containerEnd - headerOffset < sizeof(TlvTag) + sizeof(TlvLengthType)
+                ? "truncated child TLV header" : "child TLV length exceeds container bounds";
+            Utility::LogWarn("%s: %s, offset=%zu, containerEnd=%zu", container, reason, headerOffset, containerEnd);
+        });
 }
+} // namespace
 
 // 通用函数：校验长度是否为目标类型大小的整数倍
 template <typename T>
@@ -56,15 +55,8 @@ bool TlvParser::ValidateLengthMultiple(TlvLengthType length, const std::string& 
 bool TlvParser::ReadTlvHeader(const std::vector<uint8_t>& data, size_t& offset, size_t containerEnd,
                               TlvTag& outTag, TlvLengthType& outLength) const
 {
-    bool result = ReadData(data, offset, containerEnd, outTag);
-    if (!result) {
-        Utility::LogWarn("ReadTlvHeader: Failed to read TLV tag");
-        return false;
-    }
-    result = ReadData(data, offset, containerEnd, outLength);
-    // 校验Value长度是否超过容器剩余空间
-    if (!result || (offset + outLength > containerEnd)) {
-        Utility::LogWarn("ReadTlvHeader: TLV Value length exceeds container bounds, declared length=%zu, remaining space=%zu ", outLength, containerEnd - offset);
+    if (!TlvReader::ReadHeader(data, offset, containerEnd, outTag, outLength)) {
+        Utility::LogWarn("ReadTlvHeader: Invalid or truncated TLV, offset=%zu, containerEnd=%zu", offset, containerEnd);
         return false;
     }
     return true;
@@ -103,8 +95,7 @@ bool TlvParser::ValidateDataReadOver(std::string tlvTagName, size_t& offset, siz
 
 std::string TlvParser::ReadTlvString(const std::vector<uint8_t>& data, size_t& offset, TlvLengthType strLength) const
 {
-    const size_t containerEnd = offset + strLength;
-    if (containerEnd > data.size()) {
+    if (offset > data.size() || strLength > data.size() - offset) {
         Utility::LogDebug("ReadTlvString: String read out of bounds, offset=%zu, strLength= %llx, data size=%zu",
                           offset, strLength, data.size());
         return "";
@@ -162,48 +153,29 @@ bool TlvParser::ParseStream()
 
 bool TlvParser::ParseRegLivenessTag(const std::vector<uint8_t>& data, size_t& offset, TlvLengthType length)
 {
-    const size_t containerEnd = offset + length;
-
-    while (offset < containerEnd) {
-        TlvTag subTag;
-        TlvLengthType subLength;
-        if (!ReadTlvHeader(data, offset, containerEnd, subTag, subLength)) {
-            Utility::LogDebug("ParseRegLivenessTag: SubTag header data is insufficient, offset=%zu", offset);
-            return false;
-        }
-        bool result = true;
-        // 按子Tag类型分发解析
-        switch (subTag) {
-            case TlvTag::RegTypeTag:
-                result = ParseRegTypeTag(data, offset, subLength);
-                break;
-            case TlvTag::RegNumberTag:
-                result = ParseRegNumberTag(data, offset, subLength);
-                break;
-            case TlvTag::InstNumTag:
-                result = ParseInstNumTag(data, offset, subLength);
-                break;
-            case TlvTag::RFunctionNameNumTag:
-                result = ParseFunctionNameNumTag(data, offset, subLength);
-                break;
-            case TlvTag::FunctionNameListTag:
-                result = ParseFunctionNameListTag(data, offset, subLength);
-                break;
-            case TlvTag::FunctionPositionStartIdxTag:
-                result = ParseFunctionPositionStartIdxTag(data, offset, subLength);
-                break;
-            case TlvTag::InstRecordListTag:
-                result = ParseInstRecordListTag(data, offset, subLength);
-                break;
-            default:
-                Utility::LogWarn("TLV parsing warning: Unknown subTag, value%04x, offset=%zu", static_cast<uint32_t>(subTag), offset);
-                return false;
-        }
-        if (!result) {
-            return false;
-        }
-    }
-    return true;
+    return VisitTlvChildren(data, offset, offset + length, __func__,
+        [&](TlvTag subTag, size_t &valueOffset, TlvLengthType subLength) {
+            // 按子Tag类型分发解析
+            switch (subTag) {
+                case TlvTag::RegTypeTag:
+                    return ParseRegTypeTag(data, valueOffset, subLength);
+                case TlvTag::RegNumberTag:
+                    return ParseRegNumberTag(data, valueOffset, subLength);
+                case TlvTag::InstNumTag:
+                    return ParseInstNumTag(data, valueOffset, subLength);
+                case TlvTag::RFunctionNameNumTag:
+                    return ParseFunctionNameNumTag(data, valueOffset, subLength);
+                case TlvTag::FunctionNameListTag:
+                    return ParseFunctionNameListTag(data, valueOffset, subLength);
+                case TlvTag::FunctionPositionStartIdxTag:
+                    return ParseFunctionPositionStartIdxTag(data, valueOffset, subLength);
+                case TlvTag::InstRecordListTag:
+                    return ParseInstRecordListTag(data, valueOffset, subLength);
+                default:
+                    Utility::LogWarn("TLV parsing warning: Unknown subTag, value%04x, valueOffset=%zu", static_cast<uint32_t>(subTag), valueOffset);
+                    return false;
+            }
+        });
 }
 
 bool TlvParser::ParseRegTypeTag(const std::vector<uint8_t>& data, size_t& offset, TlvLengthType length)
@@ -217,7 +189,7 @@ bool TlvParser::ParseRegTypeTag(const std::vector<uint8_t>& data, size_t& offset
     const size_t itemCount = length / sizeof(RegType);
     for (size_t i = 0; i < itemCount; ++i) {
         RegType regType;
-        if (!ReadData(data, offset, containerEnd, regType)) {
+        if (!TlvReader::ReadValue(data, offset, containerEnd, regType)) {
             return false;
         }
         regTypeList.push_back(regType);
@@ -241,7 +213,7 @@ bool TlvParser::ParseRegNumberTag(const std::vector<uint8_t>& data, size_t& offs
     const size_t itemCount = length / sizeof(uint64_t);
     for (size_t i = 0; i < itemCount; ++i) {
         uint64_t regNum;
-        if (!ReadData(data, offset, containerEnd, regNum)) {
+        if (!TlvReader::ReadValue(data, offset, containerEnd, regNum)) {
             return false;
         }
         regNumberList.push_back(regNum);
@@ -265,13 +237,7 @@ bool TlvParser::ParseInstNumTag(const std::vector<uint8_t>& data, size_t& offset
         Utility::LogDebug("ParseInstNumTag: Invalid length, expected=%zu bytes, actual=%zu bytes", sizeof(uint64_t), length);
         return false;
     }
-    if (!ReadData(data, offset, containerEnd, parsedRegLiveness_.instNum)) {
-        return false;
-    }
-    if (!ValidateDataReadOver("InstNumTag", offset, containerEnd)) {
-        return false;
-    }
-    return true;
+    return TlvReader::ReadValue(data, offset, containerEnd, parsedRegLiveness_.instNum);
 }
 
 bool TlvParser::ParseFunctionNameNumTag(const std::vector<uint8_t>& data, size_t& offset, TlvLengthType length)
@@ -281,13 +247,7 @@ bool TlvParser::ParseFunctionNameNumTag(const std::vector<uint8_t>& data, size_t
         Utility::LogDebug("ParseFunctionNameNumTag: Invalid length, expected=%zu bytes, actual=%zu bytes", sizeof(uint64_t), length);
         return false;
     }
-    if (!ReadData(data, offset, containerEnd, parsedRegLiveness_.functionNameNum)) {
-        return false;
-    }
-    if (!ValidateDataReadOver("FunctionNameNumTag", offset, containerEnd)) {
-        return false;
-    }
-    return true;
+    return TlvReader::ReadValue(data, offset, containerEnd, parsedRegLiveness_.functionNameNum);
 }
 
 bool TlvParser::ParseFunctionNameListTag(const std::vector<uint8_t>& data, size_t& offset, TlvLengthType length)
@@ -296,28 +256,20 @@ bool TlvParser::ParseFunctionNameListTag(const std::vector<uint8_t>& data, size_
     auto& funcNameList = parsedRegLiveness_.functionNameList;
     funcNameList.clear();
     const uint64_t expectedCount = parsedRegLiveness_.functionNameNum;
-    while (offset < containerEnd) {
-        TlvTag subTag;
-        TlvLengthType subLength;
-        if (!ReadTlvHeader(data, offset, containerEnd, subTag, subLength)) {
-            Utility::LogDebug("ParseFunctionNameListTag: SubTag header data is insufficient, offset=%zu", offset);
-            return false;
-        }
-        if (subTag != TlvTag::FunctionNameTag) {
-            Utility::LogDebug("ParseFunctionNameListTag: Invalid subTag=%04x, offset=%zu", static_cast<uint32_t>(subTag), offset);
-            return false;
-        }
-        if (!ParseFunctionNameTag(data, offset, subLength)) {
-            return false;
-        }
+    if (!VisitTlvChildren(data, offset, containerEnd, __func__,
+        [&](TlvTag subTag, size_t &valueOffset, TlvLengthType subLength) {
+            if (subTag != TlvTag::FunctionNameTag) {
+                Utility::LogDebug("ParseFunctionNameListTag: Invalid subTag=%04x, valueOffset=%zu", static_cast<uint32_t>(subTag), valueOffset);
+                return false;
+            }
+            return ParseFunctionNameTag(data, valueOffset, subLength);
+        })) {
+        return false;
     }
 
     // 校验函数名数量与预期一致
     if (funcNameList.size() != expectedCount) {
         Utility::LogDebug("ParseFunctionNameListTag: Function name count mismatch, actual=%zu, expected=%zu", funcNameList.size(), expectedCount);
-        return false;
-    }
-    if (!ValidateDataReadOver("FunctionNameListTag", offset, containerEnd)) {
         return false;
     }
     return true;
@@ -349,7 +301,7 @@ bool TlvParser::ParseFunctionPositionStartIdxTag(const std::vector<uint8_t>& dat
     const size_t itemCount = length / sizeof(int64_t);
     for (size_t i = 0; i < itemCount; ++i) {
         int64_t idx;
-        if (!ReadData(data, offset, containerEnd, idx)) {
+        if (!TlvReader::ReadValue(data, offset, containerEnd, idx)) {
             return false;
         }
         funcPosList.push_back(idx);
@@ -372,28 +324,20 @@ bool TlvParser::ParseInstRecordListTag(const std::vector<uint8_t>& data, size_t&
     std::vector<std::vector<InstRecord>>& instRecordList = parsedRegLiveness_.instRecordList;
     instRecordList.clear();
 
-    while (offset < containerEnd) {
-        TlvTag subTag;
-        TlvLengthType subLength;
-        if (!ReadTlvHeader(data, offset, containerEnd, subTag, subLength)) {
-            Utility::LogDebug("ParseInstRecordListTag: SubTag header data is insufficient, offset=%zu", offset);
-            return false;
-        }
-        if (subTag != TlvTag::InstRecordListByRegTypeTag) {
-            Utility::LogDebug("ParseInstRecordListTag: SubTag must be InstRecordListByRegTypeTag, actual=%04x", static_cast<uint32_t>(subTag));
-            return false;
-        }
-        std::vector<InstRecord> instRecordsByType;
-        if (!ParseInstRecordListByRegTypeTag(data, offset, subLength, instRecordsByType)) {
-            return false;
-        }
-
-        // 校验当前分组的PC记录数是否与总PC数一致
-        if (instRecordsByType.size() != parsedRegLiveness_.instNum) {
-            Utility::LogDebug("ParseInstRecordListTag: PC record count is not equal instNum, pcRecordCount=%zu, totalPcCount=%llu", instRecordsByType.size(), parsedRegLiveness_.instNum);
-            return false;
-        }
-        instRecordList.emplace_back(std::move(instRecordsByType));
+    if (!VisitTlvChildren(data, offset, containerEnd, __func__,
+        [&](TlvTag subTag, size_t &valueOffset, TlvLengthType subLength) {
+            if (subTag != TlvTag::InstRecordListByRegTypeTag) {
+                Utility::LogDebug("ParseInstRecordListTag: SubTag must be InstRecordListByRegTypeTag, actual=%04x", static_cast<uint32_t>(subTag));
+                return false;
+            }
+            std::vector<InstRecord> instRecordsByType;
+            if (!ParseInstRecordListByRegTypeTag(data, valueOffset, subLength, instRecordsByType)) {
+                return false;
+            }
+            instRecordList.emplace_back(std::move(instRecordsByType));
+            return true;
+        })) {
+        return false;
     }
 
     // 校验分组数是否与寄存器种类数一致
@@ -404,13 +348,7 @@ bool TlvParser::ParseInstRecordListTag(const std::vector<uint8_t>& data, size_t&
     }
 
     // 检查每组pc地址是否相同
-    if (!ValidatePcAddressConsistency()) {
-        return false;
-    }
-    if (!ValidateDataReadOver("InstRecordListTag", offset, containerEnd)) {
-        return false;
-    }
-    return true;
+    return ValidatePcAddressConsistency();
 }
 
 bool TlvParser::ParseInstRecordListByRegTypeTag(const std::vector<uint8_t>& data, size_t& offset, TlvLengthType length,
@@ -419,30 +357,25 @@ bool TlvParser::ParseInstRecordListByRegTypeTag(const std::vector<uint8_t>& data
     const size_t containerEnd = offset + length;
     instRecords.clear();
     const uint64_t totalPcCount = parsedRegLiveness_.instNum;
-    while (offset < containerEnd) {
-        TlvTag subTag;
-        TlvLengthType subLength;
-        if (!ReadTlvHeader(data, offset, containerEnd, subTag, subLength)) {
-            Utility::LogDebug("ParseInstRecordListByRegTypeTag: SubTag header data is insufficient, offset=%zu", offset);
-            return false;
-        }
-        if (subTag != TlvTag::InstRecordTag) {
-            Utility::LogDebug("ParseInstRecordListByRegTypeTag: SubTag must be InstRecordListByRegTypeTag, actual=%04x", static_cast<uint32_t>(subTag));
-            return false;
-        }
-        InstRecord instRecord;
-        if (!ParseInstRecordTag(data, offset, subLength, instRecord)) {
-            return false;
-        }
-        instRecords.push_back(std::move(instRecord));
+    if (!VisitTlvChildren(data, offset, containerEnd, __func__,
+        [&](TlvTag subTag, size_t &valueOffset, TlvLengthType subLength) {
+            if (subTag != TlvTag::InstRecordTag) {
+                Utility::LogDebug("ParseInstRecordListByRegTypeTag: SubTag must be InstRecordListByRegTypeTag, actual=%04x", static_cast<uint32_t>(subTag));
+                return false;
+            }
+            InstRecord instRecord;
+            if (!ParseInstRecordTag(data, valueOffset, subLength, instRecord)) {
+                return false;
+            }
+            instRecords.push_back(std::move(instRecord));
+            return true;
+        })) {
+        return false;
     }
 
     // 校验：当前分组的PC记录数与总PC数一致
     if (instRecords.size() != totalPcCount) {
         Utility::LogDebug("ParseInstRecordListByRegTypeTag: PC record count mismatch, actual=%zu, total PC count=%zu", instRecords.size(), totalPcCount);
-        return false;
-    }
-    if (!ValidateDataReadOver("InstRecordListByRegTypeTag", offset, containerEnd)) {
         return false;
     }
     return true;
@@ -451,35 +384,19 @@ bool TlvParser::ParseInstRecordListByRegTypeTag(const std::vector<uint8_t>& data
 bool TlvParser::ParseInstRecordTag(const std::vector<uint8_t>& data, size_t& offset, TlvLengthType length,
                                    InstRecord& instRecord)
 {
-    const size_t containerEnd = offset + length;
     instRecord = InstRecord{}; // 初始化空记录
-    while (offset < containerEnd) {
-        TlvTag subTag;
-        TlvLengthType subLength;
-        if (!ReadTlvHeader(data, offset, containerEnd, subTag, subLength)) {
-            Utility::LogDebug("ParseInstRecordTag: SubTag header data is insufficient, offset=%zu", offset);
-            return false;
-        }
-        bool result = true;
-        switch (subTag) {
-            case TlvTag::addressTag:
-                result = ParseAddressTag(data, offset, subLength, instRecord.address);
-                break;
-            case TlvTag::InstRecordRegTag:
-                result = ParseInstRecordRegTag(data, offset, subLength, instRecord.regRecord);
-                break;
-            default:
-                Utility::LogDebug("ParseInstRecordTag: Invalid subTag=%04x, offset=%zu", static_cast<uint32_t>(subTag), offset);
-                return false;
-        }
-        if (!result) {
-            return false;
-        }
-    }
-    if (!ValidateDataReadOver("InstRecordTag", offset, containerEnd)) {
-        return false;
-    }
-    return true;
+    return VisitTlvChildren(data, offset, offset + length, __func__,
+        [&](TlvTag subTag, size_t &valueOffset, TlvLengthType subLength) {
+            switch (subTag) {
+                case TlvTag::addressTag:
+                    return ParseAddressTag(data, valueOffset, subLength, instRecord.address);
+                case TlvTag::InstRecordRegTag:
+                    return ParseInstRecordRegTag(data, valueOffset, subLength, instRecord.regRecord);
+                default:
+                    Utility::LogDebug("ParseInstRecordTag: Invalid subTag=%04x, valueOffset=%zu", static_cast<uint32_t>(subTag), valueOffset);
+                    return false;
+            }
+        });
 }
 
 bool TlvParser::ParseAddressTag(const std::vector<uint8_t>& data, size_t& offset, TlvLengthType length, uint64_t& address)
@@ -490,13 +407,7 @@ bool TlvParser::ParseAddressTag(const std::vector<uint8_t>& data, size_t& offset
         Utility::LogDebug("ParseAddressTag: Invalid length, expected=%zu bytes, actual=%zu bytes", sizeof(uint64_t), length);
         return false;
     }
-    if (!ReadData(data, offset, containerEnd, address)) {
-        return false;
-    }
-    if (!ValidateDataReadOver("addressTag", offset, containerEnd)) {
-        return false;
-    }
-    return true;
+    return TlvReader::ReadValue(data, offset, containerEnd, address);
 }
 
 // ParseInstRecordRegTag 函数，处理空记录和 4 字节 RecordValue
@@ -520,11 +431,11 @@ bool TlvParser::ParseInstRecordRegTag(const std::vector<uint8_t>& data, size_t& 
         // 读取 4 字节的 RecordValue（RegIndex=2字节 + Operation=2字节）
         RecordValue record;
         // 手动读取，确保字节序和大小正确
-        if (!ReadData(data, offset, containerEnd, record.regIndex)) {
+        if (!TlvReader::ReadValue(data, offset, containerEnd, record.regIndex)) {
             return false;
         }
         uint16_t operation;
-        if (!ReadData(data, offset, containerEnd, operation)) {
+        if (!TlvReader::ReadValue(data, offset, containerEnd, operation)) {
             return false;
         }
         record.operation = static_cast<OperationType>(operation);

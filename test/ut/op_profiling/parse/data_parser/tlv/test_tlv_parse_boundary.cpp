@@ -20,6 +20,7 @@
 #include <string>
 #include <vector>
 #include <gtest/gtest.h>
+#include "log.h"
 
 #define private public
 #include "profiling/device/data_parse/tlv_parse.h"
@@ -306,4 +307,82 @@ TEST_F(TlvParserUt, test_CountPCNum_when_register_has_disjoint_live_ranges_expec
     EXPECT_EQ(gprStatus.at(0x1000).at(0).survivalTime, 1U);
     EXPECT_EQ(gprStatus.at(0x1008).at(0).regIndex, "X1");
     EXPECT_EQ(gprStatus.at(0x1008).at(0).survivalTime, 2U);
+}
+
+
+TEST_F(TlvParserUt, test_ReadTlvHeader_when_length_wraps_offset_expect_false)
+{
+    std::vector<uint8_t> data;
+    AppendValue(data, TlvTag::addressTag);
+    AppendValue(data, TlvLengthType{UINT64_MAX});
+    size_t offset = 0;
+    TlvTag tag = TlvTag::RegLivenessTag;
+    TlvLengthType length = 0;
+    TlvParser parser("");
+    EXPECT_FALSE(parser.ReadTlvHeader(data, offset, data.size(), tag, length));
+}
+
+TEST_F(TlvParserUt, test_ReadTlvString_when_offset_or_length_overflows_expect_empty)
+{
+    const std::vector<uint8_t> data = {0x41, 0x42};
+    TlvParser parser("");
+    size_t offset = 1;
+    EXPECT_TRUE(parser.ReadTlvString(data, offset, UINT64_MAX).empty());
+    EXPECT_EQ(offset, 1U);
+    offset = SIZE_MAX;
+    EXPECT_TRUE(parser.ReadTlvString(data, offset, 1).empty());
+    EXPECT_EQ(offset, SIZE_MAX);
+}
+
+TEST_F(TlvParserUt, test_ParseStream_when_trailing_bytes_follow_top_record_expect_false)
+{
+    auto data = MakeTlv(TlvTag::RegLivenessTag, {});
+    data.push_back(0);
+    WriteBytes(data);
+    TlvParser parser(filePath_);
+    EXPECT_FALSE(parser.ParseStream());
+}
+
+TEST_F(TlvParserUt, test_ParseStream_when_nested_header_is_invalid_expect_warning_with_position)
+{
+    constexpr size_t headerSize = sizeof(TlvTag) + sizeof(TlvLengthType);
+    for (bool truncated : {true, false}) {
+        auto child = MakeValueBytes(TlvTag::FunctionNameTag);
+        if (!truncated) {
+            AppendValue(child, TlvLengthType{1});
+        }
+        const auto names = MakeTlv(TlvTag::FunctionNameListTag, child);
+        WriteBytes(MakeTlv(TlvTag::RegLivenessTag, names));
+        TlvParser parser(filePath_);
+        std::string log;
+        const Utility::LogCaptureGuard capture(&log);
+        EXPECT_FALSE(parser.ParseStream());
+        const std::string reason = truncated ? "truncated child TLV header" :
+            "child TLV length exceeds container bounds";
+        EXPECT_NE(log.find("[WARN]"), std::string::npos) << log;
+        EXPECT_NE(log.find("ParseFunctionNameListTag: " + reason + ", offset=" + std::to_string(2 * headerSize) +
+            ", containerEnd=" + std::to_string(2 * headerSize + child.size())), std::string::npos) << log;
+    }
+}
+
+TEST_F(TlvParserUt, test_ParseStream_when_instruction_groups_violate_schema_expect_false)
+{
+    const auto wrongTag = MakeTlv(TlvTag::InstNumTag, {});
+    const auto wrongRecord = MakeTlv(TlvTag::InstRecordTag, wrongTag);
+    const auto wrongGroup = MakeTlv(TlvTag::InstRecordListByRegTypeTag, wrongTag);
+    const auto groupWithWrongRecord = MakeTlv(TlvTag::InstRecordListByRegTypeTag, wrongRecord);
+    const auto unmatchedGroup = MakeTlv(TlvTag::InstRecordListByRegTypeTag, {});
+    for (const auto &group : {wrongTag, wrongGroup, groupWithWrongRecord, unmatchedGroup}) {
+        const auto records = MakeTlv(TlvTag::InstRecordListTag, group);
+        WriteBytes(MakeTlv(TlvTag::RegLivenessTag, records));
+        TlvParser parser(filePath_);
+        EXPECT_FALSE(parser.ParseStream());
+    }
+}
+
+TEST_F(TlvParserUt, test_ParseStream_when_unknown_child_tag_expect_false)
+{
+    WriteBytes(MakeTlv(TlvTag::RegLivenessTag, MakeTlv(static_cast<TlvTag>(99), {})));
+    TlvParser parser(filePath_);
+    EXPECT_FALSE(parser.ParseStream());
 }

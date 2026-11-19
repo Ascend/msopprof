@@ -145,10 +145,6 @@ private:
     // 辅助函数：处理单个PC记录组
     void ProcessPcGroup(const std::vector<InstRecord>& pcGroup, const std::string& regType);
 
-    // 通用函数：读取数据
-    template <typename T>
-    bool ReadData(const std::vector<uint8_t>& data, size_t& offset, size_t containerEnd, T& outData) const;
-
     // 通用函数：校验长度是否为目标类型大小的整数倍
     template <typename T>
     bool ValidateLengthMultiple(TlvLengthType length, const std::string& tagName) const;
