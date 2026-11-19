@@ -39,7 +39,7 @@ Kernel直调场景，详细信息可参考《Ascend C算子开发指南》中“
 
 3. 修改样例工程的编译文件CMakeLists.txt，构建可运行在仿真器上的算子可执行文件，编译完成后，在工程目录下生成可执行文件add\_sim。
 
-    ```shell
+    ```cmake
     target_compile_options(add_sim PRIVATE
         $<$<COMPILE_LANGUAGE:ASC>:--npu-arch=dav-XXXX>          # 需根据实际部署的 NPU 硬件架构选择对应的 `npu-arch` 参数
         -g                                                      # 代码热点图等功能需要开启该编译选项
@@ -82,7 +82,7 @@ Kernel直调场景，详细信息可参考《Ascend C算子开发指南》中“
 
 展示如何使用msOpProf工具采集API调用单算子的性能数据，以自定义算子工程和aclnn单算子API调用为例。
 
-单算子API调用场景，详细信息可参考《Ascend C算子开发指南》中“工程化算子开发 \>  [单算子API调用](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/latest/programug/Ascendcopdevg/docs/zh/guide/programming_guide/advanced_programming/aclnn_operator_development/invocation/single_operator_api_call.md)”章节。
+单算子API调用场景，详细信息可参考《Ascend C算子开发指南》中“工程化算子开发 \> [单算子API调用](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/latest/programug/Ascendcopdevg/docs/zh/guide/programming_guide/advanced_programming/aclnn_operator_development/invocation/single_operator_api_call.md)”章节。
 
 **前期准备**
 
@@ -129,13 +129,13 @@ Kernel直调场景，详细信息可参考《Ascend C算子开发指南》中“
 
 通过PyTorch框架进行单算子调用的场景，详细信息可参考《[TorchNPU配套软件库](https://gitcode.com/Ascend/docs/blob/master/FrameworkPTAdapter/26.1.0/zh/supported_suites_and_third_party_libraries/supported_suites_and_third_party_libraries.md)》中的OpPlugin插件。
 
-PyTorch框架算子调用场景下，进行性能数据采集的操作步骤与[采集triton算子场景](#采集triton算子的性能数据)基本一致。
+PyTorch框架算子调用场景下，进行性能数据采集的操作步骤与[采集Triton算子场景](#采集triton算子的性能数据)基本一致。
 
-## 采集triton算子的性能数据
+## 采集Triton算子的性能数据
 
 **概述**
 
-展示如何使用msOpProf工具采集triton算子的性能数据。
+展示如何使用msOpProf工具采集Triton算子的性能数据。
 
 **前期准备**
 
@@ -149,7 +149,7 @@ PyTorch框架算子调用场景下，进行性能数据采集的操作步骤与[
 
 1. 准备基础的triton算子样例test_add.py。
 
-    ```shell
+    ```python
     import torch
     import torch_npu
 
@@ -225,7 +225,7 @@ PyTorch框架算子调用场景下，进行性能数据采集的操作步骤与[
     msopprof ./00_basic_matmul 256 512 1024 0
     ```
 
-3. 编译脚本增加选项--simulator，编译算子仿真可执行文件，并根据提示，加载仿真器二进制路径。
+3. 编译脚本增加选项--simulator，编译算子仿真可执行文件，并根据提示，配载仿真器二进制路径。
 
     ```shell
     bash scripts/build.sh --simulator 00_basic_matmul
@@ -263,13 +263,13 @@ PyTorch框架算子调用场景下，进行性能数据采集的操作步骤与[
 
 > [!NOTE]
 >
-> CATLASS DSL支持范围与triton支持范围一致，目前仅支持Ascend 950PR&950DT系列产品，不支持-g，代码热点图功能以及代码行映射能力。
+> CATLASS DSL支持范围与triton支持范围一致，目前仅支持Ascend 950PR&950DT系列产品，不支持-g、代码热点图功能以及代码行映射能力。
 
 **操作步骤**
 
 1. 准备基础的catlass dsl算子样例catlass_dsl_matmul.py。
 
-    ```shell
+    ```python
     # catlass_dsl_matmul.py
     from catlass import tla
     from catlass.tla.runtime import from_dlpack
@@ -372,7 +372,7 @@ PyTorch框架算子调用场景下，进行性能数据采集的操作步骤与[
 
 展示如何使用msOpProf工具来上板调优一个MC2算子，并生成通算流水图。
 
-本示例以Ascend CL单算子调用为例，其他调用场景请参见《[Ascend C算子开发指南](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/latest/programug/Ascendcopdevg/docs/zh/guide/getting_started/ascend_c_overview_and_learning_path.md)》。
+本示例以AscendCL单算子调用为例，其他调用场景请参见《[Ascend C算子开发指南](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/latest/programug/Ascendcopdevg/docs/zh/guide/getting_started/ascend_c_overview_and_learning_path.md)》。
 
 **前期准备**
 
@@ -400,5 +400,5 @@ PyTorch框架算子调用场景下，进行性能数据采集的操作步骤与[
     msopprof --output=$HOME/projects/output $HOME/projects/MyApp blockdim 1   # --output为可选参数,$HOME/projects/MyApp为使用的app,blockdim 1为用户app的可选参数
     ```
 
-3. 界面生成以下目录结构和性能数据文件，具体请参见[msopprof模式用户指南](../user_guide/msopprof_user_guide.md)。
+3. 生成以下目录结构和性能数据文件，具体请参见[msopprof模式用户指南](../user_guide/msopprof_user_guide.md)。
 4. 将trace.json或visualize\_data.bin文件导入MindStudio Insight工具进行可视化呈现，具体请参见msopprof模式用户指南中的[计算内存热力图](../user_guide/msopprof_user_guide.md#计算内存热力图)、[通算流水图](../user_guide/msopprof_user_guide.md#通算流水图)和[Roofline瓶颈分析图](../user_guide/msopprof_user_guide.md#roofline瓶颈分析图)。

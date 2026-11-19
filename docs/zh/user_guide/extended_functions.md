@@ -2,7 +2,7 @@
 
 ## json配置文件说明
 
-编写算子的定义json文件，配置参数的具体说明请参考[**表 1**  json文件配置参数说明](#json文件配置参数说明)和[**表 2**  test_case参数字段说明](#test_case参数字段说明)。
+编写算子的定义json文件，配置参数的具体说明请参考[**表 1** json文件配置参数说明](#json文件配置参数说明)和[**表 2** test_case参数字段说明](#test_case参数字段说明)。
 
 例如，json配置文件命名为add_test.json，开发者可基于该模板修改测试数据及其他配置参数。
 
@@ -62,7 +62,7 @@
 }
 ```
 
-**表 1**  json文件配置参数说明<a id="json文件配置参数说明"></a>
+**表 1** json文件配置参数说明<a id="json文件配置参数说明"></a>
 
 |参数名称|参数描述|类型|是否必选|
 |---|---|---|---|
@@ -73,7 +73,7 @@
 |device_id|运行时使用AI处理器的ID，默认值：0。|int|否|
 |tiling_key|当前动态算子的tiling key。|uint64|否|
 |magic|算子类型。<br> - Cube算子：RT_DEV_BINARY_MAGIC_ELF_AICUBE <br> - Vector算子：RT_DEV_BINARY_MAGIC_ELF_AIVEC <br> - Mix融合算子：RT_DEV_BINARY_MAGIC_ELF（仅Atlas A3系列产品和Atlas A2系列产品支持配置）|string|是|
-|test_cases|测试数据，支持列表，每个元素包含一个用例。详细说明可参考[**表 2**  test_case参数字段说明](#test_case参数字段说明)。|list|是|
+|test_cases|测试数据，支持列表，每个元素包含一个用例。详细说明可参考[**表 2** test_case参数字段说明](#test_case参数字段说明)。|list|是|
 
 > [!NOTE]
 >
@@ -81,7 +81,7 @@
 > - 在使用magic参数时，Atlas推理系列产品需配置为RT_DEV_BINARY_MAGIC_ELF。
 > - 在使用test_cases参数时，算子上板或仿真调优时仅支持配置单个用例。
 
-**表 2**  test_case参数字段说明<a id="test_case参数字段说明"></a>
+**表 2** test_case参数字段说明<a id="test_case参数字段说明"></a>
 
 <table><thead align="left"><tr id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_row1958882429"><th class="cellrowborder" colspan="3" valign="top" id="mcps1.2.7.1.1"><p id="zh-cn_topic_0000002015877333_zh-cn_topic_0000001752612702_p1859148144216">参数</p>
 </th>
@@ -258,25 +258,25 @@
 
 ## mstx扩展功能
 
-**mstx接口简介**
+### mstx接口简介
 
-mstx接口是MindStudio提供的一个性能分析接口，它允许用户在应用程序中插入特定的标记，以便在性能分析时能够更精确地定位关键代码区域，具体接口明细请参见[**表 1**  C/C++ mstx接口列表](#C-mstx接口列表)和[**表 2**  Python mstx接口列表](#Python-mstx接口列表)。具体接口的使用情况请参考《[MindStudio Tools Extension Library接口文档](https://gitcode.com/Ascend/mstx/blob/master/docs/zh/api_reference/README.md)》。
+mstx接口是MindStudio提供的一个性能分析接口，它允许用户在应用程序中插入特定的标记，以便在性能分析时能够更精确地定位关键代码区域，具体接口明细请参见[**表 3** C/C++ mstx接口列表](#C-mstx接口列表)和[**表 4** Python mstx接口列表](#Python-mstx接口列表)。具体接口的使用情况请参考《[MindStudio Tools Extension Library接口文档](https://gitcode.com/Ascend/mstx/blob/master/docs/zh/api_reference/README.md)》。
 
-**表 1**  C/C++ mstx接口列表<a id="C-mstx接口列表"></a>
+**表 3** C/C++ mstx接口列表<a id="C-mstx接口列表"></a>
 
 |接口名称|接口说明|msOpProf工具支持情况|
 |---|---|---|
 |mstxRangeStartA|mstx range指定范围能力的起始位置标记。|支持|
 |mstxRangeEnd|mstx range指定范围能力的结束位置标记。|支持|
 
-**表 2**  Python mstx接口列表<a id="Python-mstx接口列表"></a>
+**表 4** Python mstx接口列表<a id="Python-mstx接口列表"></a>
 
 |接口名称|接口说明|msOpProf工具支持情况|
 |---|---|---|
 |mstx.range_start|mstx range指定范围能力的起始位置标记。|支持|
 |mstx.range_end|mstx range指定范围能力的结束位置标记。|支持|
 
-**mstx接口的使用**
+### mstx接口的使用
 
 - msOpProf工具允许用户通过mstx接口实现特定算子调优的功能，使用mstx接口可以自定义采集代码段范围内或指定关键函数的开始和结束时间点，并识别关键函数或计算API等信息，对性能问题快速定界。
 - 默认情况下mstx接口不使能。若用户在应用程序中调用mstx接口，工具会根据具体使用场景使能mstx打点功能。例如配置--mstx=true使能用户程序中的mstx API，并可以通过--mstx-include使能用户程序中特定的mstx API，具体使用可分别参见msopprof模式用户指南的“[命令参考](./msopprof_user_guide.md#命令参考)”和msopprof simulator模式用户指南的“[命令参考](./msopprof_simulator_user_guide.md#命令参考)”中的--mstx和--mstx-include参数。
@@ -288,7 +288,7 @@ mstx接口是MindStudio提供的一个性能分析接口，它允许用户在应
 
     - 在`${git_clone_path}/cann-learning-hub/tutorials/ascendc_operator_development/03_intermediate_vector_operator_development/src/custom_op_04/test/CMakeLists.txt`路径下新增库文件`libms_tools_ext.so`，地址为：`${INSTALL_DIR}/lib64/libms_tools_ext.so`。
 
-        ```shell
+        ```cmake
         # Header path
         include_directories(
              ...
@@ -302,9 +302,9 @@ mstx接口是MindStudio提供的一个性能分析接口，它允许用户在应
         )
         ```
 
-    - 在`${git_clone_path}/cann-learning-hub/tutorials/ascendc_operator_development/03_intermediate_vector_operator_development/src/custom_op_04/test/main.cpp`路径下，将用户程序编译链接dl库，对应的头文件ms_tools_ext.h地址：`${INSTALL_DIR}/include/mstx`。
+    - 在`${git_clone_path}/cann-learning-hub/tutorials/ascendc_operator_development/03_intermediate_vector_operator_development/src/custom_op_04/test/main.cpp`路径下，将用户程序编译链接dl库，对应的头文件`ms_tools_ext.h`地址：`${INSTALL_DIR}/include/mstx`。
 
-        ```shell
+        ```cmake
         ...
         #include "mstx/ms_tools_ext.h"
         ...
@@ -312,7 +312,7 @@ mstx接口是MindStudio提供的一个性能分析接口，它允许用户在应
 
 **调用示例**
 
-启动msOpProf工具后，执行```msopprof --mstx=true --mstx-include=range1 --launch-count=2 python cal.py```命令，将会采集range1范围内的算子，即sub和mul算子。
+启动msOpProf工具后，执行`msopprof --mstx=true --mstx-include=range1 --launch-count=2 python cal.py`命令，将会采集range1范围内的算子，即sub和mul算子。
 
 ```python
 import mstx

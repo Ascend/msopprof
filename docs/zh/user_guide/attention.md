@@ -1,9 +1,9 @@
-# MindStudio Ops Profiler 工具限制与注意事项
+# MindStudio Ops Profiler工具限制与注意事项
 
 ## 环境约束
 
 - msOpProf工具的使用依赖CANN包中的msopprof可执行文件，该文件中的接口使用和msprof op一致，该文件为CANN包自带，无需单独安装。
-- 如果要使用MindStudio Insight工具查看msOpProf工具输出的文件时，需要单独安装MindStudio Insight软件包，安装步骤可参见[MindStudio Insight安装指南](https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/install_guide/mindstudio_insight_install_guide.md)。
+- 如果要使用MindStudio Insight工具查看msOpProf工具输出的文件时，需要单独安装MindStudio Insight软件包，安装步骤可参见[MindStudio Insight安装指南](https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/install_guide/mindstudio_insight_install_overview.md)。
 
 ## 运行约束
 
@@ -14,7 +14,7 @@
 
 ## 文件权限
 
-- 若未指定--output参数，工具默认将结果写入当前工作目录下的默认文件名。为避免权限问题，需确保群组和其他组的用户不具备当前路径的上一级目录的写入权限。
+- 若未指定--output参数，工具默认将结果写入当前工作目录下的默认文件。为避免权限问题，需确保群组和其他组的用户不具备当前路径的上一级目录的写入权限。
 
 ## 安全注意事项
 
@@ -25,4 +25,4 @@
 
 ## 通用
 
-- 使用msopprof和msopprof simulator之前，用户需保证app功能正常。
+- 使用msOpProf和msOpProf Simulator之前，用户需保证app功能正常。

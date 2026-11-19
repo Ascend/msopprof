@@ -7,13 +7,13 @@ Cube及Vector类型指令的cycle占比数据ArithmeticUtilization.csv，建议�
 <!-- npu="A3,910b" id1 -->
 **Atlas A3系列产品及Atlas A2系列产品**
 
-**图 1**  ArithmeticUtilization.csv文件
+**图 1** ArithmeticUtilization.csv文件
 
 ![](../figures/ArithmeticUtilization-csv文件.png "ArithmeticUtilization-csv文件")
 
 关键字段说明如下。
 
-**表 1**  字段说明
+**表 1** 字段说明
 
 |字段名|字段解释|
 |---|---|
@@ -42,13 +42,13 @@ Cube及Vector类型指令的cycle占比数据ArithmeticUtilization.csv，建议�
 <!-- npu="310p" id2 -->
 **Atlas推理系列产品**
 
-**图 2**  ArithmeticUtilization.csv文件
+**图 2** ArithmeticUtilization.csv文件
 
 ![](../figures/ArithmeticUtilization-csv文件-4.png "ArithmeticUtilization-csv文件-4")
 
 关键字段说明如下。
 
-**表 2**  字段说明
+**表 2** 字段说明
 
 |字段名|字段解释|
 |---|---|
@@ -71,13 +71,13 @@ Cube及Vector类型指令的cycle占比数据ArithmeticUtilization.csv，建议�
 <!-- npu="950" id3 -->
 **Ascend 950PR&950DT系列产品**
 
-**图 3**  ArithmeticUtilization.csv文件
+**图 3** ArithmeticUtilization.csv文件
 
 ![](../figures/ArithmeticUtilization-csv文件-5.png "ArithmeticUtilization-csv文件-5")
 
 关键字段说明如下。
 
-**表 3**  字段说明
+**表 3** 字段说明
 
 |字段名|字段解释|
 |---|---|
@@ -101,18 +101,18 @@ Cube及Vector类型指令的cycle占比数据ArithmeticUtilization.csv，建议�
 
 ## L2Cache（L2 Cache命中率）
 
-L2 Cache命中率数据L2Cache.csv，影响MTE2（Memory Transfer Engine，数据搬入单元），建议合理规划数据搬运逻辑，增加命中率。详情介绍请参见下表中的字段说明。
+L2 Cache命中率数据L2Cache.csv，影响MTE2（Memory Transfer Engine，数据搬入单元），建议合理规划数据搬运逻辑，提高命中率。详情介绍请参见下表中的字段说明。
 
 <!-- npu="A3,910b" id4 -->
-**Atlas A3系列产品和Atlas A2系列产品**
+**Atlas A3系列产品及Atlas A2系列产品**
 
-**图 1**  L2Cache.csv文件
+**图 1** L2Cache.csv文件
 
 ![](../figures/L2Cache-csv文件.png "L2Cache-csv文件")
 
 关键字段说明如下。
 
-**表 1**  字段说明
+**表 1** 字段说明
 
 |字段名|字段解释|
 |---|---|
@@ -134,13 +134,13 @@ L2 Cache命中率数据L2Cache.csv，影响MTE2（Memory Transfer Engine，数�
 <!-- npu="310p" id5 -->
 **Atlas推理系列产品**
 
-**图 2**  L2Cache.csv文件
+**图 2** L2Cache.csv文件
 
 ![](../figures/L2Cache-csv文件-6.png "L2Cache-csv文件-6")
 
 关键字段说明如下。
 
-**表 2**  字段说明
+**表 2** 字段说明
 
 |字段名|字段解释|
 |---|---|
@@ -150,13 +150,13 @@ L2 Cache命中率数据L2Cache.csv，影响MTE2（Memory Transfer Engine，数�
 <!-- npu="950" id6 -->
 **Ascend 950PR&950DT系列产品**
 
-**图 3**  L2Cache.csv文件
+**图 3** L2Cache.csv文件
 
 ![](../figures/A5-L2Cache-csv.png "A5-L2Cache-csv")
 
 关键字段说明如下。
 
-**表 3**  字段说明
+**表 3** 字段说明
 
 | 字段名                 | 字段解释                                                               |
 |------------------------|------------------------------------------------------------------------|
@@ -191,13 +191,13 @@ UB/L1/L2/主存储器采集内存读写带宽速率数据Memory.csv。详情介�
 <!-- npu="A3,910b" id7 -->
 **Atlas A3系列产品及Atlas A2系列产品**
 
-**图 1**  Memory.csv文件
+**图 1** Memory.csv文件
 
 ![](../figures/Memory-csv文件.png "Memory-csv文件")
 
 关键字段说明如下。
 
-**表 1**  字段说明
+**表 1** 字段说明
 
 |字段名|字段解释|
 |---|---|
@@ -238,13 +238,13 @@ UB/L1/L2/主存储器采集内存读写带宽速率数据Memory.csv。详情介�
 <!-- npu="310p" id8 -->
 **Atlas推理系列产品**
 
-**图 2**  Memory.csv文件
+**图 2** Memory.csv文件
 
 ![](../figures/Memory-csv文件-7.png "Memory-csv文件-7")
 
 关键字段说明如下。
 
-**表 2**  字段说明
+**表 2** 字段说明
 
 |字段名|字段解释|
 |---|---|
@@ -267,13 +267,13 @@ UB/L1/L2/主存储器采集内存读写带宽速率数据Memory.csv。详情介�
 <!-- npu="950" id9 -->
 **Ascend 950PR&950DT系列产品**
 
-**图 3**  Memory.csv文件
+**图 3** Memory.csv文件
 
 ![](../figures/Memory-csv文件-8.png "Memory-csv文件-8")
 
 关键字段说明如下。
 
-**表 3**  字段说明
+**表 3** 字段说明
 
 |字段名|字段解释|
 |--|--|
@@ -318,13 +318,13 @@ L0A/L0B/L0C采集内存读写带宽速率数据MemoryL0.csv。详情介绍请参
 <!-- npu="950,A3,910b" id10 -->
 **Atlas A3系列产品和Atlas A2系列产品以及Ascend 950PR&950DT系列产品**
 
-**图 1**  MemoryL0.csv文件
+**图 1** MemoryL0.csv文件
 
 ![](../figures/MemoryL0-csv文件.png "MemoryL0-csv文件")
 
 关键字段说明如下。
 
-**表 1**  字段说明
+**表 1** 字段说明
 
 |字段名|字段解释|
 |--|--|
@@ -345,13 +345,13 @@ L0A/L0B/L0C采集内存读写带宽速率数据MemoryL0.csv。详情介绍请参
 <!-- npu="310p" id11 -->
 **Atlas推理系列产品**
 
-**图 2**  MemoryL0.csv文件
+**图 2** MemoryL0.csv文件
 
 ![](../figures/MemoryL0-csv文件-9.png "MemoryL0-csv文件-9")
 
 关键字段说明如下。
 
-**表 2**  字段说明
+**表 2** 字段说明
 
 |字段名|字段解释|
 |--|--|
@@ -369,20 +369,20 @@ L0A/L0B/L0C采集内存读写带宽速率数据MemoryL0.csv。详情介绍请参
 
 ## MemoryUB（UB读写带宽速率）
 
-mte/vector/scalar采集ub读写带宽速率数据MemoryUB.csv。详情介绍请参见下表中的字段说明。
+MTE/Vector/Scalar采集ub读写带宽速率数据MemoryUB.csv。详情介绍请参见下表中的字段说明。
 
 单位GB/s表示每秒传输1GB的数据量。
 
 <!-- npu="A3,910b" id12 -->
 **Atlas A3系列产品及Atlas A2系列产品**
 
-**图 1**  MemoryUB.csv文件
+**图 1** MemoryUB.csv文件
 
 ![](../figures/MemoryUB-csv文件.png "MemoryUB-csv文件")
 
 关键字段说明如下。
 
-**表 1**  字段说明
+**表 1** 字段说明
 
 |字段名|字段解释|
 |--|--|
@@ -401,13 +401,13 @@ mte/vector/scalar采集ub读写带宽速率数据MemoryUB.csv。详情介绍请�
 <!-- npu="310p" id13 -->
 **Atlas推理系列产品**
 
-**图 2**  MemoryUB.csv文件
+**图 2** MemoryUB.csv文件
 
 ![](../figures/MemoryUB-csv文件-10.png "MemoryUB-csv文件-10")
 
 关键字段说明如下。
 
-**表 2**  字段说明
+**表 2** 字段说明
 
 |字段名|字段解释|
 |--|--|
@@ -422,13 +422,13 @@ mte/vector/scalar采集ub读写带宽速率数据MemoryUB.csv。详情介绍请�
 <!-- npu="950" id14 -->
 **Ascend 950PR&950DT系列产品**
 
-**图 3**  MemoryUB.csv文件
+**图 3** MemoryUB.csv文件
 
 ![](../figures/MemoryUB-csv文件-11.png "MemoryUB-csv文件-11")
 
 关键字段说明如下。
 
-**表 3**  字段说明
+**表 3** 字段说明
 
 |字段名|字段解释|
 |--|--|
@@ -446,21 +446,21 @@ mte/vector/scalar采集ub读写带宽速率数据MemoryUB.csv。详情介绍请�
 
 ## OpBasicInfo（算子基础信息）
 
-算子基础信息数据OpBasicInfo.csv，包含算子名称，算子类型，Block Dim和耗时等信息。详情介绍请参见下表中的字段说明。
+算子基础信息数据OpBasicInfo.csv，包含算子名称、算子类型、Block Dim和耗时等信息。详情介绍请参见下表中的字段说明。
 
-**图 1**  OpBasicInfo.csv文件
+**图 1** OpBasicInfo.csv文件
 
 ![](../figures/OpBasicInfo-csv文件.png "OpBasicInfo-csv文件")
 
 关键字段说明如下。
 
-**表 1**  字段说明
+**表 1** 字段说明
 
 |字段名|字段解释|
 |--|--|
 |Op Name|算子名称。|
 |Op Type|算子类型。|
-|Task Duration(us)|Task耗时，包含调度到AI处理器的时间、AI处理器上的执行时间以及结束响应时间，单位us。|
+|Task Duration(us)|Task耗时，包含调度到AI处理器的时间、AI处理器上的执行时间以及响应结束时间，单位us。|
 |Block Dim|Task运行切分数量，对应Task运行时核数，开发者设置的算子执行逻辑核数。|
 |Mix Block Dim|部分算子在Cube Core和Vector Core上同时执行，主AI处理器的blockDim在“Block Dim”字段中描述，可理解为Cube Core的数量，而从AI处理器的blockDim在本字段中描述，则可理解为Vector Core的数量。显示为N/A表示为非Mix融合算子。此参数仅适用于Atlas A3系列产品和Atlas A2系列产品以及Ascend 950PR&950DT系列产品。|
 |Device ID|运行时使用AI处理器的ID。|
@@ -472,13 +472,13 @@ mte/vector/scalar采集ub读写带宽速率数据MemoryUB.csv。详情介绍请�
 
 当上板调优任务包含两条以上算子记录时，会生成算子基础信息汇总文件summary.csv。每行对应一条算子执行记录，按Device ID顺序展示。
 
-**图 1**  summary.csv
+**图 1** summary.csv
 
 ![](../figures/summary-csv文件.png "summary-csv文件")
 
 关键字段说明与[OpBasicInfo（算子基础信息）](#opbasicinfo算子基础信息)保持一致。
 
-# PipeUtilization（计算单元和搬运单元耗时占比）
+## PipeUtilization（计算单元和搬运单元耗时占比）
 
 采集计算单元和搬运单元耗时和占比数据PipeUtilization.csv。建议优化数据搬运逻辑，提高带宽利用率。详情介绍请参见下表中的字段说明。
 
@@ -488,15 +488,15 @@ mte/vector/scalar采集ub读写带宽速率数据MemoryUB.csv。详情介绍请�
 > - 表中的字段说明里每一个ratio的total cycle表示的是cube核或者vector核上的cycle数，其中ai*分为aic和aiv，aic指的是cube，aiv指的是vector。
 
 <!-- npu="A3,910b" id15 -->
-**Atlas A3系列产品和Atlas A2系列产品**
+**Atlas A3系列产品及Atlas A2系列产品**
 
-**图 1**  PipeUtilization.csv文件
+**图 1** PipeUtilization.csv文件
 
 ![](../figures/pipe4.png "pipe4文件")
 
 关键字段说明如下。
 
-**表 1**  字段说明
+**表 1** 字段说明
 
 |字段名|字段解释|
 |--|--|
@@ -520,7 +520,7 @@ mte/vector/scalar采集ub读写带宽速率数据MemoryUB.csv。详情介绍请�
 |ai*_scalar_mte3_stall_time(us)|代表scalar类型指令（标量类运算指令）因MTE3 IQ队列已满所造成的阻塞时间。|
 |aic_scalar_cube_stall_time(us)|代表scalar类型指令（标量类运算指令）因CUBE IQ队列已满所造成的阻塞时间。|
 |aiv_scalar_vector_stall_time(us)|代表scalar类型指令（标量类运算指令）因VECTOR IQ队列已满所造成的阻塞时间。|
-|ai*_scalar_wait_ib_time(us)|代表scalar类型指令（标量类运算指令）的IB等待Icache时间。|
+|ai*_scalar_wait_ib_time(us)|代表scalar类型指令（标量类运算指令）的IB等待ICache时间。|
 |aiv_scalar_stall_by_ub_time(us)|代表scalar类型指令（标量类运算指令）被UB阻塞的时间。|
 |ai*_scalar_ratio|代表scalar类型指令（标量类运算指令）的cycle数在total cycle数中的占用比。|
 |aic_fixpipe_time(us)|代表fixpipe类型指令（L0C->GM/L1搬运类指令）耗时。|
@@ -543,13 +543,13 @@ mte/vector/scalar采集ub读写带宽速率数据MemoryUB.csv。详情介绍请�
 <!-- npu="310p" id16 -->
 **Atlas推理系列产品**
 
-**图 2**  PipeUtilization.csv文件
+**图 2** PipeUtilization.csv文件
 
 ![](../figures/PipeUtilization-csv文件-12.png "PipeUtilization-csv文件-12")
 
 关键字段说明如下。
 
-**表 2**  字段说明
+**表 2** 字段说明
 
 |字段名|字段解释|
 |--|--|
@@ -573,17 +573,16 @@ mte/vector/scalar采集ub读写带宽速率数据MemoryUB.csv。详情介绍请�
 <!-- npu="950" id17 -->
 **Ascend 950PR&950DT系列产品**
 
-**图 3**  PipeUtilization.csv文件
+**图 3** PipeUtilization.csv文件
 
 ![](../figures/PipeUtilization-csv文件.png "PipeUtilization-csv文件")
 
 关键字段说明如下。
 
-**表 3**  字段说明
+**表 3** 字段说明
 
 |字段名|字段解释|
 |--|--|
-
 |block_id|Task运行切分数量，对应Task运行时配置的核数。|
 |sub_block_id|Task运行使用的每个block名称和序号。|
 |aic_time(us)|该Task被分配到每个AI Cube Core计算单元上后，每个AI Cube Core计算单元上的执行时间，单位us。|
@@ -624,13 +623,13 @@ bank group是指UB中的一组bank，每个bank group包含多个bank。bank con
 <!-- npu="A3,910b" id18 -->
 **Atlas A3系列产品及Atlas A2系列产品**
 
-**图 1**  ResourceConflictRatio.csv文件
+**图 1** ResourceConflictRatio.csv文件
 
 ![](../figures/ResourceConflictRatio-csv文件.png "ResourceConflictRatio-csv文件")
 
 关键字段说明如下。
 
-**表 1**  字段说明
+**表 1** 字段说明
 
 |字段名|字段解释|
 |--|--|
@@ -655,13 +654,13 @@ bank group是指UB中的一组bank，每个bank group包含多个bank。bank con
 <!-- npu="310p" id19 -->
 **Atlas推理系列产品**
 
-**图 2**  ResourceConflictRatio.csv文件
+**图 2** ResourceConflictRatio.csv文件
 
 ![](../figures/ResourceConflictRatio-csv文件-13.png "ResourceConflictRatio-csv文件-13")
 
 关键字段说明如下。
 
-**表 2**  字段说明
+**表 2** 字段说明
 
 |字段名|字段解释|
 |--|--|
@@ -686,13 +685,13 @@ bank group是指UB中的一组bank，每个bank group包含多个bank。bank con
 <!-- npu="950" id20 -->
 **Ascend 950PR&950DT系列产品**
 
-**图 3**  ResourceConflictRatio.csv文件
+**图 3** ResourceConflictRatio.csv文件
 
 ![](../figures/ResourceConflictRatio-csv文件-14.png "ResourceConflictRatio-csv文件-14")
 
 关键字段说明如下。
 
-**表 3**  字段说明
+**表 3** 字段说明
 
 |字段名|字段解释|
 |--|--|

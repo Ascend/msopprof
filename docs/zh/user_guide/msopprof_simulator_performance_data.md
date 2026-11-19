@@ -26,7 +26,7 @@ OPPROF_{timestamp}_XXX
 > **说明：**
 > 
 > - 目录按`core*.veccore*`（Vector Core）或`core*.cubecore*`（Cube Core）格式存放各计算单元的数据。
-> - 多算子场景下，csv 文件名会增加时序后缀，如`core*_code_exe_20240429111143146.csv`。
+> - 多算子场景下，csv文件名会增加时序后缀，如`core*_code_exe_20240429111143146.csv`。
 > - 单算子场景下，`visualize_data.bin`和汇总`trace.json`位于`simulator/`根目录。
 
 ---

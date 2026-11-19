@@ -13,9 +13,9 @@ MindStudio Ops Profiler（算子调优工具，msOpProf）用于采集和分析�
 
 **功能特性**
 
-通过MindStudio Insight展示指令流水图、算子代码热点图、内存通路吞吐率波形图以及性能数据文件等单算子调优能力，具体请参考[**表 1**  msopprof simulator模式功能特性](#simulator模式功能特性)。
+通过MindStudio Insight展示指令流水图、算子代码热点图、内存通路吞吐率波形图以及性能数据文件等单算子调优能力，具体请参考[**表 1** msopprof simulator模式功能特性](#simulator模式功能特性)。
 
-**表 1**  msopprof simulator模式功能特性<a id="simulator模式功能特性"></a>
+**表 1** msopprof simulator模式功能特性<a id="simulator模式功能特性"></a>
 
 |功能|链接|
 |---|---|
@@ -41,7 +41,7 @@ MindStudio Ops Profiler（算子调优工具，msOpProf）用于采集和分析�
 
 - 请参考[MindStudio Ops Profiler安装指南](../install_guide/msopprof_install_guide.md)，完成相关环境变量的配置。
 - 仿真器库的默认加载目录因平台而异：Ascend 950PR&950DT系列产品默认加载`${INSTALL_DIR}/tools/simulator/<soc-version>/camodel`目录下的仿真器库；Atlas A2系列产品和Atlas A3系列产品默认加载`${INSTALL_DIR}/tools/simulator/<soc-version>/lib`目录下的仿真器库。未指定--soc-version参数时，可通过`LD_LIBRARY_PATH`环境变量指定自定义的仿真器库目录，以更改仿真器来源。
-- 若要使用MindStudio Insight进行查看时，需要单独安装MindStudio Insight软件包，具体下载链接请参见[MindStudio Insight安装指南](https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/install_guide/mindstudio_insight_install_guide.md)。
+- 若要使用MindStudio Insight进行查看时，需要单独安装MindStudio Insight软件包，具体下载链接请参见[MindStudio Insight安装指南](https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/install_guide/mindstudio_insight_install_overview.md)。
 - 针对Atlas A2系列产品，若要使用[模板库](https://gitcode.com/cann/catlass/blob/master/scripts/build.sh)进行仿真，编译脚本需增加选项--simulator，以simulator模式编译算子。具体操作请参见[样例](https://gitcode.com/cann/catlass/blob/master/docs/zh/1_Practice/evaluation/performance_tools.md)。
 
     ```shell
@@ -56,7 +56,7 @@ MindStudio Ops Profiler（算子调优工具，msOpProf）用于采集和分析�
 ## 注意事项
 
 - msOpProf工具的使用依赖CANN包中的msopprof可执行文件，该文件中的接口使用和msopprof一致，该文件为CANN包自带，无需单独安装。
-- 通过键盘输入“CTRL+C”后，算子执行将会被停止，工具会根据当前已有信息生成性能数据文件。若不需要生成该文件，可再次键盘输入“CTRL+C”指令。
+- 通过键盘输入“CTRL+C”后，算子执行将会被停止，工具会根据当前已有信息生成性能数据文件。若不需要生成该文件，可再次在键盘输入“CTRL+C”指令。
 - 若未指定--output参数，需确保其他用户不具备当前路径的上一级目录的写入权限。
 - 使用msopprof simulator之前，用户需保证app功能正常。
 - 不支持在同一个Device侧同时拉起多个性能采集任务。
@@ -70,7 +70,7 @@ MindStudio Ops Profiler（算子调优工具，msOpProf）用于采集和分析�
 
 ## 命令参考
 
-登录运行环境，使用msopprof simulator开启算子仿真调优功能，并配合使用仿真可选参数和用户待调优程序（blockdim 1）进行调优，仿真可选参数请参考[**表 1**  msopprof simulator可选参数说明](#simulator可选参数说明)。
+登录运行环境，使用msopprof simulator开启算子仿真调优功能，并配合使用仿真可选参数和用户待调优程序（blockdim 1）进行调优，仿真可选参数请参考[**表 1** msopprof simulator可选参数说明](#simulator可选参数说明)。
 
 > [!NOTE]
 > 参数 `--soc-version` 的值可通过执行以下命令获取：`python3 -c "import acl; print(acl.get_soc_name())"`。
@@ -79,7 +79,7 @@ MindStudio Ops Profiler（算子调优工具，msOpProf）用于采集和分析�
 msopprof simulator --soc-version=Ascendxxxyy --output=/home/projects/output /home/projects/MyApp/out/main blockdim 1   # --output为可选参数,/home/projects/MyApp/out/main为使用的app,blockdim 1为用户app的可选参数,xxxyy为用户实际使用的具体芯片类型
 ```
 
-**表 1**  msopprof simulator可选参数说明<a id="simulator可选参数说明"></a>
+**表 1** msopprof simulator可选参数说明<a id="simulator可选参数说明"></a>
 
 <table><thead align="left"><tr id="zh-cn_topic_0000002016036877_row81111934143314"><th class="cellrowborder" valign="top" width="25.232523252325233%" id="mcps1.2.4.1.1"><p id="zh-cn_topic_0000002016036877_p0110173411337">可选参数</p>
 </th>
@@ -102,7 +102,7 @@ msopprof simulator --soc-version=Ascendxxxyy --output=/home/projects/output /hom
 </td>
 <td class="cellrowborder" valign="top" headers="mcps1.2.4.1.2 "><p id="zh-cn_topic_0000002016036877_p011233417332"><span>配置为算子编译得到的二进制文件</span><strong id="zh-cn_topic_0000002016036877_b695415337500">*.o</strong><span>，可配置为绝对路径或者相对路径</span>。<span>具体可参考</span><a href="./extended_functions.md#json配置文件说明">json配置文件说明</a><span>。</span></p>
 <p id="zh-cn_topic_0000002016036877_p1611218349332">进行算子调优之前，可通过以下两种方式获取算子二进制<strong id="zh-cn_topic_0000002016036877_b1845814318519"><span>*.</span>o</strong>文件。</p>
-<ul id="zh-cn_topic_0000002016036877_ul81131345339"><li>参考<span id="zh-cn_topic_0000002016036877_ph20112143419334">《Ascend C算子开发指南》</span>中的“基于样例工程完成核函数（Kernel）直调 &gt; <a href="https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/920beta2/programug/Ascendcopdevg/docs/zh/guide/programming_guide/appendix/kernel_direct_call_from_sample.md" target="_blank" rel="noopener noreferrer">Kernel直调</a> ”章节中的“修改并执行一键式编译运行脚本”，获取NPU侧可执行文件，并需要用户自行从可执行文件中提取<span>*</span>.o文件。</li><li>参考<a href="https://gitcode.com/Ascend/msopgen/blob/master/docs/zh/user_guide/msopgen_user_guide.md#153-%E7%AE%97%E5%AD%90%E7%BC%96%E8%AF%91%E9%83%A8%E7%BD%B2" target="_blank" rel="noopener noreferrer">算子编译部署</a>，算子编译时会自动生成<strong id="zh-cn_topic_0000002016036877_b17819952105016">*.o</strong>文件。</li></ul>
+<ul id="zh-cn_topic_0000002016036877_ul81131345339"><li>参考<span id="zh-cn_topic_0000002016036877_ph20112143419334">《Ascend C算子开发指南》</span>中的“基于样例工程完成核函数（Kernel）直调 &gt; <a href="https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/920beta2/programug/Ascendcopdevg/docs/zh/guide/programming_guide/appendix/kernel_direct_call_from_sample.md" target="_blank" rel="noopener noreferrer">Kernel直调</a>”章节中的“修改并执行一键式编译运行脚本”，获取NPU侧可执行文件，并需要用户自行从可执行文件中提取<span>*</span>.o文件。</li><li>参考<a href="https://gitcode.com/Ascend/msopgen/blob/master/docs/zh/user_guide/msopgen_user_guide.md#153-%E7%AE%97%E5%AD%90%E7%BC%96%E8%AF%91%E9%83%A8%E7%BD%B2" target="_blank" rel="noopener noreferrer">算子编译部署</a>，算子编译时会自动生成<strong id="zh-cn_topic_0000002016036877_b17819952105016">*.o</strong>文件。</li></ul>
 <p id="p811246204">需确保群组和其他组的用户不具备--config指定的json文件及上一级目录的写入权限。同时，需要确保json文件的上一级目录属主为当前用户。</p>
 <div class="p" id="p20157517201">A2/A3需要使用LD_LIBRARY_PATH环境变量设置仿真器类型，A5则只能使用--soc-version参数指定具体芯片类型。<pre class="screen" id="screen011316904">export LD_LIBRARY_PATH=${INSTALL_DIR}/tools/simulator/Ascendxxxyy/lib:$LD_LIBRARY_PATH // xxxyy为用户实际使用的具体芯片类型</pre>
 </div>
@@ -139,7 +139,7 @@ msopprof simulator --soc-version=Ascendxxxyy --output=/home/projects/output /hom
 </div>
 <ul id="zh-cn_topic_0000002016036877_ul21140347333"><li>PMSampling：使能内存通路吞吐率波形图，并进行可视化呈现，例如：<strong id="zh-cn_topic_0000002016036877_b1368923464413">--aic-metrics=PMSampling</strong>。具体呈现内容请参见<a href="#内存通路吞吐率波形图">内存通路吞吐率波形图</a>。<ul id="zh-cn_topic_0000002016036877_ul536462164812"><li>--core-id设置对PMSampling参数不生效，PMSampling参数解析全部核。</li><li>此功能默认不开启。</li><li>该参数当前仅支持Atlas A3系列产品和Atlas A2系列产品，Ascend 950PR&950DT系列产品不支持。</li></ul>
 </li></ul>
-<ul id="zh-cn_topic_0000002016036877_ul17160143219117"><li>Overhead：控制scalar头开销是否使能。<p id="p1253172210220">当配置--aic-metrics=Overhead后流水图有相应scalar的开销时间，分为cache_time和ccu_time。具体呈现内容请参见<a href="#scalar耗时展示">scalar耗时展示</a>。<ul id="zh-cn_topic_0000002016036877_ul536462164813"><li>该参数当前仅支持Atlas A3系列产品和Atlas A2系列产品，Ascend 950PR&950DT系列产品不支持。</li><li>若需在MindStudio Insight中正常展示scalar头开销数据，对应MindStudio Insight应为MindStudio-Insight_26.1.0及以上版本。</li></ul></p>
+<ul id="zh-cn_topic_0000002016036877_ul17160143219117"><li>Overhead：控制Scalar头开销是否使能。<p id="p1253172210220">当配置--aic-metrics=Overhead后流水图有相应scalar的开销时间，分为cache_time和ccu_time。具体呈现内容请参见<a href="#scalar耗时展示">scalar耗时展示</a>。<ul id="zh-cn_topic_0000002016036877_ul536462164813"><li>该参数当前仅支持Atlas A3系列产品和Atlas A2系列产品，Ascend 950PR&950DT系列产品不支持。</li><li>若需在MindStudio Insight中正常展示Scalar头开销数据，对应MindStudio Insight应为MindStudio-Insight_26.1.0及以上版本。</li></ul></p>
 </li></ul>
 </td>
 <td class="cellrowborder" valign="top" width="11.741174117411742%" headers="mcps1.2.4.1.3 "><p id="zh-cn_topic_0000002016036877_p4115163416335">否</p>
@@ -157,7 +157,7 @@ msopprof simulator --soc-version=Ascendxxxyy --output=/home/projects/output /hom
 </tr>
 <tr id="zh-cn_topic_0000002016036877_row1776724510349"><td class="cellrowborder" valign="top" width="25.232523252325233%" headers="mcps1.2.4.1.1 "><p id="zh-cn_topic_0000002016036877_p18767164517348">--timeout</p>
 </td>
-<td class="cellrowborder" valign="top" width="63.02630263026302%" headers="mcps1.2.4.1.2 "><p id="zh-cn_topic_0000002016036877_p146394291703">该参数适用于数据量大且计算重复的算子，完整运行该类算子将会耗时很长，部分流水图即可获取必要信息。可通过设置--timeout参数缩短算子运行时长并获取必要流水信息<span>。具体实现如下：</span></p>
+<td class="cellrowborder" valign="top" width="63.02630263026302%" headers="mcps1.2.4.1.2 "><p id="zh-cn_topic_0000002016036877_p146394291703">该参数适用于数据量大且计算重复的算子，完整运行该类算子将会耗时很长，部分流水图即可获取必要信息，可通过设置--timeout参数缩短算子运行时长并获取必要流水信息<span>。具体实现如下：</span></p>
 <ul id="zh-cn_topic_0000002016036877_ul12129256185219"><li>当仿真运行时间达到--timeout值时，<span>msOpProf</span>工具将会终止仿真进程并进入解析过程，只对已仿真的部分数据进行分析。同时，<span>msOpProf</span>工具将会展示以下打印信息：<pre class="code_wrap" codetype="ColdFusion" id="zh-cn_topic_0000002016036877_screen104875352479">[INFO]  The timeout has reached and the application will be forcibly killed.</pre>
 </li><li>若进程正常结束时未达到timeout值，正常结束仿真程序并进入解析过程。</li></ul>
 <p id="zh-cn_topic_0000002016036877_p05905923811">参数取值范围为1~2880之间的整数，单位为分钟。具体示例如下：</p>
@@ -169,7 +169,7 @@ msopprof simulator --soc-version=Ascendxxxyy --output=/home/projects/output /hom
 <tr id="zh-cn_topic_0000002016036877_row17115153411335"><td class="cellrowborder" valign="top" width="25.232523252325233%" headers="mcps1.2.4.1.1 "><p id="zh-cn_topic_0000002016036877_p151151034143316">--mstx</p>
 </td>
 <td class="cellrowborder" valign="top" width="63.02630263026302%" headers="mcps1.2.4.1.2 "><p id="zh-cn_topic_0000002016036877_p197151054181117">该参数决定算子调优工具是否使能用户代码程序中使用的mstx API。</p>
-<p id="zh-cn_topic_0000002016036877_p161151134173317">默认为off，表示关闭对mstx API的使能。</p>
+<p id="zh-cn_topic_0000002016036877_p161151134173317">默认为false，表示关闭对mstx API的使能。</p>
 <p id="zh-cn_topic_0000002016036877_p18115834193315">当配置--mstx=true，算子调优工具将会使能用户代码程序中使用的mstx API。</p>
 <p id="zh-cn_topic_0000002016036877_p151157346336">具体举例如下：</p>
 <pre class="code_wrap" id="zh-cn_topic_0000002016036877_screen811523463318">msopprof simulator --soc-version=Ascendxxxyy --mstx=true ./add_custom <span>// </span>xxxyy为用户实际使用的具体芯片类型</pre>
@@ -180,7 +180,7 @@ msopprof simulator --soc-version=Ascendxxxyy --output=/home/projects/output /hom
 </tr>
 <tr id="zh-cn_topic_0000002016036877_row51167346334"><td class="cellrowborder" valign="top" width="25.232523252325233%" headers="mcps1.2.4.1.1 "><p id="zh-cn_topic_0000002016036877_p191169342330">--mstx-include</p>
 </td>
-<td class="cellrowborder" valign="top" width="63.02630263026302%" headers="mcps1.2.4.1.2 "><p id="zh-cn_topic_0000002016036877_p20116734123316">该参数支持在<span>msOpProf</span>工具使能用户指定mstx API。</p>
+<td class="cellrowborder" valign="top" width="63.02630263026302%" headers="mcps1.2.4.1.2 "><p id="zh-cn_topic_0000002016036877_p20116734123316">该参数支持在<span>msOpProf</span>工具中使能用户指定mstx API。</p>
 <p id="zh-cn_topic_0000002016036877_p17496184815597">若不配置，则默认使能所有用户代码中使用的mstx API。</p>
 <p id="zh-cn_topic_0000002016036877_p21163341332">若配置，--mstx-include仅使能用户指定的mstx API。--mstx-include的输入为用户调用mstx函数时传入的message字符串，多个字符串需使用"|"拼接。</p>
 <p id="zh-cn_topic_0000002016036877_p15116334153320">具体举例如下：</p>
@@ -238,9 +238,9 @@ msopprof simulator --soc-version=Ascendxxxyy --output=/home/projects/output /hom
 
 ## 工具使用
 
-msOpProf工具协助用户定位算子内存、算子代码以及算子指令的异常，实现全方位的算子调优。使用方式的详细说明请参考[**表 1**  msopprof simulator功能说明表](#simulator功能说明表)。
+msOpProf工具协助用户定位算子内存、算子代码以及算子指令的异常，实现全方位的算子调优。使用方式的详细说明请参考[**表 1** msopprof simulator功能说明表](#simulator功能说明表)。
 
-**表 1**  msopprof simulator功能说明表<a id="simulator功能说明表"></a>
+**表 1** msopprof simulator功能说明表<a id="simulator功能说明表"></a>
 
 |适用场景|使用方式|展示的图形|
 |---|---|---|
@@ -274,11 +274,11 @@ msOpProf工具协助用户定位算子内存、算子代码以及算子指令的
         add_ops_compile_options(ALL OPTIONS -g)
         ```
 
-    - 若参考完整样例，以[样例](https://gitcode.com/cann/asc-devkit/tree/9.0.0/examples/01_simd_cpp_api/00_introduction/01_add/basic_api_tque_add)为例，需在样例工程目录下的"CMakeLists.txt"文件中，在`target_compile_options`的ASC语言选项中新增`-g -O2`。
+    - 若参考完整样例，以[asic_api_tque_add样例](https://gitcode.com/cann/asc-devkit/tree/9.0.0/examples/01_simd_cpp_api/00_introduction/01_add/basic_api_tque_add)为例，需在样例工程目录下的"CMakeLists.txt"文件中，在`target_compile_options`的ASC语言选项中新增`-g -O2`。
 
         > [!NOTE]
         >
-        > - 根据实际部署的 NPU 硬件架构选择对应的 `npu-arch` 参数，例如Atlas 950PR&950DT系列产品需改为`dav-3510`。本样例参数值`dav-2201`适用于昇腾A2/A3系列产品。
+        > - 根据实际部署的NPU硬件架构选择对应的 `npu-arch` 参数，例如Ascend 950PR&950DT系列产品需改为`dav-3510`。本样例参数值`dav-2201`适用于Atlas A2/A3系列产品。
         > - 下载代码样例时，需执行以下命令指定分支版本。
         >
         >    ```shell
@@ -321,9 +321,9 @@ msOpProf工具协助用户定位算子内存、算子代码以及算子指令的
 > - 当前msOpProf不支持-O0编译选项。
 > - 仿真环境不支持采集MC2和HCCL类型的算子。
 > - 用户设置的仿真核数不能超过物理核数。
-> - 若用户仅需关注部分算子性能时，可在Atlas A3系列产品、Atlas推理系列产品和Atlas A2系列产品的单核内调用《Ascend C算子开发接口》中的“调测接口”章节的[TRACE_START](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/latest/API/ascendcopapi/docs/api/Utils-API/%E8%B0%83%E6%B5%8B%E6%8E%A5%E5%8F%A3/TRACE_START.md)和[TRACE_STOP](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/latest/API/ascendcopapi/docs/api/Utils-API/%E8%B0%83%E6%B5%8B%E6%8E%A5%E5%8F%A3/TRACE_STOP.md)接口。并在编译配置文件中添加-DASCENDC\_TRACE\_ON，具体操作请参见[添加-DASCENDC\_TRACE\_ON的方法](#添加-DASCENDC_TRACE_ON)。然后，才能生成该范围内的流水图信息，具体流水图显示内容可参考[指令流水图](#指令流水图)。
+> - 若用户仅需关注部分算子性能时，可在Atlas A3系列产品、Atlas推理系列产品和Atlas A2系列产品的单核内调用《Ascend C算子开发接口》中的“调测接口”章节的[TRACE_START](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/latest/API/ascendcopapi/docs/api/Utils-API/%E8%B0%83%E6%B5%8B%E6%8E%A5%E5%8F%A3/TRACE_START.md)和[TRACE_STOP](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/latest/API/ascendcopapi/docs/api/Utils-API/%E8%B0%83%E6%B5%8B%E6%8E%A5%E5%8F%A3/TRACE_STOP.md)接口，并在编译配置文件中添加-DASCENDC\_TRACE\_ON，具体操作请参见[添加-DASCENDC\_TRACE\_ON的方法](#添加-DASCENDC_TRACE_ON)。然后，才能生成该范围内的流水图信息，具体流水图显示内容可参考[指令流水图](#指令流水图)。
 > - 用户需在编译配置文件中添加-DASCENDC\_TRACE\_ON，具体修改方法可参考以下样例工程。<a id="添加-DASCENDC_TRACE_ON"></a>
->    [basic_api_tque_add算子工程](https://gitcode.com/cann/asc-devkit/tree/9.0.0/examples/01_simd_cpp_api/00_introduction/01_add/basic_api_tque_add)，需在`${git_clone_path}/asc-devkit/examples/01_simd_cpp_api/00_introduction/01_add/basic_api_tque_add/CMakeLists.txt`文件中，在`target_compile_options`的ASC语言选项中新增`-DASCENDC_TRACE_ON`，并根据实际部署的 NPU 硬件架构选择对应的 `npu-arch` 参数，例如Atlas 950PR&950DT系列产品需改为`dav-3510`。本样例参数值`dav-2201`适用于昇腾A2/A3系列产品。
+>    [basic_api_tque_add算子工程](https://gitcode.com/cann/asc-devkit/tree/9.0.0/examples/01_simd_cpp_api/00_introduction/01_add/basic_api_tque_add)，需在`${git_clone_path}/asc-devkit/examples/01_simd_cpp_api/00_introduction/01_add/basic_api_tque_add/CMakeLists.txt`文件中，在`target_compile_options`的ASC语言选项中新增`-DASCENDC_TRACE_ON`，并根据实际部署的NPU硬件架构选择对应的 `npu-arch` 参数，例如Ascend 950PR&950DT系列产品需改为`dav-3510`。本样例参数值`dav-2201`适用于Atlas A2/A3系列产品。
 >
 >    ```shell
 >   target_compile_options(add PRIVATE
@@ -345,7 +345,7 @@ msOpProf工具协助用户定位算子内存、算子代码以及算子指令的
 
         - 多算子场景
 
-            若test中有Add，MatMul，Sub算子，可配合--launch-count和--kernel-name使用，可以指定采集Add和Sub算子。
+            若test中有Add、MatMul、Sub算子，可配合--launch-count和--kernel-name使用，可以指定采集Add和Sub算子。
 
             ```shell
             msopprof simulator --soc-version=Ascendxxxyy --launch-count=10 --kernel-name="Add|Sub" --output=./output_data ./test    # xxxyy为用户实际使用的具体芯片类型，./test需要放置在命令末尾
@@ -406,7 +406,7 @@ msOpProf工具协助用户定位算子内存、算子代码以及算子指令的
         │ ├── dump
         ```
 
-    **表 2**  msopprof simulator文件介绍
+    **表 2** msopprof simulator文件介绍
 
     <table><thead align="left"><tr id="zh-cn_topic_0000002144027017_row8219526113"><th class="cellrowborder" colspan="2" valign="top" id="mcps1.2.4.1.1"><p id="zh-cn_topic_0000002144027017_p15221952121112">名称</p>
     </th>
@@ -466,9 +466,9 @@ trace.json文件可分别通过Chrome浏览器和MindStudio Insight展示，visu
 
 - Chrome浏览器
 
-    在Chrome浏览器中输入“chrome://tracing”地址，并将通过msopprof simulator运行模式生成指令流水图文件（trace.json）拖到空白处打开，键盘上输入快捷键（W：放大，S：缩小，A：左移，D：右移）可进行查看。关键字段说明如[**表 1**  关键字段说明](#关键字段说明)。
+    在Chrome浏览器中输入“chrome://tracing”地址，并将通过msopprof simulator运行模式生成指令流水图文件（trace.json）拖到空白处打开，在键盘上输入快捷键（W：放大，S：缩小，A：左移，D：右移）可进行查看。关键字段说明如[**表 1** 关键字段说明](#关键字段说明)。
 
-    **表 1**  关键字段说明<a id="关键字段说明"></a>
+    **表 1** 关键字段说明<a id="关键字段说明"></a>
 
     |字段名|字段含义|
     |---|---|
@@ -492,24 +492,24 @@ trace.json文件可分别通过Chrome浏览器和MindStudio Insight展示，visu
 
 - MindStudio Insight
 
-    将生成的trace.json文件或visualize\_data.bin文件可导入MindStudio Insight进行可视化呈现。
+    将生成的trace.json文件或visualize\_data.bin文件导入MindStudio Insight进行可视化呈现。
 
     MindStudio Insight工具以时序图方式为用户提供指令在昇腾AI处理器上的运行情况，用户可通过分析时序图中的指令详情、指令执行时间、指令关联代码的调用栈及指令/流水间同步连线等信息，识别微观指令的时序优化点。通过观察Timeline的流水排布等信息判断算子运行过程中可能存在的性能问题，如指令间未能有效并行等。
 
-    **图 1**  时间线界面
+    **图 1** 时间线界面
     ![](../figures/时间线界面.png "时间线界面")
 
     - 展示各PIPE中各指令的运行时长以及不同PIPE间的指令依赖关系，帮助用户分析流水排布间可能存在的性能优化点。
     - 支持将流水指令信息与代码关联，指导用户如何基于代码去优化流水排布。
     - 支持在选中详情展示与GM有关指令的数据搬运量。
 
-    **图 2**  scalar耗时展示<a id="scalar耗时展示"></a>
+    **图 2** scalar耗时展示<a id="scalar耗时展示"></a>
     ![](../figures/仿真流水图展示scalar耗时.png "scalar耗时展示")
 
-    - 通过设置`--aic-metrics=overhead`来控制scalar头开销功能是否使能。
-    - scalar头开销的时间可以划分为cache和ccu两部分开销。cache_time表示指令从icache发出到进入IQ的时间，ccu_time表示指令从进入IQ到pop出去的时间。
+    - 通过设置`--aic-metrics=Overhead`来控制Scalar头开销功能是否使能。
+    - Scalar头开销的时间可以划分为cache和ccu两部分开销。cache_time表示指令从ICache发出到进入IQ的时间，ccu_time表示指令从进入IQ到pop出去的时间。
 
-    **图 3**  同步指令连线展示<a id="同步指令连线展示"></a>
+    **图 3** 同步指令连线展示<a id="同步指令连线展示"></a>
     ![](../figures/同步指令连线展示.png "同步指令连线展示")
 
     在MindStudio Insight中，用户可选中仿真流水图中的目标PIPE通路，以查看同步指令的等待信息。其中各产品展示信息如下：
@@ -532,9 +532,9 @@ trace.json文件可分别通过Chrome浏览器和MindStudio Insight展示，visu
 
 ### 使用说明
 
-算子代码热点图界面如下。
+算子代码热点图界面如下：
 
-**图 1**  msopprof simulator源码界面
+**图 2** msopprof simulator源码界面
 ![](../figures/msopprof-simulator源码界面.png "msopprof-simulator源码界面")
 
 - 在界面顶部，可切换计算单元和核函数文件。
@@ -547,9 +547,9 @@ trace.json文件可分别通过Chrome浏览器和MindStudio Insight展示，visu
 > - 不支持使用TRACE\_START和TRACE\_STOP接口查看部分算子的寄存器使用情况。
 > - 查看与GM有关的数据搬运量（Process Bytes）时，不涉及GM单元的情况都显示为NA。
 
-- msopprof simulator具体特性支持情况请参见[**表 1**  msopprof simulator热点图的功能介绍](#simulator热点图的功能介绍)。
+- msopprof simulator具体特性支持情况请参见[**表 1** msopprof simulator热点图的功能介绍](#simulator热点图的功能介绍)。
 
-    **表 1**  msopprof simulator热点图的功能介绍<a id="simulator热点图的功能介绍"></a>
+    **表 1** msopprof simulator热点图的功能介绍<a id="simulator热点图的功能介绍"></a>
 
     |列名|Atlas A2系列产品|Atlas A3系列产品|Atlas推理系列产品|Ascend 950PR&950DT系列产品|说明|
     |------|-------|-------|-------|--------|--------|
@@ -567,7 +567,7 @@ trace.json文件可分别通过Chrome浏览器和MindStudio Insight展示，visu
 
 ### 功能说明
 
-通过msopprof simulator运行模式生成的visualize\_data.bin文件可通过MindStudio Insight进行可视化呈现。界面支持查看算子MTE日志通路的内存带宽在时序上的统计分析能力，可协助开发者识别算子各阶段的带宽使用状况，并分析带宽优化的可行性。
+通过msopprof simulator运行模式生成的visualize\_data.bin文件可通过MindStudio Insight进行可视化呈现。界面支持查看算子MTE各通路的内存带宽在时序上的统计分析能力，可协助开发者识别算子各阶段的带宽使用状况，并分析带宽优化的可行性。
 
 **注意事项**
 
@@ -577,9 +577,9 @@ trace.json文件可分别通过Chrome浏览器和MindStudio Insight展示，visu
 
 ### 使用说明
 
-内存通路吞吐率波形图如下。
+内存通路吞吐率波形图如下：
 
-**图 1**  内存通路吞吐率波形图
+**图 3** 内存通路吞吐率波形图
 
 ![](../figures/1-3.png)
 

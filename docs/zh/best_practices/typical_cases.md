@@ -17,9 +17,9 @@
 
 3. 对于MTE2搬运效率的提升有多种方式，此处以开启Ascend C算子的double buffer机制为例。
 
-    算子核函数中，可通过将TPipe中InitBuffer的第二个参数（BUFFER\_NUM）值从1修改为2，开启double buffer，InitBuffer的使用可参考《Ascend C算子开发接口》中的“基础API \> 内存管理与同步控制 \> TPipe \>  [InitBuffer](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/latest/API/ascendcopapi/docs/zh/api/SIMD-API/basic_api/resource_management/TPipe/InitBuffer.md)”章节。
+    算子核函数中，可通过将TPipe中InitBuffer的第二个参数（BUFFER\_NUM）值从1修改为2，开启double buffer，InitBuffer的使用可参考《Ascend C算子开发接口》中的“基础API \> 内存管理与同步控制 \> TPipe \> [InitBuffer](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/latest/API/ascendcopapi/docs/zh/api/SIMD-API/basic_api/resource_management/TPipe/InitBuffer.md)”章节。
 
-    ```shell
+    ```CPP
     constexpr int32_t BUFFER_NUM = 2;        # tensor num for each queue
     ...
     pipe.InitBuffer(inQueueY, BUFFER_NUM, 1024 * sizeof(half));
@@ -34,7 +34,7 @@
 
 ## C API SIMD VF 流水诊断案例
 
-[sample_simd_vf_double_buffer](../../../example/sample_simd_vf_double_buffer/README.md) 提供 `dav-3510` 上数值正确、存在性能瑕疵的 SIMD VF 流水诊断案例，包含 `[16,8192]` half、单核算子、输入/golden 生成、精度校验和数据契约测试。工程只提供待诊断实现，可作为 msagent 空泡分析 Skill 的输入，从本次仿真指令、同步与源码形成优化建议并通过最小实验验证。
+[sample_simd_vf_double_buffer](../../../example/sample_simd_vf_double_buffer/README.md) 提供 `dav-3510` 上数值正确、存在性能瑕疵的SIMD VF流水诊断案例，包含 `[16,8192]` half、单核算子、输入/golden生成、精度校验和数据契约测试。工程只提供待诊断实现，可作为msAgent空泡分析Skill的输入，从本次仿真指令、同步与源码形成优化建议并通过最小实验验证。
 
 该工程使用 `__simd_vf__`，与 `example/sample_double_buffer` 的 TPipe/TQue VectorAdd 案例独立，不代表 SIMT 或全产品验证；构建、数据和分析步骤见案例 README。
 

@@ -11,9 +11,9 @@
 
 ## 支持的产品范围
 
-- 昇腾950PR&950DT系列产品
-- 昇腾A3系列产品
-- 昇腾A2系列产品
+- Ascend 950PR&950DT系列产品
+- Atlas A3系列产品
+- Atlas A2系列产品
 
 ## 目录结构
 
@@ -68,7 +68,7 @@ cd ..
 
 | 选项 | 可选值 | 说明 |
 |------|--------|------|
-| `CMAKE_ASC_ARCHITECTURES` | `dav-2201`、`dav-3510` | NPU 架构：dav-2201 对应昇腾A2系列产品/昇腾A3系列产品，dav-3510 对应昇腾950PR&950DT系列产品 |
+| `CMAKE_ASC_ARCHITECTURES` | `dav-2201`、`dav-3510` | NPU 架构：dav-2201 对应Atlas A2系列产品/Atlas A3系列产品，dav-3510 对应Ascend 950PR&950DT系列产品 |
 
 > **注意**：切换架构前需清理 cmake 缓存，可在 build 目录下执行 `rm CMakeCache.txt` 后重新 cmake。
 
