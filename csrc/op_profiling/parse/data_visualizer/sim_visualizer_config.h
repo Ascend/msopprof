@@ -24,6 +24,7 @@
 #include "profiling/simulator/data_parse/sim_defs.h"
 #include "parse/data_table/instr_detail_table.h"
 #include "parse/data_table/cache_detail_table.h"
+#include "instr_encoding/instr_disassembler.h"
 
 namespace Profiling {
 namespace Parse {
@@ -39,8 +40,10 @@ constexpr int DEFAULT_MHZ = 1850;
 class SimVisualizerConfig {
 public:
     explicit SimVisualizerConfig(const std::string &outputPath, Profiling::Pc2CodeMap& pc2code,
-        uint32_t threads, ChipProductType chipType = ChipProductType::ASCEND910B_SERIES)
-        : outputPath_(outputPath), pc2code_(pc2code), threads_(threads), chipType_(chipType) {}
+        uint32_t threads, ChipProductType chipType = ChipProductType::ASCEND910B_SERIES,
+        const std::string &kernelPath = "")
+        : outputPath_(outputPath), pc2code_(pc2code), threads_(threads), chipType_(chipType),
+          kernelPath_(kernelPath) {}
 
     ChipProductType GetChipType() const
     {
@@ -66,11 +69,34 @@ public:
     {
         return threads_;
     }
+
+    const std::string &GetKernelPath() const
+    {
+        return kernelPath_;
+    }
+
+    void SetKernelPath(const std::string &kernelPath)
+    {
+        kernelPath_ = kernelPath;
+    }
+
+    const std::shared_ptr<Encode::InstrDisassembler> &GetDisassembler() const
+    {
+        return disassembler_;
+    }
+
+    void SetDisassembler(const std::shared_ptr<Encode::InstrDisassembler> &disassembler)
+    {
+        disassembler_ = disassembler;
+    }
+
 private:
     std::string outputPath_;
     Profiling::Pc2CodeMap& pc2code_;
     uint32_t threads_;
     ChipProductType chipType_;
+    std::string kernelPath_;
+    std::shared_ptr<Encode::InstrDisassembler> disassembler_;
 };
 
 }

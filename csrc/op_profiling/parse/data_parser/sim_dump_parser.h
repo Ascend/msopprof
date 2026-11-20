@@ -46,7 +46,8 @@ void CalCulate(std::map<std::string, std::shared_ptr<Profiling::Parse::DataCente
                const std::shared_ptr<ParsePcCode> &pc2code, const Common::ProfMetricsAbilityConfig &config, bool isNeedGetPc2Code, ChipProductType chipType);
 
 void Visualizedata(const std::string &outputPath, ChipProductType chipType, Pc2CodeMap &pc2code,
-    std::shared_ptr<Profiling::Parse::DataCenter> &dataCneterPtr, uint32_t systemCores);
+    std::shared_ptr<Profiling::Parse::DataCenter> &dataCneterPtr, uint32_t systemCores,
+    const std::string &kernelPath = "");
 
 bool CombineCoreData(const std::map<std::string, std::shared_ptr<Profiling::Parse::DataCenter>> &dataCenterMap,
     const ChipProductType &chipProductType, std::shared_ptr<Profiling::Parse::DataCenter> &dataCenterPtr);

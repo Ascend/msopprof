@@ -18,6 +18,7 @@
 #ifndef MSOPT_INSTR_ENCODING__H
 #define MSOPT_INSTR_ENCODING__H
 #include <string>
+#include "instr_binary.h"
 #include <unordered_map>
 #include <unordered_set>
 #include <bitset>
@@ -57,12 +58,7 @@ struct InstrTable128 {
     std::unordered_map<Common::Enc128, std::string, Common::Enc128Hash> table;
 };
 
-enum class EncodingType {
-    BIT32 = 0,
-    BIT64,
-    BIT128,
-    INVALID,
-};
+
 
 
 struct EncodingInfo {

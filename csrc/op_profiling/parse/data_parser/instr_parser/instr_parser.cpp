@@ -254,6 +254,7 @@ void InstrParser::InitMergeItem(const PoppedInstrParseInfo& instrPopped, const I
     mergeItem.pipe = instrPopped.pipe;
     mergeItem.name = instrPopped.name;
     mergeItem.detail = instrPopped.detail;
+    mergeItem.binary = instr.binary.empty() ? instrPopped.binary : instr.binary;
     mergeItem.spStatus = {}; // pre-design attribute, assign empty
     mergeItem.xnValue = instrPopped.xnValue;
     mergeItem.gprCount = instrPopped.gprCount;

@@ -52,11 +52,12 @@ private:
     void GetLogicalCoreName(const std::string &name, const std::string &detail);
 
     std::map<std::string, uint64_t> instrPoppedRuleNamePos_ = {
-        {"tick", 2}, {"pc", 3},  {"pipe", 5}, {"id", 9}, {"name", 10}, {"detail", 13}, {"pop_str", 16}
+        {"tick", 2}, {"pc", 3},  {"pipe", 5}, {"binary", 8}, {"id", 10}, {"name", 11}, {"detail", 14},
+        {"pop_str", 17}
     };
     std::regex instrPoppedMatchPattern_ = std::regex(
         "(\\[info\\] )?\\[([0-9]+)\\]\\s?\\(PC:\\s*(0x[0-9a-fA-F]{1,16})\\)(@CORE[0-9]{1,2})?\\s?"
-        "([A-Za-z0-9_]+)( ISSUE| IB ISSUE)?\\s*(: \\(Binary:\\s*0x[0-9a-fA-F ]{8,34}\\) "
+        "([A-Za-z0-9_]+)( ISSUE| IB ISSUE)?\\s*(: \\(Binary:\\s*(0x[0-9a-fA-F ]{8,34})\\) "
         "(\\(ID:\\s*([0-9]{1,20})\\)\\s)?([0-9a-zA-Z_-]+)((\\(|\\s{2})"
         "([\\[\\]\\|a-zA-Z0-9_, :=/#-]*)[) ]?)?(, instr ID is: [0-9]+.)?"
         "(\\.? ((poped from IQ)|(pop success) [0-9]+))?)?.*");

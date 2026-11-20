@@ -143,6 +143,38 @@ inline void TrimBlank(std::string &str)
     str.resize(idx);
 }
 
+// 判断字符是否为十六进制字符（0-9、a-f、A-F）
+inline bool IsHexChar(char c) { return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'); }
+
+// 去掉字符串首尾的空白（空格/Tab）
+inline void TrimBothBlank(std::string &str) {
+    size_t begin = str.find_first_not_of(" \t");
+    if (begin == std::string::npos) {
+        str.clear();
+        return;
+    }
+    size_t end = str.find_last_not_of(" \t");
+    str = str.substr(begin, end - begin + 1);
+}
+
+// 把字符串内连续的空白（空格/Tab）折叠为单个空格
+inline void CollapseBlank(std::string &str) {
+    std::string result;
+    bool inBlank = false;
+    for (char c : str) {
+        if (c == ' ' || c == '\t') {
+            if (!inBlank && !result.empty()) {
+                result.push_back(' ');
+            }
+            inBlank = true;
+        } else {
+            result.push_back(c);
+            inBlank = false;
+        }
+    }
+    str = result;
+}
+
 inline bool StoiConverter(const std::string &numString, int32_t &num, int32_t radix = RADIX_10)
 {
     try {num = stoi(numString, nullptr, radix);}

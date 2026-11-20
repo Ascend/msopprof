@@ -279,9 +279,11 @@ bool SimDataParse::ParseMergeDumpData(const std::string &dumpPath, std::string &
     if (pc2codePtr == nullptr) {
         Pc2CodeMap empty;
         LogWarn("Can not get kernel file of %s. code information will be missing", relocObjectPath.c_str());
-        Visualizedata(simContext.outputPath, simContext.chipType, empty, dataCenterPtr, systemCores);
+        Visualizedata(simContext.outputPath, simContext.chipType, empty, dataCenterPtr, systemCores,
+                      relocObjectPath);
     } else  {
-        Visualizedata(simContext.outputPath, simContext.chipType, *pc2codePtr, dataCenterPtr, systemCores);
+        Visualizedata(simContext.outputPath, simContext.chipType, *pc2codePtr, dataCenterPtr, systemCores,
+                      relocObjectPath);
     }
     return true;
 }

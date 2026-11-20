@@ -65,13 +65,14 @@ private:
         {"tick",   2},
         {"pc",     3},
         {"pipe",   5},
-        {"id",     9},
-        {"name",   10},
-        {"detail", 13}
+        {"binary", 8},
+        {"id",     10},
+        {"name",   11},
+        {"detail", 14}
     };
     std::regex instrMatchPattern_ = std::regex(
         "(\\[info\\] )?\\[([0-9]+)\\]\\s?\\(PC:\\s*(0x[0-9a-fA-F]{1,16})\\)(@CORE[0-9]{1,2})?\\s?"
-        "([A-Za-z0-9_]+)( ISSUE| IB ISSUE)?\\s*(: \\(Binary:\\s*0x[0-9a-fA-F ]{8,34}\\) "
+        "([A-Za-z0-9_]+)( ISSUE| IB ISSUE)?\\s*(: \\(Binary:\\s*(0x[0-9a-fA-F ]{8,34})\\) "
         "(\\(ID:\\s*([0-9]{1,20})\\)\\s)?([0-9a-zA-Z_-]+)((\\(|\\s{2})"
         "([\\[\\]\\|a-zA-Z0-9_, :=/#-]*)[) ]?)?(, instr ID is: [0-9]+.)?)?.*");
     std::unordered_map<uint64_t, std::vector<InstrParseInfo>> instrMap_;
