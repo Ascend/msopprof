@@ -80,7 +80,7 @@ const AicMetricsSupportMap SIMULATOR_AIC_METRICS_SUPPORT_MAP{
     {std::string(Common::MsprofMetrics::PIPE_UTILIZATION), {ChipProductType::ALL_PRODUCT_TYPE}},
     {std::string(Common::MsprofMetrics::RESOURCE_CONFLICT_RATIO),
         {ChipProductType::ASCEND910B_SERIES, ChipProductType::ASCEND910_93_SERIES, ChipProductType::ASCEND310P_SERIES,
-            ChipProductType::ASCEND950_SERIES}},
+            ChipProductType::ASCEND950_SERIES, ChipProductType::ASCEND960_SERIES}},
     {std::string(Common::MsprofMetrics::PMSAMPLING),
         {ChipProductType::ASCEND910B_SERIES, ChipProductType::ASCEND910_93_SERIES}},
     {std::string(Common::MsprofMetrics::OVERHEAD),
@@ -507,8 +507,9 @@ bool ArgChecker::CheckSimSocVersion(const Common::ProfArgs &config, std::string 
             }
         }
         std::string inferredSocVersion;
-        bool ascend950FromEnvironment =
-            GetSocVersionFromEnvVar(inferredSocVersion) && StartsWith(inferredSocVersion, "Ascend950");
+        bool hasSocVersionFromEnvironment = GetSocVersionFromEnvVar(inferredSocVersion);
+        bool ascend950FromEnvironment = hasSocVersionFromEnvironment && StartsWith(inferredSocVersion, "Ascend950");
+        bool ascend960FromEnvironment = hasSocVersionFromEnvironment && StartsWith(inferredSocVersion, "Ascend960");
         std::string binaryLibrarySearchPath;
         bool ascend950FromBinary =
             !config.cmd.empty() && GetAscend950SimulatorLibPath(config.cmd.front(), binaryLibrarySearchPath);
@@ -517,10 +518,17 @@ bool ArgChecker::CheckSimSocVersion(const Common::ProfArgs &config, std::string 
                   "or the application/config binary";
             return false;
         }
+        bool ascend960FromBinary =
+            !config.cmd.empty() && GetAscend960SimulatorCamodelPath(config.cmd.front(), binaryLibrarySearchPath);
+        if (ascend960FromEnvironment || ascend960FromBinary) {
+            msg = "Ascend960 simulator requires --soc-version";
+            return false;
+        }
         return true;
     }
-    // A2/A3 仿真器的 config 模式沿用历史行为，不允许指定 --soc-version；A5 必须显式指定。
-    if (!config.argConfig.empty() && !StartsWith(config.argSocVersion, "Ascend950")) {
+    // A2/A3 仿真器的 config 模式沿用历史行为，不允许指定 --soc-version；A5 和 960 使用各自配置。
+    if (!config.argConfig.empty() && !StartsWith(config.argSocVersion, "Ascend950") &&
+        !StartsWith(config.argSocVersion, "Ascend960")) {
         msg = "--soc-version is not effective in A2/A3 config mode";
         return false;
     }
@@ -529,7 +537,8 @@ bool ArgChecker::CheckSimSocVersion(const Common::ProfArgs &config, std::string 
         msg = "$ASCEND_HOME_PATH not found";
         return false;
     }
-    if ((StartsWith(config.argSocVersion, "Ascend950") || StartsWith(config.argSocVersion, "Ascend910_93")) &&
+    if ((StartsWith(config.argSocVersion, "Ascend950") || StartsWith(config.argSocVersion, "Ascend910_93") ||
+            StartsWith(config.argSocVersion, "Ascend960")) &&
         SOC_STRING_TO_CHIP_PRODUCT.find(config.argSocVersion) != SOC_STRING_TO_CHIP_PRODUCT.end()) {
         return true;
     }

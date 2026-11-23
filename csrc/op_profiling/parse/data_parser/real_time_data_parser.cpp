@@ -229,7 +229,7 @@ void RealTimeDataParser::SetInstrLog(const Common::DvcInstrLogV2 &dvcInstrLog)
     InstrParseInfo instrParseInfo{};
     std::string coreName;
     if (!GetA5InstrParseInfo(dvcInstrLog, instrParseInfo, coreName)) {
-        LogWarn("Set Ascend950 instr log failed, payload format is invalid");
+        LogWarn("Set simulator instr log failed, payload format is invalid");
         return;
     }
     realTimeInstrParser_.SetInstrLog({instrParseInfo, std::move(coreName)});
@@ -240,7 +240,7 @@ void RealTimeDataParser::SetPopInstrLog(const Common::DvcInstrLogV2 &dvcInstrLog
     InstrParseInfo instrParseInfo{};
     std::string coreName;
     if (!GetA5InstrParseInfo(dvcInstrLog, instrParseInfo, coreName)) {
-        LogWarn("Set Ascend950 popped instr log failed, payload format is invalid");
+        LogWarn("Set simulator popped instr log failed, payload format is invalid");
         return;
     }
     PoppedInstrParseInfo poppedInstrParseInfo(instrParseInfo);
@@ -375,8 +375,9 @@ void RealTimeDataParser::Start(const std::string &outputPath, const std::string 
     outputPath_ = outputPath;
     kernelName_ = kernelName;
     Utility::RollbackPath(outputPath_, 1);
-    if (::GetProductSeriesType(context_.chipType) == ChipProductType::ASCEND950_SERIES) {
-        // A5 kernels may execute helper functions outside the main kernel symbol range. Defer source mapping until
+    const ChipProductType seriesType = ::GetProductSeriesType(context_.chipType);
+    if (seriesType == ChipProductType::ASCEND950_SERIES || seriesType == ChipProductType::ASCEND960_SERIES) {
+        // A5/A6 kernels may execute helper functions outside the main kernel symbol range. Defer source mapping until
         // all actual PCs are collected so that real-time and offline parsing use the same PC set.
         pc2Code_ = nullptr;
     } else {

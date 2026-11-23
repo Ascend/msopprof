@@ -16,6 +16,7 @@
 
 
 #include <gtest/gtest.h>
+#include <algorithm>
 #include "mockcpp/mockcpp.hpp"
 
 #define private public
@@ -250,6 +251,45 @@ TEST(RealTimeDataParseTest, test_a5_extend_params_should_supply_warp_schedule_an
     CalCulateDetail(dataCenter, ChipProductType::ASCEND950PR_9599, context.metricsConfig, 1);
     // 目标和源使用不同编号，合并后的活跃寄存器数量应为 2。
     EXPECT_EQ(mergeInfo->front().gprCount, 2);
+}
+
+TEST(RealTimeDataParseTest, test_960_v2_id_match) {
+    RealTimeSimParseContext context;
+    context.chipType = ChipProductType::ASCEND960DT_961BY;
+    RealTimeDataParser parser(context);
+    Common::DvcInstrLogV2 poppedLog{};
+    poppedLog.coreId = 0;
+    poppedLog.subCoreId = 1;
+    poppedLog.time = 100;
+    poppedLog.pc = 0x9000d0d348;
+    const std::string poppedDecode =
+        "(PC: 0x9000d0d348) RVECST   : (Binary: 0x120800041c100480 ) (ID: 000042) SIMT_STS";
+    std::copy_n(poppedDecode.c_str(), poppedDecode.size(), poppedLog.decodeDescr);
+
+    Common::DvcInstrLogV2 completeLog = poppedLog;
+    completeLog.time = 120;
+    completeLog.pc = 0x9000d0d350;
+    const std::string completeDecode =
+        "(PC: 0x9000d0d350) RVECST   : (Binary: 0x120800041c100480 ) (ID: 000042) SIMT_STS";
+    std::copy_n(completeDecode.c_str(), completeDecode.size(), completeLog.decodeDescr);
+
+    parser.Start("./aaa", "add");
+    parser.SetPopInstrLog(poppedLog);
+    parser.SetInstrLog(completeLog);
+    usleep(100000);
+    parser.realTimeInstrParser_.Stop();
+    parser.isStop_ = true;
+
+    std::map<std::string, std::shared_ptr<DataCenter>> dataCenterMap;
+    parser.realTimeInstrParser_.Merge(dataCenterMap);
+    ASSERT_EQ(dataCenterMap.count("core0.veccore0"), 1U);
+    auto &dataCenter = *dataCenterMap.at("core0.veccore0");
+    auto detailTable = dataCenter.GetDbPtr<InstrDetailTable>();
+    ASSERT_TRUE(detailTable != nullptr);
+    auto mergeInfo = detailTable->GetColumnData<MergeInfo>(InstrDetailTable::MERGE_INFO);
+    ASSERT_TRUE(mergeInfo != nullptr);
+    ASSERT_EQ(mergeInfo->size(), 1U);
+    EXPECT_EQ(mergeInfo->front().id, 42);
 }
 
 TEST(RealTimeDataParseTest, test_collect_dfx_region_user_mark_from_xt_value)

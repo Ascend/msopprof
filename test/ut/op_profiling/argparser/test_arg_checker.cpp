@@ -537,6 +537,33 @@ TEST(ArgChecker, args_with_ascend950_binary_lib_path_requires_soc_version) {
     GlobalMockObject::verify();
 }
 
+TEST(ArgChecker, args_with_ascend960_from_ld_library_path_requires_soc_version) {
+    AscendEnvSetter ascendHomeSetter("/tmp");
+    LdLibraryPathSetter ldLibraryPathSetter("/tmp/tools/simulator/dav_9201/camodel");
+    ProfArgs args;
+    args.runMode = "simulator";
+    std::string msg;
+    ArgChecker checker("simulator");
+
+    ASSERT_FALSE(checker.CheckSimSocVersion(args, msg));
+    ASSERT_NE(msg.find("Ascend960 simulator requires --soc-version"), std::string::npos);
+}
+
+TEST(ArgChecker, args_with_ascend960_binary_camodel_path_requires_soc_version) {
+    GlobalMockObject::verify();
+    LdLibraryPathSetter ldLibraryPathSetter("");
+    ProfArgs args;
+    args.runMode = "simulator";
+    args.cmd = {"./a6_operator"};
+    std::string msg;
+    ArgChecker checker("simulator");
+    MOCKER(&Utility::GetAscend960SimulatorCamodelPath).expects(once()).will(returnValue(true));
+
+    ASSERT_FALSE(checker.CheckSimSocVersion(args, msg));
+    ASSERT_NE(msg.find("Ascend960 simulator requires --soc-version"), std::string::npos);
+    GlobalMockObject::verify();
+}
+
 TEST(ArgChecker, config_with_ascend950_kernel_requires_soc_version) {
     GlobalMockObject::verify();
     ProfArgs args;

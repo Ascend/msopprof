@@ -47,9 +47,8 @@ std::string ExpandOrigin(const std::string &searchPath, const std::string &binar
     return ReplaceSubStr(expandedPath, "$ORIGIN", binaryParent);
 }
 
-bool GetSimulatorLibPathFromDynamicInfo(
-    const ElfDynamicInfo &dynamicInfo, const std::string &binaryPath, std::string &librarySearchPath) {
-    // 通用层只返回 ELF 原始信息；依赖库白名单和 dav_3510 目录判断属于 Ascend 仿真业务。
+bool GetSimulatorLibPathFromDynamicInfo(const ElfDynamicInfo &dynamicInfo, const std::string &binaryPath,
+    SimulatorLibrarySource expectedSource, std::string &librarySearchPath) {
     bool hasSimulatorDependency = std::any_of(
         dynamicInfo.neededLibraries.begin(), dynamicInfo.neededLibraries.end(), [](const std::string &neededLibrary) {
             return SIMULATOR_NEEDED_LIBRARIES.count(GetFileName(neededLibrary)) != 0;
@@ -59,7 +58,7 @@ bool GetSimulatorLibPathFromDynamicInfo(
     }
     for (const auto &libraryPath : dynamicInfo.searchPaths) {
         std::string expandedLibraryPath = ExpandOrigin(libraryPath, binaryPath);
-        if (GetSimulatorLibrarySource(expandedLibraryPath) == SimulatorLibrarySource::LIB) {
+        if (GetSimulatorLibrarySource(expandedLibraryPath) == expectedSource) {
             librarySearchPath = expandedLibraryPath;
             return true;
         }
@@ -154,10 +153,11 @@ std::string GetMsopprofPath()
     }
 }
 
-const std::map<std::string, std::string> CHIP_TO_DEFAULT_SOC {
+const std::map<std::string, std::string> CHIP_TO_DEFAULT_SOC{
     {"dav_2002", "Ascend310P1"},
     {"dav_2201", "Ascend910B1"},
     {"dav_3510", "Ascend950PR_9599"},
+    {"dav_9201", "Ascend960DT_969B5"},
 };
 
 bool GetSocVersionFromEnvVar(std::string &socVersion)
@@ -212,6 +212,9 @@ std::string GetSimulatorDirName(const std::string &socVersion)
     if (StartsWith(socVersion, "Ascend950")) {
         return "dav_3510";
     }
+    if (StartsWith(socVersion, "Ascend960")) {
+        return "dav_9201";
+    }
     if (StartsWith(socVersion, "Ascend910_93")) {
         return "dav_2201";
     }
@@ -235,8 +238,9 @@ std::string GetSimulatorLibrarySearchPath(const std::string &socVersion)
         return "";
     }
     std::string simulatorName = GetSimulatorDirName(socVersion);
-    // A5 默认从 camodel 目录加载仿真库并启用实时回调解析；其余平台仍使用 lib 目录。
-    std::string libraryDir = StartsWith(socVersion, "Ascend950") ? "camodel" : "lib";
+    // A5/A6 默认从 camodel 目录加载仿真库并启用实时回调解析；其余平台仍使用 lib 目录。
+    std::string libraryDir =
+        StartsWith(socVersion, "Ascend950") || StartsWith(socVersion, "Ascend960") ? "camodel" : "lib";
     return JoinPath({ascendHomePath, "tools/simulator", simulatorName, libraryDir});
 }
 
@@ -281,12 +285,34 @@ bool GetAscend950SimulatorLibPath(const std::string &binaryPath, std::string &li
     ElfDynamicInfo dynamicInfo;
     std::string detectedSearchPath;
     if (!ReadElfDynamicInfo(realBinaryPath, dynamicInfo) ||
-        !GetSimulatorLibPathFromDynamicInfo(dynamicInfo, realBinaryPath, detectedSearchPath)) {
+        !GetSimulatorLibPathFromDynamicInfo(
+            dynamicInfo, realBinaryPath, SimulatorLibrarySource::LIB, detectedSearchPath)) {
         return false;
     }
     std::string runtimePath = GetSimulatorRuntimePath(detectedSearchPath);
     std::string libraryPath = GetParentPath(runtimePath);
     if (GetFileName(libraryPath) != "lib" || GetFileName(GetParentPath(libraryPath)) != "dav_3510") {
+        return false;
+    }
+    librarySearchPath = detectedSearchPath;
+    return true;
+}
+
+bool GetAscend960SimulatorCamodelPath(const std::string &binaryPath, std::string &librarySearchPath) {
+    librarySearchPath.clear();
+    std::string realBinaryPath = Realpath(binaryPath);
+    if (realBinaryPath.empty()) {
+        return false;
+    }
+    ElfDynamicInfo dynamicInfo;
+    std::string detectedSearchPath;
+    if (!ReadElfDynamicInfo(realBinaryPath, dynamicInfo) ||
+        !GetSimulatorLibPathFromDynamicInfo(
+            dynamicInfo, realBinaryPath, SimulatorLibrarySource::CAMODEL, detectedSearchPath)) {
+        return false;
+    }
+    std::string runtimePath = GetSimulatorRuntimePath(detectedSearchPath);
+    if (GetFileName(GetParentPath(GetParentPath(runtimePath))) != "dav_9201") {
         return false;
     }
     librarySearchPath = detectedSearchPath;

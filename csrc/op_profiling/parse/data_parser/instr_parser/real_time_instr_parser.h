@@ -38,7 +38,7 @@ public:
         RegisterPluginName("RealTimeInstrParser");
         RegisterMandatoryDb({});
         RegisterChip({ChipProductType::ASCEND910B_SERIES, ChipProductType::ASCEND910_93_SERIES,
-                      ChipProductType::ASCEND950_SERIES});
+            ChipProductType::ASCEND950_SERIES, ChipProductType::ASCEND960_SERIES});
     }
 };
 
@@ -54,7 +54,7 @@ public:
         RegisterPluginName("RealTimeInstrPopParser");
         RegisterMandatoryDb({});
         RegisterChip({ChipProductType::ASCEND910B_SERIES, ChipProductType::ASCEND910_93_SERIES,
-                      ChipProductType::ASCEND950_SERIES});
+            ChipProductType::ASCEND950_SERIES, ChipProductType::ASCEND960_SERIES});
     }
 };
 class RealTimeInstrMergeParser : public InstrParser {
@@ -67,7 +67,7 @@ public:
         RegisterPluginName("RealTimeInstrMergeParser");
         RegisterMandatoryDb({});
         RegisterChip({ChipProductType::ASCEND910B_SERIES, ChipProductType::ASCEND910_93_SERIES,
-                      ChipProductType::ASCEND950_SERIES});
+            ChipProductType::ASCEND950_SERIES, ChipProductType::ASCEND960_SERIES});
     }
     std::string coreName_;
 };

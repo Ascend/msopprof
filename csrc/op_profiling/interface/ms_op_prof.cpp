@@ -261,16 +261,16 @@ void PrintSimulatorHelp(void)
         << "                                              Supported values: PipeUtilization | ResourceConflictRatio |"
         << std::endl
         << "                                                | PMSampling | Overhead |" << std::endl
-        << "                                              PMSampling and Overhead are not supported on Ascend950."
+        << "                                              PMSampling and Overhead are not supported on Ascend950/960."
         << std::endl
         << "                                              PipeUtilization is required." << std::endl
         << "      --mstx {true,false}                       Enable mstx API [default: false]." << std::endl
         << "      --mstx-include <RANGE>                Specify the mstx range to collect." << std::endl
-        << "      --soc-version <VERSION>               Simulator version; required for Ascend950." << std::endl
+        << "      --soc-version <VERSION>               Simulator version; required for Ascend950/960." << std::endl
         << "      --core-id <ID>                        Specify the id of cores to parse." << std::endl
         << "      --timeout <MINUTES>                   Application timeout (1-2880 minutes)." << std::endl
         << "      --dump {true,false}                       Enable native dump for A2/A3, or instruction dump "
-        << "from Ascend950 camodel real-time callbacks [default: false]." << std::endl
+        << "from Ascend950/960 real-time callbacks [default: false]." << std::endl
         << std::endl
         << "Examples:" << std::endl
         << "  msopprof simulator ./my_operator" << std::endl

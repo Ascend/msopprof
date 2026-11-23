@@ -39,6 +39,7 @@ std::string GetSimulatorLibrarySearchPath(const std::string &socVersion);
 std::string GetSimulatorRuntimePath(const std::string &librarySearchPath);
 SimulatorLibrarySource GetSimulatorLibrarySource(const std::string &librarySearchPath);
 bool GetAscend950SimulatorLibPath(const std::string &binaryPath, std::string &librarySearchPath);
+bool GetAscend960SimulatorCamodelPath(const std::string &binaryPath, std::string &librarySearchPath);
 bool DetectAscend950Kernel(const std::string &kernelPath, bool &isAscend950);
 }  // namespace Utility
 

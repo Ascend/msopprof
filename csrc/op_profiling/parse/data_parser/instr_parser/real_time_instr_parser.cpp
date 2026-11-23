@@ -27,8 +27,10 @@ using namespace Utility;
 namespace {
 MatchMode GetRealTimeInstrMatchMode(const SimDataParserConfig &config)
 {
-    return config.GetProductSeriesType() == ChipProductType::ASCEND950_SERIES ?
-        MatchMode::ID_MATCH : MatchMode::PC_MATCH;
+    return config.GetProductSeriesType() == ChipProductType::ASCEND950_SERIES ||
+            config.GetProductSeriesType() == ChipProductType::ASCEND960_SERIES
+        ? MatchMode::ID_MATCH
+        : MatchMode::PC_MATCH;
 }
 }
 

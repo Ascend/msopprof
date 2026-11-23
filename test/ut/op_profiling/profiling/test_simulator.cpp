@@ -259,6 +259,27 @@ TEST(SimulatorTask, Ascend950_without_binary_lib_path_defaults_to_soc_camodel) {
     GlobalMockObject::verify();
 }
 
+TEST(SimulatorTask, Ascend960_uses_realtime_camodel) {
+    GlobalMockObject::verify();
+    const std::string socVersion = "Ascend960DT_961BY";
+    const std::string simulatorLibPath = "/tmp/tools/simulator/dav_9201/camodel";
+    MOCKER(&Utility::GetSimulatorLibrarySearchPath).stubs().will(returnValue(simulatorLibPath));
+    MOCKER(&Utility::GetMsopprofPath).stubs().will(returnValue(std::string("/tmp/msopprof")));
+    Common::ProfArgs args;
+    args.runMode = "simulator";
+    args.argSocVersion = socVersion;
+    args.argDump = "true";
+    Profiling::OpSimProf opSimProf(args);
+    SimulatorTask simulatorTask("test", opSimProf);
+
+    EXPECT_FALSE(opSimProf.dump_);
+    EXPECT_TRUE(opSimProf.rawCallbackDump_);
+    EXPECT_EQ(simulatorTask.env["LD_LIBRARY_PATH"], simulatorLibPath);
+    EXPECT_EQ(simulatorTask.env["ENABLE_CA_LOG_TRANS"], "true");
+    EXPECT_EQ(simulatorTask.env["ENABLE_CA_RAW_INSTR_DUMP"], "true");
+    GlobalMockObject::verify();
+}
+
 TEST(SimulatorTask, Ascend950DT_sets_soc_version_and_removes_temporary_log_directory) {
     GlobalMockObject::verify();
     const std::string camodelPath = "/tmp/tools/simulator/dav_3510/camodel";

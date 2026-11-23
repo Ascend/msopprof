@@ -489,6 +489,27 @@ TEST_F(AscendHelperTest, test_GetAscend950SimulatorLibPath_rejects_unrelated_or_
     std::experimental::filesystem::remove_all(root);
 }
 
+TEST_F(AscendHelperTest, test_GetAscend960SimulatorCamodelPath_detects_rpath_and_runpath) {
+    std::string root = MakeSimulatorLibraryTestDir();
+    ASSERT_FALSE(root.empty());
+    std::string binaryDir = root + "/bin";
+    std::string camodelDir = root + "/tools/simulator/dav_9201/camodel";
+    ASSERT_TRUE(MkdirRecusively(binaryDir));
+    CreateSimulatorLibrarySet(camodelDir);
+
+    std::string rpathBinary = binaryDir + "/rpath_operator";
+    CreateSimulatorLinkedElf(rpathBinary, "$ORIGIN/../tools/simulator/dav_9201/camodel", DT_RPATH);
+    std::string detectedSearchPath;
+    ASSERT_TRUE(GetAscend960SimulatorCamodelPath(rpathBinary, detectedSearchPath));
+    ASSERT_EQ(GetSimulatorRuntimePath(detectedSearchPath), Realpath(camodelDir + "/libruntime_camodel.so"));
+
+    std::string runpathBinary = binaryDir + "/runpath_operator";
+    CreateSimulatorLinkedElf(runpathBinary, "$ORIGIN/../tools/simulator/dav_9201/camodel", DT_RUNPATH);
+    ASSERT_TRUE(GetAscend960SimulatorCamodelPath(runpathBinary, detectedSearchPath));
+    ASSERT_EQ(GetSimulatorRuntimePath(detectedSearchPath), Realpath(camodelDir + "/libruntime_camodel.so"));
+    std::experimental::filesystem::remove_all(root);
+}
+
 TEST_F(AscendHelperTest, test_DetectAscend950Kernel_distinguishes_read_result_and_a5_flags) {
     std::string root = MakeSimulatorLibraryTestDir();
     ASSERT_FALSE(root.empty());
@@ -549,6 +570,19 @@ TEST_F(AscendHelperTest, test_GetSimulatorLibrarySearchPath_ascend950_uses_soc_c
     setenv("LD_LIBRARY_PATH", "/tmp/tools/simulator/dav_3510/lib", 1);
 
     ASSERT_EQ(GetSimulatorLibrarySearchPath("Ascend950PR_9599"), root + "/tools/simulator/dav_3510/camodel");
+    std::experimental::filesystem::remove_all(root);
+}
+
+TEST_F(AscendHelperTest, test_GetSimulatorLibrarySearchPath_ascend960_dt_and_pr_use_dav_9201_camodel) {
+    std::string root = MakeSimulatorLibraryTestDir();
+    ASSERT_FALSE(root.empty());
+    setenv("ASCEND_HOME_PATH", root.c_str(), 1);
+
+    EXPECT_EQ(GetSimulatorDirName("Ascend960DT_961BY"), "dav_9201");
+    EXPECT_EQ(GetSimulatorDirName("Ascend960PR_963A1"), "dav_9201");
+    EXPECT_EQ(GetSimulatorLibrarySearchPath("Ascend960DT_961BY"), root + "/tools/simulator/dav_9201/camodel");
+    EXPECT_EQ(GetSimulatorLibrarySearchPath("Ascend960PR_963A1"), root + "/tools/simulator/dav_9201/camodel");
+
     std::experimental::filesystem::remove_all(root);
 }
 

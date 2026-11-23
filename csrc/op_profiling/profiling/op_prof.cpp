@@ -78,6 +78,12 @@ OpProf::OpProf(const Common::ProfArgs &args)
         }
         return;
     }
+    if (args.runMode == "simulator" && chipType == ChipProductType::ASCEND960_SERIES) {
+        // A6 simulator results are consumed through real-time callback parsing.
+        dump_ = false;
+        rawCallbackDump_ = (args.argDump == "true");
+        return;
+    }
     if (args.argDump != "true") {
         if (chipType == ChipProductType::ASCEND910B_SERIES ||
             chipType == ChipProductType::ASCEND910_93_SERIES) {
