@@ -895,7 +895,7 @@ TEST(ArgChecker, test_CheckOutputPathValid_with_warning_and_invalid_cases) {
         .stubs()
         .will(returnValue(false));
     ASSERT_FALSE(checker.CheckOutputPathValid(args, msg));
-    ASSERT_TRUE(msg.find("--output parameter length is larger than 200") != std::string::npos);
+    ASSERT_TRUE(msg.find("--output parameter is too long") != std::string::npos);
     // 输出路径字符不合规
     MOCKER(&Utility::IsStringCharValid)
         .stubs()

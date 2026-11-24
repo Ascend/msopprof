@@ -259,7 +259,8 @@ bool ArgChecker::CheckOutputPathValid(const ProfArgs &config, std::string &msg) 
     }
 
     if (!PathLenCheckValid(config.argOutput)) {
-        msg = "--output parameter length is larger than 200.";
+        msg = "--output parameter is too long, the total length must not exceed 2048 "
+            "and each directory name must not exceed 255.";
         return false;
     }
 
