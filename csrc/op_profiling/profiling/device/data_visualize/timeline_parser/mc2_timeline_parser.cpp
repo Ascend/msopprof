@@ -14,6 +14,7 @@
  * See the Mulan PSL v2 for more details.
  * ------------------------------------------------------------------------- */
 
+#include <numeric>
 #include "mc2_timeline_parser.h"
 
 #include <algorithm>

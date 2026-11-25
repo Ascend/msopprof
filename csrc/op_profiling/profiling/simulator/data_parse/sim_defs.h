@@ -20,6 +20,8 @@
 
 #include <string>
 #include "instr_encoding/instr_binary.h"
+#include <cstdint>
+#include <limits>
 #include <map>
 #include <utility>
 #include <vector>
@@ -125,6 +127,33 @@ struct MergeInfo : InstrParseInfo {
     int ubReadConflict;
     int ubWriteConflict;
     float vecUtilization;
+};
+
+// Keep integer totals until PC aggregation is complete.
+struct SimdVfUtilization {
+    uint64_t processedBytes = 0;
+    uint64_t capacityBytes = 0;
+    bool invalid = false;
+
+    void Add(const SimdVfUtilization &other) {
+        const auto maximum = std::numeric_limits<uint64_t>::max();
+        if (invalid || other.invalid || maximum - processedBytes < other.processedBytes ||
+            maximum - capacityBytes < other.capacityBytes) {
+            invalid = true;
+            return;
+        }
+        processedBytes += other.processedBytes;
+        capacityBytes += other.capacityBytes;
+    }
+
+    float Percentage() const {
+        return invalid || capacityBytes == 0 ? -1.0f : static_cast<float>(100.0L * processedBytes / capacityBytes);
+    }
+};
+
+// Per-PC totals from executions admitted by the existing timing merge.
+struct SimdVfResultTable {
+    std::map<uint64_t, SimdVfUtilization> byPc;
 };
 
 struct PoppedInstrParseInfo : InstrParseInfo {

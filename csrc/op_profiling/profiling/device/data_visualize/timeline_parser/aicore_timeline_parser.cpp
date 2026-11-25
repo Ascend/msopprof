@@ -14,6 +14,7 @@
  * See the Mulan PSL v2 for more details.
  * ------------------------------------------------------------------------- */
 
+#include <numeric>
 #include "aicore_timeline_parser.h"
 #include "common/prof_args.h"
 #include "common/visualize.h"

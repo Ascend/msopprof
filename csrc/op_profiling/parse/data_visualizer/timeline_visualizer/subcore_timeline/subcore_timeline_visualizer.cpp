@@ -14,7 +14,7 @@
  * See the Mulan PSL v2 for more details.
  * ------------------------------------------------------------------------- */
 
-
+#include <numeric>
 #include "subcore_timeline_visualizer.h"
 #include "parse/data_visualizer/utility.h"
 #include "parse/data_visualizer/timeline_visualizer/timeline_defs.h"

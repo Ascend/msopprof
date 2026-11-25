@@ -15,6 +15,7 @@
  * ------------------------------------------------------------------------- */
 
 #include "biu_timeline.h"
+#include <numeric>
 #include <algorithm>
 #include "log.h"
 #include "filesystem.h"

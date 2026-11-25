@@ -18,6 +18,7 @@
 #ifndef __MSOPPROF_PARSE_DATA_CALCULATOR_INSTR_DETAIL_CAMODEL_VEC_NAME_MAP_H__
 #define __MSOPPROF_PARSE_DATA_CALCULATOR_INSTR_DETAIL_CAMODEL_VEC_NAME_MAP_H__
 
+#include <string>
 #include <unordered_map>
 
 #include "common/defs.h"
@@ -27,6 +28,8 @@ namespace Profiling {
 namespace Parse {
 
 using InstrLogStr2Template = std::unordered_map<std::string, VecInstrTemplate>;
+
+bool IsSimdVfComputeInstrA5(const std::string &name);
 
 bool GetInstrLogStr2TemplateMap(ChipProductType seriesChipType, InstrLogStr2Template &resMap);
 }

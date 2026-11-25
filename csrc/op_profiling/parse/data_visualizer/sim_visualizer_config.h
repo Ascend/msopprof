@@ -33,6 +33,7 @@ struct SimData {
     std::shared_ptr<Parse::InstrDetailTable> instrs;
     std::shared_ptr<Parse::CacheDetailTable> caches;
     std::shared_ptr<UserMarkStruct> userMarks;
+    std::shared_ptr<SimdVfResultTable> simdVf;
 };
 
 constexpr int DEFAULT_MHZ = 1850;

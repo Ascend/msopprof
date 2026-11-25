@@ -186,20 +186,29 @@ void SimPcToCode::Statistic(const std::string &coreName, SimData &data)
         });
     std::vector<InstrExe> exeStatList{};
     std::map<uint64_t, std::vector<MergeInfo>> pcMap = MergeInstr(instrs);
-    for (auto &instrList: pcMap) {
-        std::map<std::string, float> statValue;
-        MergeInfo selectedInstr = instrList.second[0]; // get 1st instr in instrlist(contains all instrs of pc)
+    const bool isA5 = simConfig_.GetChipTypeProduct() == ChipProductType::ASCEND950_SERIES;
+    for (auto &instrList : pcMap) {
+        MergeInfo selectedInstr = instrList.second.front();
         UpdateInstrDetail(instrList.second, selectedInstr);
+        if (isA5) {
+            selectedInstr.vecUtilization = -1.0f;
+            if (data.simdVf != nullptr) {
+                const auto metric = data.simdVf->byPc.find(instrList.first);
+                if (metric != data.simdVf->byPc.end()) {
+                    selectedInstr.vecUtilization = metric->second.Percentage();
+                }
+            }
+        }
         int callCount = static_cast<int>(instrList.second.size());
         CycleInfo cycleInfo = {0, 0, 0, 0, 0};
         CalCycles(instrList.second, cycleInfo);
         if (cycleInfo.scalarCyc > 0) {
             hasScalarCyc_ = true;
         }
-        float runningTime = CalculateRunningTime(instrList.second, simConfig_.GetChipType());
         UpdatePCStat(selectedInstr, coreName, cycleInfo, callCount);
-        InstrExe instrExe = {selectedInstr.name, selectedInstr.pipe, selectedInstr.pc, callCount,
-                             cycleInfo.cycles, runningTime, "\"" + selectedInstr.detail + "\""};
+        float runningTime = CalculateRunningTime(instrList.second, simConfig_.GetChipType());
+        InstrExe instrExe = {selectedInstr.name, selectedInstr.pipe, selectedInstr.pc, callCount, cycleInfo.cycles,
+            runningTime, "\"" + selectedInstr.detail + "\""};
         exeStatList.emplace_back(instrExe);
     }
     if (!WriteExeStat(coreName, exeStatList)) {

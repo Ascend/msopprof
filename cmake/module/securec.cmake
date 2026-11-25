@@ -2,6 +2,7 @@ set(SECUREC_PATH ${SECUREC_INC_DIR}/../)
 
 set(securec_src
     "${SECUREC_PATH}/src/vsprintf_s.c"
+    "${SECUREC_PATH}/src/sprintf_s.c"
     "${SECUREC_PATH}/src/wmemmove_s.c"
     "${SECUREC_PATH}/src/strncat_s.c"
     "${SECUREC_PATH}/src/vsnprintf_s.c"
@@ -59,4 +60,3 @@ target_link_options(c_sec PRIVATE
     -Wl,-z,relro,-z,now,-z,noexecstack
     -s
 )
-

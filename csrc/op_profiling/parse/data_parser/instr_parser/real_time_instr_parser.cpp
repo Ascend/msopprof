@@ -40,12 +40,8 @@ PluginErrorCode RealTimeInstrParserPlugin::Entry()
     auto ptr = dataCenter_.GetStreamPtr<InstrParseInfoForRealTime>();
     LogDebug("Instr real time plugin entry");
     SetEntry(true);
-    while (ptr != nullptr) {
-        InstrParseInfoForRealTime instrInfo = ptr->Pop();
-        if (ptr->IsStop()) {
-            LogDebug("Instr parser plugin stopped");
-            break;
-        }
+    InstrParseInfoForRealTime instrInfo{};
+    while (ptr != nullptr && ptr->Pop(instrInfo)) {
         auto iter = instrLogParsers_.find(instrInfo.coreName);
         if (iter == instrLogParsers_.end()) {
             SimDataParserConfig config = dataParserConfig_;
@@ -66,12 +62,8 @@ PluginErrorCode RealTimePopParserPlugin::Entry()
     auto ptr = dataCenter_.GetStreamPtr<PoppedInstrParseInfoForRealTime>();
     LogDebug("PopInstr real time plugin entry");
     SetEntry(true);
-    while (ptr != nullptr) {
-        PoppedInstrParseInfoForRealTime instrInfo = ptr->Pop();
-        if (ptr->IsStop()) {
-            LogDebug("Pop Instr parser plugin stopped");
-            break;
-        }
+    PoppedInstrParseInfoForRealTime instrInfo{};
+    while (ptr != nullptr && ptr->Pop(instrInfo)) {
         std::lock_guard<std::mutex> lock(mtx_);
         auto iter = popLogParsers_.find(instrInfo.coreName);
         if (iter == popLogParsers_.end()) {
@@ -96,7 +88,7 @@ bool RealTimeInstrParser::IsSkipSetLog(const std::string &coreName)
     std::lock_guard<std::mutex> lock(realTimePopParserPlugin_->mtx_);
     auto iter = realTimePopParserPlugin_->popLogParsers_.find(coreName);
     if (iter != realTimePopParserPlugin_->popLogParsers_.end() && iter->second.IsGetCoreId()) {
-        std::set<int> parseIds = context_.parseCoreId;
+        const auto &parseIds = context_.parseCoreId;
         int coreId = iter->second.GetCoreId();
         if (!parseIds.empty() && parseIds.find(coreId) == parseIds.end()) {
             return true;

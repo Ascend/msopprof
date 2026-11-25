@@ -65,6 +65,7 @@ struct CodeLine {
     std::vector<int> gprCount;
     std::vector<int> processBytes;
     std::vector<std::vector<std::string>> addrRange;
+    std::vector<float> vecUtilization;
     void ToJson(nlohmann::json &lineDetails);
 };
 
@@ -107,6 +108,7 @@ struct FileDtype {
     int line = static_cast<int>(Utility::VisualizeBinDType::INT);
     int gprCount = static_cast<int>(Utility::VisualizeBinDType::INT);
     int processBytes = static_cast<int>(Utility::VisualizeBinDType::INT);
+    int vecUtilization = static_cast<int>(Utility::VisualizeBinDType::PERCENTAGE);
 };
 
 struct InstructionsDtype {

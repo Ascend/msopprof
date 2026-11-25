@@ -16,9 +16,25 @@
 
 
 #include "camodel_vec_name_map.h"
+#include <unordered_set>
 
 namespace Profiling {
 namespace Parse {
+
+namespace {
+// Ascend950 computation instructions. All entries use the same processed-bytes formula.
+const std::unordered_set<std::string> SIMD_VF_COMPUTE_INSTR_A5 = {"RV_VADD", "RV_VSUB", "RV_VMUL", "RV_VMAX", "RV_VMIN",
+    "RV_VABS", "RV_VNEG", "RV_VABSDIF", "RV_VADD3", "RV_VAVG", "RV_VSADD", "RV_VSSUB", "RV_VADDS", "RV_VMULS",
+    "RV_VMAXS", "RV_VMINS", "RV_VMAXRELU", "RV_VMINRELU", "RV_VRELU", "RV_VPRELU", "RV_VLRELU", "RV_VAXPY", "RV_VMULA",
+    "RV_VMADD", "RV_VAND", "RV_VOR", "RV_VXOR", "RV_VNOT", "RV_VSHLS", "RV_VSHRS", "RV_VSHLI", "RV_VSHRI", "RV_VSQRT",
+    "RV_VLN", "RV_VEXP", "RV_VEXP2", "RV_VDIV", "RV_VDIVF", "RV_VREC", "RV_VRSQRT", "RV_VTRC", "RV_VCVTFI", "RV_VCVTFF",
+    "RV_VCVTIF", "RV_VCVTII", "RV_VCVTFF2", "RV_VADDC", "RV_VSUBC", "RV_VADDCS", "RV_VSUBCS", "RV_WMUL", "RV_WMULA",
+    "RV_VMULL", "RV_VRNDI", "RV_VRND", "RV_VCBMAX", "RV_VCBMIN", "RV_VCADD", "RV_VCMAX", "RV_VCMIN", "RV_VCGADD",
+    "RV_VCGMAX", "RV_VCGMIN", "RV_VCPADD", "RV_VADIF", "RV_VSAD", "RV_WADD", "RV_WADDA", "RV_WSUB", "RV_WSUBA",
+    "RV_WADDSUB", "RV_WCVT48", "RV_VEXPDIF", "RV_VMULSCVT", "RV_VRNDS", "RV_VCLS", "RV_VBCNT"};
+}
+
+bool IsSimdVfComputeInstrA5(const std::string &name) { return SIMD_VF_COMPUTE_INSTR_A5.count(name) != 0; }
 
 InstrLogStr2Template instrLogStr2TemplateA2A3 = {
     {"LD_VAD", VecInstrTemplate::LD_VAD},

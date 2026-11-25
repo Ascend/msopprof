@@ -44,11 +44,8 @@ PluginErrorCode RealTimeICacheParserPlugin::Entry()
     auto ptr = dataCenter_.GetStreamPtr<IcacheParseInfoForRealTime>();
     SetEntry(true);
     LogDebug("Cache real time plugin entry");
-    while (ptr != nullptr) {
-        IcacheParseInfoForRealTime icacheInfo = ptr->Pop();
-        if (ptr->IsStop()) {
-            break;
-        }
+    IcacheParseInfoForRealTime icacheInfo{};
+    while (ptr != nullptr && ptr->Pop(icacheInfo)) {
         if (icacheInfo.opType == "miss_read") {
             ParseLine(icacheInfo);
         } else {
@@ -341,11 +338,10 @@ void RealTimeDataParser::GetPc2Code()
 
 void RealTimeDataParser::Stop()
 {
-    if (isStop_) {
+    if (isStop_.exchange(true)) {
         return;
     }
     Utility::LogDebug("Real time all plugin will stop");
-    isStop_ = true;
     if (IsCacheAndCcuSupported()) {
         realTimeICacheParser_.Stop();
         realTimeCcuParser_.Stop();
@@ -399,11 +395,8 @@ PluginErrorCode RealTimeMteParserPlugin::Entry()
     auto ptr = dataCenter_.GetStreamPtr<Common::DvcMteLog>();
     SetEntry(true);
     LogDebug("Mte real time plugin entry");
-    while (ptr != nullptr) {
-        Common::DvcMteLog mteInfo = ptr->Pop();
-        if (ptr->IsStop()) {
-            break;
-        }
+    Common::DvcMteLog mteInfo{};
+    while (ptr != nullptr && ptr->Pop(mteInfo)) {
         ParseMTELogLine(mteInfo, mteLogInstrVec_[mteInfo.coreId]);
     }
     auto MteLogInstrMapPtr = Utility::MakeShared<std::vector<Parse::MteLogInstrMap>>(mteLogInstrVec_);
@@ -452,11 +445,8 @@ PluginErrorCode RealTimeCcuParserPlugin::Entry() {
     auto ptr = dataCenter_.GetStreamPtr<CcuParseInfoForRealTime>();
     SetEntry(true);
     LogDebug("Ccu real time plugin entry");
-    while (ptr != nullptr) {
-        CcuParseInfoForRealTime ccuInfo = ptr->Pop();
-        if (ptr->IsStop()) {
-            break;
-        }
+    CcuParseInfoForRealTime ccuInfo{};
+    while (ptr != nullptr && ptr->Pop(ccuInfo)) {
         ccuInstrMap_[ccuInfo.coreName][ccuInfo.pc].emplace_back(ScalarInstrInfo{UINT64_MAX, ccuInfo.tick, ccuInfo.pc});
     }
     auto ccuPtr = MakeShared<std::map<std::string, scalarHead>>(ccuInstrMap_);

@@ -48,6 +48,7 @@ void CodeLine::ToJson(nlohmann::json &lineDetails)
     lineDetails["Address Range"] = this->addrRange;
     lineDetails["GPR Count"] = this->gprCount;
     lineDetails["Process Bytes"] = this->processBytes;
+    lineDetails["Vector Utilization Percentage"] = this->vecUtilization;
 }
 
 bool ApiData::FileStats(CodeInstrData &codeInstrData, const std::string &outputPath, nlohmann::json &apiJson)
@@ -88,6 +89,7 @@ void ApiData::FileDtypeStats(nlohmann::json &apiJson)
     fileJson["Line"] = fileDtype.line;
     fileJson["GPR Count"] = fileDtype.gprCount;
     fileJson["Process Bytes"] = fileDtype.processBytes;
+    fileJson["Vector Utilization Percentage"] = fileDtype.vecUtilization;
 
     nlohmann::json fileDtypeJson;
     fileDtypeJson["Lines"] = fileJson;

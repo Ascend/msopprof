@@ -14,7 +14,8 @@
  * See the Mulan PSL v2 for more details.
  * ------------------------------------------------------------------------- */
 
-
+#include "parse/data_calculator/instr_detail_calculator/simd_vf_utilization_calculator.h"
+#include "parse/data_parser/instr_parser/instr_log_parser.h"
 #include "sim_dump_parser.h"
 #include "pc_process.h"
 #include "parse/data_parser/instr_parser/instr_parser.h"
@@ -169,7 +170,9 @@ void CalCulateDetail(Parse::DataCenter &dataCenter, const ChipProductType &chipP
         pluginManager.AddPlugin<Parse::ProcessBytesCalculator>(dataCenter, instrDetailContext);
         pluginManager.AddPlugin<Parse::VectorUtilizationCalculator>(dataCenter, instrDetailContext);
         pluginManager.AddPlugin<Parse::UbConflictCalculator>(dataCenter, instrDetailContext);
-
+    } else if (chipTypeSeries == ChipProductType::ASCEND950_SERIES &&
+        dataCenter.GetDbPtr<Parse::InstrLogParser>() != nullptr) {
+        pluginManager.AddPlugin<Parse::SimdVfUtilizationCalculator>(dataCenter, instrDetailContext);
     }
     if (config.overHead) {
         pluginManager.AddPlugin<Parse::ScalarCalculator>(dataCenter, instrDetailContext);
@@ -304,7 +307,7 @@ bool CombineCoreData(const std::map<std::string, std::shared_ptr<Profiling::Pars
         }
         auto cachePtr = tempDataCenter->GetDbPtr<Parse::CacheDetailTable>();
         auto userMarkPtr = tempDataCenter->GetDbPtr<UserMarkStruct>();
-        SimData data = {instrPtr, cachePtr, userMarkPtr};
+        SimData data = {instrPtr, cachePtr, userMarkPtr, tempDataCenter->GetDbPtr<SimdVfResultTable>()};
         allDataMap[logiCoreName] = data;
     }
     auto simDataMapPtr = Utility::MakeShared<std::map<std::string, SimData>>(allDataMap);
@@ -332,7 +335,7 @@ bool CombineCoreData(const std::map<std::string, std::shared_ptr<Profiling::Pars
         }
         auto cachePtr = tempDataCenter->GetDbPtr<CacheDetailTable>();
         auto userMarkPtr = tempDataCenter->GetDbPtr<UserMarkStruct>();
-        SimData data = {instrPtr, cachePtr, userMarkPtr};
+        SimData data = {instrPtr, cachePtr, userMarkPtr, tempDataCenter->GetDbPtr<SimdVfResultTable>()};
         allDataMap[coreName] = data;
     }
     auto simDataMapPtr = Utility::MakeShared<std::map<std::string, SimData>>(allDataMap);

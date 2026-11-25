@@ -16,6 +16,7 @@
 
 
 #include <bitset>
+#include <utility>
 #include "json.hpp"
 #include "parse/data_table/instr_detail_table.h"
 #include "instr_parser.h"
@@ -97,6 +98,14 @@ PluginErrorCode InstrParser::Entry()
         dataCenter_.DataTableRegister<std::pair<std::string, std::string>>(physisToLogicPtr);
     }
 
+    // A5 metrics select the final callback from the raw records after timing merge.
+    if (matchMode == MatchMode::ID_MATCH) {
+        auto instrPtr = Utility::MakeShared<InstrLogParser>(std::move(instrLogParser));
+        if (instrPtr == nullptr || !dataCenter_.DataTableRegister(instrPtr)) {
+            LogWarn("Failed to register Ascend950 offline instruction input for %s", coreName.c_str());
+            return PluginErrorCode::FATAL_ERROR;
+        }
+    }
     return PluginErrorCode::SUCCESS;
 }
 
@@ -186,6 +195,11 @@ void InstrParser::MergeInstrByPc(const std::unordered_map<uint64_t, std::vector<
 void InstrParser::MergeInstrById(const std::unordered_map<uint64_t, std::vector<InstrParseInfo>> &instrMap,
     const std::unordered_map<uint64_t, std::vector<PoppedInstrParseInfo>> &popMap, std::vector<MergeInfo> &mergeList,
     bool preferJsonDetail) {
+    const auto initialRows = mergeList.size();
+    size_t matchedIds = 0;
+    size_t trimmedInstrRows = 0;
+    size_t trimmedPoppedRows = 0;
+    size_t invalidTimeRows = 0;
     for (auto &instrGrp : popMap) {
         uint64_t id = instrGrp.first;
         std::vector<PoppedInstrParseInfo> instrPoppedVec = instrGrp.second;
@@ -193,15 +207,19 @@ void InstrParser::MergeInstrById(const std::unordered_map<uint64_t, std::vector<
         if (iter == instrMap.end()) {
             continue;
         }
+        ++matchedIds;
         std::vector<InstrParseInfo> instrVec = iter->second;
         size_t size = instrPoppedVec.size();
         if (size != instrVec.size()) {
             size = std::min(size, instrVec.size());
+            trimmedPoppedRows += instrPoppedVec.size() - size;
+            trimmedInstrRows += instrVec.size() - size;
             instrPoppedVec.resize(size);
             instrVec.resize(size);
         }
         for (size_t i = 0; i < size; ++i) {
             if (instrPoppedVec[i].tick > instrVec[i].tick) {
+                ++invalidTimeRows;
                 LogDebug("Discard instruction %s, start cycle > end cycle, core name is %s, id is %llu,"
                          " tick is %llu", instrPoppedVec[i].name.c_str(), dataParserConfig_.GetCoreName().c_str(),
                          id, instrPoppedVec[i].tick);
@@ -222,6 +240,12 @@ void InstrParser::MergeInstrById(const std::unordered_map<uint64_t, std::vector<
             mergeList.push_back(mergeItem);
         }
     }
+    LogDebug("Instruction ID merge summary core=%s instr_ids=%zu popped_ids=%zu matched_ids=%zu "
+             "unmatched_instr_ids=%zu unmatched_popped_ids=%zu paired_rows=%zu trimmed_instr_rows=%zu "
+             "trimmed_popped_rows=%zu invalid_time_rows=%zu",
+        dataParserConfig_.GetCoreName().c_str(), instrMap.size(), popMap.size(), matchedIds,
+        instrMap.size() - matchedIds, popMap.size() - matchedIds, mergeList.size() - initialRows, trimmedInstrRows,
+        trimmedPoppedRows, invalidTimeRows);
     sort(mergeList.begin(), mergeList.end(), [](const MergeInfo &l, const MergeInfo &r) {
         return l.id < r.id;
     });

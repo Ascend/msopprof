@@ -36,6 +36,7 @@ struct UpdateCode {
     int processBytes;
     std::string code;
     std::set<uint64_t> pcSet;
+    float vecUtilization;
 };
 
 void SimCodeToPc::CalCulate()
@@ -87,7 +88,17 @@ void SimCodeToPc::Statistic(const std::string &coreName, SimData &data)
         std::for_each(instrList.second.begin(), instrList.second.end(), [&](MergeInfo &i) {
             pcSet.insert(i.pc);
         });
-        struct UpdateCode updateCode = {callCount, cycles, maxRegister, processBytes, instrList.first, pcSet};
+        struct UpdateCode updateCode = {callCount, cycles, maxRegister, processBytes, instrList.first, pcSet, -1.0f};
+        SimdVfUtilization utilization;
+        if (data.simdVf != nullptr) {
+            for (const auto pc : pcSet) {
+                const auto metric = data.simdVf->byPc.find(pc);
+                if (metric != data.simdVf->byPc.end()) {
+                    utilization.Add(metric->second);
+                }
+            }
+        }
+        updateCode.vecUtilization = utilization.Percentage();
         UpdateCodeStat(updateCode, coreName);
         CodeExe codeExe = {callCount, cycles, runningTime, instrList.first};
         exeStatList.emplace_back(codeExe);
@@ -129,6 +140,7 @@ bool SimCodeToPc::UpdateCodeStat(const struct UpdateCode &updateCode, const std:
             codeInfoMap_[codeFile][line].cycles.resize(cores_.size(), 0);
             codeInfoMap_[codeFile][line].gprCount.resize(cores_.size(), 0);
             codeInfoMap_[codeFile][line].processBytes.resize(cores_.size(), -1);
+            codeInfoMap_[codeFile][line].vecUtilization.resize(cores_.size(), -1.0f);
             if (!StoiConverter(line, codeInfoMap_[codeFile][line].line)) {
                 LogWarn("Failed to convert line [%d] str to int", codeInfoMap_[codeFile][line].line);
                 return false;
@@ -142,6 +154,7 @@ bool SimCodeToPc::UpdateCodeStat(const struct UpdateCode &updateCode, const std:
         codeInfoMap_[codeFile][line].callCount[index] = updateCode.callCount;
         codeInfoMap_[codeFile][line].cycles[index] = updateCode.cycles;
         codeInfoMap_[codeFile][line].gprCount[index] = updateCode.gprCount;
+        codeInfoMap_[codeFile][line].vecUtilization[index] = updateCode.vecUtilization;
         if (updateCode.processBytes != 0) {
             // updateCode.processBytes=0 should be displayed as NA
             codeInfoMap_[codeFile][line].processBytes[index] = updateCode.processBytes;
