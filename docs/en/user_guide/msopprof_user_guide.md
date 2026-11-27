@@ -48,7 +48,7 @@ msOpProf demonstrates single-operator tuning capabilities such as the computing 
 
 - Configure related environment variables by referring to the [MindStudio Ops Profiler Installation Guide](../install_guide/msopprof_install_guide.md).
 
-- To use MindStudio Insight for viewing, install the MindStudio Insight software package separately. For download links, see the [MindStudio Insight Installation Guide](https://gitcode.com/Ascend/msinsight/blob/master/docs/en/install_guide/mindstudio_insight_install_guide.md).
+- To use MindStudio Insight for viewing, install the MindStudio Insight software package separately. For download links, see the [MindStudio Insight Installation Guide](https://gitcode.com/Ascend/msinsight/blob/master/docs/en/install_guide/mindstudio_insight_install_overview.md).
 
 **Constraints**
 
@@ -94,7 +94,7 @@ msopprof --output=$HOME/projects/output $HOME/projects/MyApp/out/main blockdim 1
 |--replay-mode|Replay mode for operator data collection. Options include `kernel`, `application`, and `range`. The default value is `kernel`. If set to `application`, the entire application is replayed multiple times. In `application` mode, separately enabling some `aic-metrics` may lead to missing data in the `visualize_data.bin` file. To view complete `visualize_data.bin` data, you are advised to add `Default` to `--aic-metrics`. <li>If the value set to <code>kernel</code>, the kernel function of a single operator within the specified collection range is replayed multiple times. </li><li>If the value is set to <code>range</code>, multiple operators within the specified range are replayed multiple times as a whole. Multiple ranges can be specified, and ranges are independent of each other. </li>Note: <li>The `kernel` and `range` modes clear L2 cache data, while the `application` mode does not. </li><li>`application` mode is not supported in multi-device multi-operator scenarios. </li><li>Range-level replay must be used together with `--mstx=true` and is applicable only to Atlas A3 products, Atlas A2 products, and Ascend 950PR&950DT products. </li><li>Range-level replay does not support collection of MC2 operators that communicate based on the AICPU or LCCL operators. Atlas A3 products and Atlas A2 products do not support enabling it together with <code>--kill=true</code>, <code>--aic-metrics=MemoryDetail</code>, <code>TimelineDetail</code>, or <code>Source</code>. Ascend 950PR&950DT products do not support enabling it together with <code>--kill=true</code>, <code>--aic-metrics=PcSampling</code>, <code>Source</code>, <code>Roofline</code>, <code>PipeTimeline</code>, or <code>InstrTimeline</code>.</li>|No|
 |--warm-up|When some operators are collected using msOpProf, they may fail to reach the minimum task time consumption for processor frequency increasing, resulting in frequency reduction, which affects the results. In this case, you can use `--warm-up` to specify the number of warm-up times to increase the running frequency of the AI Processor in advance, so that the data on the board is more accurate.<br>Note: <ul><li>The default value is 5, and the value range is [0, 500]. </li><li>This parameter does not take effect for MC2 operators that communicate based on the AICPU. </li><li>When range-level replay is enabled, the number of warm-up times must be at least 1 and cannot be set to `--warm-up=0`.</li></ul>|No|
 |--output|Path for storing the collected profile data. By default, the profile data is stored in the current directory.<br>Ensure that users in the group and other groups do not have the write permission on the parent directory of the path specified by `--output`. In addition, ensure that the owner of the parent directory of the directory specified by `--output` is the current user.|No|
-|--dump|Specifies whether to generate the dump file of the simulator.<br>The value can be `on` or `off`. The default value is `off`, indicating that the simulator dump file is not generated.<br>Note: <ul><li>This parameter is valid only when `--aic-metrics=TimelineDetail` is used. It takes effect only for Atlas A2 products and Atlas A3 products. It does not take effect for Atlas inference products or Ascend 950PR&950DT products. </li><li>This parameter applies only to the single-process scenario and does not support the scenario where two operators run at the same time.</li></ul>|No|
+|--dump|Specifies whether to generate the dump file of the simulator.<br>The value can be `true` or `false`. The default value is `false`, indicating that the simulator dump file is not generated.<br>Note: <ul><li>This parameter is valid only when `--aic-metrics=TimelineDetail` is used. It takes effect only for Atlas A2 products and Atlas A3 products. It does not take effect for Atlas inference products or Ascend 950PR&950DT products. </li><li>This parameter applies only to the single-process scenario and does not support the scenario where two operators run at the same time.</li></ul>|No|
 |--core-id|This parameter is used when the operators are evenly distributed. You can use `--core-id` to specify the IDs of some logical cores to parse their simulation data.<br>The core ID range is [0, 49].<br>Note: <ul><li>If you want to parse the simulation data of multiple cores, use the symbol "\|" to combine the core IDs. For example, `--core-id="0\|31"` indicates that the simulation data of cores 0 and 31 is parsed. </li><li>This parameter is valid only when the `--aic-metrics=TimelineDetail` option is used. It is valid only for the [instruction pipeline chart](./msopprof_simulator_user_guide.md#instruction-pipeline-chart) and operator code hot spot diagram (#operator code hot spot diagram). This parameter is applicable only to Atlas A2 products, Atlas A3 products, and Ascend 950PR&950DT products.</li></ul>|No|
 |--custom-input|Reads a custom input file. For an input example, see [JSON example file](#json-example-file). Currently, it supports only the [Communication and Computing Pipeline Chart](#communication-and-computing-pipeline-chart). It applies only to Atlas A2 products, Atlas A3 products, and Ascend 950PR&950DT products.|No|
 |-h, --help|Outputs help information.|No|
@@ -269,7 +269,7 @@ To implement the [cache heatmap jump](#cache-heatmap) function, perform the foll
 
     > [!NOTE]
     >
-    > - `visualize_data.bin` can be visualized using MindStudio Insight. For details, see [MindStudio Insight Operator Tuning](https://gitcode.com/Ascend/msinsight/blob/master/docs/en/user_guide/operator_tuning.md).
+    > - `visualize_data.bin` can be visualized using MindStudio Insight. For details, see [MindStudio Insight Operator Tuning](https://gitcode.com/Ascend/msinsight/blob/master/docs/en/user_guide/operator_tuning/operator_tuning_overview.md).
     > - The hot spot function of msOpProf is supported only by Atlas A2 products.
     > - The unit is GB/s, indicating that 1 GB data is transmitted per second.
 
@@ -282,7 +282,7 @@ To implement the [cache heatmap jump](#cache-heatmap) function, perform the foll
 
 Visualizes the `visualize_data.bin` file generated in msOpProf. The page presents basic operator information, computing workload analysis data, and memory workload analysis data by resource, allowing developers to identify resource bottlenecks from a comprehensive perspective.
 
-For details about MindStudio Insight operations, see [Details](https://gitcode.com/Ascend/msinsight/blob/master/docs/en/user_guide/operator_tuning.md#details) in MindStudio Insight Operator Tuning.
+For details about MindStudio Insight operations, see [Details](https://gitcode.com/Ascend/msinsight/blob/master/docs/en/user_guide/operator_tuning/details.md) in MindStudio Insight Operator Tuning.
 
 ### Usage Description
 
@@ -321,7 +321,7 @@ The following shows the MindStudio Insight page of the `visualize_data.bin` file
 
 Visualizes the `visualize_data.bin` file generated in msOpProf. The roofline bottleneck analysis chart can be used to build a processor performance model, which can be used to quickly evaluate the theoretical performance limit of an operator, allowing developers to quickly identify bottlenecks.
 
-For details about MindStudio Insight operations, see [Details](https://gitcode.com/Ascend/msinsight/blob/master/docs/en/user_guide/operator_tuning.md#details) in MindStudio Insight Operator Tuning.
+For details about MindStudio Insight operations, see [Details](https://gitcode.com/Ascend/msinsight/blob/master/docs/en/user_guide/operator_tuning/details.md) in MindStudio Insight Operator Tuning.
 
 ### Usage Description
 
@@ -542,7 +542,7 @@ For the L2 cache access status within the kernel functions of a user program, ms
 
 **Precautions**
 
-- For detailed MindStudio Insight operations and field explanations, see [Cache](https://gitcode.com/Ascend/msinsight/blob/master/docs/en/user_guide/operator_tuning.md#cache) in MindStudio Insight Operator Tuning.
+- For detailed MindStudio Insight operations and field explanations, see [Cache](https://gitcode.com/Ascend/msinsight/blob/master/docs/en/user_guide/operator_tuning/cache.md) in MindStudio Insight Operator Tuning.
 - If the `-g` compilation option is added, the generated binary file contains debugging information. You are advised to restrict access to user programs with debugging information to authorized personnel only.
 - If the functions provided by the llvm-symbolizer component are not used, do not include `-g` when compiling the program that is input to msOpProf. In this case, msOpProf does not call the functions of the llvm-symbolizer component.
 <!-- npu="310p" id7 -->
@@ -584,7 +584,7 @@ Pipeline charts are classified into the communication and computing pipeline cha
 
 Visualizes the `trace.json` and `visualize_data.bin` files generated after an operator is tuned. You can intuitively see the running status of each pipeline, which helps identify operator bottlenecks.
 
-For detailed MindStudio Insight operations and field explanations, see [Timeline](https://gitcode.com/Ascend/msinsight/blob/master/docs/en/user_guide/operator_tuning.md#timeline) in MindStudio Insight Operator Tuning.
+For detailed MindStudio Insight operations and field explanations, see [Timeline](https://gitcode.com/Ascend/msinsight/blob/master/docs/en/user_guide/operator_tuning/timeline.md) in MindStudio Insight Operator Tuning.
 
 #### Usage Description
 
@@ -630,7 +630,7 @@ Different pipelines (VECTOR, CUBE, SCALAR, MTE1, and so on) are displayed on dif
 
 Visualizes the `trace.json` and `visualize_data.bin` files generated after an operator is tuned. With the on-board instruction-level pipeline chart of the operator, you can accurately collect the actual execution time of each instruction and grasp the global instruction scheduling sequence and running status, helping developers carry out in-depth tuning such as instruction scheduling optimization and instruction sequence reordering.
 
-For detailed MindStudio Insight operations and field explanations, see [Timeline](https://gitcode.com/Ascend/msinsight/blob/master/docs/en/user_guide/operator_tuning.md#timeline) in MindStudio Insight Operator Tuning.
+For detailed MindStudio Insight operations and field explanations, see [Timeline](https://gitcode.com/Ascend/msinsight/blob/master/docs/en/user_guide/operator_tuning/timeline.md) in MindStudio Insight Operator Tuning.
 
 #### Usage Description
 
@@ -653,7 +653,7 @@ Visualizes the `trace.json` and `visualize_data.bin` files generated after commu
 
 **Precautions**
 
-- The `trace.json` file can be visualized using either the Chrome browser or MindStudio Insight, while the `visualize_data.bin` file can be visualized only using MindStudio Insight. For detailed MindStudio Insight operations and field explanations, see [Timeline](https://gitcode.com/Ascend/msinsight/blob/master/docs/en/user_guide/operator_tuning.md#timeline) in MindStudio Insight Operator Tuning.
+- The `trace.json` file can be visualized using either the Chrome browser or MindStudio Insight, while the `visualize_data.bin` file can be visualized only using MindStudio Insight. For detailed MindStudio Insight operations and field explanations, see [Timeline](https://gitcode.com/Ascend/msinsight/blob/master/docs/en/user_guide/operator_tuning/timeline.md) in MindStudio Insight Operator Tuning.
 - If the `-g` compilation option is added, the generated binary file contains debugging information. You are advised to restrict access to user programs with debugging information to authorized personnel only.
 - When the communication and computing pipeline chart function is used in the KFC scenario, comply with the related API usage rules. In some scenarios, data on the Cube cannot be displayed. You need to view the operator marking data based on the KFC API principles.
 - "MC2 operators that communicate based on the AICPU" specifically refer to MC2 operators whose AICPU kernel and AICore kernel are delivered in pairs and whose AICPU kernel name ends with "Mc2AicpuKernel".
@@ -736,7 +736,7 @@ Visualizes the `trace.json` and `visualize_data.bin` files generated after commu
 
 Visualizes the `trace.json` and `visualize_data.bin` files generated after an operator is tuned. It intuitively displays the time consumption of each warp and other related information, helping developers identify operator bottlenecks.
 
-For detailed MindStudio Insight operations and field explanations, see [Timeline](https://gitcode.com/Ascend/msinsight/blob/master/docs/en/user_guide/operator_tuning.md#timeline) in MindStudio Insight Operator Tuning.
+For detailed MindStudio Insight operations and field explanations, see [Timeline](https://gitcode.com/Ascend/msinsight/blob/master/docs/en/user_guide/operator_tuning/timeline.md) in MindStudio Insight Operator Tuning.
 
 #### Usage Description
 
@@ -760,7 +760,7 @@ Visualizes the `visualize_data.bin` files generated by msOpProf. On the page, yo
 
 **Precautions**
 
-- For detailed MindStudio Insight operations and field explanations, see [Source](https://gitcode.com/Ascend/msinsight/blob/master/docs/en/user_guide/operator_tuning.md#source) in MindStudio Insight Operator Tuning.
+- For detailed MindStudio Insight operations and field explanations, see [Source](https://gitcode.com/Ascend/msinsight/blob/master/docs/en/user_guide/operator_tuning/source.md) in MindStudio Insight Operator Tuning.
 - If the `-g` compilation option is added, the generated binary file contains debugging information. You are advised to restrict access to user programs with debugging information to authorized personnel only.
 - The operator program must be compiled with the `-g` option. Otherwise, msOpProf will not display the hot spot map and will not call the relevant functions of the llvm-symbolizer component to implement code-to-PC mapping.
 <!-- npu="310p" id8 -->
@@ -828,7 +828,7 @@ The following figure shows the operator code hot spot map.
 
 Visualizes the `visualize_data.bin` file generated in msOpProf. It mainly displays the number of waiting times incurred during instruction execution due to resource conflicts, data dependencies, or other reasons, including `active`.
 
-For details about MindStudio Insight operations, see [Details](https://gitcode.com/Ascend/msinsight/blob/master/docs/en/user_guide/operator_tuning.md#details) in MindStudio Insight Operator Tuning.
+For details about MindStudio Insight operations, see [Details](https://gitcode.com/Ascend/msinsight/blob/master/docs/en/user_guide/operator_tuning/details.md) in MindStudio Insight Operator Tuning.
 
 ### Usage Description
 

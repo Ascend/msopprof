@@ -1,5 +1,7 @@
 # msOpProf使用场景
 
+本文档介绍msOpProf工具的使用场景，展示如何使用msOpProf采集Kernel直调、API调用、PyTorch、Triton、catlass、CATLASS DSL和MC2等场景下算子的上板与仿真性能数据，适用于需要采集算子性能数据的开发人员。
+
 ## 采集Kernel直调方式Ascend C算子的性能数据
 
 **概述**
@@ -147,7 +149,7 @@ PyTorch框架算子调用场景下，进行性能数据采集的操作步骤与[
 
 **操作步骤**
 
-1. 准备基础的triton算子样例test_add.py。
+1. 准备基础的Triton算子样例test_add.py。
 
     ```python
     import torch
@@ -190,7 +192,7 @@ PyTorch框架算子调用场景下，进行性能数据采集的操作步骤与[
 
     > [!NOTE]
     >
-    > 该样例算子已经去除了其它非triton算子的冗余计算，仅保留一个需要采集仿真性能的triton算子add_kernel，可极大节约仿真运行的整体耗时。即使指定了--kernel-name的情况下，仿真器仍会按照算子顺序依次运行，因此建议仿真运行前减少非必要的算子。
+    > 该样例算子已经去除了其它非Triton算子的冗余计算，仅保留一个需要采集仿真性能的Triton算子add_kernel，可极大节约仿真运行的整体耗时。即使指定了--kernel-name的情况下，仿真器仍会按照算子顺序依次运行，因此建议仿真运行前减少非必要的算子。
 
 ## 采集catlass算子的性能数据
 
@@ -225,7 +227,7 @@ PyTorch框架算子调用场景下，进行性能数据采集的操作步骤与[
     msopprof ./00_basic_matmul 256 512 1024 0
     ```
 
-3. 编译脚本增加选项--simulator，编译算子仿真可执行文件，并根据提示，配载仿真器二进制路径。
+3. 编译脚本增加选项--simulator，编译算子仿真可执行文件，并根据提示，配置仿真器二进制路径。
 
     ```shell
     bash scripts/build.sh --simulator 00_basic_matmul
@@ -263,7 +265,7 @@ PyTorch框架算子调用场景下，进行性能数据采集的操作步骤与[
 
 > [!NOTE]
 >
-> CATLASS DSL支持范围与triton支持范围一致，目前仅支持Ascend 950PR&950DT系列产品，不支持-g、代码热点图功能以及代码行映射能力。
+> CATLASS DSL支持范围与Triton支持范围一致，目前仅支持Ascend 950PR&950DT系列产品，不支持-g、代码热点图功能以及代码行映射能力。
 
 **操作步骤**
 

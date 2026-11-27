@@ -1,5 +1,7 @@
 # msOpProf simulator模式性能数据
 
+本文档介绍msOpProf simulator模式性能数据，涵盖输出目录结构以及代码行耗时、代码指令信息、可视化数据、指令流水图四类文件的字段说明，适用于使用msOpProf simulator进行算子指令级性能仿真并分析输出数据的开发人员。
+
 ## 概述
 
 msOpProf simulator运行模式通过仿真器对算子进行指令级性能仿真，采集完成后会在指定的`--output`目录下生成以`OPPROF_{timestamp}_XXX`命名的文件夹，输出以下性能数据文件。
@@ -37,7 +39,7 @@ OPPROF_{timestamp}_XXX
 
 **图 1** core*_code_exe.csv文件
 
-![](../figures/core-_code_exe-csv文件.png "core-_code_exe-csv文件")
+![core*_code_exe.csv文件打开后的内容示例，展示code、call_count、cycles与running_time各字段列](../figures/core-_code_exe-csv文件.png)
 
 **表 1** 字段说明
 
@@ -52,11 +54,11 @@ OPPROF_{timestamp}_XXX
 
 ## 代码指令信息文件
 
-代码指令详细信息文件为`core*_instr_exe.csv`，*代表核编号（0~n），存放各计算单元上每条指令的详细执行信息，协助用户识别最耗时的单条指令。
+代码指令信息文件为`core*_instr_exe.csv`，*代表核编号（0~n），存放各计算单元上每条指令的详细执行信息，协助用户识别最耗时的单条指令。
 
 **图 2** core*_instr_exe.csv文件
 
-![](../figures/core-_instr_exe-csv文件.png "core-_instr_exe-csv文件")
+![core*_instr_exe.csv文件打开后的内容示例，展示instr、addr、pipe、cycles与running_time等指令执行信息字段列](../figures/core-_instr_exe-csv文件.png)
 
 **表 2** 字段说明
 
@@ -83,9 +85,9 @@ OPPROF_{timestamp}_XXX
 
 **图 3** 算子代码热点图示例
 
-![](../figures/msopprof-simulator源码界面.png "算子代码热点图")
+![MindStudio Insight算子代码热点图界面，左侧算子源码与右侧指令集代码映射并标注各行耗时](../figures/msopprof-simulator源码界面.png)
 
-关于MindStudio Insight的导入操作，请参见《MindStudio Insight用户指南》的"[导入性能数据](https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/user_guide/basic_operations.md#%E5%AF%BC%E5%85%A5%E6%95%B0%E6%8D%AE)"章节。
+关于MindStudio Insight的导入操作，请参见《MindStudio Insight用户指南》的“[导入性能数据](https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/user_guide/basic_operations.md#%E5%AF%BC%E5%85%A5%E6%95%B0%E6%8D%AE)”章节。
 
 ---
 
@@ -99,7 +101,7 @@ OPPROF_{timestamp}_XXX
 
     **图 4** Chrome浏览器查看指令流水图
 
-    ![](../figures/时间线界面.png "时间线界面")
+    ![Chrome浏览器chrome://tracing窗口加载trace.json后的指令流水时序图，横向为时间轴](../figures/时间线界面.png)
 
     使用快捷键（W：放大，S：缩小，A：左移，D：右移）可进行浏览。
 - **MindStudio Insight**：将`trace.json`导入MindStudio Insight进行可视化呈现，展示内容包括指令流水时序以及各PIPE的执行状态。

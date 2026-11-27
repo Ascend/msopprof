@@ -1,5 +1,7 @@
 # **典型案例**
 
+本文档介绍算子性能优化的典型案例，通过msOpProf工具的指令流水图分析算子瓶颈并开启double buffer优化，以及配合mstx接口实现范围级重放，适用于需要定位并提升算子性能的用户。
+
 ## 通过指令流水图优化算子
 
 **概述**
@@ -13,14 +15,14 @@
 
     可以发现MTE2流水在VADD计算时，没有执行搬运指令，且MTE2流水为该算子的性能瓶颈，需提高MTE2的搬运效率以实现算子性能优化。
 
-    ![](../figures/算子指令流水图1.png)
+    ![Vector算子优化前的指令流水图，VADD计算时MTE2流水无搬运指令，MTE2为性能瓶颈](../figures/算子指令流水图1.png)
 
 3. 对于MTE2搬运效率的提升有多种方式，此处以开启Ascend C算子的double buffer机制为例。
 
     算子核函数中，可通过将TPipe中InitBuffer的第二个参数（BUFFER\_NUM）值从1修改为2，开启double buffer，InitBuffer的使用可参考《Ascend C算子开发接口》中的“基础API \> 内存管理与同步控制 \> TPipe \> [InitBuffer](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/latest/API/ascendcopapi/docs/zh/api/SIMD-API/basic_api/resource_management/TPipe/InitBuffer.md)”章节。
 
     ```CPP
-    constexpr int32_t BUFFER_NUM = 2;        # tensor num for each queue
+    constexpr int32_t BUFFER_NUM = 2;        // tensor num for each queue
     ...
     pipe.InitBuffer(inQueueY, BUFFER_NUM, 1024 * sizeof(half));
     ...
@@ -30,13 +32,13 @@
 
     在VADD指令计算时，MTE2上的搬运指令也同步执行，实现了更高效的数据搬运。
 
-    ![](../figures/算子指令流水图2优化后.png)
+    ![开启double buffer优化后的指令流水图，VADD计算时MTE2搬运指令同步执行，数据搬运更高效](../figures/算子指令流水图2优化后.png)
 
-## C API SIMD VF 流水诊断案例
+## C API SIMD VF流水诊断案例
 
 [sample_simd_vf_double_buffer](../../../example/sample_simd_vf_double_buffer/README.md) 提供 `dav-3510` 上数值正确、存在性能瑕疵的SIMD VF流水诊断案例，包含 `[16,8192]` half、单核算子、输入/golden生成、精度校验和数据契约测试。工程只提供待诊断实现，可作为msAgent空泡分析Skill的输入，从本次仿真指令、同步与源码形成优化建议并通过最小实验验证。
 
-该工程使用 `__simd_vf__`，与 `example/sample_double_buffer` 的 TPipe/TQue VectorAdd 案例独立，不代表 SIMT 或全产品验证；构建、数据和分析步骤见案例 README。
+该工程使用 `__simd_vf__`，与 `example/sample_double_buffer` 的TPipe/TQue VectorAdd案例独立，不代表SIMT或全产品验证；构建、数据和分析步骤见案例README。
 
 ## 配合mstx接口实现范围级重放
 

@@ -1,5 +1,7 @@
 # msopprof模式性能数据
 
+本文档介绍msopprof模式采集的算子性能数据，逐项说明ArithmeticUtilization、L2Cache、Memory、MemoryUB、PipeUtilization、ResourceConflictRatio等csv文件的字段含义与优化建议，适用于基于msopprof数据进行算子性能分析的开发者。
+
 ## ArithmeticUtilization（Cube及Vector类型指令耗时和占比）
 
 Cube及Vector类型指令的cycle占比数据ArithmeticUtilization.csv，建议优化算子逻辑，减少冗余计算指令。详情介绍请参见下表中的字段说明。
@@ -9,7 +11,7 @@ Cube及Vector类型指令的cycle占比数据ArithmeticUtilization.csv，建议�
 
 **图 1** ArithmeticUtilization.csv文件
 
-![](../figures/ArithmeticUtilization-csv文件.png "ArithmeticUtilization-csv文件")
+![ArithmeticUtilization.csv内容截图，展示A3及A2产品的Cube与Vector指令cycle占比](../figures/ArithmeticUtilization-csv文件.png)
 
 关键字段说明如下。
 
@@ -44,7 +46,7 @@ Cube及Vector类型指令的cycle占比数据ArithmeticUtilization.csv，建议�
 
 **图 2** ArithmeticUtilization.csv文件
 
-![](../figures/ArithmeticUtilization-csv文件-4.png "ArithmeticUtilization-csv文件-4")
+![ArithmeticUtilization.csv内容截图，展示Atlas推理产品的AI Core指令cycle占比](../figures/ArithmeticUtilization-csv文件-4.png)
 
 关键字段说明如下。
 
@@ -73,7 +75,7 @@ Cube及Vector类型指令的cycle占比数据ArithmeticUtilization.csv，建议�
 
 **图 3** ArithmeticUtilization.csv文件
 
-![](../figures/ArithmeticUtilization-csv文件-5.png "ArithmeticUtilization-csv文件-5")
+![ArithmeticUtilization.csv内容截图，展示Ascend 950产品的指令cycle占比](../figures/ArithmeticUtilization-csv文件-5.png)
 
 关键字段说明如下。
 
@@ -101,14 +103,14 @@ Cube及Vector类型指令的cycle占比数据ArithmeticUtilization.csv，建议�
 
 ## L2Cache（L2 Cache命中率）
 
-L2 Cache命中率数据L2Cache.csv，影响MTE2（Memory Transfer Engine，数据搬入单元），建议合理规划数据搬运逻辑，提高命中率。详情介绍请参见下表中的字段说明。
+L2 Cache命中率数据L2Cache.csv，影响MTE2（Memory Transfer Engine 2，数据搬入单元），建议合理规划数据搬运逻辑，提高命中率。详情介绍请参见下表中的字段说明。
 
 <!-- npu="A3,910b" id4 -->
 **Atlas A3系列产品及Atlas A2系列产品**
 
 **图 1** L2Cache.csv文件
 
-![](../figures/L2Cache-csv文件.png "L2Cache-csv文件")
+![L2Cache.csv内容截图，展示A3及A2产品的L2 Cache命中与缺失次数字段](../figures/L2Cache-csv文件.png)
 
 关键字段说明如下。
 
@@ -136,7 +138,7 @@ L2 Cache命中率数据L2Cache.csv，影响MTE2（Memory Transfer Engine，数�
 
 **图 2** L2Cache.csv文件
 
-![](../figures/L2Cache-csv文件-6.png "L2Cache-csv文件-6")
+![L2Cache.csv内容截图，展示Atlas推理产品的L2 Cache命中率字段](../figures/L2Cache-csv文件-6.png)
 
 关键字段说明如下。
 
@@ -152,7 +154,7 @@ L2 Cache命中率数据L2Cache.csv，影响MTE2（Memory Transfer Engine，数�
 
 **图 3** L2Cache.csv文件
 
-![](../figures/A5-L2Cache-csv.png "A5-L2Cache-csv")
+![L2Cache.csv内容截图，展示Ascend 950产品的L2 Cache读写命中与驱逐次数](../figures/A5-L2Cache-csv.png)
 
 关键字段说明如下。
 
@@ -193,7 +195,7 @@ UB/L1/L2/主存储器采集内存读写带宽速率数据Memory.csv。详情介�
 
 **图 1** Memory.csv文件
 
-![](../figures/Memory-csv文件.png "Memory-csv文件")
+![Memory.csv内容截图，展示A3及A2产品的UB、L1、L2与主存读写带宽速率](../figures/Memory-csv文件.png)
 
 关键字段说明如下。
 
@@ -240,7 +242,7 @@ UB/L1/L2/主存储器采集内存读写带宽速率数据Memory.csv。详情介�
 
 **图 2** Memory.csv文件
 
-![](../figures/Memory-csv文件-7.png "Memory-csv文件-7")
+![Memory.csv内容截图，展示Atlas推理产品的内存读写带宽与MTE指令](../figures/Memory-csv文件-7.png)
 
 关键字段说明如下。
 
@@ -269,7 +271,7 @@ UB/L1/L2/主存储器采集内存读写带宽速率数据Memory.csv。详情介�
 
 **图 3** Memory.csv文件
 
-![](../figures/Memory-csv文件-8.png "Memory-csv文件-8")
+![Memory.csv内容截图，展示Ascend 950产品的内存读写带宽与搬运量字段](../figures/Memory-csv文件-8.png)
 
 关键字段说明如下。
 
@@ -320,7 +322,7 @@ L0A/L0B/L0C采集内存读写带宽速率数据MemoryL0.csv。详情介绍请参
 
 **图 1** MemoryL0.csv文件
 
-![](../figures/MemoryL0-csv文件.png "MemoryL0-csv文件")
+![MemoryL0.csv内容截图，展示L0A、L0B、L0C读写带宽速率字段](../figures/MemoryL0-csv文件.png)
 
 关键字段说明如下。
 
@@ -347,7 +349,7 @@ L0A/L0B/L0C采集内存读写带宽速率数据MemoryL0.csv。详情介绍请参
 
 **图 2** MemoryL0.csv文件
 
-![](../figures/MemoryL0-csv文件-9.png "MemoryL0-csv文件-9")
+![MemoryL0.csv内容截图，展示Atlas推理产品的L0A、L0B、L0C读写带宽速率字段](../figures/MemoryL0-csv文件-9.png)
 
 关键字段说明如下。
 
@@ -378,7 +380,7 @@ MTE/Vector/Scalar采集ub读写带宽速率数据MemoryUB.csv。详情介绍请�
 
 **图 1** MemoryUB.csv文件
 
-![](../figures/MemoryUB-csv文件.png "MemoryUB-csv文件")
+![MemoryUB.csv内容截图，展示A3及A2产品的Vector与Scalar从UB读写带宽速率](../figures/MemoryUB-csv文件.png)
 
 关键字段说明如下。
 
@@ -403,7 +405,7 @@ MTE/Vector/Scalar采集ub读写带宽速率数据MemoryUB.csv。详情介绍请�
 
 **图 2** MemoryUB.csv文件
 
-![](../figures/MemoryUB-csv文件-10.png "MemoryUB-csv文件-10")
+![MemoryUB.csv内容截图，展示Atlas推理产品的Vector与Scalar从UB读写带宽速率](../figures/MemoryUB-csv文件-10.png)
 
 关键字段说明如下。
 
@@ -424,7 +426,7 @@ MTE/Vector/Scalar采集ub读写带宽速率数据MemoryUB.csv。详情介绍请�
 
 **图 3** MemoryUB.csv文件
 
-![](../figures/MemoryUB-csv文件-11.png "MemoryUB-csv文件-11")
+![MemoryUB.csv内容截图，展示Ascend 950产品的UB读写带宽与GM搬运带宽速率](../figures/MemoryUB-csv文件-11.png)
 
 关键字段说明如下。
 
@@ -450,7 +452,7 @@ MTE/Vector/Scalar采集ub读写带宽速率数据MemoryUB.csv。详情介绍请�
 
 **图 1** OpBasicInfo.csv文件
 
-![](../figures/OpBasicInfo-csv文件.png "OpBasicInfo-csv文件")
+![OpBasicInfo.csv内容截图，展示算子名称、类型、Block Dim与耗时等基础信息字段](../figures/OpBasicInfo-csv文件.png)
 
 关键字段说明如下。
 
@@ -474,7 +476,7 @@ MTE/Vector/Scalar采集ub读写带宽速率数据MemoryUB.csv。详情介绍请�
 
 **图 1** summary.csv
 
-![](../figures/summary-csv文件.png "summary-csv文件")
+![summary.csv内容截图，按Device ID顺序逐行展示多条算子执行记录的汇总字段](../figures/summary-csv文件.png)
 
 关键字段说明与[OpBasicInfo（算子基础信息）](#opbasicinfo算子基础信息)保持一致。
 
@@ -492,7 +494,7 @@ MTE/Vector/Scalar采集ub读写带宽速率数据MemoryUB.csv。详情介绍请�
 
 **图 1** PipeUtilization.csv文件
 
-![](../figures/pipe4.png "pipe4文件")
+![PipeUtilization.csv内容截图，展示A3及A2产品的计算单元与搬运单元耗时占比字段](../figures/pipe4.png)
 
 关键字段说明如下。
 
@@ -506,8 +508,8 @@ MTE/Vector/Scalar采集ub读写带宽速率数据MemoryUB.csv。详情介绍请�
 |aic_total_cycles|该Task被分配到每个AI Cube Core计算单元上后，每个AI Cube Core计算单元上的执行的cycle总数。|
 |aiv_time(us)|该Task被分配到每个AI Vector Core计算单元上后，每个AI Vector Core计算单元上的执行时间，单位us。|
 |aiv_total_cycles|该Task被分配到每个AI Vector Core计算单元上后，每个AI Vector Core计算单元上的执行的cycle总数。|
-|aiv_vec_time(us)|代表vec类型指令（向量类运算指令）耗时。|
-|aiv_vec_ratio|代表vec类型指令（向量类运算指令）的cycle数在total cycle数中的占用比。|
+|aiv_vec_time(us)|代表Vec类型指令（向量类运算指令）耗时。|
+|aiv_vec_ratio|代表Vec类型指令（向量类运算指令）的cycle数在total cycle数中的占用比。|
 |aic_cube_time(us)|代表Cube类型指令（fp16及s16矩阵类运算指令）耗时。|
 |aic_cube_ratio|代表Cube类型指令（fp16及s16矩阵类运算指令）的cycle数在total cycle数中的占用比。|
 |ai*_scalar_time(us)|代表scalar类型指令（标量类运算指令）耗时。|
@@ -527,15 +529,15 @@ MTE/Vector/Scalar采集ub读写带宽速率数据MemoryUB.csv。详情介绍请�
 |aic_fixpipe_ratio|代表fixpipe类型指令（L0C->GM/L1搬运类指令）的cycle数在total cycle数中的占用比。|
 |aic_mte1_time(us)|代表MTE1类型指令（L1->L0A/L0B搬运类指令）耗时，不包括搬运等待时间。|
 |aic_mte1_ratio|代表MTE1类型指令（L1->L0A/L0B搬运类指令）的cycle数在total cycle数中的占用比。|
-|ai*_mte2_time(us)|代表MTE2类型指令（GM->AICORE搬运类指令）耗时。|
-|ai*_mte2_ratio|代表MTE2类型指令（GM->AICORE搬运类指令）的cycle数在total cycle数中的占用比。|
-|ai*_mte3_time(us)|代表MTE3类型指令（AICORE->GM搬运类指令）耗时。|
-|ai*_mte3_ratio|代表MTE3类型指令（AICORE->GM搬运类指令）的cycle数在total cycle数中的占用比。|
+|ai*_mte2_time(us)|代表MTE2类型指令（GM->AI Core搬运类指令）耗时。|
+|ai*_mte2_ratio|代表MTE2类型指令（GM->AI Core搬运类指令）的cycle数在total cycle数中的占用比。|
+|ai*_mte3_time(us)|代表MTE3类型指令（AI Core->GM搬运类指令）耗时。|
+|ai*_mte3_ratio|代表MTE3类型指令（AI Core->GM搬运类指令）的cycle数在total cycle数中的占用比。|
 |ai*_icache_miss_rate|代表ICache缺失率，即未命中instruction的L1 cache，数值越小越好。|
-|aic_mte3_active_bw(GB/s)|代表MTE3类型指令（AICORE->DDR CUBE搬运类指令）数据量对应active cycle的活跃带宽。|
-|aiv_mte3_active_bw(GB/s)|代表MTE3类型指令（AICORE->DDR AIV搬运类指令）数据量对应active cycle的活跃带宽。|
+|aic_mte3_active_bw(GB/s)|代表MTE3类型指令（AI Core->DDR CUBE搬运类指令）数据量对应active cycle的活跃带宽。|
+|aiv_mte3_active_bw(GB/s)|代表MTE3类型指令（AI Core->DDR AIV搬运类指令）数据量对应active cycle的活跃带宽。|
 |aic_fixpipe_active_bw(GB/s)|代表fixpipe类型指令（L0C->OUT/L1搬运类指令）数据量对应active cycle的活跃带宽。|
-|aiv_mte2_active_bw(GB/s)|代表MTE2类型指令（DDR->AICORE AIV搬运类指令）数据量对应active cycle的活跃带宽。|
+|aiv_mte2_active_bw(GB/s)|代表MTE2类型指令（DDR->AI Core AIV搬运类指令）数据量对应active cycle的活跃带宽。|
 |aic_mte1_active_bw(GB/s)|代表Cube单元MTE1数据量对应active cycle的活跃带宽，具体涉及L1->L0A、L1->L0B这2个部分的通路数据。Atlas A3系列产品和Atlas A2系列产品仅开启动态插桩（设置--aic-metrics=MemoryDetail时）会显示。|
 |aic_mte2_active_bw(GB/s)|代表Cube单元MTE2数据量对应active cycle的活跃带宽，具体涉及GM->L1、GM->L0A、GM->L0B这3条通路的数据。Atlas A3系列产品和Atlas A2系列产品仅开启动态插桩（设置--aic-metrics=MemoryDetail时）会显示。|
 <!-- end id15 -->
@@ -545,7 +547,7 @@ MTE/Vector/Scalar采集ub读写带宽速率数据MemoryUB.csv。详情介绍请�
 
 **图 2** PipeUtilization.csv文件
 
-![](../figures/PipeUtilization-csv文件-12.png "PipeUtilization-csv文件-12")
+![PipeUtilization.csv内容截图，展示Atlas推理产品的Cube、Vec与MTE指令耗时占比字段](../figures/PipeUtilization-csv文件-12.png)
 
 关键字段说明如下。
 
@@ -561,10 +563,10 @@ MTE/Vector/Scalar采集ub读写带宽速率数据MemoryUB.csv。详情介绍请�
 |aic_scalar_ratio|代表scalar类型指令（标量类运算指令）的cycle数在total cycle数中的占用比。|
 |aic_mte1_time(us)|代表MTE1类型指令（L1->L0A/L0B搬运类指令）耗时，不包括搬运等待时间。|
 |aic_mte1_ratio|代表MTE1类型指令（L1->L0A/L0B搬运类指令）的cycle数在total cycle数中的占用比。|
-|aic_mte2_time(us)|代表MTE2类型指令（GM->AICORE搬运类指令）耗时。|
-|aic_mte2_ratio|代表MTE2类型指令（GM->AICORE搬运类指令）的cycle数在total cycle数中的占用比。|
-|aic_mte3_time(us)|代表MTE3类型指令（AICORE->GM搬运类指令）耗时。|
-|aic_mte3_ratio|代表MTE3类型指令（AICORE->GM搬运类指令）的cycle数在total cycle数中的占用比。|
+|aic_mte2_time(us)|代表MTE2类型指令（GM->AI Core搬运类指令）耗时。|
+|aic_mte2_ratio|代表MTE2类型指令（GM->AI Core搬运类指令）的cycle数在total cycle数中的占用比。|
+|aic_mte3_time(us)|代表MTE3类型指令（AI Core->GM搬运类指令）耗时。|
+|aic_mte3_ratio|代表MTE3类型指令（AI Core->GM搬运类指令）的cycle数在total cycle数中的占用比。|
 |aic_icache_miss_rate|代表ICache缺失率，即未命中instruction的L1 cache，数值越小越好。|
 |aic_vec_time(us)|代表Vec类型指令（向量类运算指令）耗时。|
 |aic_vec_ratio|代表Vec类型指令（向量类运算指令）的cycle数在total cycle数中的占用比。|
@@ -575,7 +577,7 @@ MTE/Vector/Scalar采集ub读写带宽速率数据MemoryUB.csv。详情介绍请�
 
 **图 3** PipeUtilization.csv文件
 
-![](../figures/PipeUtilization-csv文件.png "PipeUtilization-csv文件")
+![PipeUtilization.csv内容截图，展示Ascend 950产品的各流水单元耗时占比与活跃带宽字段](../figures/PipeUtilization-csv文件.png)
 
 关键字段说明如下。
 
@@ -589,8 +591,8 @@ MTE/Vector/Scalar采集ub读写带宽速率数据MemoryUB.csv。详情介绍请�
 |aic_total_cycles|该Task被分配到每个AI Cube Core计算单元上后，每个AI Cube Core计算单元上的执行的cycle总数。|
 |aiv_time(us)|该Task被分配到每个AI Vector Core计算单元上后，每个AI Vector Core计算单元上的执行时间，单位us。|
 |aiv_total_cycles|该Task被分配到每个AI Vector Core计算单元上后，每个AI Vector Core计算单元上的执行的cycle总数。|
-|aiv_vec_time(us)|代表vec类型指令（向量类运算指令）耗时。|
-|aiv_vec_ratio|代表vec类型指令（向量类运算指令）的cycle数在total cycle数中的占用比。|
+|aiv_vec_time(us)|代表Vec类型指令（向量类运算指令）耗时。|
+|aiv_vec_ratio|代表Vec类型指令（向量类运算指令）的cycle数在total cycle数中的占用比。|
 |aic_cube_time(us)|代表Cube类型指令（fp16及s16矩阵类运算指令）耗时。|
 |aic_cube_ratio|代表Cube类型指令（fp16及s16矩阵类运算指令）的cycle数在total cycle数中的占用比。|
 |ai*_scalar_time(us)|代表scalar类型指令（标量类运算指令）耗时。|
@@ -599,15 +601,15 @@ MTE/Vector/Scalar采集ub读写带宽速率数据MemoryUB.csv。详情介绍请�
 |aic_fixpipe_ratio|代表fixpipe类型指令（L0C->GM/L1搬运类指令）的cycle数在total cycle数中的占用比。|
 |aic_mte1_time(us)|代表MTE1类型指令（L1->L0A/L0B搬运类指令）耗时，不包括搬运等待时间。|
 |aic_mte1_ratio|代表MTE1类型指令（L1->L0A/L0B搬运类指令）的cycle数在total cycle数中的占用比。|
-|ai*_mte2_time(us)|代表MTE2类型指令（GM->AICORE搬运类指令）耗时。|
-|ai*_mte2_ratio|代表MTE2类型指令（GM->AICORE搬运类指令）的cycle数在total cycle数中的占用比。|
-|ai*_mte3_time(us)|代表MTE3类型指令（AICORE->GM搬运类指令）耗时。|
-|ai*_mte3_ratio|代表MTE3类型指令（AICORE->GM搬运类指令）的cycle数在total cycle数中的占用比。|
+|ai*_mte2_time(us)|代表MTE2类型指令（GM->AI Core搬运类指令）耗时。|
+|ai*_mte2_ratio|代表MTE2类型指令（GM->AI Core搬运类指令）的cycle数在total cycle数中的占用比。|
+|ai*_mte3_time(us)|代表MTE3类型指令（AI Core->GM搬运类指令）耗时。|
+|ai*_mte3_ratio|代表MTE3类型指令（AI Core->GM搬运类指令）的cycle数在total cycle数中的占用比。|
 |ai*_icache_miss_rate|代表ICache缺失率，即未命中instruction的L1 cache，数值越小越好。|
- |aic_mte3_active_bw(GB/s)|代表MTE3类型指令（AICORE->DDR CUBE搬运类指令）的活跃带宽。|
- |aiv_mte3_active_bw(GB/s)|代表MTE3类型指令（AICORE->DDR AIV搬运类指令）的活跃带宽。|
+ |aic_mte3_active_bw(GB/s)|代表MTE3类型指令（AI Core->DDR CUBE搬运类指令）的活跃带宽。|
+ |aiv_mte3_active_bw(GB/s)|代表MTE3类型指令（AI Core->DDR AIV搬运类指令）的活跃带宽。|
  |aic_fixpipe_active_bw(GB/s)|代表fixpipe类型指令（L0C->OUT/L1搬运类指令）的活跃带宽。|
- |aiv_mte2_active_bw(GB/s)|代表MTE2类型指令（DDR->AICORE AIV搬运类指令）的活跃带宽。|
+ |aiv_mte2_active_bw(GB/s)|代表MTE2类型指令（DDR->AI Core AIV搬运类指令）的活跃带宽。|
  |aic_mte1_active_bw(GB/s)|代表Cube单元MTE1的活跃带宽，具体涉及L1->L0A、L1->L0B这2个部分的通路数据。|
  |aic_mte2_active_bw(GB/s)|代表Cube单元MTE2的活跃带宽，具体涉及GM->L1、GM->L0A、GM->L0B这3条通路的数据。|
 <!-- end id17 -->
@@ -625,7 +627,7 @@ bank group是指UB中的一组bank，每个bank group包含多个bank。bank con
 
 **图 1** ResourceConflictRatio.csv文件
 
-![](../figures/ResourceConflictRatio-csv文件.png "ResourceConflictRatio-csv文件")
+![ResourceConflictRatio.csv内容截图，展示A3及A2产品的bankgroup、bank与资源冲突占比字段](../figures/ResourceConflictRatio-csv文件.png)
 
 关键字段说明如下。
 
@@ -656,7 +658,7 @@ bank group是指UB中的一组bank，每个bank group包含多个bank。bank con
 
 **图 2** ResourceConflictRatio.csv文件
 
-![](../figures/ResourceConflictRatio-csv文件-13.png "ResourceConflictRatio-csv文件-13")
+![ResourceConflictRatio.csv内容截图，展示Atlas推理产品的Cube、Vec与MTE阻塞占比字段](../figures/ResourceConflictRatio-csv文件-13.png)
 
 关键字段说明如下。
 
@@ -687,7 +689,7 @@ bank group是指UB中的一组bank，每个bank group包含多个bank。bank con
 
 **图 3** ResourceConflictRatio.csv文件
 
-![](../figures/ResourceConflictRatio-csv文件-14.png "ResourceConflictRatio-csv文件-14")
+![ResourceConflictRatio.csv内容截图，展示Ascend 950产品的Vec set/load/读写冲突与MTE阻塞占比字段](../figures/ResourceConflictRatio-csv文件-14.png)
 
 关键字段说明如下。
 

@@ -304,7 +304,7 @@ mstx接口是MindStudio提供的一个性能分析接口，它允许用户在应
 
     - 在`${git_clone_path}/cann-learning-hub/tutorials/ascendc_operator_development/03_intermediate_vector_operator_development/src/custom_op_04/test/main.cpp`路径下，将用户程序编译链接dl库，对应的头文件`ms_tools_ext.h`地址：`${INSTALL_DIR}/include/mstx`。
 
-        ```cmake
+        ```cpp
         ...
         #include "mstx/ms_tools_ext.h"
         ...
