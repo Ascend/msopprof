@@ -1,0 +1,30 @@
+project: Ascend/msopprof
+version: "1.0"
+
+directories:
+  - path: "./.devcontainer/"
+    type: scripts
+  - path: "./.gitcode/"
+    type: scripts
+  - path: "./.gitcode/workflows/"
+    type: build
+  - path: "./.vscode/"
+    type: scripts
+  - path: "./cmake/"
+    type: build
+  - path: "./csrc/"
+    type: source
+  - path: "./docs/"
+    type: docs
+  - path: "./example/"
+    type: examples
+  - path: "./msopscommon/"
+    type: third_party
+  - path: "./package/"
+    type: packaging
+  - path: "./pre-commit/"
+    type: scripts
+  - path: "./test/"
+    type: test
+  - path: "./thirdparty/"
+    type: third_party
